@@ -17,6 +17,11 @@ public class NoteHibernateImpl extends ElementHibernateImpl implements Note, Ser
 	protected NoteHibernateImpl(){
 	}
 
+	public NoteHibernateImpl(final String title, final String description,
+	                         final Author author) {
+		this(title,description,Calendar.getInstance(), author);
+	}
+
 	public NoteHibernateImpl(final String title, final String description,final Calendar creationDate,
 	                         final Author author) {
 		super("Element",creationDate, description);

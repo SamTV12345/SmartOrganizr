@@ -1,25 +1,33 @@
 package de.smart.organizr.view;
 
 import de.smart.organizr.entities.classes.FolderHibernateImpl;
-import de.smart.organizr.entities.interfaces.Author;
 import de.smart.organizr.entities.interfaces.Folder;
 import de.smart.organizr.services.interfaces.FolderService;
+import de.smart.organizr.utils.JsfUtils;
+
+import javax.annotation.PostConstruct;
+import java.util.Optional;
 
 public class EditFolderView {
 	private final  FolderService folderService;
 	private String description;
 	private String name;
+	private Optional<Folder> optionalFutureParentFolder;
 
 	public EditFolderView(final FolderService folderService) {
 		this.folderService = folderService;
 	}
 
+	@PostConstruct
+	public void initialize(){
+		optionalFutureParentFolder =  Optional.ofNullable(JsfUtils.getFolderFromFlash());
+
+	}
+
 	public String saveFolder(){
-		System.out.println(description);
-		System.out.println(name);
 		final Folder folderToBeSaved = new FolderHibernateImpl(name, description);
-		System.out.println(folderToBeSaved);
-		System.out.println(folderService.saveFolder(folderToBeSaved));
+		optionalFutureParentFolder.ifPresent(folderToBeSaved::setParent);
+		folderService.saveFolder(folderToBeSaved);
 		return "/viewFoldersView.xhtml";
 	}
 

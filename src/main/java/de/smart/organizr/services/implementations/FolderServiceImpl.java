@@ -22,4 +22,9 @@ public class FolderServiceImpl implements FolderService {
 	public Folder saveFolder(final Folder folder){
 		return folderDao.saveFolder(folder);
 	}
+
+	@Override
+	public Collection<Folder> findAllParentFolders() {
+		return folderDao.findAllParentFolders();
+	}
 }

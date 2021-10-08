@@ -8,4 +8,6 @@ public interface FolderService {
 	Collection<Folder> findAllFolders();
 
 	Folder saveFolder(Folder folder);
+
+	Collection<Folder> findAllParentFolders();
 }

@@ -1,6 +1,7 @@
 package de.smart.organizr.utils;
 
 import de.smart.organizr.entities.classes.UserHibernateImpl;
+import de.smart.organizr.entities.interfaces.Folder;
 
 import java.io.IOException;
 
@@ -17,7 +18,9 @@ import javax.servlet.http.HttpServletRequest;
 public class JsfUtils {
 
 	private static final String KEY_USER = "user";
-	
+	private static final String KEY_FOLDER = "folder";
+
+
 	private static Flash getFlash() {
 		return FacesContext.getCurrentInstance().getExternalContext().getFlash();
 	}
@@ -47,5 +50,12 @@ public class JsfUtils {
 		}
 		return false;
 	}
-	
+
+	public static void putFolderIntoFlash(final Folder folder){
+		getFlash().put(KEY_FOLDER, folder);
+	}
+
+	public static Folder getFolderFromFlash() {
+		return (Folder) getFlash().get(KEY_FOLDER);
+	}
 }

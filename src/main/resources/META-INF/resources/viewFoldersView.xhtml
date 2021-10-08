@@ -1,15 +1,31 @@
 <ui:composition xmlns:ui="http://xmlns.jcp.org/jsf/facelets" xmlns:p="http://primefaces.org/ui"
                 xmlns:h="http://java.sun.com/jsf/html" template="/templates/template.xhtml">
     <ui:define name="page-content">
-
-        <p:commandButton icon="pi pi-plus" action="#{viewFolderView.navigateToEditFolder()}"/>
+        <h:form>
+            <h2><h:outputText value="#{viewFolderView.currentFolder.get().name}"
+                              rendered="#{viewFolderView.subfolder}"/>
+            </h2>
+        <p:commandButton icon="pi pi-plus" action="#{viewFolderView.navigateToEditFolder()}"
+        value="#{labels['view-folders.create-folder']}"/>
+            <p:commandButton icon="pi pi-plus" action="#{viewFolderView.navigateToEditNote()}"
+                             value="#{labels['view-folders.create-note']}"
+                             rendered="#{viewFolderView.subfolder}"/>
     <p:dataTable value="#{viewFolderView.findAllFolders()}" var="folder">
         <p:column headerText="#{labels['view-folders.folder-name']}">
             <h:outputText value="#{folder.name}"/>
         </p:column>
-        <p:column>
+        <p:column headerText="#{labels['view-folders.folder-description']}">
             <h:outputText value="#{folder.description}"/>
         </p:column>
+        <p:column>
+            <p:commandButton icon="pi pi-eye" action="#{viewFolderView.navigateToNextFolder(folder)}"
+            update="@form"/>
+        </p:column>
     </p:dataTable>
+            <p:commandButton value="#{labels['view-folders.back-to-parent']}"
+                             rendered="#{viewFolderView.subfolder}"
+                             action="#{viewFolderView.navigateToParent()}"
+                             update="@form"/>
+        </h:form>
     </ui:define>
 </ui:composition>

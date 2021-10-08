@@ -1,4 +1,4 @@
 package de.smart.organizr.entities.interfaces;
 
-public interface Note {
+public interface Note extends Element{
 }

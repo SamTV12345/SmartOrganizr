@@ -7,6 +7,6 @@ import javax.persistence.FetchType;
 import javax.persistence.OneToMany;
 import java.util.List;
 
-public interface Folder {
+public interface Folder extends Element{
 	List<Element> getElements();
 }

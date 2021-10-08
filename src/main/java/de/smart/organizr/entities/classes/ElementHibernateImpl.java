@@ -88,12 +88,14 @@ public class ElementHibernateImpl implements Element, Serializable {
 		this.name = name;
 	}
 
+	@Override
 	@ManyToOne(targetEntity = FolderHibernateImpl.class)
 	@JoinColumn(name = "Parent")
 	public Folder getParent() {
 		return parent;
 	}
 
+	@Override
 	public void setParent(final Folder parent) {
 		this.parent = parent;
 	}

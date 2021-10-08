@@ -1,8 +1,8 @@
 package de.smart.organizr.entities.interfaces;
 
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
+import de.smart.organizr.entities.classes.FolderHibernateImpl;
+
+import javax.persistence.*;
 import java.util.Calendar;
 
 public interface Element {
@@ -11,4 +11,10 @@ public interface Element {
 	int getId();
 
 	String getName();
+
+	@ManyToOne(targetEntity = FolderHibernateImpl.class)
+	@JoinColumn(name = "Parent")
+	Folder getParent();
+
+	void setParent(Folder parent);
 }
