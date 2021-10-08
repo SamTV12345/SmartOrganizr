@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<faces-config
+    xmlns="http://java.sun.com/xml/ns/javaee"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-facesconfig_2_1.xsd"
+    version="2.1">
+
+	<converter>
+		<converter-for-class>
+            de.smart.organizr.model.Room
+        </converter-for-class>
+		<converter-class>
+            de.smart.organizr.converters.RoomConverter
+        </converter-class>
+	</converter>
+		
+	<application>
+        <resource-bundle>
+            <base-name>i18n.messages</base-name>
+            <var>msgs</var>
+        </resource-bundle>
+        <resource-bundle>
+            <base-name>i18n.exceptions</base-name>
+            <var>exceptions</var>
+        </resource-bundle>
+        <resource-bundle>
+            <base-name>i18n.labels</base-name>
+            <var>labels</var>
+        </resource-bundle>
+    	<locale-config>
+    		<default-locale>de</default-locale>
+    		<supported-locale>en</supported-locale>
+    	</locale-config>
+    </application>
+
+    <navigation-rule>
+        <from-view-id>/*</from-view-id>
+        <navigation-case>
+            <from-outcome>logout</from-outcome>
+            <to-view-id>/login.xhtml</to-view-id>
+            <redirect/>
+        </navigation-case>
+    </navigation-rule>
+
+    <navigation-rule>
+        <from-view-id>/register.xhtml</from-view-id>
+        <navigation-case>
+            <from-outcome>successfulRegistration</from-outcome>
+            <to-view-id>/menu.xhtml</to-view-id>
+        </navigation-case>
+    </navigation-rule>
+
+    <navigation-rule>
+        <from-view-id>/editProfile.xhtml</from-view-id>
+        <navigation-case>
+            <from-outcome>successfulUpdatedProfile</from-outcome>
+            <to-view-id>/menu.xhtml</to-view-id>
+        </navigation-case>
+    </navigation-rule>
+
+    <navigation-rule>
+        <from-view-id>/changePassword.xhtml</from-view-id>
+        <navigation-case>
+            <from-outcome> successfulPasswordChanged</from-outcome>
+            <to-view-id>/menu.xhtml</to-view-id>
+        </navigation-case>
+    </navigation-rule>
+
+
+</faces-config> 

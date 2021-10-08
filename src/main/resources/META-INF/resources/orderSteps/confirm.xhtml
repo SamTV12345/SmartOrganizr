@@ -1,0 +1,74 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+	xmlns:h="http://xmlns.jcp.org/jsf/html" xmlns:f="http://xmlns.jcp.org/jsf/core" xmlns:p="http://primefaces.org/ui">
+
+	<p:growl id="messages" />
+
+	<p:panelGrid columns="2" styleClass="ui-noborder">
+	
+		<h:outputText value="#{labels['order.delivery-address']}" /><br/>
+		
+		<p:outputLabel for="room" value="#{labels['order.room-number']}" />
+		<h:outputText id="room" value="#{orderView.room}" />
+				
+		<p:outputLabel for="name" value="#{labels['order.name']}" />
+		<h:outputText id="name" value="#{orderView.name}" />	
+		
+		<h:outputText value="#{labels['order.payment-data']}" />
+		<br />
+		
+		<p:outputLabel for="accountHolder" value="#{labels['order.account-holder']}" />
+		<h:outputText id="accountHolder" value="#{orderView.accountHolder}" />
+			
+		<p:outputLabel for="iban" value="#{labels['order.iban']}" />
+		<h:outputText id="iban" value="#{orderView.iban}" />
+		
+		<p:outputLabel for="bic" value="#{labels['order.bic']}" />
+		<h:outputText id="bic" value="#{orderView.bic}" />
+		
+		<p:outputLabel for="dishes-table" value="#{labels['order.ordered-dishes']}" />
+	</p:panelGrid>
+	
+	<p:dataTable value="#{orderView.findOrderedDishes()}"
+				 var="dishOrder"
+				 id="dishes-table">
+		
+		<p:column headerText="#{labels['order.dish.name']}">
+			<h:outputText value="#{dishOrder.dish.dishName}" />
+		</p:column>
+		
+		<p:column headerText="#{labels['order.dish.quantity']}">
+			<h:outputText value="#{dishOrder.quantity}" />
+		</p:column>
+	</p:dataTable>
+	<br />
+	
+	<h:outputText value="#{labels['order.total-price']} "/>
+	<h:outputText value="#{orderView.totalPrice}">
+		<f:convertNumber currencyCode="EUR" type="currency" />
+	</h:outputText>
+	
+	<br />
+	
+	<p:commandButton actionListener="#{orderView.submitOrder()}" 
+					 value="#{labels['order.order']}" 
+					 disabled="#{orderView.orderCompleted}"
+					 onclick="PF('dlg').show()"
+					 styleClass="form-button"
+					 update="messages"/>
+	
+	<p:commandButton action="menu" 
+					 value="#{labels['common.button.backToMenu']}" 
+					 rendered="#{orderView.orderCompleted}"/>
+					 
+	<p:dialog header="#{labels['order.completed.header']}" widgetVar="dlg" showEffect="fade" modal="true">
+	
+	    <p><h:outputText value="#{labels['order.completed.text']}"/></p>
+	    
+	    <f:facet name="footer">
+	        <p:commandButton type="button" value="#{labels['order.completed.close']}" onclick="PF('dlg').hide()"/>
+	    </f:facet>
+	    <p:ajax event="close" update="@form" />
+	    
+	</p:dialog>
+
+</ui:composition>

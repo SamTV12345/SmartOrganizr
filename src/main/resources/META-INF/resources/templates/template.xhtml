@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+        "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+	xmlns:h="http://xmlns.jcp.org/jsf/html" xmlns:f="http://xmlns.jcp.org/jsf/core"
+	xmlns:p="http://primefaces.org/ui">
+<h:head>
+	<f:metadata charset="UTF-8" />
+	<title><ui:insert name="title">
+			<h:outputText value="#{labels['template.title']}" />
+		</ui:insert><h:outputText value="#{labels['template.title-suffix']}" /></title>
+
+	<meta name="viewport" content="width=device-width" />
+
+	<h:outputStylesheet name="style.css" library="css" />
+	<h:outputScript name="sidebar.js" library="js" />
+
+</h:head>
+<h:body >
+
+	<f:view locale="#{userBean.localeCode}" />
+
+	<div class="header">
+		<div class="header-field">
+			<p:commandButton icon="pi pi-bars" onclick="btnCollapseSidebarClicked()" />
+		</div>
+		
+		<div class="header-field no-mobile-display">
+			<h:form>
+				<h:commandLink action="/menu?faces-redirect=true" styleClass="header-link" >
+					<h1>
+						<h:outputText value="#{labels['template.heading']}" />
+					</h1>
+				</h:commandLink>
+			</h:form>
+		</div>
+		
+		<div class="header-spacer" />
+		
+		<h:form styleClass="header-field">
+
+			<i class="pi pi-globe header-icon" />
+			<p:selectOneMenu value="#{userBean.localeCode}" onchange="submit()">
+				<f:selectItem itemLabel="Deutsch" itemValue="de" />
+				<f:selectItem itemLabel="English" itemValue="en" />
+			</p:selectOneMenu>
+
+		</h:form>
+
+		<div class="header-field">
+			<ui:fragment rendered="#{userBean.loggedIn}">
+				<p:linkButton icon="pi pi-sign-out" href="/logout" styleClass="header-button" />
+				<p:commandLink value="#{userBean.user.userName}" action="editProfile" />
+			</ui:fragment>
+	
+			<ui:fragment rendered="#{!userBean.loggedIn}">
+	
+			</ui:fragment>
+		</div>
+
+	</div>
+
+	<div class="sidebar sidebar-affected"  >
+	
+		<h:form>
+			<p:menu style="width: 100%;">
+				<p:menuitem value="#{labels['template.menu.home']}" action="/menu?faces-redirect=true" icon="pi pi-home" />
+				<p:menuitem value="#{labels['template.menu.manage-dishes']}" action="/manageDishes?faces-redirect=true" icon="pi pi-cog"
+				            rendered="#{userBean.admin}"/>
+				<p:menuitem value="#{labels['template.menu.manage-users']}" action="/manageUsers?faces-redirect=true" icon="pi pi-users" 
+				            rendered="#{userBean.admin}"/>
+				<p:menuitem value="#{labels['template.menu.edit-profile']}" action="/editProfile?faces-redirect=true" icon="pi pi-user" />
+				<p:menuitem value="#{labels['template.menu.order']}" action="/order?faces-redirect=true" icon="pi pi-shopping-cart" />
+				<p:menuitem value="#{labels['template.menu.past-order']}" action="/pastOrders" icon="pi pi-book"/>
+			</p:menu>
+		</h:form>
+	
+	</div>
+
+	<div class="main-div sidebar-affected" >
+		
+		<div class="content-wrapper">
+			<ui:insert name="page-content">
+	            Platzhalter für den Seiteninhalt
+	        </ui:insert>
+        </div>
+
+		<div class="footer">
+			<h:form>
+				<h:outputText value="#{labels['template.copyright']}" /> -
+				<p:commandLink action="imprint?faces-redirect=true" value="#{labels['template.imprint']}" />
+			</h:form>
+		</div>
+
+	</div>
+</h:body>
+</html>

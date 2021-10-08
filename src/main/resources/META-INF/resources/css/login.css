@@ -1,0 +1,152 @@
+* {
+	box-sizing: border-box;
+}
+
+html, body {
+	height: 100%;
+	width: 100%;
+	margin: 0;
+}
+
+body {
+	font-family: "Poppins", sans-serif;
+	background: url("../images/imageLogin.png") no-repeat center;
+	background-size: cover;
+	overflow: hidden; /* Hide scrollbars */
+}
+
+.center {
+	height: 90%;
+	width: 90%;
+	max-width: 450px;
+	max-height: 600px;
+	border-radius: 10px;
+	text-align: center;
+	vertical-align: middle;
+	box-shadow: 0 30px 60px 0 rgba(0, 0, 0, 0.3);
+
+	background-color: white;
+
+	padding: 20px 10px;
+	
+	display: flex;
+	flex-direction: column;
+	
+	
+	overflow: auto;
+}
+
+.center form {
+	width: 90%;
+	flex-grow: 1;
+}
+
+.center-content {
+	width: 100%;
+	height: 100%;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	overflow: auto;
+}
+
+.center form {
+	display: flex;
+	flex-direction: column;
+}
+
+.show-password-button {
+	display: flex;
+	flex-direction: column;
+}
+
+.h2 {
+	color: black;
+}
+
+.wrapper {
+	display: flex;
+	align-items: center;
+	flex-direction: column;
+	justify-content: center;
+	width: 100%;
+	height: 100%;
+}
+
+.form-control {
+	font-size: 150%;
+	min-width: 0;
+	width: 100%;
+	margin-bottom: 12px !important;
+	
+	-moz-border-radius: 10px;
+	-webkit-border-radius: 10px;
+	border-radius: 10px;
+/* 	-moz-box-shadow: 2px 2px 3px #666; */
+/* 	-webkit-box-shadow: 2px 2px 3px #666; */
+/* 	box-shadow: 2px 2px 3px #666; */
+	padding: 4px 7px;
+	outline: 0;
+	-webkit-appearance: none;
+}
+
+.form-control:focus {
+	border-color: rebeccapurple;
+	-moz-border-radius: 10px;
+	-webkit-border-radius: 10px;
+	border-radius: 10px;
+	-moz-box-shadow: 2px 2px 3px #666;
+	-webkit-box-shadow: 2px 2px 3px #666;
+	box-shadow: 2px 2px 3px #666;
+}
+
+.input-submit {
+	width: 100%;
+
+	border-radius: 25px !important;
+
+	font-size: 125%;
+	border: none;
+	padding: 15px 25px;
+	background-color: rebeccapurple !important;
+	color: white !important;
+	margin-top: auto !important;
+}
+
+.input-submit .ui-button-text-only {
+	color: white !important;
+
+}
+
+.input-submit:hover {
+	border-color: rebeccapurple;
+}
+
+.filler {
+	flex-grow: 1;
+}
+
+.login-message {
+	margin: 20px 0;
+	border: 2px solid;
+	width: 90%;
+	padding: 10px;
+	border-radius: 10px;
+}
+
+.error-message {
+	border-color: #ce0000;
+	color: #ce0000;
+	background-color: #fccccc;
+}
+
+.logout-message {
+	border-color: #009900;
+	color: #009900;
+	background-color: #ccfccc;
+}
+
+p.register {
+	width: 90%;
+}
+

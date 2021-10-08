@@ -1,0 +1,250 @@
+:root {
+	--header-height: 60px;
+	--sidebar-width: 250px;
+	
+	--mobile-screen-width: 600px;
+	--tablet-screen-width: 320px;
+	
+	--header-color: #E3E3E3;
+	--sidebar-color: #F0F0F0;
+}
+
+* {
+	box-sizing: border-box;
+}
+
+body {
+	font-family: sans-serif;
+}
+
+img.table-image {
+	max-width: 100px;
+	max-height: 100px;
+	object-fit: contain;
+}
+
+/* ===================================== */
+/*   Header                              */
+/* ===================================== */
+
+div.header {
+	position: fixed;
+	top: 0;
+	
+	width: 100%;
+	height: var(--header-height);
+	
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	
+/* 	box-shadow: 0 0 5px 5px grey; */
+	
+	overflow: hidden;
+	
+	background-color: var(--header-color);
+	z-index: 100;
+}
+
+div.header .header-spacer {
+	flex-grow: 1;
+	height: 100%;
+/* 	border-right: 1px solid grey; */
+/* 	margin-right: -1px; */
+}
+
+div.header .header-field {
+	height: 100%;
+	
+/* 	border-right: 1px solid grey; */
+/* 	margin-right: -1px; */
+
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	flex-direction: row;
+
+	padding: 0 12px;
+}
+
+div.header .header-icon {
+	margin-right: 8px;
+	font-size: 25px;
+}
+
+div.header .header-button {
+	margin-right: 8px;
+}
+
+/* ===================================== */
+/*   Main Div                            */
+/* ===================================== */
+
+div.main-div {
+	min-height: calc(100% - var(--header-height));
+	
+	position: absolute;
+	right: 0;
+	left: var(--sidebar-width);
+	top: 0;
+	
+	margin-top: var(--header-height);
+	
+	transition: left 0.3s;
+	
+	display: flex;
+	flex-direction: column;
+}
+
+div.main-div.sidebar-collapsed {
+	left: 0;
+}
+
+div.content-wrapper {
+	width: 100%;
+	padding: 24px;
+}
+
+.header-link {
+	text-decoration: none;
+	color: black;
+}
+
+/* ===================================== */
+/*   Sidebar                             */
+/* ===================================== */
+
+div.sidebar {
+	height: calc(100% - var(--header-height));
+	width: var(--sidebar-width);
+	
+	position: fixed;
+	left: 0;
+	top: 0;
+	
+	margin-top: var(--header-height);
+	
+	transition: left 0.3s;
+	
+	display: flex;
+	flex-direction: column;
+	
+	background-color: var(--sidebar-color);
+	
+	z-index: 50;
+	
+	padding: 12px;
+	overflow: auto;
+}
+
+div.sidebar.sidebar-collapsed {
+	left: calc(-1 * var(--sidebar-width));
+	box-shadow: 0 0 0 0 grey;
+}
+
+/* ===================================== */
+/*   Footer                              */
+/* ===================================== */
+
+div.footer {
+	margin-top: auto;
+	padding: 20px;
+	background-color: #555;
+}
+
+/* ===================================== */
+/*   Form-Elemente                       */
+/* ===================================== */
+
+.form-grid {
+	display: grid;
+	grid-template-columns: 25% auto;
+	grid-gap: 4px 0;
+}
+
+.form-grid > :not(label) {
+	margin-bottom: 8px;
+}
+
+.form-grid label {
+	margin-bottom: 0px;
+}
+
+.form-button {
+	margin-right: 5px 20px 5px 0;
+}
+
+button.ui-button.form-button {
+	margin: .2rem .5rem .2rem 0;
+}
+
+button.ui-button.table-button {
+	margin: .2rem .5rem .2rem 0;
+}
+
+/* ===================================== */
+/*   Tabellen                            */
+/* ===================================== */
+
+.action-column {
+	width: 7rem;
+}
+
+html, body {
+	margin: 0;
+}
+
+table.order-details td {
+	padding: 5px 25px 5px 0px;
+}
+
+/* ===================================== */
+/*   Primefaces-Fixes                    */
+/* ===================================== */
+
+.ui-menu-list .ui-menuitem-link {
+	display: flex !important;
+	flex-direction: row;
+	align-items: center;
+}
+
+body .ui-input-icon-right > .ui-inputfield {
+	width: 100% !important;
+}
+
+@media only screen and (max-width: 768px) {
+	
+	div.header .no-mobile-display {
+		display: none;
+	}
+	
+	div.main-div {
+		left: 0;
+	}
+	
+}
+
+@media only screen and (max-width: 480px) {
+	
+	div.header .no-mobile-display {
+		display: none;
+	}
+	
+	div.main-div {
+		left: 0;
+	}
+	
+	div.sidebar {
+		width: 100%;
+	}
+	
+	div.sidebar.sidebar-collapsed {
+		left: -100%;
+	}
+	
+	.form-grid {
+		grid-template-columns: auto;
+	}
+}
+
+

@@ -1,0 +1,93 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+	xmlns:h="http://xmlns.jcp.org/jsf/html" xmlns:f="http://xmlns.jcp.org/jsf/core"
+	xmlns:p="http://primefaces.org/ui" template="/templates/template.xhtml">
+
+	<ui:define name="title">
+		<h:outputText value="#{labels['view-order.title']} ##{viewOrderView.currentOrder.orderId}" />
+	</ui:define>
+
+	<ui:define name="page-content">
+		<script type="text/javascript">
+			function start() {
+				PF('statusDialog').show();
+			}
+
+			function stop() {
+				PF('statusDialog').hide();
+			}
+		</script>
+		<h:form id="content" enctype="multipart/form-data">
+			<h1><h:outputText
+					value="#{labels['view-order.title']} ##{viewOrderView.currentOrder.orderId}" /></h1>
+
+
+			
+
+
+			<h:panelGrid columns="2" styleClass="order-details">
+				<p:outputLabel value="#{labels['view-order.description']}" />
+				<h:outputText value="#{viewOrderView.currentOrder.orderTime.time}">
+					<f:convertDateTime type="date" pattern="dd.MM.yyyy hh:mm" />
+				</h:outputText>
+			
+				<p:outputLabel value="#{labels['view-order.total-price']}"/>
+				<h:outputText value="#{viewOrderView.currentOrder.orderPrice}">
+					<f:convertNumber currencyCode="EUR" type="currency" />
+				</h:outputText>
+	
+				<p:outputLabel value="#{labels['past-orders.your-rating']}" />
+				<p:rating value="#{viewOrderView.currentOrder.stars}"
+					readonly="#{viewOrderView.currentOrder.stars!=0}" />
+			</h:panelGrid>
+
+
+			<h1><h:outputText value="#{labels['view-order.ordered-dishes']}" /></h1>
+
+			<p:dataTable value="#{viewOrderView.currentOrder.orderedDishes}" var="orderedDish">
+				<p:column>
+					<p:graphicImage value="#{orderedDish.dishEntity.imageData}" styleClass="product-image"
+						style="max-width: 100px; max-height: 100px; object-fit: contain" stream="false" />
+				</p:column>
+
+				<p:column headerText="#{labels['view-order.category']}">
+					<h:outputText value="#{labels[orderedDish.dishEntity.category.i18nKey]}" />
+				</p:column>
+
+				<p:column headerText="#{labels['manage-dishes.column.name']}">
+					<h:outputText value="#{orderedDish.dishEntity.dishName}" />
+				</p:column>
+
+				<p:column headerText="#{labels['manage-dishes.column.price']}">
+					<h:outputText value="#{orderedDish.dishEntity.price}">
+						<f:convertNumber currencyCode="EUR" type="currency" />
+					</h:outputText>
+				</p:column>
+
+				<p:column headerText="#{labels['view-order.quantity']}">
+					<h:outputText value="#{orderedDish.quantity}" />
+				</p:column>
+
+				<p:column headerText="#{labels['view-order.total-price-per-dish']}">
+					<h:outputText value="#{viewOrderView.determineTotalPriceOfDish(orderedDish)}">
+						<f:convertNumber currencyCode="EUR" type="currency" />
+					</h:outputText>
+				</p:column>
+				<p:column headerText="#{labels['view-order.write-review']}">
+					<p:commandLink action="#{viewOrderView.navigateToReview(orderedDish)}"
+						rendered="#{orderedDish.dishEntity.oldVersion==false}">
+						<h:outputText value="#{labels['view-order.write-review']}" />
+					</p:commandLink>
+				</p:column>
+
+			</p:dataTable>
+
+			<p:commandButton value="Download" ajax="false" onclick="PrimeFaces.monitorDownload(start, stop);"
+				icon="pi pi-arrow-down" styleClass="p-mr-2 form-button">
+				<p:fileDownload value="#{viewOrderView.orderPDF}" contentDisposition="attachment" />
+			</p:commandButton>
+
+			<p:commandButton value="#{labels['view-order.back-to-past-orders']}"
+				action="#{viewOrderView.saveRating()}" styleClass="form-button" />
+		</h:form>
+	</ui:define>
+</ui:composition>

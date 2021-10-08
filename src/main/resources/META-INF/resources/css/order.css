@@ -1,0 +1,95 @@
+
+:root {
+	--order-product-height: 200px;
+	--order-product-image-width: 225px;
+	--order-product-details-width: 300px;
+}
+
+.order-dish {
+	display: flex;
+	flex-wrap: wrap;
+	
+	width: 100%;
+	
+	padding: 15px;
+	border-top: 1px solid #CECECE;
+	border-bottom: 1px solid #CECECE;
+	margin-bottom: -1px;
+}
+
+.order-dish .image-wrapper {
+	height: var(--order-product-height);
+	width: var(--order-product-image-width);
+	padding: 10px;
+	
+	flex-grow: 1;
+}
+
+.order-dish .product-details {
+	width: var(--order-product-details-width);
+	
+	flex-grow: 1000;
+}
+
+.order-dish .order-details {
+	flex-grow: 1;
+	margin-top: auto;
+}
+
+
+
+.order-dish .order-details > * {
+	width: 100%;
+	margin: 6px 0;
+}
+
+.order-dish .order-details .rating {
+	text-align: right;
+}
+
+.order-dish .order-details .price {
+	font-size: x-large;
+	font-weight: bolder;
+	text-align: right;
+	
+	margin: 12px 0;
+}
+
+div.product-name {
+	font-weight: bold;
+	font-size: x-large;
+}
+
+div.product-category {
+	border-radius: 5px;
+	display: inline-block;
+	padding: 2px 5px;
+	color: white;
+}
+
+div.product-category.SALAD {
+	background-color: #37ce37;
+}
+
+div.product-category.SOUP {
+	background-color: #3737ce;
+}
+
+div.product-category.DESSERT {
+	background-color: #ce3737;
+}
+
+div.product-category.MAIN_DISH {
+	background-color: #ce37ce;
+}
+
+div.product-category.FRUIT {
+	background-color: #cece37;
+}
+
+img.product-image {
+	width: 100%;
+	height: 100%;
+	
+	object-fit: contain;
+}

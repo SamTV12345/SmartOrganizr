@@ -1,0 +1,23 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+	xmlns:h="http://xmlns.jcp.org/jsf/html" xmlns:f="http://xmlns.jcp.org/jsf/core" xmlns:p="http://primefaces.org/ui">
+
+	<p:panelGrid columns="2" styleClass="ui-noborder">
+		<p:outputLabel for="accountHolder" value="#{labels['order.account-holder']}" />
+		<p:inputText id="accountHolder" 
+					 value="#{orderView.accountHolder}" 
+					 required="true"
+					 requiredMessage="#{exceptions['payment.account-holder.must-not-be-empty']}"/>
+			
+		<p:outputLabel for="iban" value="#{labels['order.iban']}" />
+		<p:inputText id="iban"
+					 value="#{orderView.iban}" 
+					 required="true"
+					 requiredMessage="#{exceptions['payment.iban.must-not-be-empty']}"/>
+		
+		<p:outputLabel for="bic" value="#{labels['order.bic']}" />
+		<p:inputText id="bic"
+					 value="#{orderView.bic}"
+					 required="true"
+					 requiredMessage="#{exceptions['payment.bic.must-not-be-empty']}"/>
+	</p:panelGrid>
+</ui:composition>

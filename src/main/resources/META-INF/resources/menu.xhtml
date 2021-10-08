@@ -1,0 +1,28 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+	xmlns:h="http://xmlns.jcp.org/jsf/html" xmlns:f="http://xmlns.jcp.org/jsf/core" xmlns:p="http://primefaces.org/ui"
+	template="/templates/template.xhtml">
+
+	<ui:define name="title">
+		<h:outputText value="#{labels['menu.title']}" />
+	</ui:define>
+	
+	<ui:define name="page-content">
+		<h1><h:outputText value="#{labels['menu.title']}" /></h1>
+		<h2><h:outputText value="#{labels['menu.video-title']}"/> </h2>
+		<p:video value="video/Cookingvideo.mp4" controls="false" autoplay="true"
+				 player="mp4"
+				 width="420"
+				 height="250" loop="true"/>
+		<!-- source: https://de.videezy.com/abstrakt/34370-zeitlupe-chef-der-mit-flamme-in-einer-bratpfanne-auf-einem
+		-kuchenofen-kocht -->
+	
+		<ui:fragment rendered="#{userBean.admin}" >
+			<p:commandLink value="#{labels['menu.manage-dishes']}" action="manageDishes?faces-redirect=true" /> <br />
+			<p:commandLink value="#{labels['menu.manage-users']}" action="manageUsers?faces-redirect=true" /> <br />
+		</ui:fragment>
+		<p:commandLink value="#{labels['menu.edit-profile']}" action="editProfile?faces-redirect=true"/> <br />
+		<p:commandLink value="#{labels['menu.order']}" action="order"/> <br />
+		<p:link value="#{labels['menu.logout']}" href="/logout" />
+	</ui:define>
+
+</ui:composition>
