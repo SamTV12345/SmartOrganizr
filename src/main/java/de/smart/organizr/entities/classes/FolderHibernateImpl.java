@@ -8,25 +8,43 @@ import java.io.Serializable;
 import java.util.Calendar;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Objects;
 
 @Entity
 @DiscriminatorValue("Folder")
 public class FolderHibernateImpl extends ElementHibernateImpl implements Folder, Serializable {
-	List<Element> elements;
+	private List<Element> elements;
 
 	protected FolderHibernateImpl(){
 		super();
 		elements = new LinkedList<>();
 	}
 
-	public FolderHibernateImpl(final String name, final Calendar creationDate){
-		super(name, creationDate);
+	public FolderHibernateImpl(final String name, final Calendar creationDate, final String description){
+		super(name, creationDate, description);
 		elements = new LinkedList<>();
 	}
 
 
-	public FolderHibernateImpl(final String name){
-		this(name, Calendar.getInstance());
+	public FolderHibernateImpl(final String name, final String description){
+		this(name, Calendar.getInstance(), description);
+	}
+
+	@Override
+	public boolean equals(final Object o) {
+		if (this == o) {
+			return true;
+		}
+		if (o == null || getClass() != o.getClass()) {
+			return false;
+		}
+		final FolderHibernateImpl that = (FolderHibernateImpl) o;
+		return Objects.equals(elements, that.elements);
+	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hash(elements);
 	}
 
 	@Override
@@ -38,5 +56,12 @@ public class FolderHibernateImpl extends ElementHibernateImpl implements Folder,
 
 	public void setElements(final List<Element> elements) {
 		this.elements = elements;
+	}
+
+	@Override
+	public String toString() {
+		return super.toString()+"FolderHibernateImpl{" +
+				"elements=" + elements +
+				'}';
 	}
 }

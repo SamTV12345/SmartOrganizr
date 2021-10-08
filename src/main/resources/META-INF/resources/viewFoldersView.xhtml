@@ -1,0 +1,15 @@
+<ui:composition xmlns:ui="http://xmlns.jcp.org/jsf/facelets" xmlns:p="http://primefaces.org/ui"
+                xmlns:h="http://java.sun.com/jsf/html" template="/templates/template.xhtml">
+    <ui:define name="page-content">
+
+        <p:commandButton icon="pi pi-plus" action="#{viewFolderView.navigateToEditFolder()}"/>
+    <p:dataTable value="#{viewFolderView.findAllFolders()}" var="folder">
+        <p:column headerText="#{labels['view-folders.folder-name']}">
+            <h:outputText value="#{folder.name}"/>
+        </p:column>
+        <p:column>
+            <h:outputText value="#{folder.description}"/>
+        </p:column>
+    </p:dataTable>
+    </ui:define>
+</ui:composition>

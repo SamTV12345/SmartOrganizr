@@ -1,42 +1,44 @@
 package de.smart.organizr.entities.classes;
 
+import de.smart.organizr.entities.interfaces.Author;
 import de.smart.organizr.entities.interfaces.Note;
 
-import javax.persistence.DiscriminatorValue;
-import javax.persistence.Entity;
+import javax.persistence.*;
 import java.io.Serializable;
 import java.util.Calendar;
 
 @Entity
 @DiscriminatorValue("Note")
 public class NoteHibernateImpl extends ElementHibernateImpl implements Note, Serializable {
-	private  String name;
-	private  String explanation;
+	private  String title;
+	private  Author author;
+
 
 	protected NoteHibernateImpl(){
 	}
 
-	public NoteHibernateImpl(String name, String explanation, Calendar creationDate) {
-		super("Element",creationDate);
-		setName(name);
-		setExplanation(explanation);
+	public NoteHibernateImpl(final String title, final String description,final Calendar creationDate,
+	                         final Author author) {
+		super("Element",creationDate, description);
+		setTitle(title);
+		setAuthor(author);
 	}
 
-	@Override
-	public String getName() {
-		return name;
+	public String getTitle() {
+		return title;
 	}
 
-	public void setName(final String name) {
-		this.name = name;
+	public void setTitle(final String name) {
+		this.title = name;
 	}
 
-	@Override
-	public String getExplanation() {
-		return explanation;
+	@ManyToOne(targetEntity = AuthorHibernateImpl.class)
+	@JoinColumn(name = "author_id_fk")
+	public Author getAuthor() {
+		return author;
 	}
 
-	public void setExplanation(final String explanation) {
-		this.explanation = explanation;
+	public void setAuthor(final Author author) {
+		this.author = author;
 	}
 }

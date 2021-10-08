@@ -1,5 +1,7 @@
 package de.smart.organizr.configuration;
 
+import de.smart.organizr.services.interfaces.FolderService;
+import de.smart.organizr.view.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.boot.web.servlet.ServletContextInitializer;
@@ -8,19 +10,14 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Scope;
 
 import de.smart.organizr.services.interfaces.UserService;
-import de.smart.organizr.view.ChangePasswordView;
-import de.smart.organizr.view.EditProfileView;
-import de.smart.organizr.view.EditUserView;
-import de.smart.organizr.view.ManageUsersView;
-import de.smart.organizr.view.RegisterView;
-import de.smart.organizr.view.ResetPasswordView;
-import de.smart.organizr.view.UserBean;
 
 @Configuration
 public class ViewConfiguration {
 
 	@Autowired
 	private UserService userService;
+	@Autowired
+	private FolderService folderService;
 
 	@Bean
 	@Scope("session")
@@ -72,6 +69,18 @@ public class ViewConfiguration {
 			servletContext.setInitParameter("primefaces.DOWNLOADER",
 					"commons");
 		};
+	}
+
+	@Bean
+	@Scope("view")
+	public ViewFolderView viewFolderView(){
+		return new ViewFolderView(folderService);
+	}
+
+	@Bean
+	@Scope("view")
+	public EditFolderView editFolderView(){
+		return new EditFolderView(folderService);
 	}
 	
 	@SuppressWarnings({ "rawtypes", "unchecked" })

@@ -35,7 +35,7 @@
 			</h:form>
 		</div>
 		
-		<div class="header-spacer" />
+		<div class="header-spacer"></div>
 		
 		<h:form styleClass="header-field">
 
@@ -70,8 +70,8 @@
 				<p:menuitem value="#{labels['template.menu.manage-users']}" action="/manageUsers?faces-redirect=true" icon="pi pi-users" 
 				            rendered="#{userBean.admin}"/>
 				<p:menuitem value="#{labels['template.menu.edit-profile']}" action="/editProfile?faces-redirect=true" icon="pi pi-user" />
-				<p:menuitem value="#{labels['template.menu.order']}" action="/order?faces-redirect=true" icon="pi pi-shopping-cart" />
-				<p:menuitem value="#{labels['template.menu.past-order']}" action="/pastOrders" icon="pi pi-book"/>
+				<p:menuitem value="#{labels['template.menu.order']}" action="/viewFoldersView?faces-redirect=true"
+							icon="pi pi-folder" />
 			</p:menu>
 		</h:form>
 	
