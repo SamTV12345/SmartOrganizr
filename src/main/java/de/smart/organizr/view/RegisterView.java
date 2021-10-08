@@ -11,7 +11,7 @@ import javax.faces.context.FacesContext;
 import javax.faces.validator.ValidatorException;
 import javax.servlet.http.HttpServletRequest;
 
-import de.smart.organizr.entities.UserEntity;
+import de.smart.organizr.entities.classes.UserHibernateImpl;
 import de.smart.organizr.utils.JsfUtils;
 import de.smart.organizr.utils.PasswordUtils;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -44,7 +44,7 @@ public class RegisterView implements Serializable {
 
 	public String registerUser(final ExternalContext externalContext) {
 		try {
-			final UserEntity userInputModel = new UserEntity(username, password, emailAddress);
+			final UserHibernateImpl userInputModel = new UserHibernateImpl(username, password, emailAddress);
 			userUseCaseFacade.addUser(userInputModel);
 			doAutoLogin(userInputModel.getUserName(), password,
 					(HttpServletRequest) externalContext.getRequest());

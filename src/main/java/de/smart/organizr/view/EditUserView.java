@@ -2,7 +2,7 @@ package de.smart.organizr.view;
 
 import javax.annotation.PostConstruct;
 
-import de.smart.organizr.entities.UserEntity;
+import de.smart.organizr.entities.classes.UserHibernateImpl;
 import de.smart.organizr.enums.Role;
 import de.smart.organizr.utils.JsfUtils;
 import de.smart.organizr.utils.PasswordUtils;
@@ -17,7 +17,7 @@ public class EditUserView {
 
 	private final UserService userService;
 
-	private UserEntity userEntity;
+	private UserHibernateImpl userHibernateImpl;
 	
 	private String username;
 	private String emailAddress;
@@ -36,13 +36,13 @@ public class EditUserView {
 	
 	@PostConstruct
 	public void initialize() {
-		userEntity = JsfUtils.getUserFromFlash();
+		userHibernateImpl = JsfUtils.getUserFromFlash();
 		
-		if(userEntity != null) {
-			username = userEntity.getUserName();
-			emailAddress = userEntity.getEmailAddress();
-			role = userEntity.getRole();
-			changePasswordNextLogin = userEntity.isPasswordResetRequired();
+		if(userHibernateImpl != null) {
+			username = userHibernateImpl.getUserName();
+			emailAddress = userHibernateImpl.getEmailAddress();
+			role = userHibernateImpl.getRole();
+			changePasswordNextLogin = userHibernateImpl.isPasswordResetRequired();
 			//password = userEntity.getPassword();
 		}
 	}
@@ -52,20 +52,20 @@ public class EditUserView {
 	 * @return Umlenken auf die Seite der Benutzerverwaltung
 	 */
 	public String saveUser() {
-		if(userEntity != null) {
-			userEntity.setUserName(username);
-			userEntity.setEmailAddress(emailAddress);
-			userEntity.setRole(role);
+		if(userHibernateImpl != null) {
+			userHibernateImpl.setUserName(username);
+			userHibernateImpl.setEmailAddress(emailAddress);
+			userHibernateImpl.setRole(role);
 			
 			if (!"".equals(password)) {
-				userEntity.setPassword(password);
+				userHibernateImpl.setPassword(password);
 			}
-			userEntity.setPasswordResetRequired(changePasswordNextLogin);
+			userHibernateImpl.setPasswordResetRequired(changePasswordNextLogin);
 			
-			userService.addUser(userEntity);
+			userService.addUser(userHibernateImpl);
 		} else {
-			final UserEntity userEntity = new UserEntity(0, username, password, emailAddress, role);
-			userService.addUser(userEntity);
+			final UserHibernateImpl userHibernateImpl = new UserHibernateImpl(0, username, password, emailAddress, role);
+			userService.addUser(userHibernateImpl);
 		}
 		return "manageUsers";
 	}

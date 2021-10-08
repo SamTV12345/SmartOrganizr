@@ -1,6 +1,6 @@
 package de.smart.organizr.utils;
 
-import de.smart.organizr.entities.UserEntity;
+import de.smart.organizr.entities.classes.UserHibernateImpl;
 
 import java.io.IOException;
 
@@ -22,12 +22,12 @@ public class JsfUtils {
 		return FacesContext.getCurrentInstance().getExternalContext().getFlash();
 	}
 
-	public static UserEntity putUserIntoFlash(final UserEntity userEntity) {
-		return (UserEntity) getFlash().put(KEY_USER, userEntity);
+	public static UserHibernateImpl putUserIntoFlash(final UserHibernateImpl userHibernateImpl) {
+		return (UserHibernateImpl) getFlash().put(KEY_USER, userHibernateImpl);
 	}
 
-	public static UserEntity getUserFromFlash() {
-		return (UserEntity) getFlash().get(KEY_USER);
+	public static UserHibernateImpl getUserFromFlash() {
+		return (UserHibernateImpl) getFlash().get(KEY_USER);
 	}
 
 	public static FacesMessage putErrorMessage(final String message) {

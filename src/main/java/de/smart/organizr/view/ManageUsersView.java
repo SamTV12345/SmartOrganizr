@@ -4,7 +4,7 @@ import java.util.List;
 
 import javax.annotation.PostConstruct;
 
-import de.smart.organizr.entities.UserEntity;
+import de.smart.organizr.entities.classes.UserHibernateImpl;
 import de.smart.organizr.enums.Role;
 import de.smart.organizr.utils.JsfUtils;
 import de.smart.organizr.services.interfaces.UserService;
@@ -18,7 +18,7 @@ public class ManageUsersView {
 	
 	private final UserService userService;
 	
-	private List<UserEntity> users;
+	private List<UserHibernateImpl> users;
 	
 	public ManageUsersView(final UserService userService) {
 		this.userService = userService;
@@ -29,7 +29,7 @@ public class ManageUsersView {
 		users = userService.findAllUsers();
 	}
 	
-	public List<UserEntity> getUsers() {
+	public List<UserHibernateImpl> getUsers() {
 		return users;
 	}
 	
@@ -37,7 +37,7 @@ public class ManageUsersView {
 	 * Methode zum Löschen eines bestimmten Benutzers
 	 * @param userToDelete Benutzer, der gelöscht werden soll
 	 */
-	public void deleteUser(final UserEntity userToDelete) {
+	public void deleteUser(final UserHibernateImpl userToDelete) {
 		userService.removeUser(userToDelete.getUserId());
 		users = userService.findAllUsers();
 	}
@@ -47,7 +47,7 @@ public class ManageUsersView {
 	 * @param userToEdit Benutzer, der bearbeitet werden soll
 	 * @return Seite zum Bearbeiten des Benutzers
 	 */
-	public String editUser(final UserEntity userToEdit) {
+	public String editUser(final UserHibernateImpl userToEdit) {
 		JsfUtils.putUserIntoFlash(userToEdit);
 		return "editUser";
 	}
@@ -57,7 +57,7 @@ public class ManageUsersView {
 	 * @param user Benutzer, dessen Rolle dann abgefragt wird
 	 * @return Rollen in Form von String-Werten
 	 */
-	public String roleFormatted(UserEntity user) {
+	public String roleFormatted(UserHibernateImpl user) {
 		if(user.getRole() == Role.ADMIN) {
 			return "Admin";
 		} else if(user.getRole() == Role.USER) {

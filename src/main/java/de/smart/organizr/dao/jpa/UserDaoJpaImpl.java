@@ -3,7 +3,7 @@ package de.smart.organizr.dao.jpa;
 
 
 import de.smart.organizr.dao.interfaces.UserDao;
-import de.smart.organizr.entities.UserEntity;
+import de.smart.organizr.entities.classes.UserHibernateImpl;
 import de.smart.organizr.repositories.UserRepository;
 
 import java.util.LinkedList;
@@ -19,7 +19,7 @@ public class UserDaoJpaImpl implements UserDao {
 	}
 
 	@Override
-	public UserEntity addUser(final UserEntity user) {
+	public UserHibernateImpl addUser(final UserHibernateImpl user) {
 		return userRepository.save(user);
 	}
 
@@ -29,25 +29,25 @@ public class UserDaoJpaImpl implements UserDao {
 	}
 
 	@Override
-	public List<UserEntity> findAllUsers() {
-		final List<UserEntity> users = new LinkedList<>();
+	public List<UserHibernateImpl> findAllUsers() {
+		final List<UserHibernateImpl> users = new LinkedList<>();
 		userRepository.findAll().forEach(users::add);
 		return users;
 	}
 	
 	@Override
-	public Optional<UserEntity> findUserByUserName(final String userName) {
+	public Optional<UserHibernateImpl> findUserByUserName(final String userName) {
 		return userRepository.findByUserName(userName);
 	}
 
 	@Override
-	public Optional<UserEntity> findUserById(final long userId) {
+	public Optional<UserHibernateImpl> findUserById(final long userId) {
 		return userRepository.findByUserId(userId);
 	}
 
 	@Override
-	public UserEntity saveUser(final UserEntity userEntity) {
-		return userRepository.save(userEntity);
+	public UserHibernateImpl saveUser(final UserHibernateImpl userHibernateImpl) {
+		return userRepository.save(userHibernateImpl);
 	}
 
 }

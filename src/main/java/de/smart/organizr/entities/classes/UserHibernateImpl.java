@@ -1,11 +1,12 @@
-package de.smart.organizr.entities;
+package de.smart.organizr.entities.classes;
 
 import de.smart.organizr.enums.Role;
 
 import javax.persistence.*;
 
 @Entity
-public class UserEntity {
+@Table(name = "user")
+public class UserHibernateImpl {
 	private long userId;
 	private String userName;
 	private String password;
@@ -14,11 +15,11 @@ public class UserEntity {
 	private boolean passwordResetRequired;
 
 	
-	public UserEntity() {
+	public UserHibernateImpl() {
 	}
 	
-	public UserEntity(final long userId, final String userName, final String password, final String emailAddress,
-	                  final Role role) {
+	public UserHibernateImpl(final long userId, final String userName, final String password, final String emailAddress,
+	                         final Role role) {
 		this.userId = userId;
 		this.userName = userName;
 		this.password = password;
@@ -26,7 +27,7 @@ public class UserEntity {
 		this.role = role;
 	}
 	
-	public UserEntity(final String userName, final String password, final String emailAddress) {
+	public UserHibernateImpl(final String userName, final String password, final String emailAddress) {
 		this(0,userName,password,emailAddress,Role.USER);
 	}
 

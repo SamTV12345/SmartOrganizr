@@ -28,7 +28,6 @@
                 <p:outputLabel value="#{labels['edit-profile.email-address']}"/>
                 <p:inputText value="#{editProfileView.emailAddress}" required="true" 
                 	requiredMessage="#{exceptions['profile.e-mail-may-not-be-empty']}">
-                    <f:validator validatorId="emailValidator" />
                 </p:inputText>
 
                 <p:outputLabel value="#{labels['edit-profile.current-password']}"/>

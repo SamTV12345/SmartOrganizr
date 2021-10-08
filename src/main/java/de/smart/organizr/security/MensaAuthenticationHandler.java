@@ -6,7 +6,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import de.smart.organizr.entities.UserEntity;
+import de.smart.organizr.entities.classes.UserHibernateImpl;
 import de.smart.organizr.services.interfaces.UserService;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
@@ -28,12 +28,12 @@ public class MensaAuthenticationHandler implements AuthenticationSuccessHandler 
 			final Authentication authentication)
 			throws IOException, ServletException {
 		
-		final UserEntity userEntity = userService.findUserByUserName(authentication.getName()).get();
+		final UserHibernateImpl userHibernateImpl = userService.findUserByUserName(authentication.getName()).get();
 		
 		/* Wenn ein Passwort-Reset notwendig ist, wird auf die Change-Passwort-Seite umgelenkt, 
 		 * ansonsten direkt auf die Menü-Seite
 		 */
-		if (userEntity.isPasswordResetRequired()) {
+		if (userHibernateImpl.isPasswordResetRequired()) {
 			response.sendRedirect("/changePassword.jsf");
 		} else {
 			response.sendRedirect("/menu.jsf");

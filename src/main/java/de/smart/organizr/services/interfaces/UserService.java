@@ -1,6 +1,6 @@
 package de.smart.organizr.services.interfaces;
 
-import de.smart.organizr.entities.UserEntity;
+import de.smart.organizr.entities.classes.UserHibernateImpl;
 
 import java.util.List;
 import java.util.Optional;
@@ -12,7 +12,7 @@ public interface UserService {
 	 * @param user Der Benutzer, der hinzugefügt werden soll
 	 * @return Benutzer, der hinzugefügt wurde
 	 */
-	UserEntity addUser(UserEntity user);
+	UserHibernateImpl addUser(UserHibernateImpl user);
 
 	/**
 	 * Löscht einen Benutzer aus der Datenbank
@@ -25,21 +25,21 @@ public interface UserService {
 	 * @return Eine Liste mit allen Benutzern in der Benutzer-Tabelle. Eine leere Liste,
 	 * falls die Tabelle leer ist.
 	 */
-	List<UserEntity> findAllUsers();
+	List<UserHibernateImpl> findAllUsers();
 
 	/**
 	 * Ermittelt einen Benutzer anhand eines Benutzernamens
 	 * @param userName Benutzername, der zum Ermitteln verwendet wird
 	 * @return Benutzer, falls er gefunden wurde
 	 */
-	Optional<UserEntity> findUserByUserName(String userName);
+	Optional<UserHibernateImpl> findUserByUserName(String userName);
 
 	/**
 	 * Findet einen Benutzer anhand der Benutzer-ID
 	 * @param userId Benutzer-ID, die zum Ermitteln verwendent wird
 	 * @return Benutzer, falls er gefunden wurde
 	 */
-	Optional<UserEntity> findUserById(int userId);
+	Optional<UserHibernateImpl> findUserById(int userId);
 
 	/**
 	 * Ändert das Passwort einens Benutzers
@@ -48,14 +48,14 @@ public interface UserService {
 	 * @param newPassword Neues Passwort
 	 * @return Benutzer
 	 */
-	UserEntity changePassword(long userId, String oldPassword, String newPassword);
+	UserHibernateImpl changePassword(long userId, String oldPassword, String newPassword);
 
 	/**
 	 * Speichert einen Benutzer in der Datenbank
-	 * @param userEntity Benutzer, der gespeichert werden soll
+	 * @param userHibernateImpl Benutzer, der gespeichert werden soll
 	 * @return Benutzer, der gespeichert wurde
 	 */
-	UserEntity saveUser(UserEntity userEntity);
+	UserHibernateImpl saveUser(UserHibernateImpl userHibernateImpl);
 
 	/**
 	 * Ändert ein erforderliches Passwort
@@ -63,7 +63,7 @@ public interface UserService {
 	 * @param newPassword NEues Passwort
 	 * @return Benutzer, dessen Passwort gesetzt wurde
 	 */
-	UserEntity changePasswordRequired(long userId, String newPassword);
+	UserHibernateImpl changePasswordRequired(long userId, String newPassword);
 
 	/**
 	 * Zählt die Admins

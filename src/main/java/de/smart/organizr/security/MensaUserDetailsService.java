@@ -4,7 +4,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
 
-import de.smart.organizr.entities.UserEntity;
+import de.smart.organizr.entities.classes.UserHibernateImpl;
 import de.smart.organizr.services.interfaces.UserService;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -26,13 +26,13 @@ public class MensaUserDetailsService implements UserDetailsService {
 
 	@Override
 	public UserDetails loadUserByUsername(final String username) throws UsernameNotFoundException {
-		final Optional<UserEntity> optionalUser = userService.findUserByUserName(username);
+		final Optional<UserHibernateImpl> optionalUser = userService.findUserByUserName(username);
 		
 		if (optionalUser.isEmpty()) {
 			throw new UsernameNotFoundException(username);
 		}
 		
-		final UserEntity user = optionalUser.get();
+		final UserHibernateImpl user = optionalUser.get();
 		
 		// Rollen lesen
 		final List<GrantedAuthority> authorities = new LinkedList<>();

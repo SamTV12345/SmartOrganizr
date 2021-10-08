@@ -25,7 +25,6 @@
                 <p:outputLabel value="#{labels['edit-user.email-address']}"/>
                 <p:inputText value="#{editUserView.emailAddress}" required="true" 
                 	requiredMessage="#{exceptions['user.invalid-email']}" label="text">
-                    <f:validator validatorId="emailValidator"/>
                 </p:inputText>
 								
 				<p:outputLabel value="#{labels['edit-user.role']}"/>

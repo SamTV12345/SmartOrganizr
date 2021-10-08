@@ -2,11 +2,10 @@ package de.smart.organizr.view;
 
 import javax.annotation.PostConstruct;
 
-import de.smart.organizr.entities.UserEntity;
+import de.smart.organizr.entities.classes.UserHibernateImpl;
 import de.smart.organizr.exceptions.NoPermissionException;
 import de.smart.organizr.exceptions.PasswordException;
 import de.smart.organizr.i18n.I18nExceptionUtils;
-import de.smart.organizr.i18n.I18nLabelsUtil;
 import de.smart.organizr.utils.JsfUtils;
 import de.smart.organizr.utils.PasswordUtils;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -21,7 +20,7 @@ import de.smart.organizr.services.interfaces.UserService;
 public class EditProfileView {
 	private final UserService userService;
 	private final UserBean userBean;
-	private UserEntity userEntity;
+	private UserHibernateImpl userHibernateImpl;
 	private String username;
 	private String emailAddress;
 	private String oldPassword;
@@ -44,8 +43,8 @@ public class EditProfileView {
 	public void initialize() {
 		final String username = SecurityContextHolder.getContext().getAuthentication().getName();
 		userService.findUserByUserName(username).ifPresent(user -> {
-			this.userEntity = user;
-			setEmailAddress(this.userEntity.getEmailAddress());
+			this.userHibernateImpl = user;
+			setEmailAddress(this.userHibernateImpl.getEmailAddress());
 			setUsername(username);
 		});
 	}
@@ -69,16 +68,16 @@ public class EditProfileView {
 				throw NoPermissionException.createPasswordsNotEqualException();
 			}
 			// Überprüfe, ob der Benutzername frei ist
-			if (userService.findUserByUserName(username).isEmpty() || userEntity.getUserName().equals(username)) {
+			if (userService.findUserByUserName(username).isEmpty() || userHibernateImpl.getUserName().equals(username)) {
 				if (!(oldPassword.isBlank() || newPassword.isBlank())) {
-					userService.changePassword(userEntity.getUserId(), oldPassword, newPassword);
+					userService.changePassword(userHibernateImpl.getUserId(), oldPassword, newPassword);
 					passwordToBeSaved = newPassword;
 				}
 				else {
-					passwordToBeSaved = userEntity.getPassword();
+					passwordToBeSaved = userHibernateImpl.getPassword();
 				}
 				if (emailAddressChanged) {
-					oldEmail = userEntity.getEmailAddress();
+					oldEmail = userHibernateImpl.getEmailAddress();
 				}
 				saveUser(usernameToBeSaved, emailAddressToBeSaved, passwordToBeSaved);
 				return "successfulUpdatedProfile";
@@ -101,12 +100,12 @@ public class EditProfileView {
 	 */
 	private void saveUser(final String usernameToBeSaved, final String emailAddressToBeSaved,
 	                      final String passwordToBeSaved) {
-		final UserEntity savedUser = userService.saveUser(
-				new UserEntity(userEntity.getUserId(),
+		final UserHibernateImpl savedUser = userService.saveUser(
+				new UserHibernateImpl(userHibernateImpl.getUserId(),
 						usernameToBeSaved,
 						passwordToBeSaved,
 						emailAddressToBeSaved,
-						userEntity.getRole()));
+						userHibernateImpl.getRole()));
 		doAutoLogin(username, passwordToBeSaved);
 		userBean.setOptionalUser(savedUser);
 	}
@@ -117,8 +116,8 @@ public class EditProfileView {
 	 */
 	private String determineEMailAddress() {
 		final String emailAddress;
-		if (this.emailAddress.equals(userEntity.getEmailAddress())) {
-			emailAddress = userEntity.getEmailAddress();
+		if (this.emailAddress.equals(userHibernateImpl.getEmailAddress())) {
+			emailAddress = userHibernateImpl.getEmailAddress();
 			emailAddressChanged = false;
 		}
 		else {
@@ -135,7 +134,7 @@ public class EditProfileView {
 	private String determineUserName() {
 		final String usernameToBeSaved;
 		if (username == null) {
-			usernameToBeSaved = userEntity.getUserName();
+			usernameToBeSaved = userHibernateImpl.getUserName();
 		}
 		else {
 			usernameToBeSaved = username;
