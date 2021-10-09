@@ -3,6 +3,7 @@ package de.smart.organizr.utils;
 import java.util.Optional;
 
 import de.smart.organizr.entities.classes.UserHibernateImpl;
+import de.smart.organizr.entities.interfaces.User;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,7 +42,7 @@ public class AdminCreator {
 			// Prüfen, ob Nutzer mit Nutzername admin existiert, wenn nicht anlegen.
 			final Optional<UserHibernateImpl> optionalAdmin = userService.findUserByUserName(ADMIN_USERNAME);
 			
-			final UserHibernateImpl admin;
+			final User admin;
 			
 			if (optionalAdmin.isEmpty()) {
 				final UserHibernateImpl newAdmin = new UserHibernateImpl(ADMIN_USERNAME, ADMIN_PASSWORD, ADMIN_E_MAIL);

@@ -1,22 +1,32 @@
 <ui:composition xmlns:ui="http://xmlns.jcp.org/jsf/facelets" xmlns:p="http://primefaces.org/ui"
-                xmlns:h="http://java.sun.com/jsf/html" template="/templates/template.xhtml">
+                xmlns:h="http://java.sun.com/jsf/html" xmlns:f="http://java.sun.com/jsf/core"
+                template="/templates/template.xhtml">
     <ui:define name="page-content">
         <h:form>
             <div class="ui-fluid">
                 <div class="field grid">
-                    <p:outputLabel for="folder-name" value="#{labels['edit-folder.name']}" styleClass="col-12 mb-2 md:col-2 md:mb-0"/>
+                    <p:outputLabel for="folder-name" value="#{labels['edit-note.name']}"
+                                   styleClass="col-12 mb-2 md:col-2 md:mb-0"/>
                     <div class="col-12 md:col-10">
-                        <p:inputText id="folder-name" value="#{editFolderView.name}"/>
+                        <p:inputText id="folder-name" value="#{editNoteView.title}"/>
                     </div>
                 </div>
                 <div class="field grid">
-                    <p:outputLabel for="folder-description" value="#{labels['edit-folder.description']}" styleClass="col-12 mb-2 md:col-2 md:mb-0"/>
+                    <p:outputLabel for="folder-description" value="#{labels['edit-note.description']}"
+                                   styleClass="col-12 mb-2 md:col-2 md:mb-0"/>
                     <div class="col-12 md:col-10">
-                        <p:inputText id="folder-description" value="#{editFolderView.description}"/>
+                        <p:inputText id="folder-description" value="#{editNoteView.description}"/>
                     </div>
                 </div>
+                <p:selectOneMenu filter="true" filterMatchMode="contains" styleClass="toolbar-grow"
+                                 value="#{editNoteView.author}" style="min-width: 200px"
+                                 converter="#{converterConfiguration.authorConverter}">
+                    <f:selectItem itemLabel="Einen Author auswählen"/>
+                    <f:selectItems value="#{editNoteView.allAuthors}" var="author"
+                                   itemLabel="#{author.name} (#{author.extraInformation})" itemValue="#{author}" />
+                </p:selectOneMenu>
             </div>
-            <p:commandButton value="#{labels['edit-folder.save']}" action="#{editFolderView.saveFolder()}"/>
+            <p:commandButton value="#{labels['edit-note.save']}" action="#{editNoteView.saveNote()}"/>
         </h:form>
     </ui:define>
 </ui:composition>

@@ -1,7 +1,10 @@
 package de.smart.organizr.configuration;
 
+import de.smart.organizr.services.interfaces.AuthorService;
 import de.smart.organizr.services.interfaces.FolderService;
+import de.smart.organizr.services.interfaces.NoteService;
 import de.smart.organizr.view.*;
+import de.smart.organizr.view.converters.AuthorConverter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.boot.web.servlet.ServletContextInitializer;
@@ -18,6 +21,10 @@ public class ViewConfiguration {
 	private UserService userService;
 	@Autowired
 	private FolderService folderService;
+	@Autowired
+	private NoteService noteService;
+	@Autowired
+	private AuthorService authorService;
 
 	@Bean
 	@Scope("session")
@@ -65,10 +72,8 @@ public class ViewConfiguration {
 
 	@Bean
 	public ServletContextInitializer initializer() {
-		return servletContext -> {
-			servletContext.setInitParameter("primefaces.DOWNLOADER",
-					"commons");
-		};
+		return servletContext -> servletContext.setInitParameter("primefaces.DOWNLOADER",
+				"commons");
 	}
 
 	@Bean
@@ -79,8 +84,9 @@ public class ViewConfiguration {
 
 	@Bean
 	@Scope("view")
-	public EditFolderView editFolderView(){
-		return new EditFolderView(folderService);
+	@Autowired
+	public EditFolderView editFolderView(final UserBean userBean){
+		return new EditFolderView(folderService, userBean);
 	}
 	
 	@SuppressWarnings({ "rawtypes", "unchecked" })
@@ -90,5 +96,39 @@ public class ViewConfiguration {
 		registration.setFilter(new org.primefaces.webapp.filter.FileUploadFilter());
 		registration.setName("PrimeFaces FileUpload Filter");
 		return registration;
+	}
+
+	@Bean
+	@Autowired
+	@Scope("view")
+	public EditNoteView editNoteView(final UserBean userBean){
+		return new EditNoteView(noteService, authorService, userBean);
+	}
+
+	@Bean
+	@Scope("session")
+	@Autowired
+	public AuthorConverter authorConverter(final UserBean userBean){
+		return new AuthorConverter(authorService, userBean);
+	}
+
+	@Bean
+	@Scope("session")
+	@Autowired
+	public ConverterConfiguration converterConfiguration(final AuthorConverter authorConverter){
+		return new ConverterConfiguration(authorConverter);
+	}
+
+	@Bean
+	@Scope("view")
+	@Autowired
+	public EditAuthorView editAuthorView(final UserBean userBean){
+		return new EditAuthorView(userBean, authorService);
+	}
+
+	@Bean
+	@Scope("view")
+	public ViewAuthorView viewAuthorView(final UserBean userBean){
+		return new ViewAuthorView(authorService, userBean);
 	}
 }

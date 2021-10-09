@@ -2,6 +2,7 @@ package de.smart.organizr.entities.classes;
 
 import de.smart.organizr.entities.interfaces.Author;
 import de.smart.organizr.entities.interfaces.Note;
+import de.smart.organizr.entities.interfaces.User;
 
 import javax.persistence.*;
 import java.io.Serializable;
@@ -18,13 +19,13 @@ public class NoteHibernateImpl extends ElementHibernateImpl implements Note, Ser
 	}
 
 	public NoteHibernateImpl(final String title, final String description,
-	                         final Author author) {
-		this(title,description,Calendar.getInstance(), author);
+	                         final Author author, final User creator) {
+		this(title,description,Calendar.getInstance(), author, creator);
 	}
 
 	public NoteHibernateImpl(final String title, final String description,final Calendar creationDate,
-	                         final Author author) {
-		super("Element",creationDate, description);
+	                         final Author author, final User creator) {
+		super("Element",creationDate, description, creator);
 		setTitle(title);
 		setAuthor(author);
 	}

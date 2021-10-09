@@ -29,6 +29,7 @@ public final class I18nExceptionUtils {
 	private static final String ORDER_ID_MAY_NOT_BE_NEGATIVE = "order.id-may-not-be-negative";
 	private static final String ORDER_PRICE_MAY_NOT_BE_NEGATIVE = "order.price-may-not-be-negative";
 	private static final String ORDER_STAR_RATING_MAY_NOT_BE_NEGATIVE = "order.star-rating-may-not-be-negative";
+	private static final String AUTHOR_UNKNOWN = "author.author-unknown";
 
 	static {
 		resourceBundle = ResourceBundle.getBundle(I18N_BASENAME_EXCEPTIONS);
@@ -129,5 +130,9 @@ public final class I18nExceptionUtils {
 
 	public static String getOrderStarRatingMayNotBeNegative() {
 		return resourceBundle.getString(ORDER_STAR_RATING_MAY_NOT_BE_NEGATIVE);
+	}
+
+	public static String getAuthorUnknown() {
+		return resourceBundle.getString(AUTHOR_UNKNOWN);
 	}
 }

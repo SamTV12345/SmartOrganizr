@@ -2,6 +2,7 @@ package de.smart.organizr.entities.classes;
 
 import de.smart.organizr.entities.interfaces.Element;
 import de.smart.organizr.entities.interfaces.Folder;
+import de.smart.organizr.entities.interfaces.User;
 
 import javax.persistence.*;
 import java.io.Serializable;
@@ -20,14 +21,15 @@ public class FolderHibernateImpl extends ElementHibernateImpl implements Folder,
 		elements = new LinkedList<>();
 	}
 
-	public FolderHibernateImpl(final String name, final Calendar creationDate, final String description){
-		super(name, creationDate, description);
+	public FolderHibernateImpl(final String name, final Calendar creationDate, final String description,
+	                           final User creator){
+		super(name, creationDate, description, creator);
 		elements = new LinkedList<>();
 	}
 
 
-	public FolderHibernateImpl(final String name, final String description){
-		this(name, Calendar.getInstance(), description);
+	public FolderHibernateImpl(final String name, final String description, final User creator){
+		this(name, Calendar.getInstance(), description, creator);
 	}
 
 	@Override
@@ -60,8 +62,6 @@ public class FolderHibernateImpl extends ElementHibernateImpl implements Folder,
 
 	@Override
 	public String toString() {
-		return super.toString()+"FolderHibernateImpl{" +
-				"elements=" + elements +
-				'}';
+		return super.toString();
 	}
 }

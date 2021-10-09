@@ -3,6 +3,7 @@ package de.smart.organizr.view;
 import javax.annotation.PostConstruct;
 
 import de.smart.organizr.entities.classes.UserHibernateImpl;
+import de.smart.organizr.entities.interfaces.User;
 import de.smart.organizr.exceptions.NoPermissionException;
 import de.smart.organizr.exceptions.PasswordException;
 import de.smart.organizr.i18n.I18nExceptionUtils;
@@ -100,7 +101,7 @@ public class EditProfileView {
 	 */
 	private void saveUser(final String usernameToBeSaved, final String emailAddressToBeSaved,
 	                      final String passwordToBeSaved) {
-		final UserHibernateImpl savedUser = userService.saveUser(
+		final User savedUser = userService.saveUser(
 				new UserHibernateImpl(userHibernateImpl.getUserId(),
 						usernameToBeSaved,
 						passwordToBeSaved,

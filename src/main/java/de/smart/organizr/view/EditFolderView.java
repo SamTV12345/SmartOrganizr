@@ -10,12 +10,14 @@ import java.util.Optional;
 
 public class EditFolderView {
 	private final  FolderService folderService;
+	private final UserBean userBean;
 	private String description;
 	private String name;
 	private Optional<Folder> optionalFutureParentFolder;
 
-	public EditFolderView(final FolderService folderService) {
+	public EditFolderView(final FolderService folderService, final UserBean userBean) {
 		this.folderService = folderService;
+		this.userBean = userBean;
 	}
 
 	@PostConstruct
@@ -25,7 +27,7 @@ public class EditFolderView {
 	}
 
 	public String saveFolder(){
-		final Folder folderToBeSaved = new FolderHibernateImpl(name, description);
+		final Folder folderToBeSaved = new FolderHibernateImpl(name, description, userBean.getUser());
 		optionalFutureParentFolder.ifPresent(folderToBeSaved::setParent);
 		folderService.saveFolder(folderToBeSaved);
 		return "/viewFoldersView.xhtml";

@@ -2,6 +2,7 @@ package de.smart.organizr.entities.classes;
 
 import de.smart.organizr.entities.interfaces.Element;
 import de.smart.organizr.entities.interfaces.Folder;
+import de.smart.organizr.entities.interfaces.User;
 
 import javax.persistence.*;
 import java.io.Serializable;
@@ -17,26 +18,31 @@ public class ElementHibernateImpl implements Element, Serializable {
 	private int id;
 	private String name;
 	private static final String DEFAULT_NAME = "Element";
+	private static final User user = new UserHibernateImpl("STANDARD","STANDARD", "standard@email.de");
 	private Folder parent;
 	private String description;
+	private User creator;
 
 	public ElementHibernateImpl(){
-		this(DEFAULT_NAME, Calendar.getInstance(), DEFAULT_NAME);
+		this(DEFAULT_NAME, Calendar.getInstance(), DEFAULT_NAME, user);
 	}
 
-	protected ElementHibernateImpl(final String name, final Calendar creationDate, final String description) {
+	protected ElementHibernateImpl(final String name, final Calendar creationDate, final String description,
+	                               final User creator) {
 		this.description = description;
 		setName(name);
 		setCreationDate(creationDate);
+		setCreator(creator);
 	}
 
 	public ElementHibernateImpl(final Calendar creationDate, final int id, final String name,
-	                            final Folder parent, final String description) {
+	                            final Folder parent, final String description, final User creator) {
 		this.creationDate = creationDate;
 		this.id = id;
 		this.name = name;
 		this.parent = parent;
 		this.description = description;
+		setCreator(creator);
 	}
 
 
@@ -106,6 +112,17 @@ public class ElementHibernateImpl implements Element, Serializable {
 
 	public void setDescription(final String description) {
 		this.description = description;
+	}
+
+	@Override
+	@ManyToOne(targetEntity = UserHibernateImpl.class)
+	@JoinColumn(name = "user_id_fk")
+	public User getCreator() {
+		return creator;
+	}
+
+	public void setCreator(final User creator) {
+		this.creator = creator;
 	}
 
 	@Override

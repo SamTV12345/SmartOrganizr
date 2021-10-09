@@ -5,6 +5,7 @@ import java.util.Optional;
 
 import de.smart.organizr.dao.interfaces.UserDao;
 import de.smart.organizr.entities.classes.UserHibernateImpl;
+import de.smart.organizr.entities.interfaces.User;
 import de.smart.organizr.enums.Role;
 import de.smart.organizr.exceptions.NoPermissionException;
 import de.smart.organizr.exceptions.UserException;
@@ -21,13 +22,13 @@ public class UserServiceImpl implements UserService {
 	}
 
 	@Override
-	public UserHibernateImpl addUser(final UserHibernateImpl user) {
+	public User addUser(final User user) {
 		PasswordValidator.checkPassword(user.getPassword());
-		return userDao.addUser(user);
+		return userDao.addUser((UserHibernateImpl) user);
 	}
 
 	@Override
-	public void removeUser(final long userId) {
+	public void removeUser(final int userId) {
 		userDao.removeUser(userId);
 	}
 
@@ -42,17 +43,17 @@ public class UserServiceImpl implements UserService {
 	}
 
 	@Override
-	public Optional<UserHibernateImpl> findUserById(final int userId) {
+	public Optional<User> findUserById(final int userId) {
 		return userDao.findUserById(userId);
 	}
 
 	@Override
-	public UserHibernateImpl changePassword(final long userId, final String oldPassword, final String newPassword) {
+	public UserHibernateImpl changePassword(final int userId, final String oldPassword, final String newPassword) {
 		PasswordValidator.checkPassword(newPassword);
 
-		final Optional<UserHibernateImpl> optionalUser = userDao.findUserById(userId);
+		final Optional<User> optionalUser = userDao.findUserById(userId);
 		if (optionalUser.isPresent()) {
-			final UserHibernateImpl userHibernateImpl = optionalUser.get();
+			final User userHibernateImpl = optionalUser.get();
 			final String oldPasswordHash = userHibernateImpl.getPassword();
 			final boolean passwordMatches =
 					oldPassword.equals(oldPasswordHash);
@@ -61,17 +62,17 @@ public class UserServiceImpl implements UserService {
 				throw NoPermissionException.createWrongPasswordException();
 			}
 			userHibernateImpl.setPassword(newPassword);
-			return userDao.saveUser(userHibernateImpl);
+			return userDao.saveUser((UserHibernateImpl) userHibernateImpl);
 		}
 		throw UserException.createUnknownUserException();
 	}
 
 	@Override
-	public UserHibernateImpl saveUser(final UserHibernateImpl userHibernateImpl){
-		final Optional<UserHibernateImpl> optionalUser = userDao.findUserById(userHibernateImpl.getUserId());
+	public UserHibernateImpl saveUser(final User userHibernateImpl){
+		final Optional<User> optionalUser = userDao.findUserById(userHibernateImpl.getUserId());
 		if(optionalUser.isPresent()){
 			userHibernateImpl.setPassword(optionalUser.get().getPassword());
-			return userDao.saveUser(userHibernateImpl);
+			return userDao.saveUser((UserHibernateImpl) userHibernateImpl);
 		}
 		throw UserException.createUnknownUserException();
 	}
@@ -79,11 +80,11 @@ public class UserServiceImpl implements UserService {
 
 	@Override
 	public UserHibernateImpl changePasswordRequired(final long userId, final String newPassword){
-		final Optional<UserHibernateImpl> user = findUserById(Math.toIntExact(userId));
+		final Optional<User> user = findUserById(Math.toIntExact(userId));
 		if (user.isEmpty()){
 			throw UserException.createUnknownUserException();
 		}
-		final UserHibernateImpl userHibernateImpl = user.get();
+		final User userHibernateImpl = user.get();
 		final UserHibernateImpl
 				savedUser = changePassword(user.get().getUserId(), userHibernateImpl.getPassword(),newPassword);
 		savedUser.setPasswordResetRequired(false);

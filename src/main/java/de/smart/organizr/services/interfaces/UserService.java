@@ -1,6 +1,7 @@
 package de.smart.organizr.services.interfaces;
 
 import de.smart.organizr.entities.classes.UserHibernateImpl;
+import de.smart.organizr.entities.interfaces.User;
 
 import java.util.List;
 import java.util.Optional;
@@ -12,13 +13,13 @@ public interface UserService {
 	 * @param user Der Benutzer, der hinzugefügt werden soll
 	 * @return Benutzer, der hinzugefügt wurde
 	 */
-	UserHibernateImpl addUser(UserHibernateImpl user);
+	User addUser(User user);
 
 	/**
 	 * Löscht einen Benutzer aus der Datenbank
 	 * @param userId Die ID des zu löschenden Benutzers
 	 */
-	void removeUser(long userId);
+	void removeUser(int userId);
 
 	/**
 	 * Ermittelt alle Benutzer in der Datenbank und gibt diese als Liste zurück
@@ -39,7 +40,7 @@ public interface UserService {
 	 * @param userId Benutzer-ID, die zum Ermitteln verwendent wird
 	 * @return Benutzer, falls er gefunden wurde
 	 */
-	Optional<UserHibernateImpl> findUserById(int userId);
+	Optional<User> findUserById(int userId);
 
 	/**
 	 * Ändert das Passwort einens Benutzers
@@ -48,14 +49,15 @@ public interface UserService {
 	 * @param newPassword Neues Passwort
 	 * @return Benutzer
 	 */
-	UserHibernateImpl changePassword(long userId, String oldPassword, String newPassword);
+	UserHibernateImpl changePassword(int userId, String oldPassword, String newPassword);
 
 	/**
 	 * Speichert einen Benutzer in der Datenbank
 	 * @param userHibernateImpl Benutzer, der gespeichert werden soll
 	 * @return Benutzer, der gespeichert wurde
 	 */
-	UserHibernateImpl saveUser(UserHibernateImpl userHibernateImpl);
+	User saveUser(User userHibernateImpl);
+
 
 	/**
 	 * Ändert ein erforderliches Passwort

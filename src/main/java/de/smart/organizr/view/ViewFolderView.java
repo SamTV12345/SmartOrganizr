@@ -19,14 +19,10 @@ public class ViewFolderView {
 		this.folderService = folderService;
 	}
 
-	public Collection<Folder> findAllFolders(){
+	public Collection<? extends Element> findAllFolders(){
 		if(currentFolder.isPresent()){
 			final Folder folder = currentFolder.get();
-			final List<Element> elements = folder.getElements();
-			return elements.stream()
-			               .filter(elementInFolder->elementInFolder instanceof Folder)
-			               .map(f->(Folder)f)
-			               .collect(Collectors.toSet());
+			return folder.getElements();
 		}
 		return folderService.findAllParentFolders();
 	}

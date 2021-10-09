@@ -1,0 +1,21 @@
+<ui:composition xmlns:ui="http://xmlns.jcp.org/jsf/facelets" xmlns:p="http://primefaces.org/ui"
+                xmlns:h="http://java.sun.com/jsf/html" template="/templates/template.xhtml">
+    <ui:define name="page-content">
+        <h:form>
+            <p:commandButton icon="pi pi-plus" action="#{viewAuthorView.navigateToEditAuthor()}"
+                             value="#{labels['view-folders.create-folder']}"/>
+            <p:dataTable value="#{viewAuthorView.allAuthors}" var="author">
+                <p:column headerText="#{labels['edit-author.name']}">
+                    <h:outputText value="#{author.name}"/>
+                </p:column>
+                <p:column headerText="#{labels['edit-author.extra-information']}">
+                    <h:outputText value="#{author.extraInformation}"/>
+                </p:column>
+                <p:column>
+                    <p:commandButton icon="pi pi-eye" action="#{viewAuthorView.navigateToEditAuthor(author)}"
+                                     update="@form"/>
+                </p:column>
+            </p:dataTable>
+        </h:form>
+    </ui:define>
+</ui:composition>

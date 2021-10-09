@@ -65,7 +65,8 @@
 		<h:form>
 			<p:menu style="width: 100%;">
 				<p:menuitem value="#{labels['template.menu.home']}" action="/menu?faces-redirect=true" icon="pi pi-home" />
-				<p:menuitem value="#{labels['template.menu.manage-dishes']}" action="/manageDishes?faces-redirect=true" icon="pi pi-cog"
+				<p:menuitem value="#{labels['template.menu.manage-authors']}"
+							action="/viewAuthors.xhtml?faces-redirect=true" icon="pi pi-user"
 				            rendered="#{userBean.admin}"/>
 				<p:menuitem value="#{labels['template.menu.manage-users']}" action="/manageUsers?faces-redirect=true" icon="pi pi-users" 
 				            rendered="#{userBean.admin}"/>

@@ -2,7 +2,7 @@ package de.smart.organizr.view;
 
 import javax.annotation.PostConstruct;
 
-import de.smart.organizr.entities.classes.UserHibernateImpl;
+import de.smart.organizr.entities.interfaces.User;
 import de.smart.organizr.services.interfaces.UserService;
 
 /**
@@ -18,7 +18,7 @@ public class ChangePasswordView {
 	private String password;
 	private String passwordRetype;
 	
-	private UserHibernateImpl userHibernateImpl;
+	private User user;
 	
 	/**
 	 * Konstruktor für die ChangePasswordView
@@ -32,7 +32,7 @@ public class ChangePasswordView {
 	
 	@PostConstruct
 	public void initialize() {
-		userHibernateImpl = userBean.getUser();
+		user = userBean.getUser();
 	}
 	
 	/**
@@ -40,11 +40,11 @@ public class ChangePasswordView {
 	 * @return
 	 */
 	public String changePassword() {
-		if(userHibernateImpl != null) {
+		if(user != null) {
 			if(password.equals(passwordRetype)) {
-				userHibernateImpl.setPassword(password);
-				userHibernateImpl.setPasswordResetRequired(false);
-				userService.addUser(userHibernateImpl);
+				user.setPassword(password);
+				user.setPasswordResetRequired(false);
+				userService.addUser(user);
 				return "menu.jsf";
 			}
 		}
@@ -55,7 +55,7 @@ public class ChangePasswordView {
 		return password;
 	}
 
-	public void setPassword(String password) {
+	public void setPassword(final String password) {
 		this.password = password;
 	}
 
@@ -63,12 +63,12 @@ public class ChangePasswordView {
 		return passwordRetype;
 	}
 
-	public void setPasswordRetype(String passwordRetype) {
+	public void setPasswordRetype(final String passwordRetype) {
 		this.passwordRetype = passwordRetype;
 	}
 
-	public UserHibernateImpl getUserEntity() {
-		return userHibernateImpl;
+	public User getUser() {
+		return user;
 	}
 
 	public UserService getUserService() {

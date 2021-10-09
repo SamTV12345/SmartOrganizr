@@ -1,6 +1,7 @@
 package de.smart.organizr.utils;
 
 import de.smart.organizr.entities.classes.UserHibernateImpl;
+import de.smart.organizr.entities.interfaces.Author;
 import de.smart.organizr.entities.interfaces.Folder;
 
 import java.io.IOException;
@@ -15,9 +16,11 @@ import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 
-public class JsfUtils {
+public enum JsfUtils {
+	;
 
 	private static final String KEY_USER = "user";
+	private static final String KEY_AUTHOR = "author";
 	private static final String KEY_FOLDER = "folder";
 
 
@@ -57,5 +60,13 @@ public class JsfUtils {
 
 	public static Folder getFolderFromFlash() {
 		return (Folder) getFlash().get(KEY_FOLDER);
+	}
+
+	public static void putAuthorIntoFlash(final Author author) {
+		getFlash().put(KEY_AUTHOR,author);
+	}
+
+	public static Author getAuthorFromFlash() {
+		return (Author) getFlash().get(KEY_AUTHOR);
 	}
 }

@@ -4,6 +4,7 @@ package de.smart.organizr.dao.jpa;
 
 import de.smart.organizr.dao.interfaces.UserDao;
 import de.smart.organizr.entities.classes.UserHibernateImpl;
+import de.smart.organizr.entities.interfaces.User;
 import de.smart.organizr.repositories.UserRepository;
 
 import java.util.LinkedList;
@@ -24,7 +25,7 @@ public class UserDaoJpaImpl implements UserDao {
 	}
 
 	@Override
-	public void removeUser(final long userId) {
+	public void removeUser(final int userId) {
 		userRepository.deleteById(userId);
 	}
 
@@ -41,8 +42,12 @@ public class UserDaoJpaImpl implements UserDao {
 	}
 
 	@Override
-	public Optional<UserHibernateImpl> findUserById(final long userId) {
-		return userRepository.findByUserId(userId);
+	public Optional<User> findUserById(final int userId) {
+		final Optional<UserHibernateImpl> optionalUser = userRepository.findByUserId(userId);
+		if(optionalUser.isEmpty()){
+			return Optional.empty();
+		}
+		return Optional.of(optionalUser.get());
 	}
 
 	@Override

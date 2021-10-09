@@ -6,6 +6,7 @@ import javax.annotation.PostConstruct;
 import javax.faces.context.FacesContext;
 
 import de.smart.organizr.entities.classes.UserHibernateImpl;
+import de.smart.organizr.entities.interfaces.User;
 import de.smart.organizr.enums.Role;
 import org.springframework.security.core.context.SecurityContextHolder;
 
@@ -17,7 +18,7 @@ public class UserBean {
 	private final UserService userService;
 	
 	private String localeCode;
-	private Optional<UserHibernateImpl> optionalUser;
+	private Optional<User> optionalUser;
 	private String locale;
 
 	public UserBean(final UserService userService) {
@@ -60,7 +61,7 @@ public class UserBean {
 		}
 	}
 	
-	public UserHibernateImpl getUser() {
+	public User getUser() {
 		checkUserLoginStatus();
 		return optionalUser.get();
 	}
@@ -79,7 +80,7 @@ public class UserBean {
 		return optionalUser.get().getRole() == Role.ADMIN;
 	}
 
-	public void setOptionalUser(final UserHibernateImpl savedUser) {
+	public void setOptionalUser(final User savedUser) {
 		this.optionalUser = Optional.of(savedUser);
 	}
 

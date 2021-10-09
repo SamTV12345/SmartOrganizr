@@ -11,7 +11,7 @@ import java.util.Optional;
  * @author thomas
  *
  */
-public interface UserRepository extends CrudRepository<UserHibernateImpl, Long> {
+public interface UserRepository extends CrudRepository<UserHibernateImpl, Integer> {
 
 	/**
 	 * Finden eines Benutzers anhand des Benutzernamens
@@ -26,5 +26,5 @@ public interface UserRepository extends CrudRepository<UserHibernateImpl, Long> 
 	 * @return Benutzer, wenn er gefunden wurde
 	 */
 	@Query("SELECT u FROM UserHibernateImpl u WHERE u.userId=:userId")
-	Optional<UserHibernateImpl> findByUserId(final long userId);
+	Optional<UserHibernateImpl> findByUserId(final int userId);
 }

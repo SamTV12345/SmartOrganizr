@@ -1,0 +1,25 @@
+<ui:composition xmlns:ui="http://xmlns.jcp.org/jsf/facelets" xmlns:p="http://primefaces.org/ui"
+                xmlns:h="http://java.sun.com/jsf/html" xmlns:f="http://java.sun.com/jsf/core"
+                template="/templates/template.xhtml">
+    <ui:define name="page-content">
+        <h:form>
+            <div class="ui-fluid">
+                <div class="field grid">
+                    <p:outputLabel for="author-name" value="#{labels['edit-author.name']}"
+                                   styleClass="col-12 mb-2 md:col-2 md:mb-0"/>
+                    <div class="col-12 md:col-10">
+                        <p:inputText id="author-name" value="#{editAuthorView.name}"/>
+                    </div>
+                </div>
+                <div class="field grid">
+                    <p:outputLabel for="author-extra-information" value="#{labels['edit-author.extra-information']}"
+                                   styleClass="col-12 mb-2 md:col-2 md:mb-0"/>
+                    <div class="col-12 md:col-10">
+                        <p:inputText id="author-extra-information" value="#{editAuthorView.extraInformation}"/>
+                    </div>
+                </div>
+            </div>
+            <p:commandButton value="#{labels['edit-author.save']}" action="#{editAuthorView.saveAuthor()}"/>
+        </h:form>
+    </ui:define>
+</ui:composition>
