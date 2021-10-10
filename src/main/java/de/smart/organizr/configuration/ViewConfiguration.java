@@ -78,8 +78,9 @@ public class ViewConfiguration {
 
 	@Bean
 	@Scope("view")
-	public ViewFolderView viewFolderView(){
-		return new ViewFolderView(folderService);
+	@Autowired
+	public ViewFolderView viewFolderView(final UserBean userBean){
+		return new ViewFolderView(folderService, userBean);
 	}
 
 	@Bean
@@ -130,5 +131,12 @@ public class ViewConfiguration {
 	@Scope("view")
 	public ViewAuthorView viewAuthorView(final UserBean userBean){
 		return new ViewAuthorView(authorService, userBean);
+	}
+
+	@Bean
+	@Scope("view")
+	@Autowired
+	public ElementsTreeView elementsTreeView(final UserBean userBean){
+		return new ElementsTreeView(folderService, userBean);
 	}
 }

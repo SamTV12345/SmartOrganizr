@@ -1,0 +1,29 @@
+<ui:composition xmlns:ui="http://xmlns.jcp.org/jsf/facelets" xmlns:p="http://primefaces.org/ui"
+                xmlns:h="http://java.sun.com/jsf/html" xmlns:f="http://java.sun.com/jsf/core"
+                template="/templates/template.xhtml">
+    <ui:define name="page-content">
+        <h:form>
+            <p:commandButton icon="pi pi-plus" action="#{elementsTreeView.navigateToCreateFolder()}"
+                             value="#{labels['elements-tree-view.create-parent-folder']}"/>
+            <p:treeTable value="#{elementsTreeView.root}" var="node" dynamic="true">
+                    <p:column headerText="#{labels['elements-tree-view.name']}">
+                    <p:commandLink value="#{elementsTreeView.getCorrectNamingScheme(node)}"
+                                   action="#{elementsTreeView.navigateToEditElement(node)}"/>
+                    </p:column>
+                <p:column headerText="#{labels['elements-tree-view.creation-date']}">
+                    <h:outputText value="#{node.creationDate.time}">
+                        <f:convertDateTime type="date" pattern="dd.MM.yyyy hh:mm" />
+                    </h:outputText>
+                </p:column>
+                <p:column headerText="#{labels['elements-tree-view.actions']}">
+                    <p:commandButton icon="pi pi-plus" action="#{elementsTreeView.navigateToCreateFolder(node)}"
+                                     rendered="#{elementsTreeView.isFolder(node)}" styleClass="table-button"
+                                     value="#{labels['elements-tree-view.create-folder']}"/>
+                    <p:commandButton icon="pi pi-plus" action="#{elementsTreeView.navigateToCreateNote(node)}"
+                                     rendered="#{elementsTreeView.isFolder(node)}" styleClass="table-button"
+                                     value="#{labels['elements-tree-view.create-note']}"/>
+                </p:column>
+            </p:treeTable>
+        </h:form>
+    </ui:define>
+</ui:composition>

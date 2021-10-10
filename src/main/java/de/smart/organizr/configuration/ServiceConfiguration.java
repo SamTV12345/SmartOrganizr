@@ -13,7 +13,6 @@ import de.smart.organizr.services.interfaces.NoteService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.mail.javamail.JavaMailSender;
 
 import de.smart.organizr.services.implementations.UserServiceImpl;
 import de.smart.organizr.services.interfaces.UserService;
@@ -37,7 +36,7 @@ public class ServiceConfiguration {
 
 	@Bean
 	public FolderService folderService(){
-		return new FolderServiceImpl(folderDao);
+		return new FolderServiceImpl(folderDao, userDao);
 	}
 
 	@Bean

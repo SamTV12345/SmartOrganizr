@@ -11,6 +11,9 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * The UserDaoJpaImpl class takes care of every database action related to users
+ */
 public class UserDaoJpaImpl implements UserDao {
 
 	private final UserRepository userRepository;
@@ -29,13 +32,22 @@ public class UserDaoJpaImpl implements UserDao {
 		userRepository.deleteById(userId);
 	}
 
+	/**
+	 * Finds all contained users. Should only be executed by an admin
+	 * @return a list of users
+	 */
 	@Override
 	public List<UserHibernateImpl> findAllUsers() {
 		final List<UserHibernateImpl> users = new LinkedList<>();
 		userRepository.findAll().forEach(users::add);
 		return users;
 	}
-	
+
+	/**
+	 * Finds a user by username
+	 * @param userName the username
+	 * @return an optional user
+	 */
 	@Override
 	public Optional<UserHibernateImpl> findUserByUserName(final String userName) {
 		return userRepository.findByUserName(userName);

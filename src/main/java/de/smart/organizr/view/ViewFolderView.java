@@ -6,15 +6,15 @@ import de.smart.organizr.services.interfaces.FolderService;
 import de.smart.organizr.utils.JsfUtils;
 
 import java.util.Collection;
-import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 public class ViewFolderView {
 	private final FolderService folderService;
 	private Optional<Folder> currentFolder;
+	private final UserBean userBean;
 
-	public ViewFolderView(final FolderService folderService){
+	public ViewFolderView(final FolderService folderService, final UserBean userBean){
+		this.userBean = userBean;
 		currentFolder = Optional.empty();
 		this.folderService = folderService;
 	}
@@ -24,7 +24,7 @@ public class ViewFolderView {
 			final Folder folder = currentFolder.get();
 			return folder.getElements();
 		}
-		return folderService.findAllParentFolders();
+		return folderService.findAllParentFolders(userBean.getUser().getUserId());
 	}
 
 	/**

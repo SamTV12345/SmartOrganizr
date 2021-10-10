@@ -9,6 +9,8 @@ import de.smart.organizr.services.interfaces.AuthorService;
 import de.smart.organizr.services.interfaces.NoteService;
 import de.smart.organizr.utils.JsfUtils;
 
+import javax.annotation.PostConstruct;
+import java.util.Calendar;
 import java.util.Collection;
 
 public class EditNoteView {
@@ -16,10 +18,12 @@ public class EditNoteView {
 	private final NoteService noteService;
 	private final AuthorService authorService;
 	private final UserBean userBean;
-	private final Folder currentFolder;
+	private Folder currentFolder;
 	private String title;
 	private String description;
 	private Author author;
+	private int id;
+	private Calendar calendar;
 
 	public EditNoteView(final NoteService noteService,
 	                    final AuthorService authorService, final UserBean userBean){
@@ -29,11 +33,26 @@ public class EditNoteView {
 		this.userBean = userBean;
 	}
 
+	@PostConstruct
+	public void initialize(){
+		final Note savedNote = JsfUtils.getNoteFromFlash();
+		if (savedNote !=null){
+			setAuthor(savedNote.getAuthor());
+			setDescription(savedNote.getDescription());
+			setTitle(savedNote.getTitle());
+			setId(savedNote.getId());
+			currentFolder = savedNote.getParent();
+		}
+	}
+
 	public String saveNote(){
 		try {
+			if (calendar ==null){
+				calendar = Calendar.getInstance();
+			}
 
-			final Note noteToBeSaved = new NoteHibernateImpl(title, description, author,
-					userBean.getUser());
+			final Note noteToBeSaved = new NoteHibernateImpl(calendar, id, currentFolder,description,
+					userBean.getUser(),title, author);
 			noteToBeSaved.setParent(currentFolder);
 			noteService.saveNote(noteToBeSaved);
 			currentFolder.getElements().add(noteToBeSaved);
@@ -71,5 +90,13 @@ public class EditNoteView {
 
 	public void setDescription(final String description) {
 		this.description = description;
+	}
+
+	public int getId() {
+		return id;
+	}
+
+	public void setId(final int id) {
+		this.id = id;
 	}
 }

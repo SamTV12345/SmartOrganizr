@@ -5,6 +5,9 @@ import de.smart.organizr.entities.classes.NoteHibernateImpl;
 import de.smart.organizr.entities.interfaces.Note;
 import de.smart.organizr.repositories.NoteRepository;
 
+/**
+ * The NoteDaoJpaImpl class takes care of every database action related to notes
+ */
 public class NoteDaoJpaImpl implements NoteDao {
 	private final NoteRepository noteRepository;
 

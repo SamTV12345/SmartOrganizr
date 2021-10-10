@@ -5,9 +5,9 @@ import de.smart.organizr.entities.interfaces.Folder;
 import java.util.Collection;
 
 public interface FolderService {
-	Collection<Folder> findAllFolders();
+	Collection<Folder> findAllFolders(int userId);
 
 	Folder saveFolder(Folder folder);
 
-	Collection<Folder> findAllParentFolders();
+	Collection<Folder> findAllParentFolders(int userId);
 }

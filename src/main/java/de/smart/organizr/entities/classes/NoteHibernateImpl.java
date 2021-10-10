@@ -1,6 +1,7 @@
 package de.smart.organizr.entities.classes;
 
 import de.smart.organizr.entities.interfaces.Author;
+import de.smart.organizr.entities.interfaces.Folder;
 import de.smart.organizr.entities.interfaces.Note;
 import de.smart.organizr.entities.interfaces.User;
 
@@ -30,20 +31,32 @@ public class NoteHibernateImpl extends ElementHibernateImpl implements Note, Ser
 		setAuthor(author);
 	}
 
+	public NoteHibernateImpl(final Calendar creationDate, final int id,
+	                         final Folder parent, final String description,
+	                         final User creator, final String title, final Author author) {
+		super(creationDate, id, "Element", parent, description, creator);
+		this.title = title;
+		this.author = author;
+	}
+
+	@Override
 	public String getTitle() {
 		return title;
 	}
 
+	@Override
 	public void setTitle(final String name) {
 		this.title = name;
 	}
 
+	@Override
 	@ManyToOne(targetEntity = AuthorHibernateImpl.class)
 	@JoinColumn(name = "author_id_fk")
 	public Author getAuthor() {
 		return author;
 	}
 
+	@Override
 	public void setAuthor(final Author author) {
 		this.author = author;
 	}

@@ -35,6 +35,15 @@ public class ElementHibernateImpl implements Element, Serializable {
 		setCreator(creator);
 	}
 
+	public ElementHibernateImpl(final int id, final String name, final String description,
+	                            final User creator) {
+		this.creationDate = Calendar.getInstance();
+		this.id = id;
+		this.name = name;
+		this.description = description;
+		this.creator = creator;
+	}
+
 	public ElementHibernateImpl(final Calendar creationDate, final int id, final String name,
 	                            final Folder parent, final String description, final User creator) {
 		this.creationDate = creationDate;
@@ -90,6 +99,7 @@ public class ElementHibernateImpl implements Element, Serializable {
 		return name;
 	}
 
+	@Override
 	public void setName(final String name) {
 		this.name = name;
 	}
@@ -106,10 +116,12 @@ public class ElementHibernateImpl implements Element, Serializable {
 		this.parent = parent;
 	}
 
+	@Override
 	public String getDescription() {
 		return description;
 	}
 
+	@Override
 	public void setDescription(final String description) {
 		this.description = description;
 	}

@@ -3,6 +3,7 @@ package de.smart.organizr.utils;
 import de.smart.organizr.entities.classes.UserHibernateImpl;
 import de.smart.organizr.entities.interfaces.Author;
 import de.smart.organizr.entities.interfaces.Folder;
+import de.smart.organizr.entities.interfaces.Note;
 
 import java.io.IOException;
 
@@ -21,7 +22,10 @@ public enum JsfUtils {
 
 	private static final String KEY_USER = "user";
 	private static final String KEY_AUTHOR = "author";
+	private static final String KEY_NOTE = "note";
 	private static final String KEY_FOLDER = "folder";
+	private static final String KEY_ANOTHER_FOLDER = "anotherFolder";
+
 
 
 	private static Flash getFlash() {
@@ -62,11 +66,31 @@ public enum JsfUtils {
 		return (Folder) getFlash().get(KEY_FOLDER);
 	}
 
+	public static Folder getAnotherFolderFromFlash() {
+		return (Folder) getFlash().get(KEY_ANOTHER_FOLDER);
+	}
+
 	public static void putAuthorIntoFlash(final Author author) {
 		getFlash().put(KEY_AUTHOR,author);
 	}
 
 	public static Author getAuthorFromFlash() {
 		return (Author) getFlash().get(KEY_AUTHOR);
+	}
+
+	public static void putNoteIntoFlash(final Note note) {
+		getFlash().put(KEY_NOTE, note);
+	}
+
+	public static Note getNoteFromFlash() {
+		return (Note) getFlash().get(KEY_NOTE);
+	}
+
+	public Folder getAnotherFolder(){
+		return (Folder) getFlash().get(KEY_ANOTHER_FOLDER);
+	}
+
+	public Folder putAnotherFolderIntoFlash(final Folder folder){
+		return (Folder) getFlash().put(KEY_ANOTHER_FOLDER,folder);
 	}
 }

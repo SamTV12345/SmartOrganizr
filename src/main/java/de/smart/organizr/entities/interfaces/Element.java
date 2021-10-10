@@ -13,11 +13,17 @@ public interface Element {
 
 	String getName();
 
+	void setName(String name);
+
 	@ManyToOne(targetEntity = FolderHibernateImpl.class)
 	@JoinColumn(name = "Parent")
 	Folder getParent();
 
 	void setParent(Folder parent);
+
+	String getDescription();
+
+	void setDescription(String description);
 
 	@ManyToOne(targetEntity = UserHibernateImpl.class)
 	User getCreator();
