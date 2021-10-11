@@ -8,7 +8,6 @@ import java.util.Optional;
 
 /**
  * Repository für die Benutzer
- * @author thomas
  *
  */
 public interface UserRepository extends CrudRepository<UserHibernateImpl, Integer> {

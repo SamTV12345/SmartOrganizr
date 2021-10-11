@@ -4,6 +4,7 @@ import de.smart.organizr.entities.interfaces.Folder;
 import de.smart.organizr.entities.interfaces.User;
 
 import java.util.Collection;
+import java.util.Optional;
 import java.util.Set;
 
 public interface FolderDao {
@@ -12,4 +13,6 @@ public interface FolderDao {
 	Folder saveFolder(Folder folderToBeSaved);
 
 	Collection<Folder> findAllParentFolders(final int userId);
+
+	Optional<Folder> findById(int folderId);
 }

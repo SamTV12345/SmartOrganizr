@@ -19,5 +19,5 @@ public interface UserDao {
 
 	Optional<User> findUserById(int userId);
 
-	UserHibernateImpl saveUser(UserHibernateImpl userHibernateImpl);
+	UserHibernateImpl saveUser(User userHibernateImpl);
 }

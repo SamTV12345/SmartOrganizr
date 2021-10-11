@@ -8,6 +8,7 @@ import de.smart.organizr.entities.interfaces.User;
 import javax.persistence.*;
 import java.io.Serializable;
 import java.util.Calendar;
+import java.util.Objects;
 
 @Entity
 @DiscriminatorValue("Note")
@@ -37,6 +38,26 @@ public class NoteHibernateImpl extends ElementHibernateImpl implements Note, Ser
 		super(creationDate, id, "Element", parent, description, creator);
 		this.title = title;
 		this.author = author;
+	}
+
+	@Override
+	public boolean equals(final Object o) {
+		if (this == o) {
+			return true;
+		}
+		if (o == null || getClass() != o.getClass()) {
+			return false;
+		}
+		if (!super.equals(o)) {
+			return false;
+		}
+		final NoteHibernateImpl that = (NoteHibernateImpl) o;
+		return Objects.equals(title, that.title) && Objects.equals(author, that.author);
+	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hash(super.hashCode(), title, author);
 	}
 
 	@Override

@@ -4,7 +4,6 @@ package de.smart.organizr.enums;
  * Benutzerrollen, welche als Enum gespeichert werden.
  * Man unterscheidet zwischen einem normalen Benutzer (USER)
  * und einem Benutzer mit erweiterten Rechten (ADMIN).
- * @author thomas
  *
  */
 public enum Role {

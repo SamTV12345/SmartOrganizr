@@ -10,7 +10,6 @@ import de.smart.organizr.services.interfaces.UserService;
 
 /**
  * Klasse zum Verwalten des Benutzers
- * @author thomas
  *
  */
 public class EditUserView {

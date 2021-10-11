@@ -29,6 +29,11 @@ public class FolderServiceImpl implements FolderService {
 	}
 
 	@Override
+	public Optional<Folder> findFolderByID(final int folderId){
+		return folderDao.findById(folderId);
+	}
+
+	@Override
 	public Folder saveFolder(final Folder folder){
 		return folderDao.saveFolder(folder);
 	}

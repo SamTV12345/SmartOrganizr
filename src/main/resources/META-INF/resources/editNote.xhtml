@@ -24,6 +24,7 @@
                     <f:selectItem itemLabel="Einen Author auswählen"/>
                     <f:selectItems value="#{editNoteView.allAuthors}" var="author"
                                    itemLabel="#{author.name} (#{author.extraInformation})" itemValue="#{author}" />
+                    <p:ajax event="change" update="@this" />
                 </p:selectOneMenu>
             </div>
             <p:commandButton value="#{labels['edit-note.save']}" action="#{editNoteView.saveNote()}"/>

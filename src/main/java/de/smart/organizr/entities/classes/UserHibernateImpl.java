@@ -4,6 +4,7 @@ import de.smart.organizr.entities.interfaces.User;
 import de.smart.organizr.enums.Role;
 
 import javax.persistence.*;
+import java.util.Objects;
 
 @Entity
 @Table(name = "user")
@@ -30,6 +31,25 @@ public class UserHibernateImpl implements User {
 	
 	public UserHibernateImpl(final String userName, final String password, final String emailAddress) {
 		this(0,userName,password,emailAddress,Role.USER);
+	}
+
+	@Override
+	public boolean equals(final Object o) {
+		if (this == o) {
+			return true;
+		}
+		if (o == null || getClass() != o.getClass()) {
+			return false;
+		}
+		final UserHibernateImpl that = (UserHibernateImpl) o;
+		return userId == that.userId && passwordResetRequired == that.passwordResetRequired &&
+				Objects.equals(userName, that.userName) && Objects.equals(password, that.password) &&
+				Objects.equals(emailAddress, that.emailAddress) && role == that.role;
+	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hash(userId, userName, password, emailAddress, role, passwordResetRequired);
 	}
 
 	@Override
@@ -92,5 +112,17 @@ public class UserHibernateImpl implements User {
 	@Override
 	public void setPasswordResetRequired(final boolean passwordResetRequired) {
 		this.passwordResetRequired = passwordResetRequired;
+	}
+
+	@Override
+	public String toString() {
+		return "UserHibernateImpl{" +
+				"userId=" + userId +
+				", userName='" + userName + '\'' +
+				", password='" + password + '\'' +
+				", emailAddress='" + emailAddress + '\'' +
+				", role=" + role +
+				", passwordResetRequired=" + passwordResetRequired +
+				'}';
 	}
 }

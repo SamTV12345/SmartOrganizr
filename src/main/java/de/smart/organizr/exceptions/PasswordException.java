@@ -7,7 +7,6 @@ import java.io.Serial;
 /**
  * Exception-Klasse für den Fall, dass das Passwort nicht gültig ist
  * 
- * @author thomas
  *
  */
 public class PasswordException extends RuntimeException {

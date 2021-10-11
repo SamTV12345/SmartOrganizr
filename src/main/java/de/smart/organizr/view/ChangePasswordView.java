@@ -7,7 +7,6 @@ import de.smart.organizr.services.interfaces.UserService;
 
 /**
  * Klasse zum Zurücksetzen/Ändern des Passwortes
- * @author thomas
  *
  */
 public class ChangePasswordView {

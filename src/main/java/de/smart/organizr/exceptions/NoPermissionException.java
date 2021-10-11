@@ -7,7 +7,6 @@ import java.io.Serial;
 
 /**
  * Exception-Klasse für den Fall, dass keine Berechtigungen vorliegen.
- * @author thomas
  *
  */
 public final class NoPermissionException extends RuntimeException {

@@ -53,6 +53,11 @@ public class UserDaoJpaImpl implements UserDao {
 		return userRepository.findByUserName(userName);
 	}
 
+	/**
+	 * Finds a user by id
+	 * @param userId the userId
+	 * @return an optional of the found user
+	 */
 	@Override
 	public Optional<User> findUserById(final int userId) {
 		final Optional<UserHibernateImpl> optionalUser = userRepository.findByUserId(userId);
@@ -62,9 +67,14 @@ public class UserDaoJpaImpl implements UserDao {
 		return Optional.of(optionalUser.get());
 	}
 
+	/**
+	 * Saves/updates a user
+	 * @param userHibernateImpl the user to be saved
+	 * @return the savedUser
+	 */
 	@Override
-	public UserHibernateImpl saveUser(final UserHibernateImpl userHibernateImpl) {
-		return userRepository.save(userHibernateImpl);
+	public UserHibernateImpl saveUser(final User userHibernateImpl) {
+		return userRepository.save((UserHibernateImpl) userHibernateImpl);
 	}
 
 }

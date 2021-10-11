@@ -15,6 +15,11 @@ public class NoteDaoJpaImpl implements NoteDao {
 		this.noteRepository = noteRepository;
 	}
 
+	/**
+	 * Saves/Updates a note
+	 * @param note the note to be saved/updated.
+	 * @return the saved note
+	 */
 	@Override
 	public Note saveNote(final Note note){
 		return noteRepository.save((NoteHibernateImpl) note);

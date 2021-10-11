@@ -6,7 +6,6 @@ import java.io.Serial;
 
 /**
  * Exception-Klasse für den Benutzer
- * @author thomas
  *
  */
 public final class UserException extends RuntimeException {

@@ -11,6 +11,9 @@ import org.primefaces.model.TreeNode;
 
 import javax.annotation.PostConstruct;
 import java.util.Collection;
+import java.util.Comparator;
+import java.util.List;
+import java.util.stream.Collectors;
 
 public class ElementsTreeView {
 	private final FolderService folderService;
@@ -58,6 +61,7 @@ public class ElementsTreeView {
 	public boolean isFolder(final Element element){
 		return element instanceof Folder;
 	}
+
 	public String navigateToEditElement(final Element elementToBeEdited){
 		return NavigationUtils.navigateToEditElementView(elementToBeEdited);
 	}
@@ -65,6 +69,14 @@ public class ElementsTreeView {
 	public String navigateToCreateFolder(final Folder folder){
 		JsfUtils.putFolderIntoFlash(folder);
 		return "/editFolder";
+	}
+
+	public int determinePositionInFolder(final Element node) {
+		final Folder parentOfNote = node.getParent();
+
+		 return parentOfNote.getElements().stream().filter(nodeToBeFiltered->nodeToBeFiltered instanceof Note).sorted(
+				 Comparator.comparing(note -> ((Note) note).getTitle())).collect(
+				Collectors.toList()).indexOf(node);
 	}
 
 	public String navigateToCreateFolder(){

@@ -11,7 +11,6 @@ import de.smart.organizr.services.interfaces.UserService;
 
 /**
  * Klasse zum Verwalten der Benutzer
- * @author thomas
  *
  */
 public class ManageUsersView {

@@ -7,6 +7,7 @@ import de.smart.organizr.entities.interfaces.User;
 import de.smart.organizr.repositories.FolderRepository;
 
 import java.util.Collection;
+import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -48,5 +49,19 @@ public class FolderDaoJpaImpl implements FolderDao {
 	@Override
 	public Collection<Folder> findAllParentFolders(final int userId) {
 		return folderRepository.findAllParentFolders(userId);
+	}
+
+	/**
+	 * Finds a folder by id
+	 * @param folderId
+	 * @return
+	 */
+	@Override
+	public Optional<Folder> findById(final int folderId) {
+		final Optional<FolderHibernateImpl> optionalFolderHibernate = folderRepository.findById(folderId);
+		if(optionalFolderHibernate.isEmpty()){
+			return Optional.empty();
+		}
+		return Optional.of(optionalFolderHibernate.get());
 	}
 }

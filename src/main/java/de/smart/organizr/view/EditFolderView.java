@@ -27,7 +27,6 @@ public class EditFolderView {
 		optionalFutureParentFolder =  Optional.ofNullable(JsfUtils.getFolderFromFlash());
 		optionalSavedFolder = Optional.ofNullable(JsfUtils.getAnotherFolderFromFlash());
 		optionalSavedFolder.ifPresent(folder -> folderToBeSaved = folder);
-		System.out.println(optionalSavedFolder.isPresent());
 	}
 
 	public String saveFolder(){

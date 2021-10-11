@@ -5,6 +5,7 @@ import de.smart.organizr.entities.interfaces.Author;
 import de.smart.organizr.entities.interfaces.User;
 
 import javax.persistence.*;
+import java.util.Objects;
 
 @Entity
 @Table(name = "authors")
@@ -28,6 +29,25 @@ public class AuthorHibernateImpl implements Author {
 		this.name = name;
 		this.extraInformation = extraInformation;
 		this.creator = creator;
+	}
+
+	@Override
+	public boolean equals(final Object o) {
+		if (this == o) {
+			return true;
+		}
+		if (o == null || getClass() != o.getClass()) {
+			return false;
+		}
+		final AuthorHibernateImpl that = (AuthorHibernateImpl) o;
+		return id == that.id && Objects.equals(name, that.name) &&
+				Objects.equals(extraInformation, that.extraInformation) &&
+				Objects.equals(creator, that.creator);
+	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hash(id, name, extraInformation, creator);
 	}
 
 	@Override
@@ -71,5 +91,15 @@ public class AuthorHibernateImpl implements Author {
 	@Override
 	public void setCreator(final User creator) {
 		this.creator = creator;
+	}
+
+	@Override
+	public String toString() {
+		return "AuthorHibernateImpl{" +
+				"id=" + id +
+				", name='" + name + '\'' +
+				", extraInformation='" + extraInformation + '\'' +
+				", creator=" + creator +
+				'}';
 	}
 }

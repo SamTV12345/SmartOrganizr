@@ -6,7 +6,9 @@
             <p:commandButton icon="pi pi-plus" action="#{elementsTreeView.navigateToCreateFolder()}"
                              value="#{labels['elements-tree-view.create-parent-folder']}"/>
             <p:treeTable value="#{elementsTreeView.root}" var="node" dynamic="true">
-                    <p:column headerText="#{labels['elements-tree-view.name']}">
+                    <p:column headerText="#{labels['elements-tree-view.name']}"
+                              sortBy="#{elementsTreeView.getCorrectNamingScheme(node)}" sortOrder="asc"
+                              filterBy="#{elementsTreeView.getCorrectNamingScheme(node)}" filterMatchMode="contains">
                     <p:commandLink value="#{elementsTreeView.getCorrectNamingScheme(node)}"
                                    action="#{elementsTreeView.navigateToEditElement(node)}"/>
                     </p:column>
@@ -14,6 +16,11 @@
                     <h:outputText value="#{node.creationDate.time}">
                         <f:convertDateTime type="date" pattern="dd.MM.yyyy hh:mm" />
                     </h:outputText>
+                </p:column>
+                <p:column headerText="#{labels['elements-tree-view.position-in-folder']}"
+                          >
+                    <h:outputText value="#{elementsTreeView.determinePositionInFolder(node)}"
+                                  rendered="#{not elementsTreeView.isFolder(node)}"/>
                 </p:column>
                 <p:column headerText="#{labels['elements-tree-view.actions']}">
                     <p:commandButton icon="pi pi-plus" action="#{elementsTreeView.navigateToCreateFolder(node)}"
