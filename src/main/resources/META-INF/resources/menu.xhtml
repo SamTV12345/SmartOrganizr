@@ -8,17 +8,6 @@
 	
 	<ui:define name="page-content">
 		<h1><h:outputText value="#{labels['menu.title']}" /></h1>
-		<h2><h:outputText value="#{labels['menu.video-title']}"/> </h2>
-		<!-- source: https://de.videezy.com/abstrakt/34370-zeitlupe-chef-der-mit-flamme-in-einer-bratpfanne-auf-einem
-		-kuchenofen-kocht -->
-	
-		<ui:fragment rendered="#{userBean.admin}" >
-			<p:commandLink value="#{labels['menu.manage-dishes']}" action="manageDishes?faces-redirect=true" /> <br />
-			<p:commandLink value="#{labels['menu.manage-users']}" action="manageUsers?faces-redirect=true" /> <br />
-		</ui:fragment>
-		<p:commandLink value="#{labels['menu.edit-profile']}" action="editProfile?faces-redirect=true"/> <br />
-		<p:commandLink value="#{labels['menu.order']}" action="order"/> <br />
-		<p:link value="#{labels['menu.logout']}" href="/logout" />
 	</ui:define>
 
 </ui:composition>
