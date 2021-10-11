@@ -22,8 +22,9 @@
 		<maven.build.timestamp.format>yyyyMMdd-HHmmssSSS</maven.build.timestamp.format>
 	</properties>
 
-	<name>SmartMensa</name>
-	<description>SmartMensa</description>
+	<name>SmartOrganizr</name>
+	<description>Smartorganizr is a responsive, feature-packed Java Server Faces application which lets you organise your IRL folders.
+	</description>
 
 	<dependencies>
 		<dependency>
