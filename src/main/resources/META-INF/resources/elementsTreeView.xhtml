@@ -5,10 +5,14 @@
         <h:form>
             <p:commandButton icon="pi pi-plus" action="#{elementsTreeView.navigateToCreateFolder()}"
                              value="#{labels['elements-tree-view.create-parent-folder']}"/>
-            <p:treeTable value="#{elementsTreeView.root}" var="node" dynamic="true" id="elements" >
+            <h:panelGroup id="padding" layout="block">
+            <p:treeTable value="#{elementsTreeView.root}" var="node" dynamic="false" id="elements"
+                         nodeVar="#{elementsTreeView.root}">
+                <p:ajax event="collapse" listener="#{elementsTreeView.onNodeCollapse}" />
                 <p:column headerText="#{labels['elements-tree-view.name']}"
                               sortBy="#{elementsTreeView.getCorrectNamingScheme(node)}" sortOrder="asc"
-                              filterBy="#{elementsTreeView.getCorrectNamingScheme(node)}" filterMatchMode="contains">
+                              filterBy="#{elementsTreeView.getCorrectNamingScheme(node)}" filterMatchMode="contains"
+                          selectionMode="single">
                     <p:commandLink value="#{elementsTreeView.getCorrectNamingScheme(node)}"
                                    action="#{elementsTreeView.navigateToEditElement(node)}"/>
                     </p:column>
@@ -49,9 +53,12 @@
                     </p:commandButton>
                 </p:column>
             </p:treeTable>
+            </h:panelGroup>
+
             <p:confirmDialog global="true" showEffect="fade" hideEffect="fade" responsive="true" width="350">
-                <p:commandButton value="No" type="button" styleClass="ui-confirmdialog-no ui-button-flat"/>
-                <p:commandButton value="Yes" type="button" styleClass="ui-confirmdialog-yes" />
+                <p:commandButton value="No" type="button" styleClass="ui-confirmdialog-no ui-button-flat"
+                                 update="@form"/>
+                <p:commandButton value="Yes" type="button" styleClass="ui-confirmdialog-yes" update="@form"/>
             </p:confirmDialog>
         </h:form>
     </ui:define>

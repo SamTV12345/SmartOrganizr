@@ -81,10 +81,6 @@
 		    <artifactId>spring-boot-configuration-processor</artifactId>
 		    <optional>true</optional>
 		</dependency>
-		<dependency>
-			<groupId>com.h2database</groupId>
-			<artifactId>h2</artifactId>
-		</dependency>
 
 		<!-- Testframeworks -->
 		<dependency>
@@ -161,9 +157,14 @@
 							<port>8080</port>
 						</ports>
 						<format>OCI</format>
+						<environment>
+							<SPRING_DATASOURCE_URL>your_url</SPRING_DATASOURCE_URL>
+							<SPRING_DATASOURCE_USERNAME>your_user</SPRING_DATASOURCE_USERNAME>
+							<SPRING_DATASOURCE_PASSWORD>your_password</SPRING_DATASOURCE_PASSWORD>
+						</environment>
 					</container>
 					<to>
-						<image>smart-mensa</image>
+						<image>registry.hub.docker.com/samuel19982/smartorganizr</image>
 						<tags>
 							<tag>latest</tag>
 						</tags>

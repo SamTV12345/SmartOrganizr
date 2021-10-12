@@ -14,12 +14,12 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
-public class MensaUserDetailsService implements UserDetailsService {
+public class SmartOrganizrUserDetailsService implements UserDetailsService {
 
 	private final UserService userService;
 	private final PasswordEncoder passwordEncoder;
 	
-	public MensaUserDetailsService(final UserService userService, final PasswordEncoder passwordEncoder) {
+	public SmartOrganizrUserDetailsService(final UserService userService, final PasswordEncoder passwordEncoder) {
 		this.userService = userService;
 		this.passwordEncoder = passwordEncoder;
 	}

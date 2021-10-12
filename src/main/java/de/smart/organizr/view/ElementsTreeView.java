@@ -7,20 +7,22 @@ import de.smart.organizr.services.interfaces.FolderService;
 import de.smart.organizr.services.interfaces.NoteService;
 import de.smart.organizr.utils.JsfUtils;
 import de.smart.organizr.utils.NavigationUtils;
+import org.primefaces.event.NodeCollapseEvent;
 import org.primefaces.model.DefaultTreeNode;
 import org.primefaces.model.TreeNode;
 
 import javax.annotation.PostConstruct;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class ElementsTreeView {
+public class ElementsTreeView implements Serializable {
 	private final FolderService folderService;
 	private final NoteService noteService;
-	private TreeNode root;
+	private TreeNode root = new DefaultTreeNode("Folders", null);;
 	private final UserBean userBean;
 
 	public ElementsTreeView(final FolderService folderService,
@@ -37,9 +39,7 @@ public class ElementsTreeView {
 	}
 
 	private void initRoot() {
-		root = new DefaultTreeNode("Folders", null);
 		final Collection<Folder> parentFolders = folderService.findAllParentFolders(userBean.getUser().getUserId());
-		System.out.println(parentFolders);
 		parentFolders.forEach(parentFolder->{
 			final TreeNode parentFolderTreeNode =
 				new DefaultTreeNode(parentFolder, root);
@@ -55,9 +55,10 @@ public class ElementsTreeView {
 				recursivelyAddFolders(folder1,newNode);
 			}
 			else if(elementToBeAdded instanceof Note noteToBeAdded){
-				final TreeNode newNoteInTree = new DefaultTreeNode(noteToBeAdded,folderToBeAppendedTo);
+				 new DefaultTreeNode(noteToBeAdded,folderToBeAppendedTo);
 			}
 			System.out.println(elementToBeAdded);
+			System.out.println("Requesting");
 		});
 	}
 
@@ -101,6 +102,12 @@ public class ElementsTreeView {
 			return "/editNote.xhtml";
 	}
 
+	public void onNodeCollapse(final NodeCollapseEvent event) {
+		if (event != null && event.getTreeNode() != null) {
+			event.getTreeNode().setExpanded(false);
+		}
+	}
+
 	public void deleteElement(final Element elementToBeRemoved){
 		if(elementToBeRemoved instanceof Folder folder) {
 			folderService.deleteFolder(folder);
@@ -110,7 +117,6 @@ public class ElementsTreeView {
 		}
 		root.getChildren().removeIf(element->element.getData().equals(elementToBeRemoved));
 		traverseTree(root, elementToBeRemoved);
-		root=null;
 	}
 
 
@@ -124,6 +130,7 @@ public class ElementsTreeView {
 				traverseTree(child, elementToBeRemoved);
 			}
 		}
+		initRoot();
 	}
 
 	public TreeNode getRoot() {

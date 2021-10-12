@@ -18,8 +18,8 @@ import de.smart.organizr.services.interfaces.UserService;
 public class AdminCreator {
 
 	private static final String ADMIN_USERNAME = "admin";
-	private static final String ADMIN_PASSWORD = "5TL-sm-admin";
-	private static final String ADMIN_E_MAIL = "admin@mensa.htwsaar.de";
+	private static final String ADMIN_PASSWORD = "smartorganizr-8934-$USER";
+	private static final String ADMIN_E_MAIL = "admin@smartorganizr.de";
 	
 	@Autowired
 	private UserService userService;

@@ -12,13 +12,13 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.SavedRequestAwareAuthenticationSuccessHandler;
 
-public class MensaAuthenticationHandler implements AuthenticationSuccessHandler {
+public class SmartOrganizrAuthenticationHandler implements AuthenticationSuccessHandler {
 
 	private final UserService userService;
 	
 	private final AuthenticationSuccessHandler target = new SavedRequestAwareAuthenticationSuccessHandler();
 	
-	public MensaAuthenticationHandler(final UserService userService) {
+	public SmartOrganizrAuthenticationHandler(final UserService userService) {
 		this.userService = userService;
 	}
 

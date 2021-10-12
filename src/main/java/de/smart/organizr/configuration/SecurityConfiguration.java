@@ -8,8 +8,8 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 
-import de.smart.organizr.security.MensaAuthenticationHandler;
-import de.smart.organizr.security.MensaUserDetailsService;
+import de.smart.organizr.security.SmartOrganizrAuthenticationHandler;
+import de.smart.organizr.security.SmartOrganizrUserDetailsService;
 import de.smart.organizr.services.interfaces.UserService;
 
 @Configuration
@@ -20,7 +20,7 @@ public class SecurityConfiguration {
 	
 	@Bean
 	public UserDetailsService userDetailsService(final PasswordEncoder passwordEncoder) {
-		return new MensaUserDetailsService(userService, passwordEncoder);
+		return new SmartOrganizrUserDetailsService(userService, passwordEncoder);
 	}
 	
 	@Bean
@@ -30,6 +30,6 @@ public class SecurityConfiguration {
 	
 	@Bean
 	public AuthenticationSuccessHandler authenticationSuccessHandler() {
-		return new MensaAuthenticationHandler(userService);
+		return new SmartOrganizrAuthenticationHandler(userService);
 	}
 }

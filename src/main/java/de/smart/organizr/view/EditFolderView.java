@@ -39,7 +39,6 @@ public class EditFolderView {
 		}
 		folderToBeSaved.setParent(futureParentFolder);
 		folderService.saveFolder(folderToBeSaved);
-		System.out.println("folder gesaved");
 		return NavigationUtils.navigateToCorrectVersion(userBean.getVersion());
 	}
 
