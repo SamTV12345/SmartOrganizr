@@ -15,4 +15,7 @@ public interface FolderRepository extends CrudRepository<FolderHibernateImpl, In
 	Collection<Folder> findAllParentFolders(final int userId);
 
 	Set<Folder> findByCreator(User user);
+
+	@Query("select f FROM FolderHibernateImpl f WHERE f.creator=:user AND f.name=:s")
+	Optional<Folder> findFolderByUserAndName(User user, String s);
 }

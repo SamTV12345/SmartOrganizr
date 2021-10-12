@@ -26,6 +26,15 @@
                                    itemLabel="#{author.name} (#{author.extraInformation})" itemValue="#{author}" />
                     <p:ajax event="change" update="@this" />
                 </p:selectOneMenu>
+                <p:selectOneMenu filter="true" filterMatchMode="contains" styleClass="toolbar-grow"
+                                 value="#{editNoteView.currentFolder}" style="min-width: 200px"
+                                 required="true"
+                                 converter="#{converterConfiguration.folderConverter}">
+                    <f:selectItem itemLabel="Select folder as parent"/>
+                    <f:selectItems value="#{editFolderView.allFolders}" var="folder"
+                                   itemLabel="#{folder.name} (#{folder.id})" itemValue="#{folder}"/>
+                    <p:ajax event="change" update="@this" />
+                </p:selectOneMenu>
             </div>
             <p:commandButton value="#{labels['edit-note.save']}" action="#{editNoteView.saveNote()}"/>
         </h:form>

@@ -5,6 +5,7 @@ import de.smart.organizr.services.interfaces.FolderService;
 import de.smart.organizr.services.interfaces.NoteService;
 import de.smart.organizr.view.*;
 import de.smart.organizr.view.converters.AuthorConverter;
+import de.smart.organizr.view.converters.FolderConverter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.boot.web.servlet.ServletContextInitializer;
@@ -87,7 +88,7 @@ public class ViewConfiguration {
 	@Scope("view")
 	@Autowired
 	public EditFolderView editFolderView(final UserBean userBean){
-		return new EditFolderView(folderService, userBean);
+		return new EditFolderView(folderService,userBean);
 	}
 	
 	@SuppressWarnings({ "rawtypes", "unchecked" })
@@ -116,8 +117,16 @@ public class ViewConfiguration {
 	@Bean
 	@Scope("session")
 	@Autowired
-	public ConverterConfiguration converterConfiguration(final AuthorConverter authorConverter){
-		return new ConverterConfiguration(authorConverter);
+	public FolderConverter folderConverter(final UserBean userBean){
+		return new FolderConverter(folderService, userBean);
+	}
+
+	@Bean
+	@Scope("session")
+	@Autowired
+	public ConverterConfiguration converterConfiguration(final AuthorConverter authorConverter,
+	                                                     final FolderConverter folderConverter){
+		return new ConverterConfiguration(authorConverter, folderConverter);
 	}
 
 	@Bean

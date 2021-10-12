@@ -1,5 +1,6 @@
 <ui:composition xmlns:ui="http://xmlns.jcp.org/jsf/facelets" xmlns:p="http://primefaces.org/ui"
-                xmlns:h="http://java.sun.com/jsf/html" template="/templates/template.xhtml">
+                xmlns:h="http://java.sun.com/jsf/html" xmlns:f="http://java.sun.com/jsf/core"
+                template="/templates/template.xhtml">
     <ui:define name="page-content">
         <h:form>
         <div class="ui-fluid">
@@ -15,6 +16,15 @@
                 <p:inputText id="folder-description" value="#{editFolderView.description}"/>
                 </div>
             </div>
+            <p:selectOneMenu filter="true" filterMatchMode="contains" styleClass="toolbar-grow"
+                             value="#{editFolderView.futureParentFolder}" style="min-width: 200px"
+                             required="true"
+                    converter="#{converterConfiguration.folderConverter}">
+                <f:selectItem itemLabel="Select folder as parent"/>
+                <f:selectItems value="#{editFolderView.allFolders}" var="folder"
+                               itemLabel="#{folder.name} (#{folder.id})" itemValue="#{folder}"/>
+                <p:ajax event="change" update="@this" />
+            </p:selectOneMenu>
         </div>
         <p:commandButton value="#{labels['edit-folder.save']}" action="#{editFolderView.saveFolder()}"/>
     </h:form>

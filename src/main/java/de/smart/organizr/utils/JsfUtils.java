@@ -90,7 +90,7 @@ public enum JsfUtils {
 		return (Folder) getFlash().get(KEY_ANOTHER_FOLDER);
 	}
 
-	public Folder putAnotherFolderIntoFlash(final Folder folder){
+	public static Folder putAnotherFolderIntoFlash(final Folder folder){
 		return (Folder) getFlash().put(KEY_ANOTHER_FOLDER,folder);
 	}
 }

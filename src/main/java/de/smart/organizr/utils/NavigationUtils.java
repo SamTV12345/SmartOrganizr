@@ -12,7 +12,7 @@ public final class NavigationUtils {
 
 	public static String navigateToEditElementView(final Element element){
 		if (element instanceof Folder folder) {
-			JsfUtils.putFolderIntoFlash(folder);
+			JsfUtils.putAnotherFolderIntoFlash(folder);
 			return "/editFolder";
 		}
 		else if (element instanceof Note note){

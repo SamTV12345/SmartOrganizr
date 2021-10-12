@@ -68,6 +68,14 @@ public class EditNoteView {
 		return authorService.findAllAuthorsByUser(userBean.getUser().getUserId());
 	}
 
+	public Folder getCurrentFolder() {
+		return currentFolder;
+	}
+
+	public void setCurrentFolder(final Folder currentFolder) {
+		this.currentFolder = currentFolder;
+	}
+
 	public String getTitle() {
 		return title;
 	}

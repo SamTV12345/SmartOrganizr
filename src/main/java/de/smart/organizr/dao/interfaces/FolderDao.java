@@ -15,4 +15,6 @@ public interface FolderDao {
 	Collection<Folder> findAllParentFolders(final int userId);
 
 	Optional<Folder> findById(int folderId);
+
+	Optional<Folder> findFolderByUserAndName(User user, String s);
 }

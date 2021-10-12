@@ -42,4 +42,9 @@ public class FolderServiceImpl implements FolderService {
 	public Collection<Folder> findAllParentFolders(final int userId) {
 		return folderDao.findAllParentFolders(userId);
 	}
+
+	@Override
+	public Optional<Folder> findFolderByUserAndName(final User user, final String s) {
+		return folderDao.findFolderByUserAndName(user, s);
+	}
 }

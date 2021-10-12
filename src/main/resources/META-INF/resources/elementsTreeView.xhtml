@@ -24,11 +24,13 @@
                 </p:column>
                 <p:column headerText="#{labels['elements-tree-view.actions']}">
                     <p:commandButton icon="pi pi-plus" action="#{elementsTreeView.navigateToCreateFolder(node)}"
-                                     rendered="#{elementsTreeView.isFolder(node)}" styleClass="table-button"
+                                     rendered="#{elementsTreeView.isFolder(node)}" styleClass="table-button rounded-button"
                                      value="#{labels['elements-tree-view.create-folder']}"/>
                     <p:commandButton icon="pi pi-plus" action="#{elementsTreeView.navigateToCreateNote(node)}"
-                                     rendered="#{elementsTreeView.isFolder(node)}" styleClass="table-button"
+                                     rendered="#{elementsTreeView.isFolder(node)}" styleClass="table-button rounded-button"
                                      value="#{labels['elements-tree-view.create-note']}"/>
+                    <p:commandButton icon="pi pi-pencil" action="#{elementsTreeView.navigateToEditElement(node)}"
+                                     styleClass="table-button rounded-button"/>
                 </p:column>
             </p:treeTable>
         </h:form>
