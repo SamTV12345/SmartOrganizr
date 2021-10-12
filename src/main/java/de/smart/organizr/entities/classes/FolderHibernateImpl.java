@@ -40,23 +40,6 @@ public class FolderHibernateImpl extends ElementHibernateImpl implements Folder,
 	}
 
 	@Override
-	public boolean equals(final Object o) {
-		if (this == o) {
-			return true;
-		}
-		if (o == null || getClass() != o.getClass()) {
-			return false;
-		}
-		final FolderHibernateImpl that = (FolderHibernateImpl) o;
-		return Objects.equals(elements, that.elements);
-	}
-
-	@Override
-	public int hashCode() {
-		return Objects.hash(elements);
-	}
-
-	@Override
 	@OneToMany(targetEntity = ElementHibernateImpl.class, cascade = CascadeType.REMOVE,
 			fetch = FetchType.EAGER, mappedBy = "parent")
 	public List<Element> getElements() {

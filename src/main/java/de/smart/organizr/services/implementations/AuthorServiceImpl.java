@@ -54,4 +54,9 @@ public class AuthorServiceImpl implements AuthorService {
 			return Optional.of(namesOfAuthors.get(0));
 		}
 	}
+
+	@Override
+	public void deleteAuthor(final Author authorToDelete) {
+		authorDao.deleteAuthor(authorToDelete);
+	}
 }

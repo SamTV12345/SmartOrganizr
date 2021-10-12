@@ -27,4 +27,8 @@ public class ViewAuthorView {
 		JsfUtils.putAuthorIntoFlash(author);
 		return "/editAuthor.xhtml";
 	}
+
+	public void deleteAuthor(final Author author) {
+		authorService.deleteAuthor(author);
+	}
 }

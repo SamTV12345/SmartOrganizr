@@ -16,4 +16,6 @@ public interface FolderService {
 	Collection<Folder> findAllParentFolders(int userId);
 
 	Optional<Folder> findFolderByUserAndName(User user, String s);
+
+	void deleteFolder(Folder folder);
 }

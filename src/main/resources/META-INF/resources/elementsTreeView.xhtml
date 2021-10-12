@@ -5,8 +5,8 @@
         <h:form>
             <p:commandButton icon="pi pi-plus" action="#{elementsTreeView.navigateToCreateFolder()}"
                              value="#{labels['elements-tree-view.create-parent-folder']}"/>
-            <p:treeTable value="#{elementsTreeView.root}" var="node" dynamic="true">
-                    <p:column headerText="#{labels['elements-tree-view.name']}"
+            <p:treeTable value="#{elementsTreeView.root}" var="node" dynamic="true" id="elements" >
+                <p:column headerText="#{labels['elements-tree-view.name']}"
                               sortBy="#{elementsTreeView.getCorrectNamingScheme(node)}" sortOrder="asc"
                               filterBy="#{elementsTreeView.getCorrectNamingScheme(node)}" filterMatchMode="contains">
                     <p:commandLink value="#{elementsTreeView.getCorrectNamingScheme(node)}"
@@ -23,16 +23,36 @@
                                   rendered="#{not elementsTreeView.isFolder(node)}"/>
                 </p:column>
                 <p:column headerText="#{labels['elements-tree-view.actions']}">
-                    <p:commandButton icon="pi pi-plus" action="#{elementsTreeView.navigateToCreateFolder(node)}"
+                    <p:commandButton icon="pi pi-plus"
+                                     action="#{elementsTreeView.navigateToCreateFolder(node)}"
                                      rendered="#{elementsTreeView.isFolder(node)}" styleClass="table-button rounded-button"
                                      value="#{labels['elements-tree-view.create-folder']}"/>
                     <p:commandButton icon="pi pi-plus" action="#{elementsTreeView.navigateToCreateNote(node)}"
                                      rendered="#{elementsTreeView.isFolder(node)}" styleClass="table-button rounded-button"
                                      value="#{labels['elements-tree-view.create-note']}"/>
+                    <br/>
                     <p:commandButton icon="pi pi-pencil" action="#{elementsTreeView.navigateToEditElement(node)}"
-                                     styleClass="table-button rounded-button"/>
+                                     styleClass="table-button rounded-button" update="@form"/>
+                    <p:commandButton icon="pi pi-trash" action="#{elementsTreeView.deleteElement(node)}"
+                                     styleClass="rounded-button ui-button-danger" update="@form"
+                                     rendered="#{elementsTreeView.isFolder(node)}">
+                        <p:confirm header="#{labels['elements-tree-view.confirmation']}"
+                                   message="#{labels['elements-tree-view.confirm-delete-folder']}"
+                                   icon="pi pi-info-circle"/>
+                    </p:commandButton>
+                    <p:commandButton icon="pi pi-trash" action="#{elementsTreeView.deleteElement(node)}"
+                                     styleClass="rounded-button ui-button-danger"
+                                     rendered="#{not elementsTreeView.isFolder(node)}">
+                        <p:confirm header="#{labels['elements-tree-view.confirmation']}"
+                                   message="#{labels['elements-tree-view.confirm-delete-note']}"
+                                   icon="pi pi-info-circle"/>
+                    </p:commandButton>
                 </p:column>
             </p:treeTable>
+            <p:confirmDialog global="true" showEffect="fade" hideEffect="fade" responsive="true" width="350">
+                <p:commandButton value="No" type="button" styleClass="ui-confirmdialog-no ui-button-flat"/>
+                <p:commandButton value="Yes" type="button" styleClass="ui-confirmdialog-yes" />
+            </p:confirmDialog>
         </h:form>
     </ui:define>
 </ui:composition>

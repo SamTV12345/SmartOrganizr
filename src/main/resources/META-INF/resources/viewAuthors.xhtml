@@ -3,7 +3,7 @@
     <ui:define name="page-content">
         <h:form>
             <p:commandButton icon="pi pi-plus" action="#{viewAuthorView.navigateToEditAuthor()}"
-                             value="#{labels['view-folders.create-folder']}"/>
+                             value="#{labels['view-authors.create-author']}" styleClass="form-button"/>
             <p:dataTable value="#{viewAuthorView.allAuthors}" var="author">
                 <p:column headerText="#{labels['edit-author.name']}">
                     <h:outputText value="#{author.name}"/>
@@ -13,6 +13,10 @@
                 </p:column>
                 <p:column>
                     <p:commandButton icon="pi pi-eye" action="#{viewAuthorView.navigateToEditAuthor(author)}"
+                                     styleClass="table-button rounded-button"
+                                     update="@form"/>
+                    <p:commandButton icon="pi pi-trash" styleClass="ui-button-danger rounded-button table-button"
+                                     action="#{viewAuthorView.deleteAuthor(author)}"
                                      update="@form"/>
                 </p:column>
             </p:dataTable>

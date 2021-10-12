@@ -24,4 +24,9 @@ public class NoteDaoJpaImpl implements NoteDao {
 	public Note saveNote(final Note note){
 		return noteRepository.save((NoteHibernateImpl) note);
 	}
+
+	@Override
+	public void deleteNote(final Note note) {
+		noteRepository.deleteById(note.getId());
+	}
 }

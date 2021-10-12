@@ -18,15 +18,18 @@
             </div>
             <p:selectOneMenu filter="true" filterMatchMode="contains" styleClass="toolbar-grow"
                              value="#{editFolderView.futureParentFolder}" style="min-width: 200px"
-                             required="true"
                     converter="#{converterConfiguration.folderConverter}">
-                <f:selectItem itemLabel="Select folder as parent"/>
+                <f:selectItem itemLabel="#{labels['edit-folder.select-parent-folder']}"/>
                 <f:selectItems value="#{editFolderView.allFolders}" var="folder"
                                itemLabel="#{folder.name} (#{folder.id})" itemValue="#{folder}"/>
                 <p:ajax event="change" update="@this" />
             </p:selectOneMenu>
         </div>
-        <p:commandButton value="#{labels['edit-folder.save']}" action="#{editFolderView.saveFolder()}"/>
+            <p:commandButton value="#{labels['edit-folder.back']}"
+                             action="#{editFolderView.returnBackToFolderView()}" immediate="true"
+                             styleClass="form-button" ajax="false"/>
+            <p:commandButton value="#{labels['edit-folder.save']}" action="#{editFolderView.saveFolder()}"
+                             styleClass="form-button" ajax="false"/>
     </h:form>
     </ui:define>
 </ui:composition>

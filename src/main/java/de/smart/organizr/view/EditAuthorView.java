@@ -5,6 +5,7 @@ import de.smart.organizr.entities.interfaces.Author;
 import de.smart.organizr.entities.interfaces.User;
 import de.smart.organizr.services.interfaces.AuthorService;
 import de.smart.organizr.utils.JsfUtils;
+import de.smart.organizr.utils.NavigationUtils;
 
 public class EditAuthorView {
 	private final AuthorService authorService;
@@ -26,7 +27,11 @@ public class EditAuthorView {
 
 	public String saveAuthor(){
 		authorService.saveAuthor(new AuthorHibernateImpl(id, name, extraInformation, userBean.getUser()));
-		return "/viewAuthors.xhtml";
+		return NavigationUtils.navigateToCorrectVersion(userBean.getVersion());
+	}
+
+	public String backToElementView(){
+		return NavigationUtils.navigateToCorrectVersion(userBean.getVersion());
 	}
 
 	public String getName() {

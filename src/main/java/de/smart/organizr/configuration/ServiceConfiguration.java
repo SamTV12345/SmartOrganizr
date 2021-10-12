@@ -36,7 +36,7 @@ public class ServiceConfiguration {
 
 	@Bean
 	public FolderService folderService(){
-		return new FolderServiceImpl(folderDao, userDao);
+		return new FolderServiceImpl(folderDao, userDao, noteDao);
 	}
 
 	@Bean

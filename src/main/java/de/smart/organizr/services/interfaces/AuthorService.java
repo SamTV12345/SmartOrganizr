@@ -14,4 +14,6 @@ public interface AuthorService {
 	Optional<Author> findAuthorById(int authorId);
 
 	Optional<Author> findAuthorByUserAndName(User user, String authorName);
+
+	void deleteAuthor(Author authorToDelete);
 }

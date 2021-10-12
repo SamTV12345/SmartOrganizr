@@ -8,6 +8,7 @@ import de.smart.organizr.exceptions.AuthorException;
 import de.smart.organizr.services.interfaces.AuthorService;
 import de.smart.organizr.services.interfaces.NoteService;
 import de.smart.organizr.utils.JsfUtils;
+import de.smart.organizr.utils.NavigationUtils;
 
 import javax.annotation.PostConstruct;
 import java.util.Calendar;
@@ -56,12 +57,17 @@ public class EditNoteView {
 			noteToBeSaved.setParent(currentFolder);
 			noteService.saveNote(noteToBeSaved);
 			currentFolder.getElements().add(noteToBeSaved);
+
 			JsfUtils.putFolderIntoFlash(currentFolder);
-			return "/viewFoldersView.xhtml";
+			return navigateToViewFolders();
 		}
 		catch (final AuthorException authorException){
 			return null;
 		}
+	}
+
+	public String navigateToViewFolders() {
+		return NavigationUtils.navigateToCorrectVersion(userBean.getVersion());
 	}
 
 	public Collection<Author> getAllAuthors(){

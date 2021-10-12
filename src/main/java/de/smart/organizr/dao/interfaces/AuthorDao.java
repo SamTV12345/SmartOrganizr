@@ -13,4 +13,6 @@ public interface AuthorDao {
 	Optional<Author> findAuthorById(int authorId);
 
 	Author saveAuthor(Author author);
+
+	void deleteAuthor(Author authorToDelete);
 }

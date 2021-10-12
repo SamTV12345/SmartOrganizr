@@ -4,6 +4,7 @@ import de.smart.organizr.entities.classes.FolderHibernateImpl;
 import de.smart.organizr.entities.interfaces.Folder;
 import de.smart.organizr.services.interfaces.FolderService;
 import de.smart.organizr.utils.JsfUtils;
+import de.smart.organizr.utils.NavigationUtils;
 
 import javax.annotation.PostConstruct;
 import java.util.Collection;
@@ -26,7 +27,6 @@ public class EditFolderView {
 	@PostConstruct
 	public void initialize() {
 		futureParentFolder = JsfUtils.getFolderFromFlash();
-		System.out.println(futureParentFolder);
 		optionalSavedFolder = Optional.ofNullable(JsfUtils.getAnotherFolderFromFlash());
 		optionalSavedFolder.ifPresent(folder -> folderToBeSaved = folder);
 		optionalSavedFolder.ifPresent(folder -> futureParentFolder = folder.getParent());
@@ -36,11 +36,11 @@ public class EditFolderView {
 	public String saveFolder(){
 		if(folderToBeSaved == null) {
 			folderToBeSaved = new FolderHibernateImpl(name, description, userBean.getUser());
-			folderToBeSaved.setParent(futureParentFolder);
-
 		}
+		folderToBeSaved.setParent(futureParentFolder);
 		folderService.saveFolder(folderToBeSaved);
-		return "/viewFoldersView.xhtml";
+		System.out.println("folder gesaved");
+		return NavigationUtils.navigateToCorrectVersion(userBean.getVersion());
 	}
 
 	public String getDescription() {
@@ -73,6 +73,10 @@ public class EditFolderView {
 		else {
 			this.name = name;
 		}
+	}
+
+	public String returnBackToFolderView(){
+		return NavigationUtils.navigateToCorrectVersion(userBean.getVersion());
 	}
 
 	public Folder getFutureParentFolder() {

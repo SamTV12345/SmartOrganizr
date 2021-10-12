@@ -8,6 +8,7 @@ import javax.faces.context.FacesContext;
 import de.smart.organizr.entities.classes.UserHibernateImpl;
 import de.smart.organizr.entities.interfaces.User;
 import de.smart.organizr.enums.Role;
+import de.smart.organizr.enums.Version;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 import de.smart.organizr.services.interfaces.UserService;
@@ -20,6 +21,7 @@ public class UserBean {
 	private String localeCode;
 	private Optional<User> optionalUser;
 	private String locale;
+	private Version version;
 
 	public UserBean(final UserService userService) {
 		this.userService = userService;
@@ -78,6 +80,30 @@ public class UserBean {
 	public boolean isAdmin() {
 		checkUserLoginStatus();
 		return optionalUser.get().getRole() == Role.ADMIN;
+	}
+
+	public Version getVersion() {
+		return version;
+	}
+
+	public void setVersion(final Version version) {
+		this.version = version;
+	}
+
+	public void toggleVersion(){
+		if (version == Version.OLD_VERSION){
+			version = Version.NEW_VERSION;
+		}
+		else{
+			version = Version.OLD_VERSION;
+		}
+	}
+
+	public boolean isOldVersion(){
+		if (version ==null) {
+			return false;
+		}
+		return version == Version.OLD_VERSION;
 	}
 
 	public void setOptionalUser(final User savedUser) {

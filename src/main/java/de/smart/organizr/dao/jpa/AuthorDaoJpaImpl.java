@@ -52,4 +52,9 @@ public class AuthorDaoJpaImpl implements AuthorDao {
 	public Author saveAuthor(final Author authorToBeSaved){
 		return authorRepository.save((AuthorHibernateImpl) authorToBeSaved);
 	}
+
+	@Override
+	public void deleteAuthor(final Author authorToDelete) {
+		authorRepository.deleteById(authorToDelete.getId());
+	}
 }

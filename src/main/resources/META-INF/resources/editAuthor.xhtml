@@ -19,7 +19,10 @@
                     </div>
                 </div>
             </div>
-            <p:commandButton value="#{labels['edit-author.save']}" action="#{editAuthorView.saveAuthor()}"/>
+            <p:commandButton value="#{labels['edit-author.back']}" action="#{editAuthorView.backToElementView()}"
+                             styleClass="form-button" immediate="true"/>
+            <p:commandButton value="#{labels['edit-author.save']}" action="#{editAuthorView.saveAuthor()}"
+                             styleClass="form-button"/>
         </h:form>
     </ui:define>
 </ui:composition>

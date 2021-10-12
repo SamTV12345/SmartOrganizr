@@ -24,21 +24,23 @@ public class FolderConverter implements Converter<Folder> {
 
 	@Override
 	public Folder getAsObject(final FacesContext facesContext, final UIComponent uiComponent, final String s) {
-		int extractedId=0;
+		int extractedId = 0;
 		final Pattern p = Pattern.compile(".*\\((.*)\\)");
 		final Matcher m = p.matcher(s);
-		if(m.find()){
+		if (m.find()) {
 			extractedId = Integer.parseInt(m.group(1));
 		}
+		System.out.println(extractedId);
 		return folderService.findFolderByID(extractedId).orElse(null);
 	}
 
 	@Override
 	public String getAsString(final FacesContext facesContext, final UIComponent uiComponent, final Folder folder) {
-		if(folder == null){
+		if (folder != null) {
+			return folder.getName()+ "(%d)".formatted(folder.getId());
+		}
+		else {
 			return null;
 		}
-		System.out.println(folder.getName()+" "+"(%d)".formatted(folder.getId()));
-		return folder.getName()+" "+"(%d)".formatted(folder.getId());//"#{folder.name} (#{folder.id})
 	}
 }

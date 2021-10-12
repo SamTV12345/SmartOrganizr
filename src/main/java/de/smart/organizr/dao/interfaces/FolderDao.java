@@ -17,4 +17,6 @@ public interface FolderDao {
 	Optional<Folder> findById(int folderId);
 
 	Optional<Folder> findFolderByUserAndName(User user, String s);
+
+	void deleteFolder(Folder folder);
 }

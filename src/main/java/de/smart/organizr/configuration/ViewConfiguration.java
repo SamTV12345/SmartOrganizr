@@ -88,7 +88,7 @@ public class ViewConfiguration {
 	@Scope("view")
 	@Autowired
 	public EditFolderView editFolderView(final UserBean userBean){
-		return new EditFolderView(folderService,userBean);
+		return new EditFolderView(folderService, userBean);
 	}
 	
 	@SuppressWarnings({ "rawtypes", "unchecked" })
@@ -143,9 +143,9 @@ public class ViewConfiguration {
 	}
 
 	@Bean
-	@Scope("view")
+	@Scope("request")
 	@Autowired
 	public ElementsTreeView elementsTreeView(final UserBean userBean){
-		return new ElementsTreeView(folderService, userBean);
+		return new ElementsTreeView(folderService, noteService, userBean);
 	}
 }

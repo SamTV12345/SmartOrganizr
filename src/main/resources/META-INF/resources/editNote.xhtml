@@ -20,8 +20,8 @@
                 </div>
                 <p:selectOneMenu filter="true" filterMatchMode="contains" styleClass="toolbar-grow"
                                  value="#{editNoteView.author}" style="min-width: 200px"
-                                 converter="#{converterConfiguration.authorConverter}">
-                    <f:selectItem itemLabel="Einen Author auswählen"/>
+                                 converter="#{converterConfiguration.authorConverter}" required="true">
+                    <f:selectItem itemLabel="#{labels['edit-note.select-author']}"/>
                     <f:selectItems value="#{editNoteView.allAuthors}" var="author"
                                    itemLabel="#{author.name} (#{author.extraInformation})" itemValue="#{author}" />
                     <p:ajax event="change" update="@this" />
@@ -30,13 +30,16 @@
                                  value="#{editNoteView.currentFolder}" style="min-width: 200px"
                                  required="true"
                                  converter="#{converterConfiguration.folderConverter}">
-                    <f:selectItem itemLabel="Select folder as parent"/>
+                    <f:selectItem itemLabel="#{labels['edit-folder.select-parent-folder']}"/>
                     <f:selectItems value="#{editFolderView.allFolders}" var="folder"
                                    itemLabel="#{folder.name} (#{folder.id})" itemValue="#{folder}"/>
                     <p:ajax event="change" update="@this" />
                 </p:selectOneMenu>
             </div>
-            <p:commandButton value="#{labels['edit-note.save']}" action="#{editNoteView.saveNote()}"/>
+            <p:commandButton value="#{labels['edit-note.back']}" action="#{editNoteView.navigateToViewFolders()}"
+                             styleClass="form-button" immediate="true"/>
+            <p:commandButton value="#{labels['edit-note.save']}" action="#{editNoteView.saveNote()}"
+                             styleClass="form-button" ajax="false"/>
         </h:form>
     </ui:define>
 </ui:composition>
