@@ -12,25 +12,26 @@
                 <p:column headerText="#{labels['elements-tree-view.name']}"
                               sortBy="#{elementsTreeView.getCorrectNamingScheme(node)}" sortOrder="asc"
                               filterBy="#{elementsTreeView.getCorrectNamingScheme(node)}" filterMatchMode="contains"
-                          selectionMode="single">
+                          selectionMode="single" responsivePriority="1">
                     <p:commandLink value="#{elementsTreeView.getCorrectNamingScheme(node)}"
                                    action="#{elementsTreeView.navigateToEditElement(node)}"/>
                     </p:column>
-                <p:column headerText="#{labels['elements-tree-view.creation-date']}">
+                <p:column headerText="#{labels['elements-tree-view.creation-date']}" responsivePriority="5">
                     <h:outputText value="#{node.creationDate.time}">
                         <f:convertDateTime type="date" pattern="dd.MM.yyyy hh:mm" />
                     </h:outputText>
                 </p:column>
                 <p:column headerText="#{labels['elements-tree-view.position-in-folder']}"
-                          >
+                         responsivePriority="1" >
                     <h:outputText value="#{elementsTreeView.determinePositionInFolder(node)}"
                                   rendered="#{not elementsTreeView.isFolder(node)}"/>
                 </p:column>
-                <p:column headerText="#{labels['elements-tree-view.actions']}">
+                <p:column headerText="#{labels['elements-tree-view.actions']}" responsivePriority="1">
                     <p:commandButton icon="pi pi-plus"
                                      action="#{elementsTreeView.navigateToCreateFolder(node)}"
                                      rendered="#{elementsTreeView.isFolder(node)}" styleClass="table-button rounded-button"
                                      value="#{labels['elements-tree-view.create-folder']}"/>
+                    <br/>
                     <p:commandButton icon="pi pi-plus" action="#{elementsTreeView.navigateToCreateNote(node)}"
                                      rendered="#{elementsTreeView.isFolder(node)}" styleClass="table-button rounded-button"
                                      value="#{labels['elements-tree-view.create-note']}"/>
