@@ -35,11 +35,29 @@
                                    itemLabel="#{folder.name} (#{folder.id})" itemValue="#{folder}"/>
                     <p:ajax event="change" update="@this" />
                 </p:selectOneMenu>
+                <div>
+                    <div class="field grid">
+                        <p:outputLabel for="pdf-available" value="PDF verfügbar?"
+                                       styleClass="col-12 mb-2 md:col-2 md:mb-0"/>
+                        <div class="col-12 md:col-10">
+                            <p:selectBooleanCheckbox id="pdf-available"
+                                              value="#{editNoteView.checkIfPDFForNoteIsAvailable()}" disabled="true"/>
+                        </div>
+
+                </div>
             </div>
+            </div>
+
+
+            <p:fileUpload value="#{editNoteView.uploadedFile}" mode="advanced" multiple="false"/>
             <p:commandButton value="#{labels['edit-note.back']}" action="#{editNoteView.navigateToViewFolders()}"
                              styleClass="form-button" immediate="true"/>
             <p:commandButton value="#{labels['edit-note.save']}" action="#{editNoteView.saveNote()}"
                              styleClass="form-button" ajax="false"/>
+            <!--p:media value="#{editNoteView.pdf}" width="100%" height="500px" cache="false"
+                     rendered="#{editNoteView.checkIfPDFForNoteIsAvailable()}" player="pdf">
+                <f:param name="id" value="#{editNoteView.generateRandomIdForNotCaching()}" />
+            </p:media-->
         </h:form>
     </ui:define>
 </ui:composition>

@@ -1,8 +1,6 @@
 package de.smart.organizr.configuration;
 
-import de.smart.organizr.services.interfaces.AuthorService;
-import de.smart.organizr.services.interfaces.FolderService;
-import de.smart.organizr.services.interfaces.NoteService;
+import de.smart.organizr.services.interfaces.*;
 import de.smart.organizr.view.*;
 import de.smart.organizr.view.converters.AuthorConverter;
 import de.smart.organizr.view.converters.FolderConverter;
@@ -13,8 +11,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Scope;
 
-import de.smart.organizr.services.interfaces.UserService;
-
 @Configuration
 public class ViewConfiguration {
 
@@ -22,6 +18,8 @@ public class ViewConfiguration {
 	private UserService userService;
 	@Autowired
 	private FolderService folderService;
+	@Autowired
+	private PDFService pdfService;
 	@Autowired
 	private NoteService noteService;
 	@Autowired
@@ -73,8 +71,11 @@ public class ViewConfiguration {
 
 	@Bean
 	public ServletContextInitializer initializer() {
-		return servletContext -> servletContext.setInitParameter("primefaces.DOWNLOADER",
-				"commons");
+		return servletContext -> {
+			servletContext.setInitParameter("primefaces.UPLOADER",
+					"commons");
+			servletContext.setInitParameter("primefaces.DOWNLOADER","commons");
+		};
 	}
 
 	@Bean
@@ -104,7 +105,7 @@ public class ViewConfiguration {
 	@Autowired
 	@Scope("view")
 	public EditNoteView editNoteView(final UserBean userBean){
-		return new EditNoteView(noteService, authorService, userBean);
+		return new EditNoteView(noteService, authorService, pdfService, userBean);
 	}
 
 	@Bean

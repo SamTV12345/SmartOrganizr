@@ -70,6 +70,10 @@ public class SpringSecurityConfiguration extends WebSecurityConfigurerAdapter {
             .addFilterAfter(new ChangePasswordFilter(userService),
 		            UsernamePasswordAuthenticationFilter.class)
             .httpBasic();
+			http.headers()
+		    .frameOptions()
+		    .sameOrigin()
+		    .httpStrictTransportSecurity().disable();
 	}
 	
 }

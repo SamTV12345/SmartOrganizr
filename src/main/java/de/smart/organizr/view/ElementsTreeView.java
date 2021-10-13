@@ -7,6 +7,7 @@ import de.smart.organizr.services.interfaces.FolderService;
 import de.smart.organizr.services.interfaces.NoteService;
 import de.smart.organizr.utils.JsfUtils;
 import de.smart.organizr.utils.NavigationUtils;
+import org.primefaces.PrimeFaces;
 import org.primefaces.event.NodeCollapseEvent;
 import org.primefaces.model.DefaultTreeNode;
 import org.primefaces.model.TreeNode;
@@ -117,6 +118,7 @@ public class ElementsTreeView implements Serializable {
 		}
 		root.getChildren().removeIf(element->element.getData().equals(elementToBeRemoved));
 		traverseTree(root, elementToBeRemoved);
+		PrimeFaces.current().ajax().update("form:elements");
 	}
 
 
