@@ -56,7 +56,7 @@
             <p:commandButton onclick="this.form.target = '_blank'"
                              action="#{editNoteView.openFile()}" icon="pi pi-file-pdf"
                              ajax="false" value="#{labels['edit-note.open-pdf-in-new-tab']}"
-                             rendered="#{editNoteView.checkIfPDFForNoteIsAvailable}" />
+                             rendered="#{editNoteView.checkIfPDFForNoteIsAvailable()}" />
 
             <p:fileUpload value="#{editNoteView.uploadedFile}" mode="advanced" multiple="false"/>
             <p:commandButton value="#{labels['edit-note.back']}" action="#{editNoteView.navigateToViewFolders()}"
