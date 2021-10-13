@@ -15,9 +15,12 @@ import org.primefaces.model.StreamedContent;
 import org.primefaces.model.file.UploadedFile;
 
 import javax.annotation.PostConstruct;
+import javax.faces.context.ExternalContext;
 import javax.faces.context.FacesContext;
 import javax.faces.event.PhaseId;
+import javax.servlet.http.HttpServletResponse;
 import java.io.*;
+import java.net.MalformedURLException;
 import java.util.Calendar;
 import java.util.Collection;
 
@@ -34,6 +37,7 @@ public class EditNoteView {
 	private int id;
 	private Calendar calendar;
 	private UploadedFile uploadedFile;
+	private DefaultStreamedContent pdfForView;
 
 	public EditNoteView(final NoteService noteService,
 	                    final AuthorService authorService,
@@ -47,6 +51,7 @@ public class EditNoteView {
 
 	@PostConstruct
 	public void initialize(){
+
 		final Note savedNote = JsfUtils.getNoteFromFlash();
 		if (savedNote !=null){
 			setAuthor(savedNote.getAuthor());
@@ -54,6 +59,19 @@ public class EditNoteView {
 			setTitle(savedNote.getTitle());
 			setId(savedNote.getId());
 			currentFolder = savedNote.getParent();
+		}
+		final File file = new File(pdfService.getPathOfPDF(id));
+
+		try {
+			final FileInputStream fileIn = new FileInputStream(file);
+			pdfForView = DefaultStreamedContent.builder()
+			                                   .name("your_invoice.pdf")
+			                                   .contentType("application/pdf")
+			                                   .stream(() -> fileIn)
+			                                   .build();
+		}
+		catch (final FileNotFoundException e) {
+			e.printStackTrace();
 		}
 	}
 
@@ -77,9 +95,6 @@ public class EditNoteView {
 					e.printStackTrace();
 				}
 			}
-			else{
-				System.out.println("Ist leer");
-			}
 
 			JsfUtils.putFolderIntoFlash(currentFolder);
 			return navigateToViewFolders();
@@ -98,26 +113,6 @@ public class EditNoteView {
 		}
 	}
 
-	public String getPathToPDF(){
-		if(checkIfPDFForNoteIsAvailable()) {
-			final String path =  pdfService.getPathOfPDF(id);
-			System.out.println(new File(path).exists());
-			return path;
-		}
-		else {
-			System.out.println("Ist nicht da");
-			return "";
-		}
-	}
-
-	public String generateRandomIdForNotCaching() {
-		return java.util.UUID.randomUUID().toString();
-	}
-
-	public void refreshStream() {
-		getPdf();
-	}
-
 	public String navigateToViewFolders() {
 		return NavigationUtils.navigateToCorrectVersion(userBean.getVersion());
 	}
@@ -134,27 +129,46 @@ public class EditNoteView {
 		this.currentFolder = currentFolder;
 	}
 
-	public StreamedContent getPdf() {
-		final FacesContext context = FacesContext.getCurrentInstance();
+	public DefaultStreamedContent getPdfForView() {
+		return pdfForView;
+	}
 
-		if (context.getCurrentPhaseId() == PhaseId.RENDER_RESPONSE) {
-			// So, we're rendering the HTML. Return a stub StreamedContent so that it will generate right URL.
-			return new DefaultStreamedContent();
+	public void openFile( ) {
+		final File file = new File(pdfService.getPathOfPDF(id));
+
+		final FacesContext facesContext = FacesContext.getCurrentInstance();
+		final ExternalContext externalContext = facesContext.getExternalContext();
+		final HttpServletResponse response = (HttpServletResponse) externalContext.getResponse();
+		try (final BufferedInputStream input = new BufferedInputStream(new FileInputStream(file), 10240);
+		     final BufferedOutputStream output = new BufferedOutputStream(response.getOutputStream(), 10240)){
+			// Open file.
+
+			// Init servlet response.
+			response.reset();
+			// lire un fichier pdf
+			response.setHeader("Content-type", "application/pdf");
+			response.setContentLength((int)file.length());
+
+			response.setHeader("Content-disposition", "inline; filename=" + file.getName());
+			response.setHeader("pragma", "public");
+
+			// Write file contents to response.
+			final byte[] buffer = new byte[10240];
+			int length;
+			while ((length = input.read(buffer)) > 0) {
+				output.write(buffer, 0, length);
+			}
+
+			// Finalize task.
+			output.flush();
 		}
-		else {
-			return DefaultStreamedContent.builder()
-			                             .contentType("application/pdf")
-			                             .stream(() -> {
-				                             try {
-					                             return pdfService.loadPDFFromDisk(id);
-				                             }
-				                             catch (final IOException e) {
-					                             e.printStackTrace();
-				                             }
-				                             return null;
-			                             })
-			                             .build();
+		catch (final IOException e) {
+			e.printStackTrace();
 		}
+	}
+
+	public void setPdfForView(final DefaultStreamedContent pdfForView) {
+		this.pdfForView = pdfForView;
 	}
 
 	public String getTitle() {

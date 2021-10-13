@@ -30,7 +30,6 @@ public class FolderConverter implements Converter<Folder> {
 		if (m.find()) {
 			extractedId = Integer.parseInt(m.group(1));
 		}
-		System.out.println(extractedId);
 		return folderService.findFolderByID(extractedId).orElse(null);
 	}
 

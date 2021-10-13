@@ -46,7 +46,6 @@ public class ElementsTreeView implements Serializable {
 				new DefaultTreeNode(parentFolder, root);
 			recursivelyAddFolders(parentFolder,parentFolderTreeNode);
 		});
-		System.out.println("\n\n\n");
 	}
 
 	public void recursivelyAddFolders(final Folder folder, final TreeNode folderToBeAppendedTo){
@@ -58,8 +57,6 @@ public class ElementsTreeView implements Serializable {
 			else if(elementToBeAdded instanceof Note noteToBeAdded){
 				 new DefaultTreeNode(noteToBeAdded,folderToBeAppendedTo);
 			}
-			System.out.println(elementToBeAdded);
-			System.out.println("Requesting");
 		});
 	}
 
@@ -124,7 +121,6 @@ public class ElementsTreeView implements Serializable {
 
 	public void traverseTree(final TreeNode tree, final Element elementToBeRemoved) {
 		if(tree.getChildren().removeIf(element->element.getData().equals(elementToBeRemoved))){
-			System.out.println("Entfernt");
 			return;
 		}
 		for (final TreeNode child:tree.getChildren()){

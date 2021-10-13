@@ -44,15 +44,12 @@ public class PDFServiceImpl implements PDFService {
 	}
 
 	@Override
-	public InputStream loadPDFFromDisk(final int id) throws IOException {
+	public InputStream loadPDFFromDisk(final int id) {
 		if(checkIfPDFForNoteIsAvailable(id)){
-			final File file = new File(getPathOfPDF(id));
-			final Path path = Paths.get(PATH_TO_MEDIA_FOLDER);
-			return Files.newInputStream(path);
+			return getClass().getResourceAsStream(getPathOfPDF(id));
 
 		}
 		else{
-			System.out.println("Kein PDF da");
 			throw new RuntimeException();
 		}
 	}
