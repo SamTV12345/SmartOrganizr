@@ -68,7 +68,9 @@
                              styleClass="form-button" immediate="true"/>
             <p:commandButton value="#{labels['edit-note.save']}" action="#{editNoteView.saveNote()}"
                              styleClass="form-button" ajax="false"/>
-
+            <p:commandButton value="#{labels['edit-note.create-another-note']}"
+                             action="#{editNoteView.saveAndCreateAnotherNote()}"
+                             styleClass="form-button" update="@form"/>
         </h:form>
     </ui:define>
 </ui:composition>

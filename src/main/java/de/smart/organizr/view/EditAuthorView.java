@@ -7,6 +7,10 @@ import de.smart.organizr.services.interfaces.AuthorService;
 import de.smart.organizr.utils.JsfUtils;
 import de.smart.organizr.utils.NavigationUtils;
 
+import javax.faces.application.ViewHandler;
+import javax.faces.component.UIViewRoot;
+import javax.faces.context.FacesContext;
+
 public class EditAuthorView {
 	private final AuthorService authorService;
 	private final UserBean userBean;
@@ -27,7 +31,20 @@ public class EditAuthorView {
 
 	public String saveAuthor(){
 		authorService.saveAuthor(new AuthorHibernateImpl(id, name, extraInformation, userBean.getUser()));
-		return NavigationUtils.navigateToCorrectVersion(userBean.getVersion());
+		return NavigationUtils.navigateToViewAuthors();
+	}
+
+	public void saveAndCreateAnotherAuthor(){
+		authorService.saveAuthor(new AuthorHibernateImpl(id, name, extraInformation, userBean.getUser()));
+		setId(0);
+		setExtraInformation("");
+		setName("");
+		final FacesContext context = FacesContext.getCurrentInstance();
+		final String viewId = context.getViewRoot().getViewId();
+		final ViewHandler handler = context.getApplication().getViewHandler();
+		final UIViewRoot root = handler.createView(context, viewId);
+		root.setViewId(viewId);
+		context.setViewRoot(root);
 	}
 
 	public String backToElementView(){

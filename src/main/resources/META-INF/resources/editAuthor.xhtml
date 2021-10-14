@@ -3,6 +3,7 @@
                 template="/templates/template.xhtml">
     <ui:define name="page-content">
         <h:form>
+            <h:panelGroup layout="block" id="panel">
             <div class="ui-fluid">
                 <div class="field grid">
                     <p:outputLabel for="author-name" value="#{labels['edit-author.name']}"
@@ -19,10 +20,14 @@
                     </div>
                 </div>
             </div>
+            </h:panelGroup>
             <p:commandButton value="#{labels['edit-author.back']}" action="#{editAuthorView.backToElementView()}"
                              styleClass="form-button" immediate="true"/>
             <p:commandButton value="#{labels['edit-author.save']}" action="#{editAuthorView.saveAuthor()}"
                              styleClass="form-button"/>
+            <p:commandButton value="#{labels['edit-author.save-and-create-another-one']}"
+                             action="#{editAuthorView.saveAndCreateAnotherAuthor()}"
+                             styleClass="form-button" update="@form"/>
         </h:form>
     </ui:define>
 </ui:composition>

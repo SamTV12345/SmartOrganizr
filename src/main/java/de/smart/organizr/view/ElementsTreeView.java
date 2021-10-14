@@ -128,7 +128,7 @@ public class ElementsTreeView implements Serializable {
 			noteService.deleteNote(note);
 		}
 		root.getChildren().removeIf(element->element.getData().equals(elementToBeRemoved));
-		traverseTree(root, elementToBeRemoved);
+		//traverseTree(root, elementToBeRemoved);
 		PrimeFaces.current().ajax().update("form:elements");
 	}
 

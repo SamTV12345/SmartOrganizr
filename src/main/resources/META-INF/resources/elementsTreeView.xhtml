@@ -61,7 +61,7 @@
 
                     <p:commandButton icon="pi pi-trash" action="#{elementsTreeView.deleteElement(node)}"
                                      styleClass="rounded-button ui-button-danger"
-                                     rendered="#{not elementsTreeView.isFolder(node)}">
+                                     rendered="#{not elementsTreeView.isFolder(node)}" update="@form">
                         <p:confirm header="#{labels['elements-tree-view.confirmation']}"
                                    message="#{labels['elements-tree-view.confirm-delete-note']}"
                                    icon="pi pi-info-circle"/>

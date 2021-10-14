@@ -77,31 +77,35 @@ public class EditNoteView {
 
 	public String saveNote(){
 		try {
-			if (calendar ==null){
-				calendar = Calendar.getInstance();
-			}
-
-			final Note noteToBeSaved = new NoteHibernateImpl(calendar, id, currentFolder,description,
-					userBean.getUser(),title, author);
-			noteToBeSaved.setParent(currentFolder);
-			final Note savedNote = noteService.saveNote(noteToBeSaved);
-			currentFolder.getElements().add(noteToBeSaved);
-
-			if(uploadedFile !=null) {
-				try {
-					pdfService.writePDF(uploadedFile, savedNote);
-				}
-				catch (final IOException e) {
-					e.printStackTrace();
-				}
-			}
-
-			JsfUtils.putFolderIntoFlash(currentFolder);
+			saveNoteInFolder();
 			return navigateToViewFolders();
 		}
 		catch (final AuthorException authorException){
 			return null;
 		}
+	}
+
+	private void saveNoteInFolder() {
+		if (calendar ==null){
+			calendar = Calendar.getInstance();
+		}
+
+		final Note noteToBeSaved = new NoteHibernateImpl(calendar, id, currentFolder,description,
+				userBean.getUser(),title, author);
+		noteToBeSaved.setParent(currentFolder);
+		final Note savedNote = noteService.saveNote(noteToBeSaved);
+		currentFolder.getElements().add(noteToBeSaved);
+
+		if(uploadedFile !=null) {
+			try {
+				pdfService.writePDF(uploadedFile, savedNote);
+			}
+			catch (final IOException e) {
+				e.printStackTrace();
+			}
+		}
+
+		JsfUtils.putFolderIntoFlash(currentFolder);
 	}
 
 	public boolean checkIfNoteIsAlreadySaved(){
@@ -176,6 +180,15 @@ public class EditNoteView {
 		catch (final IOException e) {
 			e.printStackTrace();
 		}
+	}
+	
+	public void saveAndCreateAnotherNote(){
+		saveNoteInFolder();
+		setId(0);
+		setTitle("");
+		setDescription("");
+		setAuthor(null);
+		setPdfForView(null);
 	}
 
 	public void setPdfForView(final DefaultStreamedContent pdfForView) {

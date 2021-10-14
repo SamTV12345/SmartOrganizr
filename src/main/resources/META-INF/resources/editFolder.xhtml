@@ -30,6 +30,10 @@
                              styleClass="form-button" ajax="false"/>
             <p:commandButton value="#{labels['edit-folder.save']}" action="#{editFolderView.saveFolder()}"
                              styleClass="form-button" ajax="false"/>
+            <p:commandButton value="#{labels['edit-folder.save-and-create-another-folder']}"
+                             action="#{editFolderView.saveFolderAndCreateAnotherFolder()}"
+                             styleClass="form-button" update="@form"/>
+
     </h:form>
     </ui:define>
 </ui:composition>

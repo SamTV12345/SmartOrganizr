@@ -34,12 +34,23 @@ public class EditFolderView {
 	}
 
 	public String saveFolder(){
+		saveFolderInFolder();
+		return NavigationUtils.navigateToCorrectVersion(userBean.getVersion());
+	}
+
+	private void saveFolderInFolder() {
 		if(folderToBeSaved == null) {
 			folderToBeSaved = new FolderHibernateImpl(name, description, userBean.getUser());
 		}
 		folderToBeSaved.setParent(futureParentFolder);
 		folderService.saveFolder(folderToBeSaved);
-		return NavigationUtils.navigateToCorrectVersion(userBean.getVersion());
+	}
+
+	public void saveFolderAndCreateAnotherFolder(){
+		saveFolderInFolder();
+		setName("");
+		setDescription("");
+		folderToBeSaved = null;
 	}
 
 	public String getDescription() {

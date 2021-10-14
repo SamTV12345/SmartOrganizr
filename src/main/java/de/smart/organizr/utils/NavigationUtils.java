@@ -31,5 +31,13 @@ public final class NavigationUtils {
 			return "/elementsTreeView.xhtml";
 		}
 	}
+
+	public static String navigateToViewAuthors(){
+		return "/viewAuthors.xhtml";
+	}
+
+	public static String navigateToEditAuthor(){
+		return "/editAuthor.xhtml";
+	}
 }
 
