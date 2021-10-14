@@ -8,5 +8,9 @@ import javax.persistence.OneToMany;
 import java.util.List;
 
 public interface Folder extends Element{
+	/**
+	 * A list of all elements
+	 * @return
+	 */
 	List<Element> getElements();
 }

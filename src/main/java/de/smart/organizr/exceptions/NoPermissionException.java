@@ -6,7 +6,7 @@ import de.smart.organizr.i18n.I18nExceptionUtils;
 import java.io.Serial;
 
 /**
- * Exception-Klasse für den Fall, dass keine Berechtigungen vorliegen.
+ * Exception class in case there are no permissions.
  *
  */
 public final class NoPermissionException extends RuntimeException {
@@ -15,24 +15,24 @@ public final class NoPermissionException extends RuntimeException {
 	private static final long serialVersionUID = -6909699351736904809L;
 
 	/**
-	 * Konstruktor für die NoPermissionException
-	 * @param message Nachricht, die beim Auftreten der Exception ausgegeben werden soll
+	 * constructor for the NoPermissionException
+	 * @param message Message to be output when the exception occurs.
 	 */
 	private NoPermissionException(final String message) {
 		super(message);
 	}
-	
+
 	/**
-	 * Wirft eine Exception, wenn das falsche Passwort eingegeben wurde
-	 * @return NoPerssionException mit der Nachricht, dass das falsche Passwort eingegeben wurde
+	 * Throws an exception if the wrong password was entered.
+	 * @return NoPerssionException with the message that the wrong password was entered.
 	 */
 	public static NoPermissionException createWrongPasswordException() {
 		return new NoPermissionException(I18nExceptionUtils.getWrongPasswordException());
 	}
 
 	/**
-	 * Wirft eine Exception, wenn die beiden neuen Passwörter nicht identisch sind (Ändern der Passwörter)
-	 * @return NoPermissionException mit der Nachricht, dass die beiden Passwörter nicht übereinstimmen
+	 * Throws an exception if the two new passwords are not identical (changing passwords).
+	 * @return NoPermissionException with the message that the two passwords do not match.
 	 */
 	public static NoPermissionException createPasswordsNotEqualException(){
 		return new NoPermissionException(I18nExceptionUtils.getPasswordsNotEqualException());

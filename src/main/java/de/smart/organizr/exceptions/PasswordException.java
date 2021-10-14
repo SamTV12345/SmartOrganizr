@@ -5,8 +5,8 @@ import de.smart.organizr.i18n.I18nExceptionUtils;
 import java.io.Serial;
 
 /**
- * Exception-Klasse für den Fall, dass das Passwort nicht gültig ist
- * 
+ * Exception class in case the password is not valid.
+ *
  *
  */
 public class PasswordException extends RuntimeException {
@@ -15,16 +15,16 @@ public class PasswordException extends RuntimeException {
 	private static final long serialVersionUID = 1762757029287980198L;
 
 	/**
-	 * Konstruktor für die PasswordException
-	 * @param message Nachricht, die beim Auftreten der Exception ausgegeben werden soll
+	 * constructor for the PasswordException
+	 * @param message Message to be output when the exception occurs.
 	 */
 	public PasswordException(final String message) {
 		super(message);
 	}
 
 	/**
-	 * Wirft eine Exception, wenn das Passwort ungültig ist
-	 * @return PasswordException mit der Nachricht, dass das Passwort ungültig ist
+	 * Throws an exception if the password is invalid.
+	 * @return PasswordException with the message that the password is invalid
 	 */
 	public static PasswordException createPasswordInvalidException() {
 		return new PasswordException(I18nExceptionUtils.getPasswordIsInvalid());

@@ -9,29 +9,29 @@ import java.util.Optional;
 public interface UserService {
 
 	/**
-	 * Fügt einen neuen Benutzer in die Datenbank ein.
-	 * @param user Der Benutzer, der hinzugefügt werden soll
-	 * @return Benutzer, der hinzugefügt wurde
+	 * Adds a new user to the database.
+	 * @param user The user that should be added.
+	 * @return User that was added
 	 */
 	User addUser(User user);
 
 	/**
-	 * Löscht einen Benutzer aus der Datenbank
-	 * @param userId Die ID des zu löschenden Benutzers
+	 * Deletes a user from the database
+	 * @param userId The ID of the user to delete.
 	 */
 	void removeUser(int userId);
 
 	/**
-	 * Ermittelt alle Benutzer in der Datenbank und gibt diese als Liste zurück
-	 * @return Eine Liste mit allen Benutzern in der Benutzer-Tabelle. Eine leere Liste,
-	 * falls die Tabelle leer ist.
+	 * Determines all users in the database and returns them as a list.
+	 * @return A list with all users in the user table. An empty list,
+	 * if the table is empty.
 	 */
 	List<UserHibernateImpl> findAllUsers();
 
 	/**
-	 * Ermittelt einen Benutzer anhand eines Benutzernamens
-	 * @param userName Benutzername, der zum Ermitteln verwendet wird
-	 * @return Benutzer, falls er gefunden wurde
+	 * Determines a user based on a user name.
+	 * @param userName User name used to find the user
+	 * @return user, if it was found
 	 */
 	Optional<UserHibernateImpl> findUserByUserName(String userName);
 
@@ -43,33 +43,33 @@ public interface UserService {
 	Optional<User> findUserById(int userId);
 
 	/**
-	 * Ändert das Passwort einens Benutzers
-	 * @param userId User-ID zum Identifizieren des Benutzers
-	 * @param oldPassword Altes Passwort
-	 * @param newPassword Neues Passwort
-	 * @return Benutzer
+	 * Changes the password of a user
+	 * @param userId User ID to identify the user
+	 * @param oldPassword Old password
+	 * @param newPassword New password
+	 * @return user
 	 */
 	UserHibernateImpl changePassword(int userId, String oldPassword, String newPassword);
 
 	/**
-	 * Speichert einen Benutzer in der Datenbank
-	 * @param userHibernateImpl Benutzer, der gespeichert werden soll
-	 * @return Benutzer, der gespeichert wurde
+	 * Saves a user in the database
+	 * @param userHibernateImpl User that should be saved
+	 * @return user that was saved
 	 */
 	User saveUser(User userHibernateImpl);
 
 
 	/**
-	 * Ändert ein erforderliches Passwort
-	 * @param userId User-ID zum Identifizieren des Benutzers
-	 * @param newPassword NEues Passwort
-	 * @return Benutzer, dessen Passwort gesetzt wurde
+	 * Changes a required password
+	 * @param userId User ID to identify the user
+	 * @param newPassword NEW password
+	 * @return user whose password was set
 	 */
 	UserHibernateImpl changePasswordRequired(long userId, String newPassword);
 
 	/**
-	 * Zählt die Admins
-	 * @return Gibt die Anzahl der Admins zurück
+	 * Counts the admins
+	 * @return Returns the number of admins
 	 */
 	int countAdmins();
 }

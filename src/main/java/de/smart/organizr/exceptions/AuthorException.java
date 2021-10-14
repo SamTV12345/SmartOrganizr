@@ -8,16 +8,16 @@ public class AuthorException extends RuntimeException{
 
 
 	/**
-	 * Konstruktor für eine UserException
-	 * @param message Nachricht, die mitgegeben werden soll
+	 * constructor for a UserException
+	 * @param message Message that should be passed along
 	 */
 	public AuthorException(final String message) {
 		super(message.trim());
 	}
 
 	/**
-	 * Wirft eine UserException, wenn der Benutzer unbekannt ist
-	 * @return UserException mit der Nachricht, dass der Benutzer nicht bekannt ist
+	 * Throws a UserException if the user is unknown.
+	 * @return UserException with the message that the user is unknown
 	 */
 	public static AuthorException createUnknownAuthorException() {
 		return new AuthorException(I18nExceptionUtils.getAuthorUnknown());
