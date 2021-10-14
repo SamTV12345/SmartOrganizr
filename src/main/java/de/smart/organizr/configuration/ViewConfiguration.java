@@ -11,6 +11,9 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Scope;
 
+/**
+ * The ViewConfiguration autowires the services and defines beans for the view/jsf layer.
+ */
 @Configuration
 public class ViewConfiguration {
 

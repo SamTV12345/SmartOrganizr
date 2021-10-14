@@ -1,5 +1,8 @@
 package de.smart.organizr.constants;
 
+/**
+ * Constants which are used by more than one class
+ */
 public class Constants {
 
 	private Constants(){

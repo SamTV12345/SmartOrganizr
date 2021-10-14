@@ -16,6 +16,10 @@ import org.springframework.web.filter.GenericFilterBean;
 
 import de.smart.organizr.services.interfaces.UserService;
 
+/**
+ * Checks if the password is required to be changed. If yes, it needs to be changed correctly, in order to access
+ * other pages.
+ */
 public class ChangePasswordFilter extends GenericFilterBean {
 	private final UserService userService;
 

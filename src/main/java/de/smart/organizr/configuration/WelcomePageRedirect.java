@@ -5,6 +5,9 @@ import org.springframework.core.Ordered;
 import org.springframework.web.servlet.config.annotation.ViewControllerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
+/**
+ * If a user access / instead of /login, he/she is redirected to the login page.
+ */
 @Configuration
 public class WelcomePageRedirect implements WebMvcConfigurer {
 

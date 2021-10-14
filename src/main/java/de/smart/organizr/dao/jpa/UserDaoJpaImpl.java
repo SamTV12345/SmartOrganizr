@@ -22,11 +22,20 @@ public class UserDaoJpaImpl implements UserDao {
 		this.userRepository = userRepository;
 	}
 
+	/**
+	 * Adds a user to the database
+	 * @param user the user to saved
+	 * @return the saved user
+	 */
 	@Override
-	public UserHibernateImpl addUser(final UserHibernateImpl user) {
-		return userRepository.save(user);
+	public User addUser(final User user) {
+		return userRepository.save((UserHibernateImpl) user);
 	}
 
+	/**
+	 * The user to remove
+	 * @param userId the user id to be removed
+	 */
 	@Override
 	public void removeUser(final int userId) {
 		userRepository.deleteById(userId);

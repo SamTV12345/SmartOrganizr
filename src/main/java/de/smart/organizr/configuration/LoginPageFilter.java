@@ -13,6 +13,9 @@ import de.smart.organizr.utils.JsfUtils;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.filter.GenericFilterBean;
 
+/**
+ * If a user is logged in and tries to login again. He is redirected to the menu page.
+ */
 public class LoginPageFilter extends GenericFilterBean {
 
 	@Override

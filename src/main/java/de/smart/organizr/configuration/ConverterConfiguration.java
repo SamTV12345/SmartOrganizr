@@ -4,6 +4,9 @@ import de.smart.organizr.entities.interfaces.Folder;
 import de.smart.organizr.view.converters.AuthorConverter;
 import de.smart.organizr.view.converters.FolderConverter;
 
+/**
+ * The ConverterConfiguration manages every necessary converter for the application
+ */
 public class ConverterConfiguration {
 	private AuthorConverter authorConverter;
 	private FolderConverter folderConverter;

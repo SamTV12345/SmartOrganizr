@@ -12,6 +12,9 @@ import de.smart.organizr.security.SmartOrganizrAuthenticationHandler;
 import de.smart.organizr.security.SmartOrganizrUserDetailsService;
 import de.smart.organizr.services.interfaces.UserService;
 
+/**
+ * The Security Configuration contains necessary services for Spring Security
+ */
 @Configuration
 public class SecurityConfiguration {
 

@@ -10,6 +10,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+/**
+ * The ServiceConfiguration autowires the Dao classes and defines the Java configuration for the service classes.
+ */
 @Configuration
 public class ServiceConfiguration {
 

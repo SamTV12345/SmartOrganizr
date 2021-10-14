@@ -9,7 +9,12 @@ import java.util.Optional;
 
 public interface UserDao {
 
-	UserHibernateImpl addUser(UserHibernateImpl user);
+	/**
+	 * Adds a iser
+	 * @param user
+	 * @return
+	 */
+	User addUser(User user);
 
 	void removeUser(int userId);
 
@@ -19,5 +24,5 @@ public interface UserDao {
 
 	Optional<User> findUserById(int userId);
 
-	UserHibernateImpl saveUser(User userHibernateImpl);
+	User saveUser(User userHibernateImpl);
 }

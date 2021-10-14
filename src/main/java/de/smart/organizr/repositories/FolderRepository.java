@@ -12,7 +12,7 @@ import java.util.Set;
 
 public interface FolderRepository extends CrudRepository<FolderHibernateImpl, Integer> {
 	@Query("SELECT f FROM FolderHibernateImpl f WHERE f.parent=NULL AND f.creator.userId=:userId")
-	Collection<Folder> findAllParentFolders(final int userId);
+	Set<Folder> findAllParentFolders(final int userId);
 
 	Set<Folder> findByCreator(User user);
 
