@@ -21,8 +21,9 @@ dist/
 
 # Maven
 target/
-dist/
 media/
+genQRCode
+*.iml
 
 # JetBrains IDE
 .idea/
