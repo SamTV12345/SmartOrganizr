@@ -3,6 +3,7 @@ package de.smart.organizr.view;
 import java.util.Optional;
 
 import de.smart.organizr.entities.classes.UserHibernateImpl;
+import de.smart.organizr.entities.interfaces.User;
 import de.smart.organizr.utils.PasswordUtils;
 import de.smart.organizr.services.interfaces.UserService;
 
@@ -15,10 +16,10 @@ public class ResetPasswordView {
 	}
 
 	public String resetPassword(){
-		final Optional<UserHibernateImpl> optionalUser =userService.findUserByUserName(username);
+		final Optional<User> optionalUser =userService.findUserByUserName(username);
 
 		if(optionalUser.isPresent()) {
-			final UserHibernateImpl userHibernateImpl = optionalUser.get();
+			final User userHibernateImpl = optionalUser.get();
 			final String password = PasswordUtils.generateAlphaNumericPassword();
 			userService.changePassword(userHibernateImpl.getUserId(), userHibernateImpl.getPassword(), password);
 			userHibernateImpl.setPasswordResetRequired(true);

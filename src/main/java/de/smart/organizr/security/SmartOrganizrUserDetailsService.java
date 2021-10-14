@@ -5,10 +5,10 @@ import java.util.List;
 import java.util.Optional;
 
 import de.smart.organizr.entities.classes.UserHibernateImpl;
+import de.smart.organizr.entities.interfaces.User;
 import de.smart.organizr.services.interfaces.UserService;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -26,19 +26,19 @@ public class SmartOrganizrUserDetailsService implements UserDetailsService {
 
 	@Override
 	public UserDetails loadUserByUsername(final String username) throws UsernameNotFoundException {
-		final Optional<UserHibernateImpl> optionalUser = userService.findUserByUserName(username);
+		final Optional<User> optionalUser = userService.findUserByUserName(username);
 		
 		if (optionalUser.isEmpty()) {
 			throw new UsernameNotFoundException(username);
 		}
 		
-		final UserHibernateImpl user = optionalUser.get();
+		final User user = optionalUser.get();
 		
 		// Rollen lesen
 		final List<GrantedAuthority> authorities = new LinkedList<>();
 		authorities.add(new SimpleGrantedAuthority(user.getRole().getSpringSecurityAuthority()));
 		
-		return new User(username, passwordEncoder.encode(user.getPassword()), authorities);
+		return new org.springframework.security.core.userdetails.User(username, passwordEncoder.encode(user.getPassword()), authorities);
 	}
 
 }

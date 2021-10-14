@@ -33,12 +33,12 @@ public class UserServiceImpl implements UserService {
 	}
 
 	@Override
-	public List<UserHibernateImpl> findAllUsers() {
+	public List<User> findAllUsers() {
 		return userDao.findAllUsers();
 	}
 
 	@Override
-	public Optional<UserHibernateImpl> findUserByUserName(final String userName) {
+	public Optional<User> findUserByUserName(final String userName) {
 		return userDao.findUserByUserName(userName);
 	}
 
@@ -48,7 +48,7 @@ public class UserServiceImpl implements UserService {
 	}
 
 	@Override
-	public UserHibernateImpl changePassword(final int userId, final String oldPassword, final String newPassword) {
+	public User changePassword(final int userId, final String oldPassword, final String newPassword) {
 		PasswordValidator.checkPassword(newPassword);
 
 		final Optional<User> optionalUser = userDao.findUserById(userId);
@@ -68,7 +68,7 @@ public class UserServiceImpl implements UserService {
 	}
 
 	@Override
-	public UserHibernateImpl saveUser(final User userHibernateImpl){
+	public User saveUser(final User userHibernateImpl){
 		final Optional<User> optionalUser = userDao.findUserById(userHibernateImpl.getUserId());
 		if(optionalUser.isPresent()){
 			userHibernateImpl.setPassword(optionalUser.get().getPassword());
@@ -79,13 +79,13 @@ public class UserServiceImpl implements UserService {
 
 
 	@Override
-	public UserHibernateImpl changePasswordRequired(final long userId, final String newPassword){
+	public User changePasswordRequired(final long userId, final String newPassword){
 		final Optional<User> user = findUserById(Math.toIntExact(userId));
 		if (user.isEmpty()){
 			throw UserException.createUnknownUserException();
 		}
 		final User userHibernateImpl = user.get();
-		final UserHibernateImpl
+		final User
 				savedUser = changePassword(user.get().getUserId(), userHibernateImpl.getPassword(),newPassword);
 		savedUser.setPasswordResetRequired(false);
 		return saveUser(savedUser);

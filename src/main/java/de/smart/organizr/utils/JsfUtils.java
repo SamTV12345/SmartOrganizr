@@ -4,6 +4,7 @@ import de.smart.organizr.entities.classes.UserHibernateImpl;
 import de.smart.organizr.entities.interfaces.Author;
 import de.smart.organizr.entities.interfaces.Folder;
 import de.smart.organizr.entities.interfaces.Note;
+import de.smart.organizr.entities.interfaces.User;
 
 import java.io.IOException;
 
@@ -32,8 +33,8 @@ public enum JsfUtils {
 		return FacesContext.getCurrentInstance().getExternalContext().getFlash();
 	}
 
-	public static UserHibernateImpl putUserIntoFlash(final UserHibernateImpl userHibernateImpl) {
-		return (UserHibernateImpl) getFlash().put(KEY_USER, userHibernateImpl);
+	public static void putUserIntoFlash(final User user) {
+		     getFlash().put(KEY_USER, user);
 	}
 
 	public static UserHibernateImpl getUserFromFlash() {

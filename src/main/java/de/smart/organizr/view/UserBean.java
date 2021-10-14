@@ -55,7 +55,7 @@ public class UserBean {
 		final String username = SecurityContextHolder.getContext().getAuthentication().getName();
 
 		if (username != null) {
-			final Optional<UserHibernateImpl> optionalUser = userService.findUserByUserName(username);
+			final Optional<User> optionalUser = userService.findUserByUserName(username);
 
 			optionalUser.ifPresent(user -> {
 				this.optionalUser = Optional.of(user);

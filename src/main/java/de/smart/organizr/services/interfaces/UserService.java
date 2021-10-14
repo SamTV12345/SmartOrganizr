@@ -26,14 +26,14 @@ public interface UserService {
 	 * @return A list with all users in the user table. An empty list,
 	 * if the table is empty.
 	 */
-	List<UserHibernateImpl> findAllUsers();
+	List<User> findAllUsers();
 
 	/**
 	 * Determines a user based on a user name.
 	 * @param userName User name used to find the user
 	 * @return user, if it was found
 	 */
-	Optional<UserHibernateImpl> findUserByUserName(String userName);
+	Optional<User> findUserByUserName(String userName);
 
 	/**
 	 * Findet einen Benutzer anhand der Benutzer-ID
@@ -49,7 +49,7 @@ public interface UserService {
 	 * @param newPassword New password
 	 * @return user
 	 */
-	UserHibernateImpl changePassword(int userId, String oldPassword, String newPassword);
+	User changePassword(int userId, String oldPassword, String newPassword);
 
 	/**
 	 * Saves a user in the database
@@ -65,7 +65,7 @@ public interface UserService {
 	 * @param newPassword NEW password
 	 * @return user whose password was set
 	 */
-	UserHibernateImpl changePasswordRequired(long userId, String newPassword);
+	User changePasswordRequired(long userId, String newPassword);
 
 	/**
 	 * Counts the admins

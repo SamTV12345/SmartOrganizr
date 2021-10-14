@@ -5,6 +5,7 @@ import java.util.List;
 import javax.annotation.PostConstruct;
 
 import de.smart.organizr.entities.classes.UserHibernateImpl;
+import de.smart.organizr.entities.interfaces.User;
 import de.smart.organizr.enums.Role;
 import de.smart.organizr.utils.JsfUtils;
 import de.smart.organizr.services.interfaces.UserService;
@@ -17,7 +18,7 @@ public class ManageUsersView {
 	
 	private final UserService userService;
 	
-	private List<UserHibernateImpl> users;
+	private List<User> users;
 	
 	public ManageUsersView(final UserService userService) {
 		this.userService = userService;
@@ -28,7 +29,7 @@ public class ManageUsersView {
 		users = userService.findAllUsers();
 	}
 	
-	public List<UserHibernateImpl> getUsers() {
+	public List<User> getUsers() {
 		return users;
 	}
 	
@@ -36,7 +37,7 @@ public class ManageUsersView {
 	 * Methode zum Löschen eines bestimmten Benutzers
 	 * @param userToDelete Benutzer, der gelöscht werden soll
 	 */
-	public void deleteUser(final UserHibernateImpl userToDelete) {
+	public void deleteUser(final User userToDelete) {
 		userService.removeUser(userToDelete.getUserId());
 		users = userService.findAllUsers();
 	}
@@ -46,7 +47,7 @@ public class ManageUsersView {
 	 * @param userToEdit Benutzer, der bearbeitet werden soll
 	 * @return Seite zum Bearbeiten des Benutzers
 	 */
-	public String editUser(final UserHibernateImpl userToEdit) {
+	public String editUser(final User userToEdit) {
 		JsfUtils.putUserIntoFlash(userToEdit);
 		return "editUser";
 	}

@@ -10,6 +10,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import de.smart.organizr.entities.classes.UserHibernateImpl;
+import de.smart.organizr.entities.interfaces.User;
 import de.smart.organizr.utils.JsfUtils;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.filter.GenericFilterBean;
@@ -36,7 +37,7 @@ public class ChangePasswordFilter extends GenericFilterBean {
 		}
 		if (SecurityContextHolder.getContext().getAuthentication() != null
 				&& SecurityContextHolder.getContext().getAuthentication().isAuthenticated()) {
-			final UserHibernateImpl user =
+			final User user =
 					userService.findUserByUserName(SecurityContextHolder.getContext().getAuthentication().getName())
 					           .get();
 			if (user.isPasswordResetRequired() && !((HttpServletRequest)request).getRequestURI().equals(

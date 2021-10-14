@@ -21,7 +21,7 @@ import de.smart.organizr.services.interfaces.UserService;
 public class EditProfileView {
 	private final UserService userService;
 	private final UserBean userBean;
-	private UserHibernateImpl userHibernateImpl;
+	private User userHibernateImpl;
 	private String username;
 	private String emailAddress;
 	private String oldPassword;

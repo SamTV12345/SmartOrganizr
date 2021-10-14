@@ -46,8 +46,8 @@ public class UserDaoJpaImpl implements UserDao {
 	 * @return a list of users
 	 */
 	@Override
-	public List<UserHibernateImpl> findAllUsers() {
-		final List<UserHibernateImpl> users = new LinkedList<>();
+	public List<User> findAllUsers() {
+		final List<User> users = new LinkedList<>();
 		userRepository.findAll().forEach(users::add);
 		return users;
 	}
@@ -58,8 +58,15 @@ public class UserDaoJpaImpl implements UserDao {
 	 * @return an optional user
 	 */
 	@Override
-	public Optional<UserHibernateImpl> findUserByUserName(final String userName) {
-		return userRepository.findByUserName(userName);
+	public Optional<User> findUserByUserName(final String userName) {
+		final Optional<UserHibernateImpl> optionalUserHibernate = userRepository.findByUserName(userName);
+		if(optionalUserHibernate.isEmpty()){
+			return Optional.empty();
+		}
+		else{
+			return Optional.of(optionalUserHibernate.get());
+		}
+
 	}
 
 	/**

@@ -40,7 +40,7 @@ public class AdminCreator {
 			// Es existiert kein Admin.
 			
 			// Prüfen, ob Nutzer mit Nutzername admin existiert, wenn nicht anlegen.
-			final Optional<UserHibernateImpl> optionalAdmin = userService.findUserByUserName(ADMIN_USERNAME);
+			final Optional<User> optionalAdmin = userService.findUserByUserName(ADMIN_USERNAME);
 			
 			final User admin;
 			

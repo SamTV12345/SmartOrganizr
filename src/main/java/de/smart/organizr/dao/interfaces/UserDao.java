@@ -18,9 +18,9 @@ public interface UserDao {
 
 	void removeUser(int userId);
 
-	List<UserHibernateImpl> findAllUsers();
+	List<User> findAllUsers();
 
-	Optional<UserHibernateImpl> findUserByUserName(String userName);
+	Optional<User> findUserByUserName(String userName);
 
 	Optional<User> findUserById(int userId);
 
