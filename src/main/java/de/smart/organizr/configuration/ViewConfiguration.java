@@ -147,6 +147,6 @@ public class ViewConfiguration {
 	@Scope("request")
 	@Autowired
 	public ElementsTreeView elementsTreeView(final UserBean userBean){
-		return new ElementsTreeView(folderService, noteService, userBean);
+		return new ElementsTreeView(folderService, noteService, pdfService, userBean);
 	}
 }

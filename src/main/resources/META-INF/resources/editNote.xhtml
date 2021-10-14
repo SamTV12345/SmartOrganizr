@@ -60,7 +60,7 @@
                              rendered="#{editNoteView.checkIfPDFForNoteIsAvailable()}" />
 
             <p:graphicImage value="#{editNoteView.getCurrentStatusOfNote()}" stream="false"
-                            rendered="#{editNoteView.checkIfPDFForNoteIsAvailable()}"/>
+                            rendered="#{editNoteView.checkIfNoteIsAlreadySaved()}"/>
 
             <p:fileUpload value="#{editNoteView.uploadedFile}" mode="advanced" multiple="false"/>
 

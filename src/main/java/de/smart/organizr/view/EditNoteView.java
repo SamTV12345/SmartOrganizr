@@ -12,16 +12,13 @@ import de.smart.organizr.utils.BarCodeUtils;
 import de.smart.organizr.utils.JsfUtils;
 import de.smart.organizr.utils.NavigationUtils;
 import org.primefaces.model.DefaultStreamedContent;
-import org.primefaces.model.StreamedContent;
 import org.primefaces.model.file.UploadedFile;
 
 import javax.annotation.PostConstruct;
 import javax.faces.context.ExternalContext;
 import javax.faces.context.FacesContext;
-import javax.faces.event.PhaseId;
 import javax.servlet.http.HttpServletResponse;
 import java.io.*;
-import java.net.MalformedURLException;
 import java.util.Calendar;
 import java.util.Collection;
 
@@ -61,18 +58,20 @@ public class EditNoteView {
 			setId(savedNote.getId());
 			currentFolder = savedNote.getParent();
 		}
-		final File file = new File(pdfService.getPathOfPDF(id));
 
-		try {
-			final FileInputStream fileIn = new FileInputStream(file);
-			pdfForView = DefaultStreamedContent.builder()
-			                                   .name("your_invoice.pdf")
-			                                   .contentType("application/pdf")
-			                                   .stream(() -> fileIn)
-			                                   .build();
-		}
-		catch (final FileNotFoundException e) {
-			e.printStackTrace();
+		if(checkIfPDFForNoteIsAvailable()) {
+			try {
+				final File file = new File(pdfService.getPathMediaFolderOfPDF(id));
+				final FileInputStream fileIn = new FileInputStream(file);
+				pdfForView = DefaultStreamedContent.builder()
+				                                   .name("pdf_for_%d.pdf".formatted(id))
+				                                   .contentType("application/pdf")
+				                                   .stream(() -> fileIn)
+				                                   .build();
+			}
+			catch (final FileNotFoundException e) {
+				e.printStackTrace();
+			}
 		}
 	}
 
@@ -103,6 +102,10 @@ public class EditNoteView {
 		catch (final AuthorException authorException){
 			return null;
 		}
+	}
+
+	public boolean checkIfNoteIsAlreadySaved(){
+		return id!=0;
 	}
 
 	public boolean checkIfPDFForNoteIsAvailable(){
@@ -142,7 +145,7 @@ public class EditNoteView {
 	}
 
 	public void openFile( ) {
-		final File file = new File(pdfService.getPathOfPDF(id));
+		final File file = new File(pdfService.getPathMediaFolderOfPDF(id));
 
 		final FacesContext facesContext = FacesContext.getCurrentInstance();
 		final ExternalContext externalContext = facesContext.getExternalContext();

@@ -46,13 +46,17 @@
                                    icon="pi pi-info-circle"/>
                     </p:commandButton>
                     <br/>
-                    <p:commandButton value="Generate PDF" ajax="false"
+                    <p:commandButton value="#{labels['elements-tree-view.regenerate-qrCode']}" ajax="false"
                                      icon="pi pi-align-justify" styleClass="p-mr-2 form-button"
-                                     action="#{elementsTreeView.generateQrCodeForEveryNote(node)}">
+                                     action="#{elementsTreeView.generateQrCodeForEveryNote(node)}"
+                                     rendered="#{elementsTreeView.isFolder(node)}">
                     </p:commandButton>
                     <p:commandButton value="Download" ajax="false" onclick="PrimeFaces.monitorDownload(start, stop);"
-                                     icon="pi pi-align-justify" styleClass="p-mr-2 form-button">
-                        <p:fileDownload value="#{elementsTreeView.qrCodePage}" contentDisposition="attachment" />
+                                     icon="pi pi-align-justify" styleClass="p-mr-2 form-button"
+                                     rendered="#{elementsTreeView.isFolder(node) and
+                                     elementsTreeView.checkIfGeneratedQRCodePageExists(node)}">
+                        <p:fileDownload value="#{elementsTreeView.getQrCodePage(node)}"
+                                        contentDisposition="attachment" />
                     </p:commandButton>
 
                     <p:commandButton icon="pi pi-trash" action="#{elementsTreeView.deleteElement(node)}"

@@ -1,17 +1,12 @@
 package de.smart.organizr.view;
 
-import com.itextpdf.text.BadElementException;
-import com.itextpdf.text.Document;
 import com.itextpdf.text.DocumentException;
-import com.itextpdf.text.Image;
-import com.itextpdf.text.pdf.Barcode;
-import com.itextpdf.text.pdf.PdfDocument;
-import com.itextpdf.text.pdf.PdfWriter;
 import de.smart.organizr.entities.interfaces.Element;
 import de.smart.organizr.entities.interfaces.Folder;
 import de.smart.organizr.entities.interfaces.Note;
 import de.smart.organizr.services.interfaces.FolderService;
 import de.smart.organizr.services.interfaces.NoteService;
+import de.smart.organizr.services.interfaces.PDFService;
 import de.smart.organizr.utils.BarCodeUtils;
 import de.smart.organizr.utils.JsfUtils;
 import de.smart.organizr.utils.NavigationUtils;
@@ -30,17 +25,18 @@ import java.util.stream.Collectors;
 public class ElementsTreeView implements Serializable {
 	private final FolderService folderService;
 	private final NoteService noteService;
+	private final PDFService pdfService;
 	private TreeNode root = new DefaultTreeNode("Folders", null);;
 	private final UserBean userBean;
-	List<byte[]> qrCodeImages;
 	private StreamedContent qrCodePage;
 
 
 	public ElementsTreeView(final FolderService folderService,
 	                        final NoteService noteService,
-	                        final UserBean userBean) {
+	                        final PDFService pdfService, final UserBean userBean) {
 		this.folderService = folderService;
 		this.noteService = noteService;
+		this.pdfService = pdfService;
 		this.userBean = userBean;
 	}
 
@@ -110,31 +106,11 @@ public class ElementsTreeView implements Serializable {
 			return "/editNote.xhtml";
 	}
 
-	private byte[] generateQRCodeForOneNode(final Note note) {
-		return BarCodeUtils.generateQRCodeByteArray(note.toString());
+	public boolean checkIfGeneratedQRCodePageExists(final Folder folder){
+		return new File(pdfService.getPathQRCodeOfPDF(folder.getId())).exists();
 	}
-
 	public void generateQrCodeForEveryNote(final Folder folder) throws DocumentException, IOException {
-		final Document document = new PdfDocument();
-		final ByteArrayOutputStream out = new ByteArrayOutputStream();
-		PdfWriter writer = PdfWriter.getInstance(document, out);
-		qrCodeImages = new LinkedList<>();
-		document.open();
-		for(final Element element: folder.getElements()){
-			if(element instanceof Note nodeContainedInFolder){
-				qrCodeImages.add(generateQRCodeForOneNode(nodeContainedInFolder));
-			}
-		}
-		for(final byte[] qrCodeData: qrCodeImages){
-			document.add(Image.getInstance(qrCodeData));
-		}
-		final InputStream in = new ByteArrayInputStream(out.toByteArray());
-		document.close();
-		qrCodePage = DefaultStreamedContent.builder()
-		                                   .name("your_invoice.pdf")
-		                                   .contentType("application/pdf")
-		                                   .stream(() -> in)
-		                                   .build();
+		pdfService.generateQrCodeForEveryNote(folder);
 
 	}
 
@@ -169,12 +145,15 @@ public class ElementsTreeView implements Serializable {
 		initRoot();
 	}
 
-	public StreamedContent getQrCodePage() {
+	public StreamedContent getQrCodePage(final Folder folder) throws FileNotFoundException {
+		final File file = new File(pdfService.getPathQRCodeOfPDF(folder.getId()));
+		final FileInputStream fileIn = new FileInputStream(file);
+		qrCodePage = DefaultStreamedContent.builder()
+		                                   .name("pdf_for_%d.pdf".formatted(folder.getId()))
+		                                   .contentType("application/pdf")
+		                                   .stream(() -> fileIn)
+		                                   .build();
 		return qrCodePage;
-	}
-
-	public void setQrCodePage(final StreamedContent qrCodePage) {
-		this.qrCodePage = qrCodePage;
 	}
 
 	public TreeNode getRoot() {
