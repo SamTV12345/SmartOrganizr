@@ -81,4 +81,17 @@ public class NoteHibernateImpl extends ElementHibernateImpl implements Note, Ser
 	public void setAuthor(final Author author) {
 		this.author = author;
 	}
+
+	@Override
+	public String toString() {
+		final StringBuilder sb = new StringBuilder();
+		return sb.append("\nTitel:\t")
+		         .append(getTitle())
+		         .append("\n"+"Beschreibung\t")
+		         .append(getDescription())
+		         .append("\n"+"Enthaltende Ordner:\t")
+		         .append(getParent().getName())
+		         .append(getAuthor().toString()).toString();
+
+	}
 }

@@ -49,7 +49,8 @@
             </div>
 
             <p:commandButton value="Download" ajax="false" onclick="PrimeFaces.monitorDownload(start, stop);"
-                             icon="pi pi-arrow-down" styleClass="p-mr-2 form-button">
+                             icon="pi pi-arrow-down" styleClass="p-mr-2 form-button"
+                             rendered="#{editNoteView.checkIfPDFForNoteIsAvailable()}">
                 <p:fileDownload value="#{editNoteView.pdfForView}" contentDisposition="attachment" />
             </p:commandButton>
 
@@ -58,7 +59,11 @@
                              ajax="false" value="#{labels['edit-note.open-pdf-in-new-tab']}"
                              rendered="#{editNoteView.checkIfPDFForNoteIsAvailable()}" />
 
+            <p:graphicImage value="#{editNoteView.getCurrentStatusOfNote()}" stream="false"
+                            rendered="#{editNoteView.checkIfPDFForNoteIsAvailable()}"/>
+
             <p:fileUpload value="#{editNoteView.uploadedFile}" mode="advanced" multiple="false"/>
+
             <p:commandButton value="#{labels['edit-note.back']}" action="#{editNoteView.navigateToViewFolders()}"
                              styleClass="form-button" immediate="true"/>
             <p:commandButton value="#{labels['edit-note.save']}" action="#{editNoteView.saveNote()}"

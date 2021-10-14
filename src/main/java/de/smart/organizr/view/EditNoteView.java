@@ -8,6 +8,7 @@ import de.smart.organizr.exceptions.AuthorException;
 import de.smart.organizr.services.interfaces.AuthorService;
 import de.smart.organizr.services.interfaces.NoteService;
 import de.smart.organizr.services.interfaces.PDFService;
+import de.smart.organizr.utils.BarCodeUtils;
 import de.smart.organizr.utils.JsfUtils;
 import de.smart.organizr.utils.NavigationUtils;
 import org.primefaces.model.DefaultStreamedContent;
@@ -131,6 +132,13 @@ public class EditNoteView {
 
 	public DefaultStreamedContent getPdfForView() {
 		return pdfForView;
+	}
+
+	public byte[] getCurrentStatusOfNote(){
+		System.out.println(new NoteHibernateImpl(calendar, id, currentFolder,description,
+				userBean.getUser(),title, author));
+		return BarCodeUtils.generateQRCodeByteArray(new NoteHibernateImpl(calendar, id, currentFolder,description,
+				userBean.getUser(),title, author).toString());
 	}
 
 	public void openFile( ) {

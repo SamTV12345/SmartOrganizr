@@ -45,6 +45,16 @@
                                    message="#{labels['elements-tree-view.confirm-delete-folder']}"
                                    icon="pi pi-info-circle"/>
                     </p:commandButton>
+                    <br/>
+                    <p:commandButton value="Generate PDF" ajax="false"
+                                     icon="pi pi-align-justify" styleClass="p-mr-2 form-button"
+                                     action="#{elementsTreeView.generateQrCodeForEveryNote(node)}">
+                    </p:commandButton>
+                    <p:commandButton value="Download" ajax="false" onclick="PrimeFaces.monitorDownload(start, stop);"
+                                     icon="pi pi-align-justify" styleClass="p-mr-2 form-button">
+                        <p:fileDownload value="#{elementsTreeView.qrCodePage}" contentDisposition="attachment" />
+                    </p:commandButton>
+
                     <p:commandButton icon="pi pi-trash" action="#{elementsTreeView.deleteElement(node)}"
                                      styleClass="rounded-button ui-button-danger"
                                      rendered="#{not elementsTreeView.isFolder(node)}">

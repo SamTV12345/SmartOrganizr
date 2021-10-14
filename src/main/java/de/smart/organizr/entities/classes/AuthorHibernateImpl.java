@@ -95,11 +95,7 @@ public class AuthorHibernateImpl implements Author {
 
 	@Override
 	public String toString() {
-		return "AuthorHibernateImpl{" +
-				"id=" + id +
-				", name='" + name + '\'' +
-				", extraInformation='" + extraInformation + '\'' +
-				", creator=" + creator +
-				'}';
+		return "\n\nAuthor: " + getName() + "\n" +
+				"Ausführliche Beschreibung:\n" + getExtraInformation();
 	}
 }

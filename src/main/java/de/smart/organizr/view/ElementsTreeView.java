@@ -1,23 +1,30 @@
 package de.smart.organizr.view;
 
+import com.itextpdf.text.BadElementException;
+import com.itextpdf.text.Document;
+import com.itextpdf.text.DocumentException;
+import com.itextpdf.text.Image;
+import com.itextpdf.text.pdf.Barcode;
+import com.itextpdf.text.pdf.PdfDocument;
+import com.itextpdf.text.pdf.PdfWriter;
 import de.smart.organizr.entities.interfaces.Element;
 import de.smart.organizr.entities.interfaces.Folder;
 import de.smart.organizr.entities.interfaces.Note;
 import de.smart.organizr.services.interfaces.FolderService;
 import de.smart.organizr.services.interfaces.NoteService;
+import de.smart.organizr.utils.BarCodeUtils;
 import de.smart.organizr.utils.JsfUtils;
 import de.smart.organizr.utils.NavigationUtils;
 import org.primefaces.PrimeFaces;
 import org.primefaces.event.NodeCollapseEvent;
+import org.primefaces.model.DefaultStreamedContent;
 import org.primefaces.model.DefaultTreeNode;
+import org.primefaces.model.StreamedContent;
 import org.primefaces.model.TreeNode;
 
 import javax.annotation.PostConstruct;
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Comparator;
-import java.util.List;
+import java.io.*;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class ElementsTreeView implements Serializable {
@@ -25,6 +32,9 @@ public class ElementsTreeView implements Serializable {
 	private final NoteService noteService;
 	private TreeNode root = new DefaultTreeNode("Folders", null);;
 	private final UserBean userBean;
+	List<byte[]> qrCodeImages;
+	private StreamedContent qrCodePage;
+
 
 	public ElementsTreeView(final FolderService folderService,
 	                        final NoteService noteService,
@@ -100,6 +110,34 @@ public class ElementsTreeView implements Serializable {
 			return "/editNote.xhtml";
 	}
 
+	private byte[] generateQRCodeForOneNode(final Note note) {
+		return BarCodeUtils.generateQRCodeByteArray(note.toString());
+	}
+
+	public void generateQrCodeForEveryNote(final Folder folder) throws DocumentException, IOException {
+		final Document document = new PdfDocument();
+		final ByteArrayOutputStream out = new ByteArrayOutputStream();
+		PdfWriter writer = PdfWriter.getInstance(document, out);
+		qrCodeImages = new LinkedList<>();
+		document.open();
+		for(final Element element: folder.getElements()){
+			if(element instanceof Note nodeContainedInFolder){
+				qrCodeImages.add(generateQRCodeForOneNode(nodeContainedInFolder));
+			}
+		}
+		for(final byte[] qrCodeData: qrCodeImages){
+			document.add(Image.getInstance(qrCodeData));
+		}
+		final InputStream in = new ByteArrayInputStream(out.toByteArray());
+		document.close();
+		qrCodePage = DefaultStreamedContent.builder()
+		                                   .name("your_invoice.pdf")
+		                                   .contentType("application/pdf")
+		                                   .stream(() -> in)
+		                                   .build();
+
+	}
+
 	public void onNodeCollapse(final NodeCollapseEvent event) {
 		if (event != null && event.getTreeNode() != null) {
 			event.getTreeNode().setExpanded(false);
@@ -129,6 +167,14 @@ public class ElementsTreeView implements Serializable {
 			}
 		}
 		initRoot();
+	}
+
+	public StreamedContent getQrCodePage() {
+		return qrCodePage;
+	}
+
+	public void setQrCodePage(final StreamedContent qrCodePage) {
+		this.qrCodePage = qrCodePage;
 	}
 
 	public TreeNode getRoot() {
