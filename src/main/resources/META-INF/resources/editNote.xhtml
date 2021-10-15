@@ -32,13 +32,13 @@
                                  required="true"
                                  converter="#{converterConfiguration.folderConverter}">
                     <f:selectItem itemLabel="#{labels['edit-folder.select-parent-folder']}"/>
-                    <f:selectItems value="#{editFolderView.allFolders}" var="folder"
+                    <f:selectItems value="#{editNoteView.allFolders}" var="folder"
                                    itemLabel="#{folder.name} (#{folder.id})" itemValue="#{folder}"/>
                     <p:ajax event="change" update="@this" />
                 </p:selectOneMenu>
                 <div>
                     <div class="field grid">
-                        <p:outputLabel for="pdf-available" value="PDF verfügbar?"
+                        <p:outputLabel for="pdf-available" value="#{labels['edit-note.pdf-available']}"
                                        styleClass="col-12 mb-2 md:col-2 md:mb-0"/>
                         <div class="col-12 md:col-10">
                             <p:selectBooleanCheckbox id="pdf-available"

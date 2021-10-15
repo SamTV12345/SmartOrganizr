@@ -108,7 +108,7 @@ public class ViewConfiguration {
 	@Autowired
 	@Scope("view")
 	public EditNoteView editNoteView(final UserBean userBean){
-		return new EditNoteView(noteService, authorService, pdfService, userBean);
+		return new EditNoteView(noteService, authorService, folderService, pdfService, userBean);
 	}
 
 	@Bean

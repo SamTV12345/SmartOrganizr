@@ -1,6 +1,7 @@
 package de.smart.organizr.view;
 
 import de.smart.organizr.entities.classes.FolderHibernateImpl;
+import de.smart.organizr.entities.interfaces.Element;
 import de.smart.organizr.entities.interfaces.Folder;
 import de.smart.organizr.exceptions.ElementException;
 import de.smart.organizr.services.interfaces.FolderService;
@@ -8,7 +9,7 @@ import de.smart.organizr.utils.JsfUtils;
 import de.smart.organizr.utils.NavigationUtils;
 
 import javax.annotation.PostConstruct;
-import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 
 public class EditFolderView {
@@ -19,6 +20,7 @@ public class EditFolderView {
 	private Folder futureParentFolder;
 	private Optional<Folder> optionalSavedFolder;
 	private Folder folderToBeSaved;
+	private List<Folder> selectableParentFolders;
 
 	public EditFolderView(final FolderService folderService, final UserBean userBean) {
 		this.folderService = folderService;
@@ -31,7 +33,20 @@ public class EditFolderView {
 		optionalSavedFolder = Optional.ofNullable(JsfUtils.getAnotherFolderFromFlash());
 		optionalSavedFolder.ifPresent(folder -> folderToBeSaved = folder);
 		optionalSavedFolder.ifPresent(folder -> futureParentFolder = folder.getParent());
+		if(folderToBeSaved!=null) {
+			selectableParentFolders = folderService.findAllFolders(userBean.getUser().getUserId());
+			removeAllChildFolders(folderToBeSaved,selectableParentFolders);
+			selectableParentFolders.remove(folderToBeSaved);
+		}
+	}
 
+	public void removeAllChildFolders(final Folder currentFolder, final List<Folder> folders){
+		for (final Element element : currentFolder.getElements()) {
+			if (element instanceof Folder folder) {
+				removeAllChildFolders(folder, folders);
+				folders.remove(folder);
+			}
+		}
 	}
 
 	public String saveFolder(){
@@ -109,7 +124,11 @@ public class EditFolderView {
 		futureParentFolder = folder;
 	}
 
-	public Collection<Folder> getAllFolders() {
-		return folderService.findAllFolders(userBean.getUser().getUserId());
+	public List<Folder> getSelectableParentFolders() {
+		return selectableParentFolders;
+	}
+
+	public void setSelectableParentFolders(final List<Folder> selectableParentFolders) {
+		this.selectableParentFolders = selectableParentFolders;
 	}
 }

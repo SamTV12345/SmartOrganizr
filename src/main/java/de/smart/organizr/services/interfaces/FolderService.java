@@ -4,6 +4,7 @@ import de.smart.organizr.entities.interfaces.Folder;
 import de.smart.organizr.entities.interfaces.User;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 
 public interface FolderService {
@@ -12,7 +13,7 @@ public interface FolderService {
 	 * @param userId the user id
 	 * @return a collection of folders
 	 */
-	Collection<Folder> findAllFolders(int userId);
+	List<Folder> findAllFolders(int userId);
 
 	/**
 	 * Finds a folder by id

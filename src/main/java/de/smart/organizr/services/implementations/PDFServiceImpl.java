@@ -135,7 +135,7 @@ public class PDFServiceImpl implements PDFService {
 					qrCodeImages.add(generateQRCodeForOneNode(nodeContainedInFolder));
 				}
 			}
-		final long columns = Math.min(6,Math.round(qrCodeImages.size() / 6.));
+		final long columns = Math.max(6,Math.round(qrCodeImages.size() / 6.));
 		final PdfPTable irdTable = new PdfPTable(Math.toIntExact(columns));
 		while (qrCodeImages.size()%columns!=0){
 			qrCodeImages.add(baos.toByteArray());

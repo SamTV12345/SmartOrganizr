@@ -10,7 +10,9 @@ import de.smart.organizr.entities.interfaces.User;
 import de.smart.organizr.exceptions.UserException;
 import de.smart.organizr.services.interfaces.FolderService;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 
 public class FolderServiceImpl implements FolderService {
@@ -26,12 +28,12 @@ public class FolderServiceImpl implements FolderService {
 	}
 
 	@Override
-	public Collection<Folder> findAllFolders(final int userId){
+	public List<Folder> findAllFolders(final int userId){
 		final Optional<User> optionalUser = userDao.findUserById(userId);
 		if(optionalUser.isEmpty()){
 			throw UserException.createUnknownUserException();
 		}
-		return folderDao.findAllFolders(optionalUser.get());
+		return new ArrayList<>(folderDao.findAllFolders(optionalUser.get()));
 	}
 
 	@Override

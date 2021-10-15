@@ -8,6 +8,7 @@ import de.smart.organizr.exceptions.AuthorException;
 import de.smart.organizr.exceptions.ElementException;
 import de.smart.organizr.exceptions.NoteException;
 import de.smart.organizr.services.interfaces.AuthorService;
+import de.smart.organizr.services.interfaces.FolderService;
 import de.smart.organizr.services.interfaces.NoteService;
 import de.smart.organizr.services.interfaces.PDFService;
 import de.smart.organizr.utils.BarCodeUtils;
@@ -23,11 +24,13 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.*;
 import java.util.Calendar;
 import java.util.Collection;
+import java.util.List;
 
 public class EditNoteView {
 
 	private final NoteService noteService;
 	private final AuthorService authorService;
+	private final FolderService folderService;
 	private final PDFService pdfService;
 	private final UserBean userBean;
 	private Folder currentFolder;
@@ -38,15 +41,19 @@ public class EditNoteView {
 	private Calendar calendar;
 	private UploadedFile uploadedFile;
 	private DefaultStreamedContent pdfForView;
+	private List<Folder> allFolders;
 
 	public EditNoteView(final NoteService noteService,
 	                    final AuthorService authorService,
+	                    final FolderService folderService,
 	                    final PDFService pdfService, final UserBean userBean){
+		this.folderService = folderService;
 		this.pdfService = pdfService;
 		currentFolder = JsfUtils.getFolderFromFlash();
 		this.noteService = noteService;
 		this.authorService = authorService;
 		this.userBean = userBean;
+		allFolders = folderService.findAllFolders(userBean.getUser().getUserId());
 	}
 
 	@PostConstruct
@@ -241,5 +248,13 @@ public class EditNoteView {
 
 	public void setUploadedFile(final UploadedFile uploadedFile) {
 		this.uploadedFile = uploadedFile;
+	}
+
+	public List<Folder> getAllFolders() {
+		return allFolders;
+	}
+
+	public void setAllFolders(final List<Folder> allFolders) {
+		this.allFolders = allFolders;
 	}
 }

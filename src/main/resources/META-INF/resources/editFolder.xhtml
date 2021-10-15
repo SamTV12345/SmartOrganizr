@@ -20,7 +20,7 @@
                              value="#{editFolderView.futureParentFolder}" style="min-width: 200px"
                     converter="#{converterConfiguration.folderConverter}">
                 <f:selectItem itemLabel="#{labels['edit-folder.select-parent-folder']}"/>
-                <f:selectItems value="#{editFolderView.allFolders}" var="folder"
+                <f:selectItems value="#{editFolderView.selectableParentFolders}" var="folder"
                                itemLabel="#{folder.name} (#{folder.id})" itemValue="#{folder}"/>
                 <p:ajax event="change" update="@this" />
             </p:selectOneMenu>
