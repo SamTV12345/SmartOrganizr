@@ -3,7 +3,7 @@ package de.smart.organizr.services.interfaces;
 import de.smart.organizr.entities.interfaces.Author;
 import de.smart.organizr.entities.interfaces.User;
 
-import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 
 public interface AuthorService {
@@ -19,7 +19,7 @@ public interface AuthorService {
 	 * @param userId the user id
 	 * @return all authors that were created by the user
 	 */
-	Collection<Author> findAllAuthorsByUser(int userId);
+	List<Author> findAllAuthorsByUser(int userId);
 
 	/**
 	 * Finds the author by id

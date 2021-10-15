@@ -5,7 +5,9 @@
             <p:commandButton icon="pi pi-plus" action="#{viewAuthorView.navigateToEditAuthor()}"
                              value="#{labels['view-authors.create-author']}" styleClass="form-button"/>
             <p:dataTable value="#{viewAuthorView.allAuthors}" var="author">
-                <p:column headerText="#{labels['edit-author.name']}">
+                <p:column headerText="#{labels['edit-author.name']}" sortBy="#{author.name}" sortOrder="asc"
+                          filterMatchMode="contain"
+                          filterBy="#{author.name}">
                     <h:outputText value="#{author.name}"/>
                 </p:column>
                 <p:column headerText="#{labels['edit-author.extra-information']}">

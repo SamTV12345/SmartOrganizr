@@ -6,8 +6,8 @@ import de.smart.organizr.entities.interfaces.Author;
 import de.smart.organizr.entities.interfaces.User;
 import de.smart.organizr.exceptions.UserException;
 import de.smart.organizr.services.interfaces.AuthorService;
-import de.smart.organizr.view.UserBean;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
@@ -28,12 +28,12 @@ public class AuthorServiceImpl implements AuthorService {
 	}
 
 	@Override
-	public Collection<Author> findAllAuthorsByUser(final int userId){
+	public List<Author> findAllAuthorsByUser(final int userId){
 		final Optional<User> optionalUser = userDao.findUserById(userId);
 		if(optionalUser.isEmpty()){
 			throw UserException.createUnknownUserException();
 		}
-		return authorDao.findAllAuthorsOfUser(optionalUser.get());
+		return new ArrayList<>(authorDao.findAllAuthorsOfUser(optionalUser.get()));
 	}
 
 	@Override
