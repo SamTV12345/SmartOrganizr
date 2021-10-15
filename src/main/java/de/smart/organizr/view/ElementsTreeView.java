@@ -47,6 +47,7 @@ public class ElementsTreeView implements Serializable {
 
 	private void initRoot() {
 		final Collection<Folder> parentFolders = folderService.findAllParentFolders(userBean.getUser().getUserId());
+
 		parentFolders.forEach(parentFolder->{
 			final TreeNode parentFolderTreeNode =
 				new DefaultTreeNode(parentFolder, root);
@@ -81,6 +82,7 @@ public class ElementsTreeView implements Serializable {
 	}
 
 	public String navigateToEditElement(final Element elementToBeEdited){
+
 		if(elementToBeEdited instanceof Folder folder) {
 			JsfUtils.putFolderIntoFlash(folder);
 		}
@@ -126,28 +128,40 @@ public class ElementsTreeView implements Serializable {
 		}
 	}
 
+	public void deleteElement(final Element element){
+		handleDeletion(element);
+	}
+
 	public void deleteElement(){
 		if(selectedTreeNode == null){
 			JsfUtils.putErrorMessage(I18nExceptionUtils.getElementsTreeNoNodeSelected());
 			return;
 		}
 		final Element elementToBeRemoved = (Element) selectedTreeNode.getData();
-		if(elementToBeRemoved instanceof Folder folder) {
-			folderService.deleteFolder(folder);
-		}
-		else if (elementToBeRemoved instanceof Note note){
-			noteService.deleteNote(note);
-		}
+		handleDeletion(elementToBeRemoved);
+
 		//traverseTree(root, elementToBeRemoved);
 		if(selectedTreeNode!=null) {
 			selectedTreeNode.getParent().getChildren().remove(selectedTreeNode);
 		}
 	}
 
+	private void handleDeletion(final Element elementToBeRemoved) {
+		if(elementToBeRemoved.getParent()!=null) {
+			elementToBeRemoved.getParent().getElements().remove(elementToBeRemoved);
+			folderService.saveFolder(elementToBeRemoved.getParent());
+		}
+		if(elementToBeRemoved instanceof Folder folder) {
+			folderService.deleteFolder(folder);
+		}
+		else if (elementToBeRemoved instanceof Note note){
+			noteService.deleteNote(note);
+		}
+	}
+
 
 	public void traverseTree(final TreeNode tree, final Element elementToBeRemoved) {
 		if(tree.getChildren().removeIf(element->element.getData().equals(elementToBeRemoved))){
-			System.out.println("Entfernt");
 			return;
 		}
 		for (final TreeNode child:tree.getChildren()){

@@ -3,6 +3,7 @@ package de.smart.organizr.services.interfaces;
 import de.smart.organizr.entities.interfaces.Note;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface NoteService {
 	/**
@@ -19,4 +20,6 @@ public interface NoteService {
 	void deleteNote(Note note);
 
 	List<Note> findAllNotesByAuthor(int id);
+
+	Optional<Note> findNoteById(int id);
 }

@@ -3,6 +3,7 @@
                 template="/templates/template.xhtml">
     <ui:define name="page-content">
         <h:form>
+            <p:growl id="messages"/>
         <div class="ui-fluid">
             <div class="field grid">
                 <p:outputLabel for="folder-name" value="#{labels['edit-folder.name']}" styleClass="col-12 mb-2 md:col-2 md:mb-0"/>
@@ -29,7 +30,7 @@
                              action="#{editFolderView.returnBackToFolderView()}" immediate="true"
                              styleClass="form-button" ajax="false"/>
             <p:commandButton value="#{labels['edit-folder.save']}" action="#{editFolderView.saveFolder()}"
-                             styleClass="form-button" ajax="false" update="messages"/>
+                             styleClass="form-button" update="messages"/>
             <p:commandButton value="#{labels['edit-folder.save-and-create-another-folder']}"
                              action="#{editFolderView.saveFolderAndCreateAnotherFolder()}"
                              styleClass="form-button" update="@form"/>

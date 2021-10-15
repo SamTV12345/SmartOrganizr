@@ -64,6 +64,7 @@ public class EditNoteView {
 			setAuthor(savedNote.getAuthor());
 			setDescription(savedNote.getDescription());
 			setTitle(savedNote.getTitle());
+			this.calendar = savedNote.getCreationDate();
 			setId(savedNote.getId());
 			currentFolder = savedNote.getParent();
 		}
@@ -99,6 +100,11 @@ public class EditNoteView {
 
 			if (calendar == null) {
 				calendar = Calendar.getInstance();
+			}
+			else{
+				final Note extractedNote = noteService.findNoteById(id).get();
+				extractedNote.getParent().getElements().remove(extractedNote);
+				folderService.saveFolder(extractedNote.getParent());
 			}
 
 			final Note noteToBeSaved = new NoteHibernateImpl(calendar, id, currentFolder, description,

@@ -21,10 +21,12 @@ public class EditFolderView {
 	private Optional<Folder> optionalSavedFolder;
 	private Folder folderToBeSaved;
 	private List<Folder> selectableParentFolders;
+	private boolean firstSave;
 
 	public EditFolderView(final FolderService folderService, final UserBean userBean) {
 		this.folderService = folderService;
 		this.userBean = userBean;
+		firstSave = false;
 	}
 
 	@PostConstruct
@@ -52,6 +54,7 @@ public class EditFolderView {
 	public String saveFolder(){
 		try {
 			saveFolderInFolder();
+
 			return NavigationUtils.navigateToCorrectVersion(userBean.getVersion());
 		}
 		catch (final ElementException exception){
@@ -61,11 +64,21 @@ public class EditFolderView {
 	}
 
 	private void saveFolderInFolder() {
-		if(folderToBeSaved == null) {
+		if (folderToBeSaved == null) {
 			folderToBeSaved = new FolderHibernateImpl(name, description, userBean.getUser());
+			firstSave = true;
+		}
+		else if (folderToBeSaved.getParent()!=null) {
+			// Remove already existing folder from parent
+			folderToBeSaved.getParent().getElements().remove(folderToBeSaved);
+			folderService.saveFolder(folderToBeSaved.getParent());
 		}
 		folderToBeSaved.setParent(futureParentFolder);
-		folderService.saveFolder(folderToBeSaved);
+		final Folder savedFolder = folderService.saveFolder(folderToBeSaved);
+		if (savedFolder.getParent() != null) {
+			savedFolder.getParent().getElements().add(savedFolder);
+			folderService.saveFolder(savedFolder.getParent());
+		}
 	}
 
 	public void saveFolderAndCreateAnotherFolder(){

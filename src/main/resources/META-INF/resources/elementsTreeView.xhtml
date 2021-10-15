@@ -52,6 +52,7 @@
                                      action="#{elementsTreeView.generateQrCodeForEveryNote(node)}"
                                      rendered="#{elementsTreeView.isFolder(node)}">
                     </p:commandButton>
+                    <br/>
                     <p:commandButton value="#{labels['elements-tree-view.download-qrCodes']}" ajax="false"
                                      onclick="PrimeFaces.monitorDownload(start, stop);"
                                      icon="pi pi-align-justify" styleClass="p-mr-2 rounded-button"
