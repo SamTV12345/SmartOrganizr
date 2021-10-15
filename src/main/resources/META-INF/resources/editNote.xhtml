@@ -3,6 +3,7 @@
                 template="/templates/template.xhtml">
     <ui:define name="page-content">
         <h:form>
+            <p:growl id="messages"/>
             <div class="ui-fluid">
                 <div class="field grid">
                     <p:outputLabel for="folder-name" value="#{labels['edit-note.name']}"
@@ -67,7 +68,7 @@
             <p:commandButton value="#{labels['edit-note.back']}" action="#{editNoteView.navigateToViewFolders()}"
                              styleClass="form-button" immediate="true"/>
             <p:commandButton value="#{labels['edit-note.save']}" action="#{editNoteView.saveNote()}"
-                             styleClass="form-button" ajax="false"/>
+                             styleClass="form-button" ajax="false" update="messages"/>
             <p:commandButton value="#{labels['edit-note.create-another-note']}"
                              action="#{editNoteView.saveAndCreateAnotherNote()}"
                              styleClass="form-button" update="@form"/>

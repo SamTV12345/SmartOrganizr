@@ -29,7 +29,7 @@
                              action="#{editFolderView.returnBackToFolderView()}" immediate="true"
                              styleClass="form-button" ajax="false"/>
             <p:commandButton value="#{labels['edit-folder.save']}" action="#{editFolderView.saveFolder()}"
-                             styleClass="form-button" ajax="false"/>
+                             styleClass="form-button" ajax="false" update="messages"/>
             <p:commandButton value="#{labels['edit-folder.save-and-create-another-folder']}"
                              action="#{editFolderView.saveFolderAndCreateAnotherFolder()}"
                              styleClass="form-button" update="@form"/>

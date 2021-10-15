@@ -9,7 +9,7 @@ The application can be run with
 mvn spring-boot:run
 ```
 
-For using a persistent database you need to create a config.properties folder in the root directory of the project 
+For using a persistent database you need to create a config.properties file in the root directory of the project 
 (Where the **pom.xml** is located). The important config properties are:
 
 - spring.datasource.url=<url-to-database>

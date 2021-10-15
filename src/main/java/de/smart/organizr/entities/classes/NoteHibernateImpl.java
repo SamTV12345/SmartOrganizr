@@ -4,6 +4,7 @@ import de.smart.organizr.entities.interfaces.Author;
 import de.smart.organizr.entities.interfaces.Folder;
 import de.smart.organizr.entities.interfaces.Note;
 import de.smart.organizr.entities.interfaces.User;
+import de.smart.organizr.validators.NoteValidator;
 
 import javax.persistence.*;
 import java.io.Serializable;
@@ -36,8 +37,8 @@ public class NoteHibernateImpl extends ElementHibernateImpl implements Note, Ser
 	                         final Folder parent, final String description,
 	                         final User creator, final String title, final Author author) {
 		super(creationDate, id, "Element", parent, description, creator);
-		this.title = title;
-		this.author = author;
+		setTitle(title);
+		setAuthor(author);
 	}
 
 	@Override
@@ -67,7 +68,8 @@ public class NoteHibernateImpl extends ElementHibernateImpl implements Note, Ser
 
 	@Override
 	public void setTitle(final String name) {
-		this.title = name;
+		NoteValidator.checkTitle(name);
+		this.title = name.trim();
 	}
 
 	@Override
@@ -79,6 +81,7 @@ public class NoteHibernateImpl extends ElementHibernateImpl implements Note, Ser
 
 	@Override
 	public void setAuthor(final Author author) {
+		NoteValidator.checkAuthor(author);
 		this.author = author;
 	}
 

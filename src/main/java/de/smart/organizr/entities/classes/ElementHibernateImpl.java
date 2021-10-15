@@ -3,6 +3,7 @@ package de.smart.organizr.entities.classes;
 import de.smart.organizr.entities.interfaces.Element;
 import de.smart.organizr.entities.interfaces.Folder;
 import de.smart.organizr.entities.interfaces.User;
+import de.smart.organizr.validators.ElementValidator;
 
 import javax.persistence.*;
 import java.io.Serializable;
@@ -29,6 +30,8 @@ public class ElementHibernateImpl implements Element, Serializable {
 
 	protected ElementHibernateImpl(final String name, final Calendar creationDate, final String description,
 	                               final User creator) {
+		ElementValidator.checkElementId(id);
+		ElementValidator.checkElementName(name);
 		this.description = description;
 		setName(name);
 		setCreationDate(creationDate);
@@ -37,6 +40,8 @@ public class ElementHibernateImpl implements Element, Serializable {
 
 	public ElementHibernateImpl(final int id, final String name, final String description,
 	                            final User creator) {
+		ElementValidator.checkElementId(id);
+		ElementValidator.checkElementName(name);
 		this.creationDate = Calendar.getInstance();
 		this.id = id;
 		this.name = name;
@@ -46,6 +51,8 @@ public class ElementHibernateImpl implements Element, Serializable {
 
 	public ElementHibernateImpl(final Calendar creationDate, final int id, final String name,
 	                            final Folder parent, final String description, final User creator) {
+		ElementValidator.checkElementId(id);
+		ElementValidator.checkElementName(name);
 		this.creationDate = creationDate;
 		this.id = id;
 		this.name = name;
@@ -91,6 +98,7 @@ public class ElementHibernateImpl implements Element, Serializable {
 	}
 
 	public void setId(final int id) {
+		ElementValidator.checkElementId(id);
 		this.id = id;
 	}
 
@@ -101,6 +109,7 @@ public class ElementHibernateImpl implements Element, Serializable {
 
 	@Override
 	public void setName(final String name) {
+		ElementValidator.checkElementName(name);
 		this.name = name;
 	}
 

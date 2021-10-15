@@ -3,6 +3,8 @@ package de.smart.organizr.view;
 import de.smart.organizr.entities.classes.AuthorHibernateImpl;
 import de.smart.organizr.entities.interfaces.Author;
 import de.smart.organizr.entities.interfaces.User;
+import de.smart.organizr.exceptions.AuthorException;
+import de.smart.organizr.exceptions.NoteException;
 import de.smart.organizr.services.interfaces.AuthorService;
 import de.smart.organizr.utils.JsfUtils;
 import de.smart.organizr.utils.NavigationUtils;
@@ -30,25 +32,30 @@ public class EditAuthorView {
 	}
 
 	public String saveAuthor(){
-		authorService.saveAuthor(new AuthorHibernateImpl(id, name, extraInformation, userBean.getUser()));
-		return NavigationUtils.navigateToViewAuthors();
+		try {
+			authorService.saveAuthor(new AuthorHibernateImpl(id, name, extraInformation, userBean.getUser()));
+			return NavigationUtils.navigateToViewAuthors();
+		}
+		catch (final AuthorException authorException){
+			JsfUtils.putErrorMessage(authorException.getMessage());
+			return null;
+		}
 	}
 
 	public void saveAndCreateAnotherAuthor(){
-		authorService.saveAuthor(new AuthorHibernateImpl(id, name, extraInformation, userBean.getUser()));
-		setId(0);
-		setExtraInformation("");
-		setName("");
-		final FacesContext context = FacesContext.getCurrentInstance();
-		final String viewId = context.getViewRoot().getViewId();
-		final ViewHandler handler = context.getApplication().getViewHandler();
-		final UIViewRoot root = handler.createView(context, viewId);
-		root.setViewId(viewId);
-		context.setViewRoot(root);
+		try {
+			authorService.saveAuthor(new AuthorHibernateImpl(id, name, extraInformation, userBean.getUser()));
+			setId(0);
+			setExtraInformation("");
+			setName("");
+		}
+		catch (final AuthorException authorException){
+			JsfUtils.putErrorMessage(authorException.getMessage());
+		}
 	}
 
-	public String backToElementView(){
-		return NavigationUtils.navigateToCorrectVersion(userBean.getVersion());
+	public String backToAuthorView(){
+		return NavigationUtils.navigateToViewAuthors();
 	}
 
 	public String getName() {

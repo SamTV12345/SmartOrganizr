@@ -10,7 +10,7 @@ import java.util.List;
 public interface Folder extends Element{
 	/**
 	 * A list of all elements
-	 * @return
+	 * @return a list of all elements
 	 */
 	List<Element> getElements();
 }

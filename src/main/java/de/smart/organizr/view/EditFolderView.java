@@ -2,6 +2,7 @@ package de.smart.organizr.view;
 
 import de.smart.organizr.entities.classes.FolderHibernateImpl;
 import de.smart.organizr.entities.interfaces.Folder;
+import de.smart.organizr.exceptions.ElementException;
 import de.smart.organizr.services.interfaces.FolderService;
 import de.smart.organizr.utils.JsfUtils;
 import de.smart.organizr.utils.NavigationUtils;
@@ -34,8 +35,14 @@ public class EditFolderView {
 	}
 
 	public String saveFolder(){
-		saveFolderInFolder();
-		return NavigationUtils.navigateToCorrectVersion(userBean.getVersion());
+		try {
+			saveFolderInFolder();
+			return NavigationUtils.navigateToCorrectVersion(userBean.getVersion());
+		}
+		catch (final ElementException exception){
+			JsfUtils.putErrorMessage(exception.getLocalizedMessage());
+			return null;
+		}
 	}
 
 	private void saveFolderInFolder() {
@@ -47,10 +54,15 @@ public class EditFolderView {
 	}
 
 	public void saveFolderAndCreateAnotherFolder(){
-		saveFolderInFolder();
-		setName("");
-		setDescription("");
-		folderToBeSaved = null;
+		try {
+			saveFolderInFolder();
+			setName("");
+			setDescription("");
+			folderToBeSaved = null;
+		}
+		catch (final ElementException exception){
+			JsfUtils.putErrorMessage(exception.getLocalizedMessage());
+		}
 	}
 
 	public String getDescription() {

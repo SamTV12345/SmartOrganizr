@@ -3,6 +3,7 @@ package de.smart.organizr.entities.classes;
 
 import de.smart.organizr.entities.interfaces.Author;
 import de.smart.organizr.entities.interfaces.User;
+import de.smart.organizr.validators.AuthorValidator;
 
 import javax.persistence.*;
 import java.util.Objects;
@@ -25,6 +26,9 @@ public class AuthorHibernateImpl implements Author {
 
 	public AuthorHibernateImpl(final int id, final String name, final String extraInformation,
 	                           final User creator) {
+		AuthorValidator.checkAuthorName(name);
+		AuthorValidator.checkAuthorId(id);
+
 		this.id = id;
 		this.name = name;
 		this.extraInformation = extraInformation;
@@ -58,6 +62,7 @@ public class AuthorHibernateImpl implements Author {
 	}
 
 	public void setId(final int id) {
+		AuthorValidator.checkAuthorId(id);
 		this.id = id;
 	}
 
@@ -68,6 +73,7 @@ public class AuthorHibernateImpl implements Author {
 
 	@Override
 	public void setName(final String name) {
+		AuthorValidator.checkAuthorName(name);
 		this.name = name;
 	}
 

@@ -5,6 +5,8 @@ import de.smart.organizr.entities.interfaces.Author;
 import de.smart.organizr.entities.interfaces.Folder;
 import de.smart.organizr.entities.interfaces.Note;
 import de.smart.organizr.exceptions.AuthorException;
+import de.smart.organizr.exceptions.ElementException;
+import de.smart.organizr.exceptions.NoteException;
 import de.smart.organizr.services.interfaces.AuthorService;
 import de.smart.organizr.services.interfaces.NoteService;
 import de.smart.organizr.services.interfaces.PDFService;
@@ -80,32 +82,29 @@ public class EditNoteView {
 			saveNoteInFolder();
 			return navigateToViewFolders();
 		}
-		catch (final AuthorException authorException){
+		catch (final ElementException | NoteException| IOException| AuthorException exception){
+			JsfUtils.putErrorMessage(exception.getLocalizedMessage());
 			return null;
 		}
 	}
 
-	private void saveNoteInFolder() {
-		if (calendar ==null){
-			calendar = Calendar.getInstance();
+	private void saveNoteInFolder() throws IOException {
+
+			if (calendar == null) {
+				calendar = Calendar.getInstance();
+			}
+
+			final Note noteToBeSaved = new NoteHibernateImpl(calendar, id, currentFolder, description,
+					userBean.getUser(), title, author);
+			noteToBeSaved.setParent(currentFolder);
+			final Note savedNote = noteService.saveNote(noteToBeSaved);
+			currentFolder.getElements().add(noteToBeSaved);
+
+			if (uploadedFile != null) {
+					pdfService.writePDF(uploadedFile, savedNote);
+
 		}
 
-		final Note noteToBeSaved = new NoteHibernateImpl(calendar, id, currentFolder,description,
-				userBean.getUser(),title, author);
-		noteToBeSaved.setParent(currentFolder);
-		final Note savedNote = noteService.saveNote(noteToBeSaved);
-		currentFolder.getElements().add(noteToBeSaved);
-
-		if(uploadedFile !=null) {
-			try {
-				pdfService.writePDF(uploadedFile, savedNote);
-			}
-			catch (final IOException e) {
-				e.printStackTrace();
-			}
-		}
-
-		JsfUtils.putFolderIntoFlash(currentFolder);
 	}
 
 	public boolean checkIfNoteIsAlreadySaved(){
@@ -142,10 +141,14 @@ public class EditNoteView {
 	}
 
 	public byte[] getCurrentStatusOfNote(){
-		System.out.println(new NoteHibernateImpl(calendar, id, currentFolder,description,
-				userBean.getUser(),title, author));
-		return BarCodeUtils.generateQRCodeByteArray(new NoteHibernateImpl(calendar, id, currentFolder,description,
-				userBean.getUser(),title, author).toString());
+		try {
+			return BarCodeUtils.generateQRCodeByteArray(new NoteHibernateImpl(calendar, id, currentFolder, description,
+					userBean.getUser(), title, author).toString());
+		}
+		catch (final NoteException noteException){
+			JsfUtils.putErrorMessage(noteException.getLocalizedMessage());
+			return null;
+		}
 	}
 
 	public void openFile( ) {
@@ -183,12 +186,17 @@ public class EditNoteView {
 	}
 	
 	public void saveAndCreateAnotherNote(){
-		saveNoteInFolder();
-		setId(0);
-		setTitle("");
-		setDescription("");
-		setAuthor(null);
-		setPdfForView(null);
+		try {
+			saveNoteInFolder();
+			setId(0);
+			setTitle("");
+			setDescription("");
+			setAuthor(null);
+			setPdfForView(null);
+		}
+		catch (final ElementException |NoteException|IOException exception){
+			JsfUtils.putErrorMessage(exception.getLocalizedMessage());
+		}
 	}
 
 	public void setPdfForView(final DefaultStreamedContent pdfForView) {
