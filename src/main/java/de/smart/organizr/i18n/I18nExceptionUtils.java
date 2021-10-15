@@ -19,6 +19,7 @@ public class I18nExceptionUtils {
 	private static final String ELEMENT_ID_MAY_NOT_BE_NEGATIVE = "element.element-id-may-not-be-negative";
 	private static final String NOTE_TITLE_MAY_NOT_BE_EMPTY = "note.note-title-may-not-be-empty";
 	private static final String NOTE_ID_MAY_NOT_BE_NEGATIVE = "note.note-author-may-not-be-empty";
+	private static final String ELEMENTS_TREE_NO_NODE_SELECTED = "elements-tree-view.no-node-selected";
 
 	static {
 		resourceBundle = ResourceBundle.getBundle(I18N_BASENAME_EXCEPTIONS);
@@ -71,5 +72,9 @@ public class I18nExceptionUtils {
 
 	public static String getNoteAuthorMayNotBeEmpty() {
 		return resourceBundle.getString(NOTE_ID_MAY_NOT_BE_NEGATIVE);
+	}
+
+	public static String getElementsTreeNoNodeSelected() {
+		return resourceBundle.getString(ELEMENTS_TREE_NO_NODE_SELECTED);
 	}
 }

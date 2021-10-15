@@ -2,6 +2,8 @@ package de.smart.organizr.services.interfaces;
 
 import de.smart.organizr.entities.interfaces.Note;
 
+import java.util.List;
+
 public interface NoteService {
 	/**
 	 * Saves a note
@@ -15,4 +17,6 @@ public interface NoteService {
 	 * @param note the note to be deleted
 	 */
 	void deleteNote(Note note);
+
+	List<Note> findAllNotesByAuthor(int id);
 }

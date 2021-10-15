@@ -22,6 +22,28 @@
                 </div>
             </div>
             </h:panelGroup>
+            <p:dataTable value="#{editAuthorView.notesOfAuthor}" var="note">
+                <p:column headerText="#{labels['edit-note.name']}">
+                    <h:outputText value="#{note.title}"/>
+                </p:column>
+                <p:column headerText="#{labels['edit-note.description']}">
+                    <h:outputText value="#{note.description}"/>
+                </p:column>
+                <p:column headerText="#{labels['edit-author.actions']}">
+                    <p:commandButton icon="pi pi-trash" action="#{editAuthorView.deleteElement(note)}"
+                                     styleClass="rounded-button ui-button-danger"
+                                     update="@form">
+                        <p:confirm header="#{labels['elements-tree-view.confirmation']}"
+                                   message="#{labels['elements-tree-view.confirm-delete-note']}"
+                                   icon="pi pi-info-circle"/>
+                        <p:confirmDialog global="true" showEffect="fade" hideEffect="fade" responsive="true" width="350">
+                            <p:commandButton value="No" type="button" styleClass="ui-confirmdialog-no ui-button-flat"
+                                             update="@form"/>
+                            <p:commandButton value="Yes" type="button" styleClass="ui-confirmdialog-yes" update="@form"/>
+                        </p:confirmDialog>
+                    </p:commandButton>
+                </p:column>
+            </p:dataTable>
             <p:commandButton value="#{labels['edit-author.back']}" action="#{editAuthorView.backToAuthorView()}"
                              styleClass="form-button" immediate="true"/>
             <p:commandButton value="#{labels['edit-author.save']}" action="#{editAuthorView.saveAuthor()}"

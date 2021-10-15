@@ -5,6 +5,8 @@ import de.smart.organizr.entities.classes.NoteHibernateImpl;
 import de.smart.organizr.entities.interfaces.Note;
 import de.smart.organizr.repositories.NoteRepository;
 
+import java.util.List;
+
 /**
  * The NoteDaoJpaImpl class takes care of every database action related to notes
  */
@@ -28,5 +30,15 @@ public class NoteDaoJpaImpl implements NoteDao {
 	@Override
 	public void deleteNote(final Note note) {
 		noteRepository.deleteById(note.getId());
+	}
+
+	/**
+	 * Finds all notes by author
+	 * @param id the id of the author
+	 * @return A list of all notes by this author
+	 */
+	@Override
+	public List<Note> findAllNotesByAuthor(final int id) {
+		return noteRepository.findAllNotesByAuthor(id);
 	}
 }

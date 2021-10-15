@@ -37,5 +37,6 @@ public class ViewAuthorView {
 
 	public void deleteAuthor(final Author author) {
 		authorService.deleteAuthor(author);
+		allAuthors.remove(author);
 	}
 }

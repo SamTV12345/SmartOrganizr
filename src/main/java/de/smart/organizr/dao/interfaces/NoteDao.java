@@ -2,6 +2,8 @@ package de.smart.organizr.dao.interfaces;
 
 import de.smart.organizr.entities.interfaces.Note;
 
+import java.util.List;
+
 
 public interface NoteDao {
 	/**
@@ -16,4 +18,6 @@ public interface NoteDao {
 	 * @param note the note to be deleted
 	 */
 	void deleteNote(Note note);
+
+	List<Note> findAllNotesByAuthor(int id);
 }

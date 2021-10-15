@@ -4,13 +4,12 @@ import com.itextpdf.text.DocumentException;
 import de.smart.organizr.entities.interfaces.Element;
 import de.smart.organizr.entities.interfaces.Folder;
 import de.smart.organizr.entities.interfaces.Note;
+import de.smart.organizr.i18n.I18nExceptionUtils;
 import de.smart.organizr.services.interfaces.FolderService;
 import de.smart.organizr.services.interfaces.NoteService;
 import de.smart.organizr.services.interfaces.PDFService;
-import de.smart.organizr.utils.BarCodeUtils;
 import de.smart.organizr.utils.JsfUtils;
 import de.smart.organizr.utils.NavigationUtils;
-import org.primefaces.PrimeFaces;
 import org.primefaces.event.NodeCollapseEvent;
 import org.primefaces.model.DefaultStreamedContent;
 import org.primefaces.model.DefaultTreeNode;
@@ -29,6 +28,7 @@ public class ElementsTreeView implements Serializable {
 	private TreeNode root = new DefaultTreeNode("Folders", null);;
 	private final UserBean userBean;
 	private StreamedContent qrCodePage;
+	private TreeNode selectedTreeNode;
 
 
 	public ElementsTreeView(final FolderService folderService,
@@ -81,6 +81,12 @@ public class ElementsTreeView implements Serializable {
 	}
 
 	public String navigateToEditElement(final Element elementToBeEdited){
+		if(elementToBeEdited instanceof Folder folder) {
+			JsfUtils.putFolderIntoFlash(folder);
+		}
+		else if (elementToBeEdited instanceof Note note){
+			JsfUtils.putNoteIntoFlash(note);
+		}
 		return NavigationUtils.navigateToEditElementView(elementToBeEdited);
 	}
 
@@ -120,21 +126,28 @@ public class ElementsTreeView implements Serializable {
 		}
 	}
 
-	public void deleteElement(final Element elementToBeRemoved){
+	public void deleteElement(){
+		if(selectedTreeNode == null){
+			JsfUtils.putErrorMessage(I18nExceptionUtils.getElementsTreeNoNodeSelected());
+			return;
+		}
+		final Element elementToBeRemoved = (Element) selectedTreeNode.getData();
 		if(elementToBeRemoved instanceof Folder folder) {
 			folderService.deleteFolder(folder);
 		}
 		else if (elementToBeRemoved instanceof Note note){
 			noteService.deleteNote(note);
 		}
-		root.getChildren().removeIf(element->element.getData().equals(elementToBeRemoved));
 		//traverseTree(root, elementToBeRemoved);
-		PrimeFaces.current().ajax().update("form:elements");
+		if(selectedTreeNode!=null) {
+			selectedTreeNode.getParent().getChildren().remove(selectedTreeNode);
+		}
 	}
 
 
 	public void traverseTree(final TreeNode tree, final Element elementToBeRemoved) {
 		if(tree.getChildren().removeIf(element->element.getData().equals(elementToBeRemoved))){
+			System.out.println("Entfernt");
 			return;
 		}
 		for (final TreeNode child:tree.getChildren()){
@@ -142,7 +155,6 @@ public class ElementsTreeView implements Serializable {
 				traverseTree(child, elementToBeRemoved);
 			}
 		}
-		initRoot();
 	}
 
 	public StreamedContent getQrCodePage(final Folder folder) throws FileNotFoundException {
@@ -162,5 +174,13 @@ public class ElementsTreeView implements Serializable {
 
 	public void setRoot(final TreeNode root) {
 		this.root = root;
+	}
+
+	public TreeNode getSelectedTreeNode() {
+		return selectedTreeNode;
+	}
+
+	public void setSelectedTreeNode(final TreeNode selectedTreeNode) {
+		this.selectedTreeNode = selectedTreeNode;
 	}
 }

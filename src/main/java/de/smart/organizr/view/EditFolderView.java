@@ -33,8 +33,8 @@ public class EditFolderView {
 		optionalSavedFolder = Optional.ofNullable(JsfUtils.getAnotherFolderFromFlash());
 		optionalSavedFolder.ifPresent(folder -> folderToBeSaved = folder);
 		optionalSavedFolder.ifPresent(folder -> futureParentFolder = folder.getParent());
+		selectableParentFolders = folderService.findAllFolders(userBean.getUser().getUserId());
 		if(folderToBeSaved!=null) {
-			selectableParentFolders = folderService.findAllFolders(userBean.getUser().getUserId());
 			removeAllChildFolders(folderToBeSaved,selectableParentFolders);
 			selectableParentFolders.remove(folderToBeSaved);
 		}

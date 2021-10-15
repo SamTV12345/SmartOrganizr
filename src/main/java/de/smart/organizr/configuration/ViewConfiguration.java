@@ -137,7 +137,7 @@ public class ViewConfiguration {
 	@Scope("view")
 	@Autowired
 	public EditAuthorView editAuthorView(final UserBean userBean){
-		return new EditAuthorView(userBean, authorService);
+		return new EditAuthorView(userBean, authorService, noteService, folderService);
 	}
 
 	@Bean

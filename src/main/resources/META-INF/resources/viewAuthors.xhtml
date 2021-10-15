@@ -6,14 +6,14 @@
                              value="#{labels['view-authors.create-author']}" styleClass="form-button"/>
             <p:dataTable value="#{viewAuthorView.allAuthors}" var="author">
                 <p:column headerText="#{labels['edit-author.name']}" sortBy="#{author.name}" sortOrder="asc"
-                          filterMatchMode="contain"
-                          filterBy="#{author.name}">
+                          filterBy="#{author.name}" filterMatchMode="contains">
                     <h:outputText value="#{author.name}"/>
                 </p:column>
-                <p:column headerText="#{labels['edit-author.extra-information']}">
+                <p:column headerText="#{labels['edit-author.extra-information']}" sortBy="#{author.extraInformation}"
+                          filterBy="#{author.extraInformation}" filterMatchMode="contains">
                     <h:outputText value="#{author.extraInformation}"/>
                 </p:column>
-                <p:column>
+                <p:column headerText="#{labels['elements-tree-view.actions']}">
                     <p:commandButton icon="pi pi-eye" action="#{viewAuthorView.navigateToEditAuthor(author)}"
                                      styleClass="table-button rounded-button"
                                      update="@form"/>

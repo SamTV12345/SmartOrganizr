@@ -3,11 +3,22 @@
                 template="/templates/template.xhtml">
     <ui:define name="page-content">
         <h:form>
-            <p:commandButton icon="pi pi-plus" action="#{elementsTreeView.navigateToCreateFolder()}"
+            <p:growl id="messages"/>
+            <p:commandButton icon="pi pi-plus" action="#{elementsTreeView.navigateToCreateFolder()}" styleClass="form-button"
                              value="#{labels['elements-tree-view.create-parent-folder']}"/>
+            <p:commandButton icon="pi pi-trash" action="#{elementsTreeView.deleteElement()}"
+                             value="#{labels['elements-tree-view.delete-element']}"
+                             styleClass="form-button ui-button-danger" update="@form">
+                <p:confirm header="#{labels['elements-tree-view.confirmation']}"
+                           message="#{labels['elements-tree-view.confirm-delete-note']}"
+                           icon="pi pi-info-circle" />
+            </p:commandButton>
+
             <h:panelGroup id="padding" layout="block">
+
             <p:treeTable value="#{elementsTreeView.root}" var="node" dynamic="false" id="elements"
-                         nodeVar="#{elementsTreeView.root}">
+                         nodeVar="#{elementsTreeView.root}"
+            selectionMode="single" selection="#{elementsTreeView.selectedTreeNode}">
                 <p:ajax event="collapse" listener="#{elementsTreeView.onNodeCollapse}" />
                 <p:column headerText="#{labels['elements-tree-view.name']}"
                               sortBy="#{elementsTreeView.getCorrectNamingScheme(node)}" sortOrder="asc"
@@ -36,35 +47,18 @@
                                      rendered="#{elementsTreeView.isFolder(node)}" styleClass="table-button rounded-button"
                                      value="#{labels['elements-tree-view.create-note']}"/>
                     <br/>
-                    <p:commandButton icon="pi pi-pencil" action="#{elementsTreeView.navigateToEditElement(node)}"
-                                     styleClass="table-button rounded-button" update="@form"/>
-                    <p:commandButton icon="pi pi-trash" action="#{elementsTreeView.deleteElement(node)}"
-                                     styleClass="rounded-button ui-button-danger" update="@form"
-                                     rendered="#{elementsTreeView.isFolder(node)}">
-                        <p:confirm header="#{labels['elements-tree-view.confirmation']}"
-                                   message="#{labels['elements-tree-view.confirm-delete-folder']}"
-                                   icon="pi pi-info-circle"/>
-                    </p:commandButton>
-                    <br/>
                     <p:commandButton value="#{labels['elements-tree-view.regenerate-qrCode']}" ajax="false"
-                                     icon="pi pi-align-justify" styleClass="p-mr-2 form-button"
+                                     icon="pi pi-align-justify" styleClass="p-mr-2 rounded-button"
                                      action="#{elementsTreeView.generateQrCodeForEveryNote(node)}"
                                      rendered="#{elementsTreeView.isFolder(node)}">
                     </p:commandButton>
-                    <p:commandButton value="Download" ajax="false" onclick="PrimeFaces.monitorDownload(start, stop);"
-                                     icon="pi pi-align-justify" styleClass="p-mr-2 form-button"
+                    <p:commandButton value="#{labels['elements-tree-view.download-qrCodes']}" ajax="false"
+                                     onclick="PrimeFaces.monitorDownload(start, stop);"
+                                     icon="pi pi-align-justify" styleClass="p-mr-2 rounded-button"
                                      rendered="#{elementsTreeView.isFolder(node) and
                                      elementsTreeView.checkIfGeneratedQRCodePageExists(node)}">
                         <p:fileDownload value="#{elementsTreeView.getQrCodePage(node)}"
                                         contentDisposition="attachment" />
-                    </p:commandButton>
-
-                    <p:commandButton icon="pi pi-trash" action="#{elementsTreeView.deleteElement(node)}"
-                                     styleClass="rounded-button ui-button-danger"
-                                     rendered="#{not elementsTreeView.isFolder(node)}" update="@form">
-                        <p:confirm header="#{labels['elements-tree-view.confirmation']}"
-                                   message="#{labels['elements-tree-view.confirm-delete-note']}"
-                                   icon="pi pi-info-circle"/>
                     </p:commandButton>
                 </p:column>
             </p:treeTable>
