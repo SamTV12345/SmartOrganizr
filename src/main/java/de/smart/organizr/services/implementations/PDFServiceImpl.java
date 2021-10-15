@@ -25,7 +25,7 @@ public class PDFServiceImpl implements PDFService {
 	private static final BufferedImage  standardImage;
 
 	static {
-		standardImage = new BufferedImage(100,50,BufferedImage.TYPE_INT_RGB);
+		standardImage = new BufferedImage(400,100,BufferedImage.TYPE_INT_RGB);
 		for(int x = 0; x<standardImage.getWidth(); x++) {
 			for(int y=0;y<standardImage.getHeight();y++) {
 				standardImage.setRGB(x, y, Color.WHITE.getRGB());
@@ -135,7 +135,7 @@ public class PDFServiceImpl implements PDFService {
 					qrCodeImages.add(generateQRCodeForOneNode(nodeContainedInFolder));
 				}
 			}
-		final long columns = Math.max(5,Math.round(qrCodeImages.size() / 5.));
+		final long columns = Math.min(6,Math.round(qrCodeImages.size() / 6.));
 		final PdfPTable irdTable = new PdfPTable(Math.toIntExact(columns));
 		while (qrCodeImages.size()%columns!=0){
 			qrCodeImages.add(baos.toByteArray());
