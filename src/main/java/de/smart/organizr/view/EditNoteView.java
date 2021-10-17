@@ -42,11 +42,13 @@ public class EditNoteView {
 	private UploadedFile uploadedFile;
 	private DefaultStreamedContent pdfForView;
 	private List<Folder> allFolders;
+	private boolean firstSave;
 
 	public EditNoteView(final NoteService noteService,
 	                    final AuthorService authorService,
 	                    final FolderService folderService,
 	                    final PDFService pdfService, final UserBean userBean){
+		firstSave = true;
 		this.folderService = folderService;
 		this.pdfService = pdfService;
 		currentFolder = JsfUtils.getFolderFromFlash();
@@ -61,6 +63,7 @@ public class EditNoteView {
 
 		final Note savedNote = JsfUtils.getNoteFromFlash();
 		if (savedNote !=null){
+			firstSave = false;
 			setAuthor(savedNote.getAuthor());
 			setDescription(savedNote.getDescription());
 			setTitle(savedNote.getTitle());
@@ -98,7 +101,7 @@ public class EditNoteView {
 
 	private void saveNoteInFolder() throws IOException {
 
-			if (calendar == null) {
+			if (firstSave) {
 				calendar = Calendar.getInstance();
 			}
 			else{
@@ -170,6 +173,7 @@ public class EditNoteView {
 		final FacesContext facesContext = FacesContext.getCurrentInstance();
 		final ExternalContext externalContext = facesContext.getExternalContext();
 		final HttpServletResponse response = (HttpServletResponse) externalContext.getResponse();
+
 		try (final BufferedInputStream input = new BufferedInputStream(new FileInputStream(file), 10240);
 		     final BufferedOutputStream output = new BufferedOutputStream(response.getOutputStream(), 10240)){
 			// Open file.

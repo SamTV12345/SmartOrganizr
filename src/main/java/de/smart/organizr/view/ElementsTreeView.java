@@ -157,6 +157,7 @@ public class ElementsTreeView implements Serializable {
 		else if (elementToBeRemoved instanceof Note note){
 			noteService.deleteNote(note);
 		}
+		traverseTree(root, elementToBeRemoved);
 	}
 
 

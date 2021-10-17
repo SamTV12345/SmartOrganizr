@@ -72,11 +72,7 @@ public class FolderServiceImpl implements FolderService {
 
 	@Override
 	public void deleteFolder(final Folder folder) {
-		final Optional<Folder> optionalFolderFromDatabase = findFolderByID(folder.getId());
-		if(optionalFolderFromDatabase.isEmpty()){
-			throw new RuntimeException();
-		}
-		recursivelyDeleteElements(optionalFolderFromDatabase.get());
-		folderDao.deleteFolder(optionalFolderFromDatabase.get());
+		recursivelyDeleteElements(folder);
+		folderDao.deleteFolder(folder);
 	}
 }

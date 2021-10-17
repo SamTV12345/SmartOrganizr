@@ -72,6 +72,6 @@ public class FolderDaoJpaImpl implements FolderDao {
 
 	@Override
 	public void deleteFolder(final Folder folder) {
-		folderRepository.deleteById(folder.getId());
+		folderRepository.deleteFolder(folder.getId());
 	}
 }

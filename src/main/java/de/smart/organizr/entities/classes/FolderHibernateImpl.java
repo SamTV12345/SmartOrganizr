@@ -41,7 +41,7 @@ public class FolderHibernateImpl extends ElementHibernateImpl implements Folder,
 
 	@Override
 	@OneToMany(targetEntity = ElementHibernateImpl.class, cascade = CascadeType.REMOVE,
-			fetch = FetchType.EAGER, mappedBy = "parent")
+			fetch = FetchType.EAGER, mappedBy = "parent", orphanRemoval = true)
 	public List<Element> getElements() {
 		return elements;
 	}

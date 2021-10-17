@@ -4,6 +4,7 @@ import de.smart.organizr.dao.interfaces.NoteDao;
 import de.smart.organizr.entities.classes.NoteHibernateImpl;
 import de.smart.organizr.entities.interfaces.Note;
 import de.smart.organizr.repositories.NoteRepository;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -28,6 +29,7 @@ public class NoteDaoJpaImpl implements NoteDao {
 		return noteRepository.save((NoteHibernateImpl) note);
 	}
 
+	@Transactional
 	@Override
 	public void deleteNote(final Note note) {
 		noteRepository.deleteById(note.getId());
