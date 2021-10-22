@@ -3,7 +3,10 @@ package de.smart.organizr.view;
 import javax.annotation.PostConstruct;
 
 import de.smart.organizr.entities.interfaces.User;
+import de.smart.organizr.exceptions.PasswordException;
 import de.smart.organizr.services.interfaces.UserService;
+import de.smart.organizr.utils.JsfUtils;
+import org.apache.tomcat.JarScanFilter;
 
 /**
  * Klasse zum Zurücksetzen/Ändern des Passwortes
@@ -39,15 +42,21 @@ public class ChangePasswordView {
 	 * @return
 	 */
 	public String changePassword() {
-		if(user != null) {
-			if(password.equals(passwordRetype)) {
-				user.setPassword(password);
-				user.setPasswordResetRequired(false);
-				userService.addUser(user);
-				return "menu.jsf";
+		try {
+			if (user != null) {
+				if (password.equals(passwordRetype)) {
+					user.setPassword(password);
+					user.setPasswordResetRequired(false);
+					userService.addUser(user);
+					return "menu.jsf";
+				}
 			}
+			return "changePassword.jsf";
 		}
-		return "changePassword.jsf";
+		catch (final PasswordException passwordException){
+			JsfUtils.putErrorMessage(passwordException.getMessage());
+		}
+		return null;
 	}
 
 	public String getPassword() {
