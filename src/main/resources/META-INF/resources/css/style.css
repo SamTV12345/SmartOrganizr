@@ -171,7 +171,7 @@ div.footer {
 }
 
 .form-button {
-	margin-right: 5px 20px 5px 0;
+	margin: 20px 20px 5px 0;
 }
 
 button.ui-button.form-button {
@@ -247,4 +247,34 @@ body .ui-input-icon-right > .ui-inputfield {
 	}
 }
 
+@media (prefers-color-scheme: dark) {
+	*,.ui-widget, .ui-inputfield:-webkit-autofill {
+		background-color: #222 !important;
+		color: white !important;
+	}
 
+	*:-webkit-autofill,
+	*:-webkit-autofill:hover,
+	*:-webkit-autofill:focus,
+	*:-webkit-autofill:active,
+	*:-webkit-autofill,
+	*:-webkit-autofill:hover,
+	*:-webkit-autofill:focus{
+		-webkit-box-shadow: 0 0 0 30px inset #222 !important;
+		color: white !important;
+	}
+
+	.ui-button{
+		border-color: white !important;
+	}
+
+	.rounded-button-overwrite{
+		background-color: transparent !important;
+		color: white !important;
+		border: transparent solid !important;
+	}
+
+	.ui-button.ui-state-hover {
+		background-color: transparent !important;
+	}
+}

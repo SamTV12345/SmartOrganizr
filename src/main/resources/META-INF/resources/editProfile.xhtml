@@ -29,8 +29,10 @@
                 	requiredMessage="#{exceptions['profile.e-mail-may-not-be-empty']}">
                 </p:inputText>
 
-                <p:outputLabel value="#{labels['edit-profile.current-password']}"/>
-                <p:password value="#{editProfileView.oldPassword}" toggleMask="true"/>
+                <p:outputLabel value="#{labels['edit-profile.current-password']}" styleClass="p-col-fixed"/>
+                <p:password value="#{editProfileView.oldPassword}" label="Password 0" toggleMask="true"/>
+
+
                 <p:outputLabel for="pwd1" styleClass="p-col-fixed" style="width:100px" 
                 			value="#{labels['edit-profile.new-password']}"/>
                 <p:password id="pwd1" value="#{editProfileView.newPassword}"
@@ -54,6 +56,12 @@
                 			value="#{labels['edit-profile.retype-new-password']}"/>
                 <p:password id="pwd2" label="Password 2" value="#{editProfileView.newPasswordConfirmed}" 
                 	toggleMask="true"/>
+
+                <!-- Testfeld-->
+                <p:outputLabel for="pwd3" styleClass="p-col-fixed" style="width:100px"
+                               value="#{labels['edit-profile.retype-new-password']}"/>
+                <p:password id="pwd3" label="Password 2" value="#{editProfileView.newPasswordConfirmed}"
+                            toggleMask="true"/>
 			</div>
 
 			<p:messages />

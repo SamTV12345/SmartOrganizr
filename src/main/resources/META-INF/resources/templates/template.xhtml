@@ -6,18 +6,22 @@
 	xmlns:p="http://primefaces.org/ui">
 <h:head>
 	<f:metadata charset="UTF-8" />
+	<meta http-equiv="x-ua-compatible" content="IE=edge" />
+
 	<title><ui:insert name="title">
 			<h:outputText value="#{labels['template.title']}" />
 		</ui:insert><h:outputText value="#{labels['template.title-suffix']}" /></title>
 
 	<meta name="viewport" content="width=device-width" />
 
-	<h:outputStylesheet name="style.css" library="css" />
-	<h:outputScript name="sidebar.js" library="js" />
 
+	<f:facet name="last">
+
+		<h:outputStylesheet name="style.css" library="css" />
+		<h:outputScript name="sidebar.js" library="js" />
+	</f:facet>
 </h:head>
 <h:body >
-
 	<f:view locale="#{userBean.localeCode}" />
 
 	<div class="header">
@@ -56,6 +60,7 @@
 			<ui:fragment rendered="#{!userBean.loggedIn}">
 	
 			</ui:fragment>
+
 		</div>
 
 	</div>

@@ -19,9 +19,9 @@
                 </p:column>
                 <p:column headerText="#{labels['elements-tree-view.actions']}">
                     <p:commandButton icon="pi pi-eye" action="#{viewAuthorView.navigateToEditAuthor(author)}"
-                                     styleClass="table-button rounded-button"
+                                     styleClass="table-button rounded-button rounded-button-overwrite"
                                      update="@form"/>
-                    <p:commandButton icon="pi pi-trash" styleClass="ui-button-danger rounded-button table-button"
+                    <p:commandButton icon="pi pi-trash" styleClass="ui-button-danger rounded-button table-button rounded-button-overwrite"
                                      action="#{viewAuthorView.deleteAuthor(author)}"
                                      update="@form"/>
                 </p:column>

@@ -32,7 +32,7 @@
                 </p:column>
                 <p:column headerText="#{labels['edit-author.actions']}">
                     <p:commandButton icon="pi pi-trash" action="#{editAuthorView.deleteElement(note)}"
-                                     styleClass="rounded-button ui-button-danger"
+                                     styleClass="rounded-button ui-button-danger rounded-button-overwrite"
                                      update="@form">
                         <p:confirm header="#{labels['elements-tree-view.confirmation']}"
                                    message="#{labels['elements-tree-view.confirm-delete-note']}"

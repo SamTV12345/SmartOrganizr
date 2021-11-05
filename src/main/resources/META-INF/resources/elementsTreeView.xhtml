@@ -46,22 +46,24 @@
                 <p:column headerText="#{labels['elements-tree-view.actions']}" responsivePriority="1">
                     <p:commandButton icon="pi pi-plus"
                                      action="#{elementsTreeView.navigateToCreateFolder(node)}"
-                                     rendered="#{elementsTreeView.isFolder(node)}" styleClass="table-button rounded-button"
+                                     rendered="#{elementsTreeView.isFolder(node)}"
+                                     styleClass="table-button rounded-button rounded-button-overwrite"
                                      value="#{labels['elements-tree-view.create-folder']}"/>
                     <br/>
                     <p:commandButton icon="pi pi-plus" action="#{elementsTreeView.navigateToCreateNote(node)}"
-                                     rendered="#{elementsTreeView.isFolder(node)}" styleClass="table-button rounded-button"
+                                     rendered="#{elementsTreeView.isFolder(node)}"
+                                     styleClass="table-button rounded-button rounded-button-overwrite"
                                      value="#{labels['elements-tree-view.create-note']}"/>
                     <br/>
                     <p:commandButton value="#{labels['elements-tree-view.regenerate-qrCode']}" ajax="false"
-                                     icon="pi pi-align-justify" styleClass="p-mr-2 rounded-button"
+                                     icon="pi pi-align-justify" styleClass="p-mr-2 rounded-button rounded-button-overwrite"
                                      action="#{elementsTreeView.generateQrCodeForEveryNote(node)}"
                                      rendered="#{elementsTreeView.isFolder(node)}">
                     </p:commandButton>
                     <br/>
                     <p:commandButton value="#{labels['elements-tree-view.download-qrCodes']}" ajax="false"
                                      onclick="PrimeFaces.monitorDownload(start, stop);"
-                                     icon="pi pi-align-justify" styleClass="p-mr-2 rounded-button"
+                                     icon="pi pi-align-justify" styleClass="p-mr-2 rounded-button rounded-button-overwrite"
                                      rendered="#{elementsTreeView.isFolder(node) and
                                      elementsTreeView.checkIfGeneratedQRCodePageExists(node)}">
                         <p:fileDownload value="#{elementsTreeView.getQrCodePage(node)}"

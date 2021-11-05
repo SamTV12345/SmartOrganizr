@@ -30,9 +30,9 @@
 				</p:column>
 				
 				<p:column headerText="#{labels['manage-users.column.actions']}">
-					<p:commandButton icon="pi pi-pencil" styleClass="rounded-button" 
+					<p:commandButton icon="pi pi-pencil" styleClass="rounded-button rounded-button-overwrite"
 					                 action="#{manageUsersView.editUser(user)}" style="margin-right: 10px"/>
-					<p:commandButton icon="pi pi-trash" styleClass="rounded-button ui-button-danger" 
+					<p:commandButton icon="pi pi-trash" styleClass="rounded-button ui-button-danger rounded-button-overwrite"
 					                 action="#{manageUsersView.deleteUser(user)}" update="messages users-table">
 						<p:confirm header="#{labels['confirm-dialog.title']}"
 										   message="#{labels['manage-users.confirm-remove-user']}"
