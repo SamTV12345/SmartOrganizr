@@ -247,11 +247,15 @@ body .ui-input-icon-right > .ui-inputfield {
 	}
 }
 
+/*,.ui-widget, .ui-inputfield:-webkit-autofill {
+    background-color: #222 !important;
+    color: white !important;
+}
+*/
+
 @media (prefers-color-scheme: dark) {
-	*,.ui-widget, .ui-inputfield:-webkit-autofill {
-		background-color: #222 !important;
-		color: white !important;
-	}
+
+
 
 	*:-webkit-autofill,
 	*:-webkit-autofill:hover,
@@ -264,17 +268,85 @@ body .ui-input-icon-right > .ui-inputfield {
 		color: white !important;
 	}
 
-	.ui-button{
-		border-color: white !important;
+	/*Ordentliche Styles*/
+	body .ui-button{
+		background-color: #222;
 	}
 
-	.rounded-button-overwrite{
-		background-color: transparent !important;
+	body{
+		background-color: #222;
+	}
+
+	body .ui-inputfield{
+		background-color: #222;
+		color: white;
+	}
+
+	div.sidebar{
+		background-color: #222;
+	}
+
+	body .ui-menu{
+		background-color: #222;
+		color: white;
+	}
+
+	body .ui-widget{
+		background-color: #222;
+		color: white;
+	}
+
+	:root{
+		--header-color: #222;
+		--sidebar-color: #222;
+		color: white;
+		--text-color: white;
+	}
+
+	h1{
+		color: white;
+	}
+
+	div .footer{
+		background-color: #222;
+	}
+
+	body .ui-button.ui-button-danger{
+		background-color: transparent;
+	}
+
+	th.ui-column-p-6, td.ui-column-p-6, th.ui-column-p-5, td.ui-column-p-5, th.ui-column-p-4, td.ui-column-p-4, th.ui-column-p-3,
+	td.ui-column-p-3, th.ui-column-p-2, td.ui-column-p-2, th.ui-column-p-1, td.ui-column-p-1 {
+		display: none;
+		background-color: #222;
+		color: white;
+	}
+
+	body .ui-treetable thead th, body .ui-treetable thead th .ui-filter-column{
+		background-color: #222;
+		color: white;
+	}
+
+	.ui-datatable tbody td{
+		background-color: #222;
+		color: white;
+	}
+
+	body .ui-datatable thead th{
+		background-color: #222;
+		color: white;
+	}
+
+	.ui-state-default, .ui-state-hover{
+		background-color: #222 !important;
 		color: white !important;
-		border: transparent solid !important;
 	}
 
-	.ui-button.ui-state-hover {
-		background-color: transparent !important;
+	.ui-menuitem-text{
+		color: white !important;
+	}
+
+	.header{
+		color: white !important;
 	}
 }

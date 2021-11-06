@@ -45,8 +45,8 @@
 
 			<i class="pi pi-globe header-icon" />
 			<p:selectOneMenu value="#{userBean.localeCode}" onchange="submit()">
-				<f:selectItem itemLabel="Deutsch" itemValue="de" />
-				<f:selectItem itemLabel="English" itemValue="en" />
+				<f:selectItem itemLabel="Deutsch" itemValue="de"/>
+				<f:selectItem itemLabel="English" itemValue="en"/>
 			</p:selectOneMenu>
 
 		</h:form>
@@ -65,11 +65,12 @@
 
 	</div>
 
-	<div class="sidebar sidebar-affected"  >
+	<div class="sidebar sidebar-affected" id="sidebar">
 	
 		<h:form>
 			<p:menu style="width: 100%;">
-				<p:menuitem value="#{labels['template.menu.home']}" action="/menu?faces-redirect=true" icon="pi pi-home" />
+				<p:menuitem value="#{labels['template.menu.home']}" action="/menu?faces-redirect=true"
+							icon="pi pi-home" />
 				<p:menuitem value="#{labels['template.menu.manage-authors']}"
 							action="/viewAuthors.xhtml?faces-redirect=true" icon="pi pi-user"
 				            rendered="#{userBean.admin}"/>
