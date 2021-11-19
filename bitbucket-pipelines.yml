@@ -1,0 +1,41 @@
+#  Template maven-build
+
+#  This template allows you to test and build your Java project with Maven.
+#  The workflow allows running tests, code checkstyle and security scans on the default branch.
+
+# Prerequisites: pom.xml and appropriate project structure should exist in the repository.
+
+image: maven:3.6.3
+
+pipelines:
+  default:
+    - parallel:
+      - step:
+          runs-on: self.hosted
+          name: Build and Test
+          caches:
+            - maven
+          script:
+            - mvn -B verify --file pom.xml
+          after-script:
+              # Collect checkstyle results, if any, and convert to Bitbucket Code Insights.
+            - pipe: atlassian/checkstyle-report:0.3.0
+      - step:
+          runs-on: self.hosted
+          name: Security Scan
+          script:
+            # Run a security scan for sensitive data.
+            # See more security tools at https://bitbucket.org/product/features/pipelines/integrations?&category=security
+            - pipe: atlassian/git-secrets-scan:0.5.1
+      - step:
+          runs-on: self.hosted
+          name: Deploy to test
+          deployment: test
+          # trigger: manual  # Uncomment to make this a manual deployment.
+          script:
+           - for container in $(docker ps -aq); do  docker rm -f $container; done
+           - PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin
+           - export PATH
+           - mvn clean compile jib:build
+           - mvn clean compile jib:dockerBuild
+           - docker  run -e SPRING_DATASOURCE_URL=jdbc:mysql://$SERVER_IP/library -e SPRING_DATASOURCE_USERNAME=$SERVER_USER -e SPRING_DATASOURCE_PASSWORD=$SERVER_PASSWORD -p 80:8080 -d   registry.hub.docker.com/samuel19982/library-rest-controller
