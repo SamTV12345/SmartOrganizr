@@ -11,6 +11,7 @@ pipelines:
   default:
     - parallel:
       - step:
+          runs-on: self.hosted
           name: Build and Test
           caches:
             - maven
@@ -20,12 +21,14 @@ pipelines:
               # Collect checkstyle results, if any, and convert to Bitbucket Code Insights.
             - pipe: atlassian/checkstyle-report:0.3.0
       - step:
+          runs-on: self.hosted
           name: Security Scan
           script:
             # Run a security scan for sensitive data.
             # See more security tools at https://bitbucket.org/product/features/pipelines/integrations?&category=security
             - pipe: atlassian/git-secrets-scan:0.5.1
       - step:
+          runs-on: self.hosted
           name: Deploy to test
           deployment: test
           # trigger: manual  # Uncomment to make this a manual deployment.
