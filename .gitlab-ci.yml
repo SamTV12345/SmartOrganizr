@@ -1,0 +1,27 @@
+# One of the new trends in Continuous Integration/Deployment is to:
+# (see https://docs.gitlab.com/ee/ci/docker/using_docker_build.html)
+#
+# 1. Create an application image
+# 2. Run tests against the created image
+# 3. Push image to a remote registry
+# 4. Deploy to a server from the pushed imagetest
+
+stages:
+  - build
+
+# see how to login at https://docs.gitlab.com/ee/ci/docker/using_docker_build.html#using-the-gitlab-container-registry
+before_script:
+  - docker login -u $CI_REGISTRY_USER -p $CI_JOB_TOKEN $CI_REGISTRY
+
+build-image:
+  stage: build
+  # the tag 'shell' advices only GitLab runners using this tag to pick up that jo
+  tags:
+    - shell
+  script:
+    - for container in $(docker ps -aq); do  docker rm -f $container; done
+    - PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin
+    - export PATH
+    - mvn clean compile jib:build
+    - mvn clean compile jib:dockerBuild
+    - docker  run -e SPRING_DATASOURCE_URL=jdbc:mysql://$SERVER_IP/smartorganizr -e SPRING_DATASOURCE_USERNAME=$SERVER_USER -e SPRING_DATASOURCE_PASSWORD=$SERVER_PASSWORD -p 80:8080 -d registry.hub.docker.com/samuel19982/smartorganizr
