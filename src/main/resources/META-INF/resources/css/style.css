@@ -474,6 +474,7 @@ div.text-overflow p {
 	body .ui-widget, body .ui-menu {
 		background-color: var(--darkmode-background);
 		color: var(--darkmode-text);
+		margin-bottom: 10px;
 	}
 
 	div .contain .ui-widget, div .contain, div .contain h1, div.col.social{
@@ -629,7 +630,7 @@ div.text-overflow p {
 		background-color: var(--darkmode-hover);
 		color: var(--darkmode-text);
 	}
-	body .ui-treetable thead th.ui-state-active{
+	body .ui-treetable thead th.ui-state-active, body .ui-fileupload .ui-fileupload-buttonbar, body .ui-fileupload .ui-fileupload-content{
 		background-color: var(--darkmode-background);
 	}
 

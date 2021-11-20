@@ -14,17 +14,21 @@
                     <p:outputLabel for="folder-name" value="#{labels['edit-note.name']}"
                                    styleClass="col-12 mb-2 md:col-2 md:mb-0"/>
                     <div class="col-12 md:col-10">
-                        <p:inputText id="folder-name" value="#{editNoteView.title}"/>
+                        <p:inputText id="folder-name" value="#{editNoteView.title}" styleClass="inputfield w-full"/>
                     </div>
                 </div>
                 <div class="field grid">
                     <p:outputLabel for="folder-description" value="#{labels['edit-note.description']}"
                                    styleClass="col-12 mb-2 md:col-2 md:mb-0"/>
                     <div class="col-12 md:col-10">
-                        <p:inputText id="folder-description" value="#{editNoteView.description}"/>
+                        <p:inputText id="folder-description" value="#{editNoteView.description}" styleClass="inputfield w-full"/>
                     </div>
                 </div>
-                <p:selectOneMenu filter="true" filterMatchMode="contains" styleClass="toolbar-grow"
+            <div class="field grid">
+                <p:outputLabel for="select-author" value="#{labels['edit-note.author']}"
+                               styleClass="col-12 mb-2 md:col-2 md:mb-0"/>
+                <div class="col-12 md:col-10">
+            <p:selectOneMenu id="select-author" filter="true" filterMatchMode="contains" styleClass="toolbar-grow"
                                  value="#{editNoteView.author}" style="min-width: 200px"
                                  converter="#{converterConfiguration.authorConverter}" required="true">
                     <f:selectItem itemLabel="#{labels['edit-note.select-author']}"/>
@@ -32,7 +36,13 @@
                                    itemLabel="#{author.name} (#{author.extraInformation})" itemValue="#{author}" />
                     <p:ajax event="change" update="@this" />
                 </p:selectOneMenu>
-                <p:selectOneMenu filter="true" filterMatchMode="contains" styleClass="toolbar-grow"
+                </div>
+            </div>
+                <div class="field grid">
+                    <p:outputLabel for="select-folder" value="#{labels['edit-note.folder']}"
+                                   styleClass="col-12 mb-2 md:col-2 md:mb-0"/>
+                    <div class="col-12 md:col-10">
+                    <p:selectOneMenu id="select-folder" filter="true" filterMatchMode="contains" styleClass="toolbar-grow"
                                  value="#{editNoteView.currentFolder}" style="min-width: 200px"
                                  required="true"
                                  converter="#{converterConfiguration.folderConverter}">
@@ -41,35 +51,66 @@
                                    itemLabel="#{folder.name} (#{folder.id})" itemValue="#{folder}"/>
                     <p:ajax event="change" update="@this" />
                 </p:selectOneMenu>
+                    </div>
+                </div>
                 <div>
                     <div class="field grid">
                         <p:outputLabel for="pdf-available" value="#{labels['edit-note.pdf-available']}"
                                        styleClass="col-12 mb-2 md:col-2 md:mb-0"/>
                         <div class="col-12 md:col-10">
                             <p:selectBooleanCheckbox id="pdf-available"
-                                              value="#{editNoteView.checkIfPDFForNoteIsAvailable()}" disabled="true"/>
+                                              value="#{editNoteView.checkIfPDFForNoteIsAvailable()}" disabled="true"
+                                                     styleClass="ui-inputfield w-full"/>
                         </div>
 
                 </div>
             </div>
             </div>
 
-            <p:commandButton value="Download" ajax="false" onclick="PrimeFaces.monitorDownload(start, stop);"
-                             icon="pi pi-arrow-down" styleClass="p-mr-2 form-button"
-                             rendered="#{editNoteView.checkIfPDFForNoteIsAvailable()}">
-                <p:fileDownload value="#{editNoteView.pdfForView}" contentDisposition="attachment" />
-            </p:commandButton>
+            <div class="field grid">
+            <p:outputLabel for="download-pdf" value="#{labels['edit-note.download-pdf']}"
+                           styleClass="col-12 mb-2 md:col-2 md:mb-0"/>
+            <div class="col-12 md:col-10">
+                <p:commandButton id="download-pdf" value="Download" ajax="false"
+                                 onclick="PrimeFaces.monitorDownload(start,
+                stop);"
+                                 icon="pi pi-arrow-down" styleClass="ui-inputfield w-full"
+                                 rendered="#{editNoteView.checkIfPDFForNoteIsAvailable()}">
+                    <p:fileDownload value="#{editNoteView.pdfForView}" contentDisposition="attachment" />
+                </p:commandButton>
+            </div>
+            </div>
 
-            <p:commandButton onclick="this.form.target = '_blank'"
+
+            <div class="field grid">
+            <p:outputLabel for="download-pdf" value="#{labels['edit-note.open-pdf-in-new-tab']}"
+                           styleClass="col-12 mb-2 md:col-2 md:mb-0"/>
+            <div class="col-12 md:col-10">
+            <p:commandButton id="open-pdf" onclick="this.form.target = '_blank'"
                              action="#{editNoteView.openFile()}" icon="pi pi-file-pdf"
                              ajax="false" value="#{labels['edit-note.open-pdf-in-new-tab']}"
                              rendered="#{editNoteView.checkIfPDFForNoteIsAvailable()}" />
+            </div>
+            </div>
 
-            <p:graphicImage value="#{editNoteView.getCurrentStatusOfNote()}" stream="false"
-                            rendered="#{editNoteView.checkIfNoteIsAlreadySaved()}"/>
 
-            <p:fileUpload value="#{editNoteView.uploadedFile}" mode="advanced" multiple="false"/>
+            <div class="field grid">
+                <p:outputLabel for="current-qr" value="#{labels['edit-note.current-qr']}"
+                               styleClass="col-12 mb-2 md:col-2 md:mb-0"/>
+                <div class="col-12 md:col-10">
+                    <p:graphicImage id="current-qr" value="#{editNoteView.getCurrentStatusOfNote()}" stream="false"
+                                    rendered="#{editNoteView.checkIfNoteIsAlreadySaved()}"/>
+                </div>
+            </div>
 
+            <div class="field grid">
+                <p:outputLabel for="current-qr" value="#{labels['edit-note.upload-pdf']}"
+                               styleClass="col-12 mb-2 md:col-2 md:mb-0"/>
+                <div class="col-12 md:col-10">
+                    <p:fileUpload id="upload-pdf" value="#{editNoteView.uploadedFile}" mode="advanced"
+                                  multiple="false"/>
+                </div>
+            </div>
             <p:commandButton value="#{labels['edit-note.back']}" action="#{editNoteView.navigateToViewFolders()}"
                              styleClass="form-button" immediate="true"/>
             <p:commandButton value="#{labels['edit-note.save']}" action="#{editNoteView.saveNote()}"
