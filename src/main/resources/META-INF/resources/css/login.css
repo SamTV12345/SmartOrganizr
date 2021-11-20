@@ -28,11 +28,11 @@ body {
 	background-color: white;
 
 	padding: 20px 10px;
-	
+
 	display: flex;
 	flex-direction: column;
-	
-	
+
+
 	overflow: auto;
 }
 
@@ -73,24 +73,24 @@ body {
 	height: 100%;
 }
 
-.form-control {
+body .ui-inputfield {
 	font-size: 150%;
 	min-width: 0;
 	width: 100%;
-	margin-bottom: 12px !important;
-	
+	margin-bottom: 12px;
+
 	-moz-border-radius: 10px;
 	-webkit-border-radius: 10px;
 	border-radius: 10px;
-/* 	-moz-box-shadow: 2px 2px 3px #666; */
-/* 	-webkit-box-shadow: 2px 2px 3px #666; */
-/* 	box-shadow: 2px 2px 3px #666; */
+	/* 	-moz-box-shadow: 2px 2px 3px #666; */
+	/* 	-webkit-box-shadow: 2px 2px 3px #666; */
+	/* 	box-shadow: 2px 2px 3px #666; */
 	padding: 4px 7px;
 	outline: 0;
 	-webkit-appearance: none;
 }
 
-.form-control:focus {
+body .ui-inputfield:focus {
 	border-color: rebeccapurple;
 	-moz-border-radius: 10px;
 	-webkit-border-radius: 10px;
@@ -100,17 +100,17 @@ body {
 	box-shadow: 2px 2px 3px #666;
 }
 
-.input-submit {
+.center .input-submit {
 	width: 100%;
 
-	border-radius: 25px !important;
+	border-radius: 25px;
 
 	font-size: 125%;
 	border: none;
 	padding: 15px 25px;
-	background-color: rebeccapurple !important;
-	color: white !important;
-	margin-top: auto !important;
+	background-color: rebeccapurple;
+	color: white;
+	margin-top: auto;
 }
 
 .input-submit .ui-button-text-only {
@@ -146,7 +146,31 @@ body {
 	background-color: #ccfccc;
 }
 
-p.register {
-	width: 90%;
+@media (prefers-color-scheme: dark) {
+	body {
+		background: url("../images/imageLogin_dark.jpg") no-repeat;
+		background-size: cover;
+	}
+
+	div .center {
+		background-color: #222;
+	}
+
+	body .ui-inputfield {
+		background-color: #222;
+		color: white;
+	}
+
+	div.center, div .center a{
+		color: lightgrey;
+	}
+
+	body .ui-inputfield::-ms-reveal,
+	body .ui-inputfield::-ms-clear {
+		border-radius: 50%;
+		box-shadow: 0 0 3px white;
+		background-color: white;
+	}
 }
+
 
