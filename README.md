@@ -16,6 +16,9 @@ For using a persistent database you need to create a config.properties file in t
 - spring.datasource.username=<your-username>
 - spring.datasource.password=<your-password
 - spring.jpa.hibernate.ddl-auto=update
+## Docker installation
+Please have a look at [Dockerhub](https://hub.docker.com/repository/docker/samuel19982/smartorganizr) for a detailed 
+manual.
 
 
 
