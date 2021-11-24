@@ -1,0 +1,36 @@
+version: '3'
+services:
+  smartOrganizrdb:
+    image: mariadb
+    container_name: smartOrganizrdb
+    restart: unless-stopped
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - /etc/timezone:/etc/timezone:ro
+      - /home/smartOrganizr/data:/var/lib/mysql
+    environment:
+      - MYSQL_ROOT_PASSWORD=password #SQL root Passwort eingeben
+      - MYSQL_PASSWORD=smartOrganizr #SQL Benutzer Passwort eingeben
+      - MYSQL_DATABASE=smartOrganizr #Datenbank Name
+      - MYSQL_USER=smartOrganizrUser #SQL Nutzername
+      - MYSQL_INITDB_SKIP_TZINFO=1
+    networks:
+      - smartOrganizr
+
+  smartOrganizr:
+    depends_on:
+      - smartOrganizrdb
+    image: samuel19982/smartorganizr
+    container_name: smartOrganizr
+    restart: unless-stopped
+    ports:
+      - "80:8080"
+    networks:
+      - smartOrganizr
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:mysql://smartOrganizrdb:3306/smartOrganizr
+      - SPRING_DATASOURCE_USERNAME=smartOrganizrUser
+      - SPRING_DATASOURCE_PASSWORD=smartOrganizr
+networks:
+  smartOrganizr:
+    external: true
