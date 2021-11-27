@@ -22,6 +22,7 @@ public class UserBean {
 	private Optional<User> optionalUser;
 	private String locale;
 	private Version version;
+	private boolean sidebarCollapsed = false;
 
 	public UserBean(final UserService userService) {
 		this.userService = userService;
@@ -97,6 +98,18 @@ public class UserBean {
 		else{
 			version = Version.OLD_VERSION;
 		}
+	}
+
+	public void toggleSidebar() {
+		sidebarCollapsed = !sidebarCollapsed;
+	}
+
+	public String getSidebarClass() {
+		return sidebarCollapsed ? "sidebar-collapsed" : "sidebar-expanded";
+	}
+
+	public boolean isSidebarCollapsed() {
+		return sidebarCollapsed;
 	}
 
 	public boolean isOldVersion(){

@@ -27,9 +27,12 @@
 
 	<div class="header">
 		<div class="header-field">
-			<p:commandButton icon="pi pi-bars" onclick="btnCollapseSidebarClicked()" />
+			<p:commandButton icon="pi pi-bars" onclick="btnCollapseSidebarClicked()"
+							 action="#{userBean.toggleSidebar()}" styleClass="btn-collapse-sidebar" />
 		</div>
-		
+		<script type="text/javascript">
+			sidebarCollapsed = #{userBean.sidebarCollapsed};
+		</script>
 		<div class="header-field no-mobile-display">
 			<h:form>
 				<h:commandLink action="/menu?faces-redirect=true" styleClass="header-link" >
@@ -66,8 +69,11 @@
 
 	</div>
 
-	<div class="sidebar sidebar-affected" id="sidebar">
-	
+	<div class="sidebar sidebar-affected #{userBean.sidebarClass}" id="sidebar">
+
+		<script type="text/javascript">
+			setTimeout(processResize, 100);
+		</script>
 		<h:form>
 			<p:menu style="width: 100%;">
 				<p:menuitem value="#{labels['template.menu.home']}" action="/menu?faces-redirect=true"

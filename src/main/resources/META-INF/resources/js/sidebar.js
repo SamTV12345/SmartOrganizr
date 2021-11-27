@@ -1,9 +1,7 @@
-var sidebarCollapsed = false;
+let sidebarCollapsed;
 
 function setClasses() {
-	
-	window.sessionStorage.setItem("sidebarCollapsed", sidebarCollapsed);
-	
+
 	if (sidebarCollapsed) {
 		$(".sidebar-affected").addClass("sidebar-collapsed");
 	} else {
@@ -14,14 +12,26 @@ function setClasses() {
 function btnCollapseSidebarClicked() {
 	sidebarCollapsed = !sidebarCollapsed;
 	setClasses();
-	console.log(sidebarCollapsed)
 }
 
-/*if (sessionStorage.getItem("sidebarCollapsed") == null) {
-	sidebarCollapsed = window.innerWidth < 600; 
-} else {
-	sidebarCollapsed = window.sessionStorage.getItem("sidebarCollapsed");
+function processResize() {
+
+	if (sidebarCollapsed == false) {
+
+		if (window.innerWidth < 768) {
+			$(".btn-collapse-sidebar").click();
+		}
+	}
+
 }
 
-setClasses();*/
-	
+window.onresize = processResize;
+
+function startedUploading(){
+	console.log("Starting upload...")
+	$(":button").prop('disabled',true)
+}
+function completedUploading(){
+	console.log("Finished upload...")
+	$(":button").prop('disabled',false)
+}
