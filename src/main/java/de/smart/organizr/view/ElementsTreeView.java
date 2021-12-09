@@ -25,10 +25,10 @@ public class ElementsTreeView implements Serializable {
 	private final FolderService folderService;
 	private final NoteService noteService;
 	private final PDFService pdfService;
-	private TreeNode root = new DefaultTreeNode("Folders", null);;
+	private TreeNode<String> root = new DefaultTreeNode<>("Folders", null);;
 	private final UserBean userBean;
 	private StreamedContent qrCodePage;
-	private TreeNode selectedTreeNode;
+	private TreeNode<Element> selectedTreeNode;
 
 
 	public ElementsTreeView(final FolderService folderService,
@@ -49,20 +49,20 @@ public class ElementsTreeView implements Serializable {
 		final Collection<Folder> parentFolders = folderService.findAllParentFolders(userBean.getUser().getUserId());
 
 		parentFolders.forEach(parentFolder->{
-			final TreeNode parentFolderTreeNode =
-				new DefaultTreeNode(parentFolder, root);
+			final TreeNode<Element> parentFolderTreeNode =
+					new DefaultTreeNode<>(parentFolder, root);
 			recursivelyAddFolders(parentFolder,parentFolderTreeNode);
 		});
 	}
 
-	public void recursivelyAddFolders(final Folder folder, final TreeNode folderToBeAppendedTo){
+	public void recursivelyAddFolders(final Folder folder, final TreeNode<Element> folderToBeAppendedTo){
 		folder.getElements().forEach(elementToBeAdded->{
 			if (elementToBeAdded instanceof Folder folder1){
-				final TreeNode newNode = new DefaultTreeNode(folder1, folderToBeAppendedTo);
+				final TreeNode<Element> newNode = new DefaultTreeNode<>(folder1, folderToBeAppendedTo);
 				recursivelyAddFolders(folder1,newNode);
 			}
 			else if(elementToBeAdded instanceof Note noteToBeAdded){
-				 new DefaultTreeNode(noteToBeAdded,folderToBeAppendedTo);
+				 new DefaultTreeNode<Element>(noteToBeAdded,folderToBeAppendedTo);
 			}
 		});
 	}
@@ -100,9 +100,8 @@ public class ElementsTreeView implements Serializable {
 	public int determinePositionInFolder(final Element node) {
 		final Folder parentOfNote = node.getParent();
 
-		 return parentOfNote.getElements().stream().filter(nodeToBeFiltered->nodeToBeFiltered instanceof Note).sorted(
-				 Comparator.comparing(note -> ((Note) note).getTitle())).collect(
-				Collectors.toList()).indexOf(node);
+		 return parentOfNote.getElements().stream().filter(nodeToBeFiltered -> nodeToBeFiltered instanceof Note).sorted(
+				 Comparator.comparing(note -> ((Note) note).getTitle())).toList().indexOf(node);
 	}
 
 	public String navigateToCreateFolder(){
@@ -137,7 +136,7 @@ public class ElementsTreeView implements Serializable {
 			JsfUtils.putErrorMessage(I18nExceptionUtils.getElementsTreeNoNodeSelected());
 			return;
 		}
-		final Element elementToBeRemoved = (Element) selectedTreeNode.getData();
+		final Element elementToBeRemoved = selectedTreeNode.getData();
 		handleDeletion(elementToBeRemoved);
 
 		if(selectedTreeNode!=null) {
@@ -160,11 +159,11 @@ public class ElementsTreeView implements Serializable {
 	}
 
 
-	public void traverseTree(final TreeNode tree, final Element elementToBeRemoved) {
+	public void traverseTree(final TreeNode<?> tree, final Element elementToBeRemoved) {
 		if(tree.getChildren().removeIf(element->element.getData().equals(elementToBeRemoved))){
 			return;
 		}
-		for (final TreeNode child:tree.getChildren()){
+		for (final TreeNode<?> child:tree.getChildren()){
 			if (child.getData() instanceof Folder){
 				traverseTree(child, elementToBeRemoved);
 			}
@@ -182,19 +181,19 @@ public class ElementsTreeView implements Serializable {
 		return qrCodePage;
 	}
 
-	public TreeNode getRoot() {
+	public TreeNode<String> getRoot() {
 		return root;
 	}
 
-	public void setRoot(final TreeNode root) {
+	public void setRoot(final TreeNode<String> root) {
 		this.root = root;
 	}
 
-	public TreeNode getSelectedTreeNode() {
+	public TreeNode<Element> getSelectedTreeNode() {
 		return selectedTreeNode;
 	}
 
-	public void setSelectedTreeNode(final TreeNode selectedTreeNode) {
+	public void setSelectedTreeNode(final TreeNode<Element> selectedTreeNode) {
 		this.selectedTreeNode = selectedTreeNode;
 	}
 }
