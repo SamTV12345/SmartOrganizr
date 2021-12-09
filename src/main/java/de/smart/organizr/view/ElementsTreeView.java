@@ -1,6 +1,7 @@
 package de.smart.organizr.view;
 
 import com.itextpdf.text.DocumentException;
+import de.smart.organizr.constants.Constants;
 import de.smart.organizr.entities.interfaces.Element;
 import de.smart.organizr.entities.interfaces.Folder;
 import de.smart.organizr.entities.interfaces.Note;
@@ -25,7 +26,7 @@ public class ElementsTreeView implements Serializable {
 	private final FolderService folderService;
 	private final NoteService noteService;
 	private final PDFService pdfService;
-	private TreeNode<String> root = new DefaultTreeNode<>("Folders", null);;
+	private TreeNode<Element> root = new DefaultTreeNode<>(Constants.DEFAULT_FOLDER, null);;
 	private final UserBean userBean;
 	private StreamedContent qrCodePage;
 	private TreeNode<Element> selectedTreeNode;
@@ -159,11 +160,11 @@ public class ElementsTreeView implements Serializable {
 	}
 
 
-	public void traverseTree(final TreeNode<?> tree, final Element elementToBeRemoved) {
+	public void traverseTree(final TreeNode<Element> tree, final Element elementToBeRemoved) {
 		if(tree.getChildren().removeIf(element->element.getData().equals(elementToBeRemoved))){
 			return;
 		}
-		for (final TreeNode<?> child:tree.getChildren()){
+		for (final TreeNode<Element> child:tree.getChildren()){
 			if (child.getData() instanceof Folder){
 				traverseTree(child, elementToBeRemoved);
 			}
@@ -181,11 +182,11 @@ public class ElementsTreeView implements Serializable {
 		return qrCodePage;
 	}
 
-	public TreeNode<String> getRoot() {
+	public TreeNode<Element> getRoot() {
 		return root;
 	}
 
-	public void setRoot(final TreeNode<String> root) {
+	public void setRoot(final TreeNode<Element> root) {
 		this.root = root;
 	}
 
