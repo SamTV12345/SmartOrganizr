@@ -19,6 +19,7 @@
 		<joinfaces.version>4.6.0</joinfaces.version>
 		<primefaces.version>10.0.0</primefaces.version>
 		<maven.build.timestamp.format>yyyyMMdd-HHmmssSSS</maven.build.timestamp.format>
+		<log4j2.version>2.15.0</log4j2.version>
 	</properties>
 
 	<name>SmartOrganizr</name>
