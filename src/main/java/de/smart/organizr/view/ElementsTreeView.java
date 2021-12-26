@@ -25,7 +25,7 @@ public class ElementsTreeView implements Serializable {
 	private final FolderService folderService;
 	private final NoteService noteService;
 	private final PDFService pdfService;
-	private TreeNode root = new DefaultTreeNode("Folders", null);;
+	private TreeNode root;
 	private final UserBean userBean;
 	private StreamedContent qrCodePage;
 	private TreeNode selectedTreeNode;
@@ -38,6 +38,7 @@ public class ElementsTreeView implements Serializable {
 		this.noteService = noteService;
 		this.pdfService = pdfService;
 		this.userBean = userBean;
+		root = new DefaultTreeNode("Folders", null);
 	}
 
 	@PostConstruct
