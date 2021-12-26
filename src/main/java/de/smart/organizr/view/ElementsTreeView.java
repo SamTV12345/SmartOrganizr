@@ -100,9 +100,8 @@ public class ElementsTreeView implements Serializable {
 	public int determinePositionInFolder(final Element node) {
 		final Folder parentOfNote = node.getParent();
 
-		 return parentOfNote.getElements().stream().filter(nodeToBeFiltered->nodeToBeFiltered instanceof Note).sorted(
-				 Comparator.comparing(note -> ((Note) note).getTitle())).collect(
-				Collectors.toList()).indexOf(node);
+		 return parentOfNote.getElements().stream().filter(nodeToBeFiltered -> nodeToBeFiltered instanceof Note).sorted(
+				 Comparator.comparing(note -> ((Note) note).getTitle())).toList().indexOf(node);
 	}
 
 	public String navigateToCreateFolder(){
