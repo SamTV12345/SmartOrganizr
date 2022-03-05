@@ -63,7 +63,7 @@ public class ElementsTreeView implements Serializable {
 				recursivelyAddFolders(folder1,newNode);
 			}
 			else if(elementToBeAdded instanceof Note noteToBeAdded){
-				 new DefaultTreeNode<Element>(noteToBeAdded,folderToBeAppendedTo);
+				new DefaultTreeNode<Element>(noteToBeAdded,folderToBeAppendedTo);
 			}
 		});
 	}
@@ -101,8 +101,8 @@ public class ElementsTreeView implements Serializable {
 	public int determinePositionInFolder(final Element node) {
 		final Folder parentOfNote = node.getParent();
 
-		 return parentOfNote.getElements().stream().filter(nodeToBeFiltered -> nodeToBeFiltered instanceof Note).sorted(
-				 Comparator.comparing(note -> ((Note) note).getTitle())).toList().indexOf(node);
+		return parentOfNote.getElements().stream().filter(nodeToBeFiltered -> nodeToBeFiltered instanceof Note).sorted(
+				Comparator.comparing(note -> ((Note) note).getTitle())).toList().indexOf(node);
 	}
 
 	public String navigateToCreateFolder(){
@@ -110,8 +110,8 @@ public class ElementsTreeView implements Serializable {
 	}
 
 	public String navigateToCreateNote(final Folder folder){
-			JsfUtils.putFolderIntoFlash(folder);
-			return "/editNote.xhtml";
+		JsfUtils.putFolderIntoFlash(folder);
+		return "/editNote.xhtml";
 	}
 
 	public boolean checkIfGeneratedQRCodePageExists(final Folder folder){
