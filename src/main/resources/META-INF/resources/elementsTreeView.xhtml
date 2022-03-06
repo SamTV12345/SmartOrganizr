@@ -12,17 +12,10 @@
             <p:growl id="messages"/>
             <p:commandButton icon="pi pi-plus" action="#{elementsTreeView.navigateToCreateFolder()}" styleClass="form-button"
                              value="#{labels['elements-tree-view.create-parent-folder']}"/>
-            <p:commandButton icon="pi pi-trash" action="#{elementsTreeView.deleteElement()}"
-                             value="#{labels['elements-tree-view.delete-element']}"
-                             styleClass="form-button ui-button-danger" update="@form">
-                <p:confirm header="#{labels['elements-tree-view.confirmation']}"
-                           message="#{labels['elements-tree-view.confirm-delete-note']}"
-                           icon="pi pi-info-circle" />
-            </p:commandButton>
 
             <h:panelGroup id="padding" layout="block">
 
-            <p:treeTable value="#{elementsTreeView.root}" var="node" dynamic="false" id="elements"
+            <p:treeTable value="#{elementsTreeView.root}" var="node" id="elements"
                          nodeVar="#{elementsTreeView.root}"
             selectionMode="single" selection="#{elementsTreeView.selectedTreeNode}">
                 <p:ajax event="collapse" listener="#{elementsTreeView.onNodeCollapse}" />
@@ -68,6 +61,12 @@
                                      elementsTreeView.checkIfGeneratedQRCodePageExists(node)}">
                         <p:fileDownload value="#{elementsTreeView.getQrCodePage(node)}"
                                         contentDisposition="attachment" />
+                    </p:commandButton>
+                    <p:commandButton icon="pi pi-trash" action="#{elementsTreeView.deleteElement(node)}"
+                                     update="elements">
+                        <p:confirm header="#{labels['elements-tree-view.confirmation']}"
+                                   message="#{labels['elements-tree-view.confirm-delete-note']}"
+                                   icon="pi pi-info-circle" />
                     </p:commandButton>
                 </p:column>
             </p:treeTable>

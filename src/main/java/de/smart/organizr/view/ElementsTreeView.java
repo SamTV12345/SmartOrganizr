@@ -143,6 +143,7 @@ public class ElementsTreeView implements Serializable {
 		if(selectedTreeNode!=null) {
 			selectedTreeNode.getParent().getChildren().remove(selectedTreeNode);
 		}
+		System.out.println(root.getChildren());
 	}
 
 	private void handleDeletion(final Element elementToBeRemoved) {
