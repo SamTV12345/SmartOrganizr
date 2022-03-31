@@ -15,6 +15,7 @@ public class UserHibernateImpl implements User {
 	private String emailAddress;
 	private Role role;
 	private boolean passwordResetRequired;
+	private String selectedTheme;
 
 	
 	public UserHibernateImpl() {
@@ -61,6 +62,14 @@ public class UserHibernateImpl implements User {
 	
 	public void setUserId(final int userId) {
 		this.userId = userId;
+	}
+
+	public String getSelectedTheme() {
+		return selectedTheme;
+	}
+
+	public void setSelectedTheme(final String selectedTheme) {
+		this.selectedTheme = selectedTheme;
 	}
 
 	@Override

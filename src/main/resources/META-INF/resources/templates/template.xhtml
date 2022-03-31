@@ -20,6 +20,7 @@
 		<h:outputStylesheet name="style.css" library="css" />
 		<h:outputScript name="sidebar.js" library="js" />
 		<h:outputStylesheet name="primeflex.min.css" library="primeflex" />
+		<h:outputStylesheet library="primefaces-#{userBean.theme}" name="theme.css" />
 	</f:facet>
 </h:head>
 <h:body styleClass="ui-">
@@ -92,6 +93,11 @@
 				<p:menuitem value="#{labels['template.menu-use-new-version']}" action="#{userBean.toggleVersion()}"
 							update="@form"/>
 			</p:menu>
+
+			<p:selectOneMenu value="#{userBean.theme}" onchange="submit()">
+				<f:selectItem itemLabel="Select One" itemValue=""/>
+				<f:selectItems value="#{themeBean.allThemes}"/>
+			</p:selectOneMenu>
 		</h:form>
 	
 	</div>

@@ -4,8 +4,8 @@ import java.util.Optional;
 
 import javax.annotation.PostConstruct;
 import javax.faces.context.FacesContext;
+import javax.servlet.ServletContext;
 
-import de.smart.organizr.entities.classes.UserHibernateImpl;
 import de.smart.organizr.entities.interfaces.User;
 import de.smart.organizr.enums.Role;
 import de.smart.organizr.enums.Version;
@@ -17,15 +17,17 @@ import de.smart.organizr.services.interfaces.UserService;
 public class UserBean {
 
 	private final UserService userService;
-	
+	private final ServletContext servletContext;
 	private String localeCode;
 	private Optional<User> optionalUser;
 	private String locale;
 	private Version version;
 	private boolean sidebarCollapsed = false;
+	private String theme;
 
-	public UserBean(final UserService userService) {
+	public UserBean(final UserService userService, final ServletContext servletContext) {
 		this.userService = userService;
+		this.servletContext = servletContext;
 	}
 
 	@PostConstruct
@@ -129,5 +131,18 @@ public class UserBean {
 
 	public void setLocale(final String locale) {
 		this.locale = locale;
+	}
+
+	public String getTheme() {
+		return theme;
+	}
+
+	public void setTheme(final String theme) {
+		System.out.println(theme);
+		this.theme = theme;
+	}
+
+	public void setTheme() {
+		this.theme = "saga";
 	}
 }

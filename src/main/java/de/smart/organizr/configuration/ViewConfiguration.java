@@ -10,6 +10,9 @@ import org.springframework.boot.web.servlet.ServletContextInitializer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Scope;
+import org.springframework.web.context.annotation.SessionScope;
+
+import javax.servlet.ServletContext;
 
 /**
  * The ViewConfiguration autowires the services and defines beans for the view/jsf layer.
@@ -30,8 +33,9 @@ public class ViewConfiguration {
 
 	@Bean
 	@Scope("session")
-	public UserBean userBean() {
-		return new UserBean(userService);
+	@Autowired
+	public UserBean userBean(final ServletContext servletContext) {
+		return new UserBean(userService, servletContext);
 	}
 	
 	@Bean
@@ -47,7 +51,7 @@ public class ViewConfiguration {
 	}
 
 	@Bean
-	@Scope("request")
+	@Scope("view")
 	@Autowired
 	public EditProfileView editProfileView(final UserBean userBean){
 		return new EditProfileView(userService, userBean);
@@ -81,6 +85,13 @@ public class ViewConfiguration {
 			servletContext.setInitParameter("primefaces.THEME", "vela");
 		};
 	}
+
+	@Bean
+	@Scope("session")
+	public ThemeBean themeBean(){
+		return new ThemeBean();
+	}
+
 
 	@Bean
 	@Scope("view")
