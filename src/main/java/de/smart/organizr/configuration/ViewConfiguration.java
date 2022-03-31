@@ -78,6 +78,7 @@ public class ViewConfiguration {
 			servletContext.setInitParameter("primefaces.UPLOADER",
 					"commons");
 			servletContext.setInitParameter("primefaces.DOWNLOADER","commons");
+			servletContext.setInitParameter("primefaces.THEME", "vela");
 		};
 	}
 

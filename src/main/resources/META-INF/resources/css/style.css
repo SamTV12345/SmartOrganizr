@@ -41,8 +41,6 @@ div.header {
 	/* 	box-shadow: 0 0 5px 5px grey; */
 
 	overflow: hidden;
-
-	background-color: var(--header-color);
 	z-index: 100;
 }
 
@@ -116,16 +114,11 @@ div.content-wrapper {
 
 .header-link {
 	text-decoration: none;
-	color: black;
 }
 
 .direct-link {
 	margin-top: 20px;
 	display: inline-block;
-}
-
-.unobtrusive-command-link{
-	color: grey !important;
 }
 
 /* ===================================== */
@@ -145,7 +138,6 @@ div.sidebar {
 	display: flex;
 	flex-direction: column;
 
-	background-color: var(--sidebar-color);
 
 	z-index: 50;
 
@@ -171,7 +163,6 @@ div.sidebar.sidebar-collapsed {
 div.footer {
 	margin-top: auto;
 	padding: 20px;
-	background-color: var(--footer-background-color);
 	width: 100%;
 }
 
@@ -184,7 +175,6 @@ div.footer .contain {
 
 div.footer h1 {
 	font-size: medium;
-	color: var(--footer-heading-color);
 }
 
 div.footer ul {
@@ -192,14 +182,6 @@ div.footer ul {
 	padding: 0;
 
 	list-style-type: none;
-}
-
-div.footer a {
-	color: var(--footer-font-color);
-}
-
-div.footer a:hover {
-	color: var(--footer-font-color);
 }
 
 div.footer .col {
@@ -299,10 +281,8 @@ table.non-responsive td {
 
 	padding: 12px;
 
-	border: 1px solid #D5D5D5;
 	border-radius: 3px;
 
-	color: black;
 	text-decoration: none;
 
 	flex-direction: column;
@@ -396,8 +376,6 @@ html, body {
 
 pre {
 	padding: 6px;
-	background-color: #353535;
-	color: white;
 	border-radius: 3px;
 	font-size: 85%;
 	overflow: auto;
@@ -423,221 +401,17 @@ div.text-overflow p {
 	margin: 0;
 }
 
-@media (prefers-color-scheme: dark) {
+h1{
+	color: var(--primary-color);
+}
 
-	:root{
-		--header-color:  var(--darkmode-background);
-		--sidebar-color: var(--darkmode-background);
-		color: white;
-		--text-color: white;
-		--footer-font-color: var(--darkmode-text);
-		--darkmode-background: #222;
-		--darkmode-text: white;
-		--darkmode-hover: #555;
-	}
-
-	*:-webkit-autofill,
-	*:-webkit-autofill:hover,
-	*:-webkit-autofill:focus,
-	*:-webkit-autofill:active,
-	*:-webkit-autofill,
-	*:-webkit-autofill:hover,
-	*:-webkit-autofill:focus{
-		-webkit-box-shadow: 0 0 0 30px inset var(--darkmode-background);
-	}
-
-	h1 {
-		color: white;
-	}
-
-	/*Ordentliche Styles*/
-
-	body .ui-inputfield, body, body .ui-button{
-		background-color: var(--darkmode-background);
-		color: var(--darkmode-text);
-	}
-
-	body .ui-menu .ui-menu-list .ui-widget-header h3 {
-		color: var(--darkmode-text);
-	}
-
-	body .ui-menu .ui-menu-list .ui-widget-header h3 {
-		color: var(--darkmode-text);
-	}
-
-	a .ui-menuitem-link.ui-corner-all .span.ui-menuitem-text,
-	span.ui-menuitem-text{
-		color: var(--darkmode-text) !important;
-	}
+label{
+	color: var(--text-color);
+}
 
 
-	body .ui-widget, body .ui-menu {
-		background-color: var(--darkmode-background);
-		color: var(--darkmode-text);
-		margin-bottom: 10px;
-	}
-
-	div .contain .ui-widget, div .contain, div .contain h1, div.col.social{
-		background-color: var(--darkmode-background);
-	}
-
-	body .ui-button .ui-state-hover{
-		background-color: grey !important;
-		border-color: var(--darkmode-text) !important;
-	}
-
-	body .ui-commandlink {
-		background-color: transparent;
-	}
-
-	:root{
-		--header-color:  #444;
-		--sidebar-color: #333;
-		color: white;
-		--text-color: white;
-		--footer-font-color: white;
-	}
-
-	div .footer, div .contain .col, div.footer h1, a.ui-link.ui-widget.footer-link {
-		background-color: var(--darkmode-background);
-		border-color: var(--darkmode-background);
-	}
-
-
-
-	body .ui-button.ui-button-danger{
-		background-color: transparent;
-	}
-
-	th.ui-column-p-6, td.ui-column-p-6, th.ui-column-p-5, td.ui-column-p-5, th.ui-column-p-4, td.ui-column-p-4, th.ui-column-p-3,
-	td.ui-column-p-3, th.ui-column-p-2, td.ui-column-p-2, th.ui-column-p-1, td.ui-column-p-1 {
-		background-color: var(--darkmode-background);
-		color: var(--darkmode-text);
-	}
-
-	.ui-datatable tbody td, body .ui-datatable thead th, .ui-inputfield .ui-state-default, .ui-state-hover,
-	body .ui-treetable thead th, body .ui-treetable thead th .ui-filter-column,
-	body .ui-accordion .ui-accordion-header, body .ui-accordion .ui-accordion-header.ui-state-active,
-	body .secondary .ui-button, body .secondary .ui-button.ui-state-hover,body .ui-tabs .ui-tabs-panels,
-	body .ui-tabs .ui-tabs-nav li.ui-tabs-header.ui-state-active, body .ui-tabs .ui-tabs-nav li.ui-tabs-header,
-	body .ui-tabs .ui-tabs-nav, .jqplot-series-canvas
-	{
-		background-color: var(--darkmode-background);
-		color: var(--darkmode-text);
-	}
-
-	.jqplot-series-canvas{
-		border: transparent;
-	}
-
-	body .ui-datatable thead th.ui-state-active.ui-state-hover, body .ui-datatable thead th.ui-state-active{
-		background-color: var(--darkmode-background);
-		color: #d0d0d0;
-	}
-
-	body .ui-menu .ui-state-hover, body .ui-selectonemenu-panel .ui-selectonemenu-items .ui-selectonemenu-item.ui-state-highlight,
-	body .ui-selectonemenu-panel .ui-selectonemenu-filter-container,
-	body .ui-selectonemenu-panel .ui-selectonemenu-items .ui-selectonemenu-item,
-	body .ui-selectonemenu-panel .ui-selectonemenu-items .ui-selectonemenu-item.ui-selectonemenu-row,
-	body .ui-selectonemenu-panel .ui-selectonemenu-items.ui-selectonemenu-table > thead tr th{
-		margin: 0;
-		padding: 0.5rem 1rem;
-		background: transparent;
-		color: var(--darkmode-text);
-		outline: 0 none;
-		border-radius: 0;
-		transition: background-color 0.2s, color 0.2s, border-color 0.2s, box-shadow 0.2s;
-	}
-
-
-	body .ui-chkbox .ui-chkbox-box,
-	body .ui-button.ui-button-help, body .ui-splitbutton.ui-button-help > .ui-button{
-		background: #2B2B2B;
-		color: var(--darkmode-text);
-		border: 1px solid #9C27B0;
-	}
-
-	.header, .ui-menuitem-text{
-		color: var(--darkmode-text);
-	}
-
-	li .ui-widget, body .ui-radiobutton .ui-radiobutton-box,
-	body .ui-radiobutton .ui-radiobutton-box.ui-state-active .ui-icon-bullet{
-		background-color: var(--darkmode-background);
-	}
-
-	a.app-menu-item{
-		color: var(--darkmode-text);
-	}
-
-	body .ui-menu .ui-menu-list .ui-widget-header, body .ui-accordion .ui-accordion-content,
-	body .secondary .ui-button.ui-state-focus,body .ui-menu .ui-state-hover, body .ui-menu .ui-state-hover{
-		background-color: var(--darkmode-background);
-	}
-
-	ul li h3, body .ui-tabs .ui-tabs-nav li.ui-tabs-header a, #tabs {
-		color: var(--darkmode-text);
-	}
-
-	body .secondary .ui-button.ui-state-focus {
-		outline: 0 none;
-	}
-	body .multiple-choice .correct, body .multiple-choice .wrong{
-		background-color: var(--darkmode-background);
-		border-color: #222;
-	}
-
-	/* SVG in den Text-Editoren */
-
-	.ql-snow .ql-fill {
-		fill: white;
-	}
-
-	.ql-snow .ql-stroke {
-		stroke: white;
-	}
-
-	.ql-snow .ql-picker {
-		color: white;
-	}
-
-	.ql-snow .ql-picker-options {
-		background-color: #444;
-	}
-
-	body .ui-chkbox .ui-chkbox-box {
-		background-color: #222;
-	}
-
-	.text-overflow::after {
-		background: linear-gradient(#2220, #222);
-	}
-
-	body .ui-menu .ui-menu-list .ui-widget-header.ui-state-hover,
-	body .ui-menu .ui-menu-list .ui-menuitem .ui-menuitem-link.ui-state-hover {
-		background-color: var(--darkmode-hover);
-	}
-
-	body .ui-menu .ui-menu-list .ui-widget-header.ui-state-hover .ui-icon,
-	body .ui-menu .ui-menu-list .ui-menuitem .ui-menuitem-link .ui-menuitem-icon,
-	body .ui-menu .ui-menu-list .ui-menuitem .ui-menuitem-link.ui-state-hover .ui-menuitem-icon {
-		color: var(--darkmode-text);
-	}
-
-	body .ui-accordion .ui-accordion-header.ui-state-active:hover,
-	body .ui-accordion .ui-accordion-header.ui-state-active.ui-state-hover,
-	body .ui-accordion .ui-accordion-header.ui-state-hover {
-		background-color: var(--darkmode-hover);
-		color: var(--darkmode-text);
-	}
-	body .ui-treetable thead th.ui-state-active, body .ui-fileupload .ui-fileupload-buttonbar, body .ui-fileupload .ui-fileupload-content{
-		background-color: var(--darkmode-background);
-	}
-
-	body .ui-treetable thead th.ui-state-active.ui-state-hover, body .ui-treetable .ui-treetable-data > tr{
-		background-color: var(--darkmode-background);
-		color: var(--darkmode-text);
-	}
+body{
+	background-color: var(--surface-a);
 }
 
 @media only screen and (max-width: 768px) {

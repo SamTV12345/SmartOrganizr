@@ -22,7 +22,7 @@
 		<h:outputStylesheet name="primeflex.min.css" library="primeflex" />
 	</f:facet>
 </h:head>
-<h:body >
+<h:body styleClass="ui-">
 	<f:view locale="#{userBean.localeCode}" />
 
 	<div class="header">
@@ -106,7 +106,7 @@
 
 		<div class="footer">
 			<h:form>
-				<h:outputText value="#{labels['template.copyright']}" /> -
+				<p:outputLabel value="#{labels['template.copyright']}" /> -
 				<p:commandLink action="imprint?faces-redirect=true" value="#{labels['template.imprint']}" />
 			</h:form>
 		</div>
