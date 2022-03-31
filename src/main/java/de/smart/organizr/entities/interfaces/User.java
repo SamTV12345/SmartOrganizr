@@ -9,9 +9,19 @@ public interface User {
 	 * Gets the user id of the user
 	 * @return the user id
 	 */
-	@Id
-	@GeneratedValue(strategy = GenerationType.AUTO)
 	int getUserId();
+
+	/**
+	 * Gets the selected theme
+	 * @return the selected theme
+	 */
+	String getSelectedTheme();
+
+	/**
+	 * Sets the selected theme
+	 * @param selectedTheme the selected theme
+	 */
+	void setSelectedTheme(String selectedTheme);
 
 	/**
 	 * Gets the username of the user
@@ -47,7 +57,6 @@ public interface User {
 	 * Gets the role of the user
 	 * @return the role
 	 */
-	@Enumerated(EnumType.STRING)
 	Role getRole();
 
 	/**
@@ -73,4 +82,16 @@ public interface User {
 	 * @param passwordResetRequired if the user needs to change his password
 	 */
 	void setPasswordResetRequired(boolean passwordResetRequired);
+
+	/**
+	 * If true, the sideBar is collapsed
+	 * @return the sidebar status
+	 */
+	boolean getSideBarCollapsed();
+
+	/**
+	 * Sets the sidebar to be collapsed or expanded
+	 * @param collapsed if it should be collapsed
+	 */
+	void setSideBarCollapsed(boolean collapsed);
 }

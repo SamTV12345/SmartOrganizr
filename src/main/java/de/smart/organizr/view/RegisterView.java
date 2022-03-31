@@ -44,7 +44,8 @@ public class RegisterView implements Serializable {
 
 	public String registerUser(final ExternalContext externalContext) {
 		try {
-			final UserHibernateImpl userInputModel = new UserHibernateImpl(username, password, emailAddress);
+			final UserHibernateImpl userInputModel = new UserHibernateImpl(username, password, emailAddress,
+					Constants.DEFAULT_THEME, false);
 			userUseCaseFacade.addUser(userInputModel);
 			doAutoLogin(userInputModel.getUserName(), password,
 					(HttpServletRequest) externalContext.getRequest());

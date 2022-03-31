@@ -2,6 +2,7 @@ package de.smart.organizr.view;
 
 import javax.annotation.PostConstruct;
 
+import de.smart.organizr.constants.Constants;
 import de.smart.organizr.entities.classes.UserHibernateImpl;
 import de.smart.organizr.enums.Role;
 import de.smart.organizr.utils.JsfUtils;
@@ -63,7 +64,8 @@ public class EditUserView {
 			
 			userService.addUser(userHibernateImpl);
 		} else {
-			final UserHibernateImpl userHibernateImpl = new UserHibernateImpl(0, username, password, emailAddress, role);
+			final UserHibernateImpl userHibernateImpl = new UserHibernateImpl(0, username, password, emailAddress,
+					role, Constants.DEFAULT_THEME, false );
 			userService.addUser(userHibernateImpl);
 		}
 		return "manageUsers";

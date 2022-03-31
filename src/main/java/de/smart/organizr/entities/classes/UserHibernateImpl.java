@@ -15,22 +15,27 @@ public class UserHibernateImpl implements User {
 	private String emailAddress;
 	private Role role;
 	private boolean passwordResetRequired;
+	private String selectedTheme;
+	private boolean sideBarCollapsed;
 
 	
 	public UserHibernateImpl() {
 	}
 	
 	public UserHibernateImpl(final int userId, final String userName, final String password, final String emailAddress,
-	                         final Role role) {
+	                         final Role role, final String selectedTheme, final boolean sideBarCollapsed) {
 		this.userId = userId;
 		this.userName = userName;
 		this.password = password;
 		this.emailAddress = emailAddress;
 		this.role = role;
+		this.selectedTheme = selectedTheme;
+		this.sideBarCollapsed = sideBarCollapsed;
 	}
 	
-	public UserHibernateImpl(final String userName, final String password, final String emailAddress) {
-		this(0,userName,password,emailAddress,Role.USER);
+	public UserHibernateImpl(final String userName, final String password, final String emailAddress,
+	                         final String selectedTheme, final boolean sideBarCollapsed) {
+		this(0,userName,password,emailAddress,Role.USER, selectedTheme, sideBarCollapsed);
 	}
 
 	@Override
@@ -61,6 +66,16 @@ public class UserHibernateImpl implements User {
 	
 	public void setUserId(final int userId) {
 		this.userId = userId;
+	}
+
+	@Override
+	public String getSelectedTheme() {
+		return selectedTheme;
+	}
+
+	@Override
+	public void setSelectedTheme(final String selectedTheme) {
+		this.selectedTheme = selectedTheme;
 	}
 
 	@Override
@@ -112,6 +127,16 @@ public class UserHibernateImpl implements User {
 	@Override
 	public void setPasswordResetRequired(final boolean passwordResetRequired) {
 		this.passwordResetRequired = passwordResetRequired;
+	}
+
+	@Override
+	public boolean getSideBarCollapsed() {
+		return sideBarCollapsed;
+	}
+
+	@Override
+	public void setSideBarCollapsed(final boolean collapsed) {
+		this.sideBarCollapsed = collapsed;
 	}
 
 	@Override

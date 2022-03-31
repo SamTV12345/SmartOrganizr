@@ -74,7 +74,9 @@ public class SpringSecurityConfiguration extends WebSecurityConfigurerAdapter {
 			http.headers()
 		    .frameOptions()
 		    .sameOrigin()
-		    .httpStrictTransportSecurity().disable();
+		    .httpStrictTransportSecurity().disable().and().logout(logout->logout.logoutUrl("/logout")
+		                                                                        .logoutSuccessUrl("/login")
+		                                                                        .invalidateHttpSession(true).deleteCookies());
 	}
 	
 }
