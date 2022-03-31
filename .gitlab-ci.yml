@@ -1,0 +1,18 @@
+image: maven:3.8.4-openjdk-17
+
+stages:
+  - test
+
+cache:
+  paths:
+    - target/
+    - .m2/repository
+
+variables:
+  MAVEN_OPTS: "-Dmaven.repo.local=$CI_PROJECT_DIR/.m2/repository"
+
+
+test:
+  stage: test
+  script:
+    - mvn clean test -Dspring.profiles.active=testing $MAVEN_OPTS
