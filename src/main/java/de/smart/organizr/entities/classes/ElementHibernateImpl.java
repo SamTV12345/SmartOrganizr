@@ -1,5 +1,6 @@
 package de.smart.organizr.entities.classes;
 
+import de.smart.organizr.constants.Constants;
 import de.smart.organizr.entities.interfaces.Element;
 import de.smart.organizr.entities.interfaces.Folder;
 import de.smart.organizr.entities.interfaces.User;
@@ -19,7 +20,8 @@ public class ElementHibernateImpl implements Element, Serializable {
 	private int id;
 	private String name;
 	private static final String DEFAULT_NAME = "Element";
-	private static final User user = new UserHibernateImpl("STANDARD","STANDARD", "standard@email.de");
+	private static final User user = new UserHibernateImpl("STANDARD","STANDARD", "standard@email.de",
+			Constants.DEFAULT_THEME, true);
 	private Folder parent;
 	private String description;
 	private User creator;

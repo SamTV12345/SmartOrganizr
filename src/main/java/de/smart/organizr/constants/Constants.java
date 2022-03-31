@@ -10,6 +10,8 @@ import java.util.Calendar;
  */
 public final class Constants {
 
+	public static final String DEFAULT_THEME = "saga";
+
 	private Constants(){
 	}
 
@@ -21,5 +23,5 @@ public final class Constants {
 		return "evaluation-icon-wrong";
 	}
 
-	public static Folder DEFAULT_FOLDER = new FolderHibernateImpl("DEFAULT", Calendar.getInstance(), "DEFAULT",null);
+	public static final Folder DEFAULT_FOLDER = new FolderHibernateImpl("DEFAULT", Calendar.getInstance(), "DEFAULT",null);
 }

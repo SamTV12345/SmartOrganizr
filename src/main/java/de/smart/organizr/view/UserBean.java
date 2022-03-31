@@ -1,8 +1,10 @@
 package de.smart.organizr.view;
 
+import java.io.IOException;
 import java.util.Optional;
 
 import javax.annotation.PostConstruct;
+import javax.faces.context.ExternalContext;
 import javax.faces.context.FacesContext;
 import javax.servlet.ServletContext;
 
@@ -22,8 +24,6 @@ public class UserBean {
 	private Optional<User> optionalUser;
 	private String locale;
 	private Version version;
-	private boolean sidebarCollapsed = false;
-	private String theme;
 
 	public UserBean(final UserService userService, final ServletContext servletContext) {
 		this.userService = userService;
@@ -103,15 +103,18 @@ public class UserBean {
 	}
 
 	public void toggleSidebar() {
-		sidebarCollapsed = !sidebarCollapsed;
+		checkUserLoginStatus();
+		optionalUser.orElseThrow().setSideBarCollapsed(!optionalUser.orElseThrow().getSideBarCollapsed());
 	}
 
 	public String getSidebarClass() {
-		return sidebarCollapsed ? "sidebar-collapsed" : "sidebar-expanded";
+		checkUserLoginStatus();
+		return optionalUser.orElseThrow().getSideBarCollapsed() ? "sidebar-collapsed" : "sidebar-expanded";
 	}
 
 	public boolean isSidebarCollapsed() {
-		return sidebarCollapsed;
+		checkUserLoginStatus();
+		return optionalUser.orElseThrow().getSideBarCollapsed();
 	}
 
 	public boolean isOldVersion(){
@@ -134,15 +137,23 @@ public class UserBean {
 	}
 
 	public String getTheme() {
-		return theme;
+		checkUserLoginStatus();
+		return optionalUser.orElseThrow().getSelectedTheme();
 	}
 
 	public void setTheme(final String theme) {
-		System.out.println(theme);
-		this.theme = theme;
+		checkUserLoginStatus();
+		optionalUser.orElseThrow().setSelectedTheme(theme);
 	}
 
-	public void setTheme() {
-		this.theme = "saga";
+	public void setSidebarCollapsed(final boolean sidebarCollapsed) {
+		checkUserLoginStatus();
+		optionalUser.orElseThrow().setSideBarCollapsed(sidebarCollapsed);
+	}
+
+	public void logOut() throws IOException {
+		userService.saveUser(getUser());
+		final ExternalContext ec = FacesContext.getCurrentInstance().getExternalContext();
+		ec.redirect("/logout");
 	}
 }

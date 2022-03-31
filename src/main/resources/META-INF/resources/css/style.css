@@ -409,6 +409,9 @@ label{
 	color: var(--text-color);
 }
 
+.ui-menuitem-text{
+	width: 100% !important;
+}
 
 body{
 	background-color: var(--surface-a);

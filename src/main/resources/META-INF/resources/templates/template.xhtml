@@ -58,7 +58,7 @@
 
 		<div class="header-field">
 			<ui:fragment rendered="#{userBean.loggedIn}">
-				<p:linkButton icon="pi pi-sign-out" href="/logout" styleClass="header-button" />
+				<p:commandButton icon="pi pi-sign-out" action="#{userBean.logOut()}" styleClass="header-button" />
 				<p:commandLink value="#{userBean.user.userName}" action="editProfile" />
 			</ui:fragment>
 	
@@ -92,12 +92,14 @@
 							icon="pi pi-folder"  rendered="#{not userBean.oldVersion}"/>
 				<p:menuitem value="#{labels['template.menu-use-new-version']}" action="#{userBean.toggleVersion()}"
 							update="@form"/>
+				<p:menuitem>
+				<p:selectOneMenu value="#{userBean.theme}" onchange="submit()" autoWidth="false" styleClass="w-full">
+					<f:selectItems value="#{themeBean.allThemes}"/>
+				</p:selectOneMenu>
+				</p:menuitem>
 			</p:menu>
 
-			<p:selectOneMenu value="#{userBean.theme}" onchange="submit()">
-				<f:selectItem itemLabel="Select One" itemValue=""/>
-				<f:selectItems value="#{themeBean.allThemes}"/>
-			</p:selectOneMenu>
+
 		</h:form>
 	
 	</div>

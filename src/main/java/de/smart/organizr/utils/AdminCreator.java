@@ -2,6 +2,7 @@ package de.smart.organizr.utils;
 
 import java.util.Optional;
 
+import de.smart.organizr.constants.Constants;
 import de.smart.organizr.entities.classes.UserHibernateImpl;
 import de.smart.organizr.entities.interfaces.User;
 import org.apache.commons.logging.Log;
@@ -45,7 +46,8 @@ public class AdminCreator {
 			final User admin;
 			
 			if (optionalAdmin.isEmpty()) {
-				final UserHibernateImpl newAdmin = new UserHibernateImpl(ADMIN_USERNAME, ADMIN_PASSWORD, ADMIN_E_MAIL);
+				final UserHibernateImpl newAdmin = new UserHibernateImpl(ADMIN_USERNAME, ADMIN_PASSWORD, ADMIN_E_MAIL
+						, Constants.DEFAULT_THEME, true);
 				newAdmin.setPasswordResetRequired(true);
 				
 				admin = userService.addUser(newAdmin);
