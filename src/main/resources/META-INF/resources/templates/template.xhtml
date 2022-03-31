@@ -20,9 +20,10 @@
 		<h:outputStylesheet name="style.css" library="css" />
 		<h:outputScript name="sidebar.js" library="js" />
 		<h:outputStylesheet name="primeflex.min.css" library="primeflex" />
+		<h:outputStylesheet library="primefaces-#{userBean.theme}" name="theme.css" />
 	</f:facet>
 </h:head>
-<h:body >
+<h:body styleClass="ui-">
 	<f:view locale="#{userBean.localeCode}" />
 
 	<div class="header">
@@ -57,7 +58,7 @@
 
 		<div class="header-field">
 			<ui:fragment rendered="#{userBean.loggedIn}">
-				<p:linkButton icon="pi pi-sign-out" href="/logout" styleClass="header-button" />
+				<p:commandButton icon="pi pi-sign-out" action="#{userBean.logOut()}" styleClass="header-button" />
 				<p:commandLink value="#{userBean.user.userName}" action="editProfile" />
 			</ui:fragment>
 	
@@ -91,7 +92,14 @@
 							icon="pi pi-folder"  rendered="#{not userBean.oldVersion}"/>
 				<p:menuitem value="#{labels['template.menu-use-new-version']}" action="#{userBean.toggleVersion()}"
 							update="@form"/>
+				<p:menuitem>
+				<p:selectOneMenu value="#{userBean.theme}" onchange="submit()" autoWidth="false" styleClass="w-full">
+					<f:selectItems value="#{themeBean.allThemes}"/>
+				</p:selectOneMenu>
+				</p:menuitem>
 			</p:menu>
+
+
 		</h:form>
 	
 	</div>
@@ -106,7 +114,7 @@
 
 		<div class="footer">
 			<h:form>
-				<h:outputText value="#{labels['template.copyright']}" /> -
+				<p:outputLabel value="#{labels['template.copyright']}" /> -
 				<p:commandLink action="imprint?faces-redirect=true" value="#{labels['template.imprint']}" />
 			</h:form>
 		</div>

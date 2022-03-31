@@ -1,11 +1,13 @@
 package de.smart.organizr.view;
 
+import java.io.IOException;
 import java.util.Optional;
 
 import javax.annotation.PostConstruct;
+import javax.faces.context.ExternalContext;
 import javax.faces.context.FacesContext;
+import javax.servlet.ServletContext;
 
-import de.smart.organizr.entities.classes.UserHibernateImpl;
 import de.smart.organizr.entities.interfaces.User;
 import de.smart.organizr.enums.Role;
 import de.smart.organizr.enums.Version;
@@ -17,15 +19,15 @@ import de.smart.organizr.services.interfaces.UserService;
 public class UserBean {
 
 	private final UserService userService;
-	
+	private final ServletContext servletContext;
 	private String localeCode;
 	private Optional<User> optionalUser;
 	private String locale;
 	private Version version;
-	private boolean sidebarCollapsed = false;
 
-	public UserBean(final UserService userService) {
+	public UserBean(final UserService userService, final ServletContext servletContext) {
 		this.userService = userService;
+		this.servletContext = servletContext;
 	}
 
 	@PostConstruct
@@ -101,15 +103,18 @@ public class UserBean {
 	}
 
 	public void toggleSidebar() {
-		sidebarCollapsed = !sidebarCollapsed;
+		checkUserLoginStatus();
+		optionalUser.orElseThrow().setSideBarCollapsed(!optionalUser.orElseThrow().getSideBarCollapsed());
 	}
 
 	public String getSidebarClass() {
-		return sidebarCollapsed ? "sidebar-collapsed" : "sidebar-expanded";
+		checkUserLoginStatus();
+		return optionalUser.orElseThrow().getSideBarCollapsed() ? "sidebar-collapsed" : "sidebar-expanded";
 	}
 
 	public boolean isSidebarCollapsed() {
-		return sidebarCollapsed;
+		checkUserLoginStatus();
+		return optionalUser.orElseThrow().getSideBarCollapsed();
 	}
 
 	public boolean isOldVersion(){
@@ -129,5 +134,26 @@ public class UserBean {
 
 	public void setLocale(final String locale) {
 		this.locale = locale;
+	}
+
+	public String getTheme() {
+		checkUserLoginStatus();
+		return optionalUser.orElseThrow().getSelectedTheme();
+	}
+
+	public void setTheme(final String theme) {
+		checkUserLoginStatus();
+		optionalUser.orElseThrow().setSelectedTheme(theme);
+	}
+
+	public void setSidebarCollapsed(final boolean sidebarCollapsed) {
+		checkUserLoginStatus();
+		optionalUser.orElseThrow().setSideBarCollapsed(sidebarCollapsed);
+	}
+
+	public void logOut() throws IOException {
+		userService.saveUser(getUser());
+		final ExternalContext ec = FacesContext.getCurrentInstance().getExternalContext();
+		ec.redirect("/logout");
 	}
 }
