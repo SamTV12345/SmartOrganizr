@@ -130,7 +130,7 @@ public class UserHibernateImpl implements User {
 	}
 
 	@Override
-	public boolean getSideBarCollapsed() {
+	public boolean isSideBarCollapsed() {
 		return sideBarCollapsed;
 	}
 

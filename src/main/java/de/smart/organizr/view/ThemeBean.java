@@ -10,7 +10,7 @@ public class ThemeBean {
 
 	public ThemeBean() {
 		this.availableThemes = new HashMap<>();
-		this.availableThemes.put("velo", "Primefaces");
+		this.availableThemes.put("vela", "Primefaces");
 		this.availableThemes.put("saga", "Primefaces");
 		this.availableThemes.put("arya", "Primefaces");
 	}

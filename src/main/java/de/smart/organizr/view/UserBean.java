@@ -104,17 +104,17 @@ public class UserBean {
 
 	public void toggleSidebar() {
 		checkUserLoginStatus();
-		optionalUser.orElseThrow().setSideBarCollapsed(!optionalUser.orElseThrow().getSideBarCollapsed());
+		optionalUser.orElseThrow().setSideBarCollapsed(!optionalUser.orElseThrow().isSideBarCollapsed());
 	}
 
 	public String getSidebarClass() {
 		checkUserLoginStatus();
-		return optionalUser.orElseThrow().getSideBarCollapsed() ? "sidebar-collapsed" : "sidebar-expanded";
+		return optionalUser.orElseThrow().isSideBarCollapsed() ? "sidebar-collapsed" : "sidebar-expanded";
 	}
 
 	public boolean isSidebarCollapsed() {
 		checkUserLoginStatus();
-		return optionalUser.orElseThrow().getSideBarCollapsed();
+		return optionalUser.orElseThrow().isSideBarCollapsed();
 	}
 
 	public boolean isOldVersion(){

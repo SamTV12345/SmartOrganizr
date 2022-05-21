@@ -106,7 +106,7 @@ public class EditProfileView {
 						usernameToBeSaved,
 						passwordToBeSaved,
 						emailAddressToBeSaved,
-						userHibernateImpl.getRole(), userHibernateImpl.getSelectedTheme(), userHibernateImpl.getSideBarCollapsed()));
+						userHibernateImpl.getRole(), userHibernateImpl.getSelectedTheme(), userHibernateImpl.isSideBarCollapsed()));
 		doAutoLogin(username, passwordToBeSaved);
 		userBean.setOptionalUser(savedUser);
 	}

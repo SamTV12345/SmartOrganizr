@@ -2,8 +2,6 @@ package de.smart.organizr.entities.interfaces;
 
 import de.smart.organizr.enums.Role;
 
-import javax.persistence.*;
-
 public interface User {
 	/**
 	 * Gets the user id of the user
@@ -87,7 +85,7 @@ public interface User {
 	 * If true, the sideBar is collapsed
 	 * @return the sidebar status
 	 */
-	boolean getSideBarCollapsed();
+	boolean isSideBarCollapsed();
 
 	/**
 	 * Sets the sidebar to be collapsed or expanded
