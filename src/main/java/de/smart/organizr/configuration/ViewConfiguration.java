@@ -45,23 +45,10 @@ public class ViewConfiguration {
 	public ManageUsersView manageUsersView() {
 		return new ManageUsersView(userService);
 	}
-	
-	@Bean
-	@Scope("view")
-	public EditUserView editUserView() {
-		return new EditUserView(userService);
-	}
 
 	@Bean
 	public KeycloakConfigResolver keycloakConfigResolver() {
 		return new KeycloakSpringBootConfigResolver();
-	}
-
-	@Bean
-	@Scope("view")
-	@Autowired
-	public EditProfileView editProfileView(final UserBean userBean){
-		return new EditProfileView(userService, userBean);
 	}
 	
 	@Bean

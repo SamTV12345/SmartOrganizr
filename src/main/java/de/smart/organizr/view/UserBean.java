@@ -7,6 +7,8 @@ import javax.annotation.PostConstruct;
 import javax.faces.context.ExternalContext;
 import javax.faces.context.FacesContext;
 import javax.servlet.ServletContext;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
 
 import de.smart.organizr.entities.interfaces.Element;
 import de.smart.organizr.entities.interfaces.User;
@@ -14,9 +16,13 @@ import de.smart.organizr.enums.Role;
 import de.smart.organizr.enums.Version;
 import lombok.Getter;
 import lombok.Setter;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 import de.smart.organizr.services.interfaces.UserService;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 
 
 @Getter
@@ -29,7 +35,13 @@ public class UserBean {
 	private Optional<User> optionalUser;
 	private String locale;
 	private Version version;
+	@Value("${keycloak.realm}")
+	private String realm;
+	@Value("${keycloak.auth-server-url}")
+	private String keyCloakURL;
 
+	@Autowired
+	private HttpServletRequest request;
 
 	public UserBean(final UserService userService, final ServletContext servletContext) {
 		this.userService = userService;
@@ -157,9 +169,23 @@ public class UserBean {
 		optionalUser.orElseThrow().setSideBarCollapsed(sidebarCollapsed);
 	}
 
-	public void logOut() throws IOException {
+	public void logOut() throws IOException, ServletException {
 		userService.saveUser(getUser());
-		final ExternalContext ec = FacesContext.getCurrentInstance().getExternalContext();
-		ec.redirect("/logout");
+		logout();
+	}
+
+	public ExternalContext currentExternalContext() {
+		if (FacesContext.getCurrentInstance() == null) {
+			throw new RuntimeException("message here ");
+		} else {
+			return FacesContext.getCurrentInstance().getExternalContext();
+		}
+	}
+
+	public void logout() throws IOException, ServletException {
+		final HttpServletRequest request = (HttpServletRequest) currentExternalContext().getRequest();
+		final ExternalContext externalContext = currentExternalContext();
+		request.logout();
+		externalContext.redirect(externalContext.getRequestContextPath());
 	}
 }

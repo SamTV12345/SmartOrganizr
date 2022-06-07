@@ -75,14 +75,9 @@
 				<p:menuitem value="#{labels['template.menu.manage-authors']}"
 							action="/viewAuthors.xhtml?faces-redirect=true" icon="pi pi-user"/>
 				<p:menuitem value="#{labels['template.menu.manage-users']}" action="/manageUsers?faces-redirect=true" icon="pi pi-users"/>
-				<p:menuitem value="#{labels['template.menu.edit-profile']}" action="/editProfile?faces-redirect=true" icon="pi pi-user" />
-				<p:menuitem value="#{labels['template.menu.old-folder']}" action="/viewFoldersView?faces-redirect=true"
-							icon="pi pi-folder" rendered="#{userBean.oldVersion}" />
 				<p:menuitem value="#{labels['template.tree-view-folders']}"
 							action="/elementsTreeView?faces-redirect=true"
 							icon="pi pi-folder"  rendered="#{not userBean.oldVersion}"/>
-				<p:menuitem value="#{labels['template.menu-use-new-version']}" action="#{userBean.toggleVersion()}"
-							update="@form"/>
 				<p:menuitem>
 				<p:selectOneMenu value="#{userBean.theme}" onchange="submit()" autoWidth="false" styleClass="w-full">
 					<f:selectItems value="#{themeBean.allThemes}"/>

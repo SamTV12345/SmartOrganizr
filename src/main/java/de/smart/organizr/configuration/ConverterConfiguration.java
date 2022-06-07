@@ -1,6 +1,5 @@
 package de.smart.organizr.configuration;
 
-import de.smart.organizr.entities.interfaces.Folder;
 import de.smart.organizr.view.converters.AuthorConverter;
 import de.smart.organizr.view.converters.FolderConverter;
 
