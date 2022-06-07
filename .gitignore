@@ -51,3 +51,6 @@ Thumbs.db
 *.wmv
 
 config.properties
+
+rsa.private.key
+rsa.public.key

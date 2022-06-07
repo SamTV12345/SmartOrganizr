@@ -2,12 +2,16 @@ package de.smart.organizr.entities.classes;
 
 import de.smart.organizr.entities.interfaces.User;
 import de.smart.organizr.enums.Role;
+import lombok.Getter;
+import lombok.Setter;
 
 import javax.persistence.*;
 import java.util.Objects;
 
 @Entity
 @Table(name = "user")
+@Getter
+@Setter
 public class UserHibernateImpl implements User {
 	private int userId;
 	private String userName;
@@ -17,6 +21,7 @@ public class UserHibernateImpl implements User {
 	private boolean passwordResetRequired;
 	private String selectedTheme;
 	private boolean sideBarCollapsed;
+	private String token;
 
 	
 	public UserHibernateImpl() {

@@ -1,5 +1,6 @@
 package de.smart.organizr.entities.classes;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import de.smart.organizr.constants.Constants;
 import de.smart.organizr.entities.interfaces.Element;
 import de.smart.organizr.entities.interfaces.Folder;
@@ -22,6 +23,7 @@ public class ElementHibernateImpl implements Element, Serializable {
 	private static final String DEFAULT_NAME = "Element";
 	private static final User user = new UserHibernateImpl("STANDARD","STANDARD", "standard@email.de",
 			Constants.DEFAULT_THEME, true);
+	@JsonBackReference
 	private Folder parent;
 	private String description;
 	private User creator;

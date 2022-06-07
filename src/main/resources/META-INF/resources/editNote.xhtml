@@ -24,6 +24,14 @@
                         <p:inputText id="folder-description" value="#{editNoteView.description}" styleClass="inputfield w-full"/>
                     </div>
                 </div>
+                <div class="field grid">
+                    <p:outputLabel for="number-pages" value="#{labels['edit-note.number-of-pages']}"
+                                   styleClass="col-12 mb-2 md:col-2 md:mb-0"/>
+                    <div class="col-12 md:col-10">
+                        <p:inputText id="number-pages" value="#{editNoteView.numberOfPages}"
+                                     styleClass="inputfield w-full"/>
+                    </div>
+                </div>
             <div class="field grid">
                 <p:outputLabel for="select-author" value="#{labels['edit-note.author']}"
                                styleClass="col-12 mb-2 md:col-2 md:mb-0"/>
@@ -62,7 +70,6 @@
                                               value="#{editNoteView.checkIfPDFForNoteIsAvailable()}" disabled="true"
                                                      styleClass="ui-inputfield w-full"/>
                         </div>
-
                 </div>
             </div>
             </div>

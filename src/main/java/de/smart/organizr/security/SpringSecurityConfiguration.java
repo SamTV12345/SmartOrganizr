@@ -1,44 +1,60 @@
 package de.smart.organizr.security;
 
-import de.smart.organizr.configuration.ChangePasswordFilter;
-import de.smart.organizr.configuration.LoginPageFilter;
-import de.smart.organizr.services.interfaces.UserService;
+import org.keycloak.adapters.springsecurity.KeycloakConfiguration;
+import org.keycloak.adapters.springsecurity.authentication.KeycloakAuthenticationProvider;
+import org.keycloak.adapters.springsecurity.config.KeycloakWebSecurityConfigurerAdapter;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Configuration;
+import org.springframework.boot.web.servlet.FilterRegistrationBean;
+import org.springframework.context.annotation.Bean;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
-import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
-import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
-import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.core.authority.mapping.SimpleAuthorityMapper;
+import org.springframework.security.core.session.SessionRegistryImpl;
+import org.springframework.security.web.authentication.session.RegisterSessionAuthenticationStrategy;
+import org.springframework.security.web.authentication.session.SessionAuthenticationStrategy;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import org.springframework.web.filter.CorsFilter;
 
-@EnableWebSecurity
-@Configuration
-@EnableGlobalMethodSecurity(prePostEnabled = true)
-public class SpringSecurityConfiguration extends WebSecurityConfigurerAdapter {
+@KeycloakConfiguration
+class SpringSecurityConfiguration extends KeycloakWebSecurityConfigurerAdapter {
 
 	@Autowired
-	private UserDetailsService userDetailsService;
-	@Autowired
-	private AuthenticationSuccessHandler authenticationSuccessHandler;
-	@Autowired
-	private UserService userService;
+	public void configureGlobal(
+			AuthenticationManagerBuilder auth) {
 
-	@Override
-	protected void configure(final AuthenticationManagerBuilder auth) throws Exception {
-	    auth.userDetailsService(userDetailsService);
+		KeycloakAuthenticationProvider keycloakAuthenticationProvider
+				= keycloakAuthenticationProvider();
+		keycloakAuthenticationProvider.setGrantedAuthoritiesMapper(
+				new SimpleAuthorityMapper());
+		auth.authenticationProvider(keycloakAuthenticationProvider);
 	}
-	
-	@Override
-	protected void configure(final HttpSecurity http) throws Exception {
-		
-		final String[] adminPages = {
-				"/manageDishes.*",
-				"/editDish.*"
-		};
 
+	@Bean
+	@Override
+	protected SessionAuthenticationStrategy sessionAuthenticationStrategy() {
+		return new RegisterSessionAuthenticationStrategy(
+				new SessionRegistryImpl());
+	}
+
+	@Bean
+	public FilterRegistrationBean corsFilter() {
+		UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+		CorsConfiguration config = new CorsConfiguration();
+		config.setAllowCredentials(true);
+		config.addAllowedOrigin("*");
+		config.addAllowedHeader("*");
+		config.addAllowedMethod("*");
+		source.registerCorsConfiguration("/**", config);
+
+		FilterRegistrationBean bean = new FilterRegistrationBean(new CorsFilter(source));
+		bean.setOrder(0);
+		return bean;
+	}
+
+	@Override
+	protected void configure(HttpSecurity http) throws Exception {
+		super.configure(http);
 		final String[] staticResources = {
 				"/css/**",
 				"/images/**",
@@ -47,36 +63,16 @@ public class SpringSecurityConfiguration extends WebSecurityConfigurerAdapter {
 				"/scripts/**",
 				"/favicon.ico"
 		};
-		http.addFilterBefore(new LoginPageFilter(), UsernamePasswordAuthenticationFilter.class);
 
-		http.csrf().disable()   
-			.authorizeRequests()
-			.antMatchers(staticResources).permitAll()
-		    .antMatchers("/register*").permitAll()
+		http.csrf().disable().authorizeRequests()
+				.antMatchers("/register*").permitAll()
+            .antMatchers(staticResources).permitAll()
 		    .antMatchers("**/media/**").permitAll()
-		    .antMatchers("/login*").permitAll()
-			.antMatchers("/").permitAll()
-		    .antMatchers("/javax.faces.resource/**").permitAll()
-		    .antMatchers("/resetPassword*").permitAll()
-		    .antMatchers("/templates/**").denyAll()
-			.antMatchers(adminPages).hasRole("ADMIN")
-			.anyRequest()   
-            .authenticated()
-            .and()
-            .formLogin().permitAll()
-            .loginPage("/login")
-            .defaultSuccessUrl("/menu.xhtml",false)
-            .successHandler(authenticationSuccessHandler)
-            .and()
-            .addFilterAfter(new ChangePasswordFilter(userService),
-		            UsernamePasswordAuthenticationFilter.class)
-            .httpBasic();
-			http.headers()
-		    .frameOptions()
-		    .sameOrigin()
-		    .httpStrictTransportSecurity().disable().and().logout(logout->logout.logoutUrl("/logout")
-		                                                                        .logoutSuccessUrl("/login")
-		                                                                        .invalidateHttpSession(true).deleteCookies());
+				                          .antMatchers("/login*").permitAll()
+				                          .antMatchers("/").permitAll()
+				                          .antMatchers("/javax.faces.resource/**").permitAll()
+				                          .antMatchers("/resetPassword*").permitAll()
+				                          .antMatchers("/templates/**").denyAll()
+				                          .antMatchers("/**").hasRole("user");
 	}
-	
 }

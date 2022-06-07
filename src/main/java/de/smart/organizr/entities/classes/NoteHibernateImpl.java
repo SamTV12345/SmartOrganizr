@@ -5,6 +5,11 @@ import de.smart.organizr.entities.interfaces.Folder;
 import de.smart.organizr.entities.interfaces.Note;
 import de.smart.organizr.entities.interfaces.User;
 import de.smart.organizr.validators.NoteValidator;
+import lombok.AllArgsConstructor;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import javax.persistence.*;
 import java.io.Serializable;
@@ -13,52 +18,24 @@ import java.util.Objects;
 
 @Entity
 @DiscriminatorValue("Note")
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@EqualsAndHashCode(callSuper = true)
 public class NoteHibernateImpl extends ElementHibernateImpl implements Note, Serializable {
 	private  String title;
 	private  Author author;
-
-
-	protected NoteHibernateImpl(){
-	}
-
-	public NoteHibernateImpl(final String title, final String description,
-	                         final Author author, final User creator) {
-		this(title,description,Calendar.getInstance(), author, creator);
-	}
-
-	public NoteHibernateImpl(final String title, final String description,final Calendar creationDate,
-	                         final Author author, final User creator) {
-		super("Element",creationDate, description, creator);
-		setTitle(title);
-		setAuthor(author);
-	}
+	@Column(columnDefinition = "integer default 0")
+	private int numberOfPages;
 
 	public NoteHibernateImpl(final Calendar creationDate, final int id,
 	                         final Folder parent, final String description,
-	                         final User creator, final String title, final Author author) {
+	                         final User creator, final String title, final Author author,  final int numberOfPages) {
 		super(creationDate, id, "Element", parent, description, creator);
 		setTitle(title);
+		setNumberOfPages(numberOfPages);
 		setAuthor(author);
-	}
-
-	@Override
-	public boolean equals(final Object o) {
-		if (this == o) {
-			return true;
-		}
-		if (o == null || getClass() != o.getClass()) {
-			return false;
-		}
-		if (!super.equals(o)) {
-			return false;
-		}
-		final NoteHibernateImpl that = (NoteHibernateImpl) o;
-		return Objects.equals(title, that.title) && Objects.equals(author, that.author);
-	}
-
-	@Override
-	public int hashCode() {
-		return Objects.hash(super.hashCode(), title, author);
 	}
 
 	@Override
@@ -87,14 +64,13 @@ public class NoteHibernateImpl extends ElementHibernateImpl implements Note, Ser
 
 	@Override
 	public String toString() {
-		final StringBuilder sb = new StringBuilder();
-		return sb.append("\nTitel:\t")
-		         .append(getTitle())
-		         .append("\n"+"Beschreibung\t")
-		         .append(getDescription())
-		         .append("\n"+"Enthaltende Ordner:\t")
-		         .append(getParent().getName())
-		         .append(getAuthor().toString()).toString();
+		return "\nTitel:\t" +
+				getTitle() +
+				"\n" + "Beschreibung\t" +
+				getDescription() +
+				"\n" + "Enthaltende Ordner:\t" +
+				getParent().getName() +
+				getAuthor().toString();
 
 	}
 }

@@ -18,7 +18,7 @@ public final class NoPermissionException extends RuntimeException {
 	 * constructor for the NoPermissionException
 	 * @param message Message to be output when the exception occurs.
 	 */
-	private NoPermissionException(final String message) {
+	public NoPermissionException(final String message) {
 		super(message);
 	}
 

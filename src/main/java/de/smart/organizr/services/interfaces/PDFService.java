@@ -53,4 +53,6 @@ public interface PDFService {
 	 * @throws IOException if during saving error occurs
 	 */
 	void generateQrCodeForEveryNote(Folder folder) throws DocumentException, IOException;
+
+	void generateQrCodeForEveryPageNote(Folder folder) throws DocumentException, IOException;
 }

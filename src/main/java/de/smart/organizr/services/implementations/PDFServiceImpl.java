@@ -5,10 +5,13 @@ import com.itextpdf.text.Font;
 import com.itextpdf.text.Image;
 import com.itextpdf.text.pdf.PdfPTable;
 import com.itextpdf.text.pdf.PdfWriter;
+import de.smart.organizr.entities.classes.NoteHibernateImpl;
 import de.smart.organizr.entities.interfaces.Folder;
 import de.smart.organizr.entities.interfaces.Note;
+import de.smart.organizr.entities.interfaces.Element;
 import de.smart.organizr.services.interfaces.PDFService;
 import de.smart.organizr.utils.BarCodeUtils;
+import lombok.extern.java.Log;
 import org.primefaces.model.file.UploadedFile;
 
 import javax.imageio.ImageIO;
@@ -16,7 +19,12 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.*;
 import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
+@Log
 public class PDFServiceImpl implements PDFService {
 	private static final String PATH_TO_MEDIA_FOLDER = "media/";
 	private static final String PATH_TO_GENQRCODE_FOLDER = "genQRCode/";
@@ -38,6 +46,7 @@ public class PDFServiceImpl implements PDFService {
 			folder.mkdir();
 		}
 	}
+
 	@Override
 	public void writePDF(final UploadedFile uploadedFile, final Note note) throws IOException {
 		final File mediaFolder = new File(PATH_TO_MEDIA_FOLDER);
@@ -95,7 +104,19 @@ public class PDFServiceImpl implements PDFService {
 		addTitlePage(document, folder);
 		addContent(document, folder);
 		document.close();
+	}
 
+	@Override
+	public void generateQrCodeForEveryPageNote(final Folder folder) throws DocumentException, IOException {
+		final File qrGenCodeFolder = new File(PATH_TO_GENQRCODE_FOLDER);
+		checkIfDirectoryExistAndCreate(qrGenCodeFolder);
+		final Document document = new Document();
+		PdfWriter.getInstance(document, new FileOutputStream(PATH_TO_GENQRCODE_FOLDER+folder.getId()+"page"+".pdf"));
+		document.open();
+		addMetaData(document, folder);
+		addTitlePage(document, folder);
+		addMinContent(document, folder);
+		document.close();
 	}
 
 	private static void addMetaData(final Document document, final Folder folder) {
@@ -144,6 +165,38 @@ public class PDFServiceImpl implements PDFService {
 				final Image image = Image.getInstance(qrCodeData);
 				irdTable.addCell(image);
 			}
+		document.add(irdTable);
+		document.close();
+	}
+
+	private static void addMinContent(final Document document, final Folder folder) throws DocumentException,
+			IOException {
+		System.out.println("Created"+ folder.getId()+".pdf");
+		final java.util.List<byte[]> qrCodeImages=new ArrayList<>();
+
+		final ByteArrayOutputStream baos = new ByteArrayOutputStream();
+		ImageIO.write(standardImage, "jpg", baos);
+
+				final List<Element> notes =
+						folder.getElements().stream().filter(element -> element instanceof NoteHibernateImpl).sorted(
+								Comparator.comparing(n -> ((NoteHibernateImpl) n).getTitle())).toList();
+		for (final de.smart.organizr.entities.interfaces.Element element : notes) {
+			if (element instanceof Note nodeContainedInFolder) {
+				IntStream.range(0,nodeContainedInFolder.getNumberOfPages()).forEach(num->
+						qrCodeImages.add(generateQRCodeForOneNode(nodeContainedInFolder)));
+			}
+		}
+		System.out.println(qrCodeImages.size());
+		final long columns = Math.max(10,Math.round(qrCodeImages.size() / 10.));
+		final PdfPTable irdTable = new PdfPTable(Math.toIntExact(columns));
+		while (qrCodeImages.size()%columns!=0){
+			qrCodeImages.add(baos.toByteArray());
+		}
+		for (final byte[] qrCodeData : qrCodeImages) {
+
+			final Image image = Image.getInstance(qrCodeData);
+			irdTable.addCell(image);
+		}
 		document.add(irdTable);
 		document.close();
 	}

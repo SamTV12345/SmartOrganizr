@@ -11,7 +11,7 @@ import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 
-public class BarCodeUtils {
+public final class BarCodeUtils {
 	private BarCodeUtils(){
 
 	}

@@ -14,6 +14,8 @@ import de.smart.organizr.services.interfaces.PDFService;
 import de.smart.organizr.utils.BarCodeUtils;
 import de.smart.organizr.utils.JsfUtils;
 import de.smart.organizr.utils.NavigationUtils;
+import lombok.Getter;
+import lombok.Setter;
 import org.primefaces.model.DefaultStreamedContent;
 import org.primefaces.model.file.UploadedFile;
 
@@ -26,6 +28,8 @@ import java.util.Calendar;
 import java.util.Collection;
 import java.util.List;
 
+@Setter
+@Getter
 public class EditNoteView {
 
 	private final NoteService noteService;
@@ -36,6 +40,7 @@ public class EditNoteView {
 	private Folder currentFolder;
 	private String title;
 	private String description;
+	private int numberOfPages;
 	private Author author;
 	private int id;
 	private Calendar calendar;
@@ -70,6 +75,7 @@ public class EditNoteView {
 			this.calendar = savedNote.getCreationDate();
 			setId(savedNote.getId());
 			currentFolder = savedNote.getParent();
+			setNumberOfPages(savedNote.getNumberOfPages());
 		}
 
 		if(checkIfPDFForNoteIsAvailable()) {
@@ -111,7 +117,7 @@ public class EditNoteView {
 			}
 
 			final Note noteToBeSaved = new NoteHibernateImpl(calendar, id, currentFolder, description,
-					userBean.getUser(), title, author);
+					userBean.getUser(), title, author, numberOfPages);
 			noteToBeSaved.setParent(currentFolder);
 			final Note savedNote = noteService.saveNote(noteToBeSaved);
 			currentFolder.getElements().add(noteToBeSaved);
@@ -159,7 +165,7 @@ public class EditNoteView {
 	public byte[] getCurrentStatusOfNote(){
 		try {
 			return BarCodeUtils.generateQRCodeByteArray(new NoteHibernateImpl(calendar, id, currentFolder, description,
-					userBean.getUser(), title, author).toString());
+					userBean.getUser(), title, author, numberOfPages).toString());
 		}
 		catch (final NoteException noteException){
 			JsfUtils.putErrorMessage(noteException.getLocalizedMessage());

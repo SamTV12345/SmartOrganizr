@@ -8,14 +8,19 @@ import javax.faces.context.ExternalContext;
 import javax.faces.context.FacesContext;
 import javax.servlet.ServletContext;
 
+import de.smart.organizr.entities.interfaces.Element;
 import de.smart.organizr.entities.interfaces.User;
 import de.smart.organizr.enums.Role;
 import de.smart.organizr.enums.Version;
+import lombok.Getter;
+import lombok.Setter;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 import de.smart.organizr.services.interfaces.UserService;
 
 
+@Getter
+@Setter
 public class UserBean {
 
 	private final UserService userService;
@@ -24,6 +29,7 @@ public class UserBean {
 	private Optional<User> optionalUser;
 	private String locale;
 	private Version version;
+
 
 	public UserBean(final UserService userService, final ServletContext servletContext) {
 		this.userService = userService;

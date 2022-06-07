@@ -4,6 +4,8 @@ import de.smart.organizr.services.interfaces.*;
 import de.smart.organizr.view.*;
 import de.smart.organizr.view.converters.AuthorConverter;
 import de.smart.organizr.view.converters.FolderConverter;
+import org.keycloak.adapters.KeycloakConfigResolver;
+import org.keycloak.adapters.springboot.KeycloakSpringBootConfigResolver;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.boot.web.servlet.ServletContextInitializer;
@@ -48,6 +50,11 @@ public class ViewConfiguration {
 	@Scope("view")
 	public EditUserView editUserView() {
 		return new EditUserView(userService);
+	}
+
+	@Bean
+	public KeycloakConfigResolver keycloakConfigResolver() {
+		return new KeycloakSpringBootConfigResolver();
 	}
 
 	@Bean

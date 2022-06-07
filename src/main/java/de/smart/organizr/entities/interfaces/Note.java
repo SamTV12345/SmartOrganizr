@@ -31,4 +31,8 @@ public interface Note extends Element{
 	 * @param author the author
 	 */
 	void setAuthor(Author author);
+
+
+	int getNumberOfPages();
+	void setNumberOfPages(int numberOfPages);
 }

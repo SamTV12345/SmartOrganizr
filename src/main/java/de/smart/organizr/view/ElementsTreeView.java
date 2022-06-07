@@ -83,7 +83,6 @@ public class ElementsTreeView implements Serializable {
 	}
 
 	public String navigateToEditElement(final Element elementToBeEdited){
-
 		if(elementToBeEdited instanceof Folder folder) {
 			JsfUtils.putFolderIntoFlash(folder);
 		}
@@ -119,7 +118,11 @@ public class ElementsTreeView implements Serializable {
 	}
 	public void generateQrCodeForEveryNote(final Folder folder) throws DocumentException, IOException {
 		pdfService.generateQrCodeForEveryNote(folder);
+	}
 
+
+	public void generateQrCodeForEveryPage(final Folder folder) throws DocumentException, IOException {
+		pdfService.generateQrCodeForEveryPageNote(folder);
 	}
 
 	public void onNodeCollapse(final NodeCollapseEvent event) {
