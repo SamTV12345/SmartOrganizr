@@ -16,5 +16,3 @@ services:
       - MYSQL_DATABASE=smartOrganizr #Datenbank Name
       - MYSQL_USER=smartOrganizrUser #SQL Nutzername
       - MYSQL_INITDB_SKIP_TZINFO=1
-    networks:
-      - smartOrganizr
