@@ -5,7 +5,7 @@ services:
     container_name: smartOrganizrdb
     restart: unless-stopped
     ports:
-      - "3306:3006"
+      - "3306:3306"
     volumes:
       - /etc/localtime:/etc/localtime:ro
       - /etc/timezone:/etc/timezone:ro
