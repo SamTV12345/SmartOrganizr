@@ -184,7 +184,6 @@ public class UserBean {
 
 
     public String getUsername() {
-        checkUserLoginStatus();
         return optionalUser.get().getUsername();
     }
 
