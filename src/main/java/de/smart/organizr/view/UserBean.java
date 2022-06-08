@@ -81,7 +81,7 @@ public class UserBean {
                 initialized = true;
             }
            if(optionalUser.isEmpty()) {
-               userService.addUser(new UserHibernateImpl(userId, getUsername(), "saga", false));
+               userService.addUser(new UserHibernateImpl(userId, extractUsernameFromSecurityContext(), "saga", false));
            }
         }
     }
@@ -184,6 +184,9 @@ public class UserBean {
 
 
     public String getUsername() {
+        if(optionalUser.isEmpty()){
+            return null;
+        }
         return optionalUser.get().getUsername();
     }
 
