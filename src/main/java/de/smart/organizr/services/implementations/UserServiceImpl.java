@@ -11,6 +11,7 @@ import de.smart.organizr.exceptions.NoPermissionException;
 import de.smart.organizr.exceptions.UserException;
 import de.smart.organizr.validators.PasswordValidator;
 import de.smart.organizr.services.interfaces.UserService;
+import org.springframework.transaction.annotation.Transactional;
 
 
 public class UserServiceImpl implements UserService {
@@ -23,12 +24,11 @@ public class UserServiceImpl implements UserService {
 
 	@Override
 	public User addUser(final User user) {
-		PasswordValidator.checkPassword(user.getPassword());
-		return userDao.addUser((UserHibernateImpl) user);
+		return userDao.addUser(user);
 	}
 
 	@Override
-	public void removeUser(final int userId) {
+	public void removeUser(final String userId) {
 		userDao.removeUser(userId);
 	}
 
@@ -43,59 +43,25 @@ public class UserServiceImpl implements UserService {
 	}
 
 	@Override
-	public Optional<User> findUserById(final int userId) {
+	public Optional<User> findUserById(final String userId) {
 		return userDao.findUserById(userId);
-	}
-
-	@Override
-	public User changePassword(final int userId, final String oldPassword, final String newPassword) {
-		PasswordValidator.checkPassword(newPassword);
-
-		final Optional<User> optionalUser = userDao.findUserById(userId);
-		if (optionalUser.isPresent()) {
-			final User userHibernateImpl = optionalUser.get();
-			final String oldPasswordHash = userHibernateImpl.getPassword();
-			final boolean passwordMatches =
-					oldPassword.equals(oldPasswordHash);
-
-			if (!passwordMatches) {
-				throw NoPermissionException.createWrongPasswordException();
-			}
-			userHibernateImpl.setPassword(newPassword);
-			return userDao.saveUser((UserHibernateImpl) userHibernateImpl);
-		}
-		throw UserException.createUnknownUserException();
 	}
 
 	@Override
 	public User saveUser(final User userHibernateImpl){
 		final Optional<User> optionalUser = userDao.findUserById(userHibernateImpl.getUserId());
 		if(optionalUser.isPresent()){
-			userHibernateImpl.setPassword(optionalUser.get().getPassword());
-			return userDao.saveUser((UserHibernateImpl) userHibernateImpl);
+			return userDao.saveUser(userHibernateImpl);
 		}
 		throw UserException.createUnknownUserException();
 	}
 
-
-	@Override
-	public User changePasswordRequired(final long userId, final String newPassword){
-		final Optional<User> user = findUserById(Math.toIntExact(userId));
-		if (user.isEmpty()){
-			throw UserException.createUnknownUserException();
+	@Transactional
+	public User updateUser(final String userId, final String username){
+		final User user = userDao.findUserById(userId).orElseThrow(()->new UserException("Not found"));
+		if(user.getUsername() == null || !user.getUsername().equals(username)){
+			user.setUsername(username);
 		}
-		final User userHibernateImpl = user.get();
-		final User
-				savedUser = changePassword(user.get().getUserId(), userHibernateImpl.getPassword(),newPassword);
-		savedUser.setPasswordResetRequired(false);
-		return saveUser(savedUser);
+		return user;
 	}
-
-	@Override
-	public int countAdmins() {
-		return (int) findAllUsers().stream()
-				.filter(u -> u.getRole() == Role.ADMIN)
-				.count();
-	}
-
 }

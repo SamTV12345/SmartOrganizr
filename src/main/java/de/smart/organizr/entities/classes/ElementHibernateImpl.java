@@ -20,16 +20,12 @@ public class ElementHibernateImpl implements Element, Serializable {
 	private Calendar creationDate;
 	private int id;
 	private String name;
-	private static final String DEFAULT_NAME = "Element";
-	private static final User user = new UserHibernateImpl("STANDARD","STANDARD", "standard@email.de",
-			Constants.DEFAULT_THEME, true);
 	@JsonBackReference
 	private Folder parent;
 	private String description;
 	private User creator;
 
 	public ElementHibernateImpl(){
-		this(DEFAULT_NAME, Calendar.getInstance(), DEFAULT_NAME, user);
 	}
 
 	protected ElementHibernateImpl(final String name, final Calendar creationDate, final String description,

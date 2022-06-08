@@ -28,7 +28,7 @@ public class FolderServiceImpl implements FolderService {
 	}
 
 	@Override
-	public List<Folder> findAllFolders(final int userId){
+	public List<Folder> findAllFolders(final String userId){
 		final Optional<User> optionalUser = userDao.findUserById(userId);
 		if(optionalUser.isEmpty()){
 			throw UserException.createUnknownUserException();
@@ -47,7 +47,7 @@ public class FolderServiceImpl implements FolderService {
 	}
 
 	@Override
-	public Collection<Folder> findAllParentFolders(final int userId) {
+	public Collection<Folder> findAllParentFolders(final String userId) {
 		return folderDao.findAllParentFolders(userId);
 	}
 

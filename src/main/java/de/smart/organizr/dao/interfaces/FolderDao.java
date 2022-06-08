@@ -3,7 +3,6 @@ package de.smart.organizr.dao.interfaces;
 import de.smart.organizr.entities.interfaces.Folder;
 import de.smart.organizr.entities.interfaces.User;
 
-import java.util.Collection;
 import java.util.Optional;
 import java.util.Set;
 
@@ -27,7 +26,7 @@ public interface FolderDao {
 	 * @param userId the user id
 	 * @return a set of folders
 	 */
-	Set<Folder> findAllParentFolders(final int userId);
+	Set<Folder> findAllParentFolders(final String userId);
 
 	/**
 	 * Finds a folder by id

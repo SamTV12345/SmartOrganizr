@@ -19,7 +19,7 @@ public interface AuthorService {
 	 * @param userId the user id
 	 * @return all authors that were created by the user
 	 */
-	List<Author> findAllAuthorsByUser(int userId);
+	List<Author> findAllAuthorsByUser(String userId);
 
 	/**
 	 * Finds the author by id

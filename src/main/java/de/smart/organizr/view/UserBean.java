@@ -1,7 +1,17 @@
 package de.smart.organizr.view;
 
-import java.io.IOException;
-import java.util.Optional;
+import de.smart.organizr.entities.classes.UserHibernateImpl;
+import de.smart.organizr.entities.interfaces.User;
+import de.smart.organizr.enums.Version;
+import de.smart.organizr.services.interfaces.UserService;
+import lombok.Getter;
+import lombok.Setter;
+import org.keycloak.KeycloakPrincipal;
+import org.keycloak.KeycloakSecurityContext;
+import org.keycloak.representations.AccessToken;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import javax.annotation.PostConstruct;
 import javax.faces.context.ExternalContext;
@@ -9,183 +19,191 @@ import javax.faces.context.FacesContext;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
-
-import de.smart.organizr.entities.interfaces.Element;
-import de.smart.organizr.entities.interfaces.User;
-import de.smart.organizr.enums.Role;
-import de.smart.organizr.enums.Version;
-import lombok.Getter;
-import lombok.Setter;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.core.context.SecurityContextHolder;
-
-import de.smart.organizr.services.interfaces.UserService;
-import org.springframework.web.context.request.RequestContextHolder;
-import org.springframework.web.context.request.ServletRequestAttributes;
+import java.io.IOException;
+import java.util.Optional;
 
 
 @Getter
-@Setter
 public class UserBean {
 
-	private final UserService userService;
-	private final ServletContext servletContext;
-	private String localeCode;
-	private Optional<User> optionalUser;
-	private String locale;
-	private Version version;
-	@Value("${keycloak.realm}")
-	private String realm;
-	@Value("${keycloak.auth-server-url}")
-	private String keyCloakURL;
+    private final UserService userService;
+    private final ServletContext servletContext;
+    private String localeCode;
+    private Optional<User> optionalUser;
+    private String locale;
+    private Version version;
+    @Value("${keycloak.realm}")
+    private String realm;
+    @Value("${keycloak.auth-server-url}")
+    private String keyCloakURL;
+    private boolean admin;
+    private boolean initialized = false;
 
-	@Autowired
-	private HttpServletRequest request;
+    public UserBean(final UserService userService, final ServletContext servletContext) {
+        this.userService = userService;
+        this.servletContext = servletContext;
+    }
 
-	public UserBean(final UserService userService, final ServletContext servletContext) {
-		this.userService = userService;
-		this.servletContext = servletContext;
-	}
+    @PostConstruct
+    public void initialize() {
+        localeCode = FacesContext.getCurrentInstance().getExternalContext().getRequestLocale().getLanguage();
+        optionalUser = Optional.empty();
+    }
 
-	@PostConstruct
-	public void initialize() {
-		localeCode = FacesContext.getCurrentInstance().getExternalContext().getRequestLocale().getLanguage();
-		optionalUser = Optional.empty();
-	}
-	
-	public String getLocaleCode() {
-		return localeCode;
-	}
-	
-	public void setLocaleCode(final String localeCode) {
-		this.localeCode = localeCode;
-	}
-	
-	/**
-	 * Überprüft, ob zwischenzeitlich ein Benutzer angemeldet wurde.
-	 * 
-	 * Wenn es eine Anmeldung gab, wird diese in den Optional übertragen. Eine Abmeldung ist nicht erforderlich,
-	 * weil beim Abmelden die Session automatisch beendet wird.
-	 */
-	private void checkUserLoginStatus() {
-		if (optionalUser.isPresent()) {
-			return;
-		}
+    public String getLocaleCode() {
+        return localeCode;
+    }
 
-		final String username = SecurityContextHolder.getContext().getAuthentication().getName();
+    public void setLocaleCode(final String localeCode) {
+        this.localeCode = localeCode;
+    }
 
-		if (username != null) {
-			final Optional<User> optionalUser = userService.findUserByUserName(username);
+    /**
+     * Überprüft, ob zwischenzeitlich ein Benutzer angemeldet wurde.
+     * <p>
+     * Wenn es eine Anmeldung gab, wird diese in den Optional übertragen. Eine Abmeldung ist nicht erforderlich,
+     * weil beim Abmelden die Session automatisch beendet wird.
+     */
+    private synchronized void checkUserLoginStatus() {
+        if (optionalUser.isPresent()) {
+            return;
+        }
 
-			optionalUser.ifPresent(user -> {
-				this.optionalUser = Optional.of(user);
-			});
-		}
-	}
-	
-	public User getUser() {
-		checkUserLoginStatus();
-		return optionalUser.get();
-	}
-	
-	public boolean isLoggedIn() {
-		checkUserLoginStatus();
-		return optionalUser.isPresent();
-	}
+        final String userId = SecurityContextHolder.getContext().getAuthentication().getName();
 
-	public boolean isPasswordChangeRequired(){
-		return optionalUser.get().isPasswordResetRequired();
-	}
-	
-	public boolean isAdmin() {
-		checkUserLoginStatus();
-		return optionalUser.get().getRole() == Role.ADMIN;
-	}
+        if (userId != null) {
+            final Optional<User> optionalUser = userService.findUserByUserName(userId);
 
-	public Version getVersion() {
-		return version;
-	}
+            optionalUser.ifPresent(user -> this.optionalUser = Optional.of(user));
+            if(!initialized && optionalUser.isPresent()) {
+                admin = initAdmin();
+                userService.updateUser(userId, extractUsernameFromSecurityContext());
+                initialized = true;
+            }
+           if(optionalUser.isEmpty()) {
+               userService.addUser(new UserHibernateImpl(userId, getUsername(), "saga", false));
+           }
+        }
+    }
 
-	public void setVersion(final Version version) {
-		this.version = version;
-	}
+    public User getUser() {
+        checkUserLoginStatus();
+        return optionalUser.get();
+    }
 
-	public void toggleVersion(){
-		if (version == Version.OLD_VERSION){
-			version = Version.NEW_VERSION;
-		}
-		else{
-			version = Version.OLD_VERSION;
-		}
-	}
+    public boolean isLoggedIn() {
+        checkUserLoginStatus();
+        return optionalUser.isPresent();
+    }
 
-	public void toggleSidebar() {
-		checkUserLoginStatus();
-		optionalUser.orElseThrow().setSideBarCollapsed(!optionalUser.orElseThrow().isSideBarCollapsed());
-	}
+    public Version getVersion() {
+        return version;
+    }
 
-	public String getSidebarClass() {
-		checkUserLoginStatus();
-		return optionalUser.orElseThrow().isSideBarCollapsed() ? "sidebar-collapsed" : "sidebar-expanded";
-	}
+    public void setVersion(final Version version) {
+        this.version = version;
+    }
 
-	public boolean isSidebarCollapsed() {
-		checkUserLoginStatus();
-		return optionalUser.orElseThrow().isSideBarCollapsed();
-	}
+    public void toggleVersion() {
+        if (version == Version.OLD_VERSION) {
+            version = Version.NEW_VERSION;
+        } else {
+            version = Version.OLD_VERSION;
+        }
+    }
 
-	public boolean isOldVersion(){
-		if (version ==null) {
-			return false;
-		}
-		return version == Version.OLD_VERSION;
-	}
+    public void toggleSidebar() {
+        checkUserLoginStatus();
+        optionalUser.orElseThrow().setSideBarCollapsed(!optionalUser.orElseThrow().isSideBarCollapsed());
+    }
 
-	public void setOptionalUser(final User savedUser) {
-		this.optionalUser = Optional.of(savedUser);
-	}
+    public String getSidebarClass() {
+        checkUserLoginStatus();
+        return optionalUser.orElseThrow().isSideBarCollapsed() ? "sidebar-collapsed" : "sidebar-expanded";
+    }
 
-	public String getLocale() {
-		return locale;
-	}
+    public boolean isSidebarCollapsed() {
+        checkUserLoginStatus();
+        return optionalUser.orElseThrow().isSideBarCollapsed();
+    }
 
-	public void setLocale(final String locale) {
-		this.locale = locale;
-	}
+    public boolean isOldVersion() {
+        if (version == null) {
+            return false;
+        }
+        return version == Version.OLD_VERSION;
+    }
 
-	public String getTheme() {
-		checkUserLoginStatus();
-		return optionalUser.orElseThrow().getSelectedTheme();
-	}
+    public void setOptionalUser(final User savedUser) {
+        this.optionalUser = Optional.of(savedUser);
+    }
 
-	public void setTheme(final String theme) {
-		checkUserLoginStatus();
-		optionalUser.orElseThrow().setSelectedTheme(theme);
-	}
+    public String getLocale() {
+        return locale;
+    }
 
-	public void setSidebarCollapsed(final boolean sidebarCollapsed) {
-		checkUserLoginStatus();
-		optionalUser.orElseThrow().setSideBarCollapsed(sidebarCollapsed);
-	}
+    public void setLocale(final String locale) {
+        this.locale = locale;
+    }
 
-	public void logOut() throws IOException, ServletException {
-		userService.saveUser(getUser());
-		logout();
-	}
+    public String getTheme() {
+        checkUserLoginStatus();
+        return optionalUser.orElseThrow().getSelectedTheme();
+    }
 
-	public ExternalContext currentExternalContext() {
-		if (FacesContext.getCurrentInstance() == null) {
-			throw new RuntimeException("message here ");
-		} else {
-			return FacesContext.getCurrentInstance().getExternalContext();
-		}
-	}
+    public void setTheme(final String theme) {
+        checkUserLoginStatus();
+        optionalUser.orElseThrow().setSelectedTheme(theme);
+    }
 
-	public void logout() throws IOException, ServletException {
-		final HttpServletRequest request = (HttpServletRequest) currentExternalContext().getRequest();
-		final ExternalContext externalContext = currentExternalContext();
-		request.logout();
-		externalContext.redirect(externalContext.getRequestContextPath());
-	}
+    public void setSidebarCollapsed(final boolean sidebarCollapsed) {
+        checkUserLoginStatus();
+        optionalUser.orElseThrow().setSideBarCollapsed(sidebarCollapsed);
+    }
+
+    public void logOut() throws IOException, ServletException {
+        userService.saveUser(getUser());
+        logout();
+    }
+
+    public ExternalContext currentExternalContext() {
+        if (FacesContext.getCurrentInstance() == null) {
+            throw new RuntimeException("message here ");
+        } else {
+            return FacesContext.getCurrentInstance().getExternalContext();
+        }
+    }
+
+    public void logout() throws IOException, ServletException {
+        userService.saveUser(optionalUser.get());
+        final HttpServletRequest request = (HttpServletRequest) currentExternalContext().getRequest();
+        final ExternalContext externalContext = currentExternalContext();
+        request.logout();
+        externalContext.redirect(externalContext.getRequestContextPath());
+    }
+
+
+    public String getUsername() {
+        checkUserLoginStatus();
+        return optionalUser.get().getUsername();
+    }
+
+    public String extractUsernameFromSecurityContext(){
+        final SecurityContext context = SecurityContextHolder.getContext();
+        final KeycloakPrincipal<KeycloakSecurityContext> keycloakPrincipal = (KeycloakPrincipal<KeycloakSecurityContext>)
+                context.getAuthentication().getPrincipal();
+        return keycloakPrincipal.getKeycloakSecurityContext().getToken().getPreferredUsername();
+    }
+
+
+    public boolean initAdmin() {
+        final SecurityContext context = SecurityContextHolder.getContext();
+        final KeycloakPrincipal<KeycloakSecurityContext> keycloakPrincipal = (KeycloakPrincipal<KeycloakSecurityContext>)
+                context.getAuthentication().getPrincipal();
+        KeycloakSecurityContext session = keycloakPrincipal.getKeycloakSecurityContext();
+        AccessToken accessToken = session.getToken();
+        AccessToken.Access realmAccess = accessToken.getRealmAccess();
+
+       return realmAccess.getRoles().contains("admin");
+    }
 }

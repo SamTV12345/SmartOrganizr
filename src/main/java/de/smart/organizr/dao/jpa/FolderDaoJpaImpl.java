@@ -47,7 +47,7 @@ public class FolderDaoJpaImpl implements FolderDao {
 	 * @return the parent/top level folders
 	 */
 	@Override
-	public Set<Folder> findAllParentFolders(final int userId) {
+	public Set<Folder> findAllParentFolders(final String userId) {
 		return folderRepository.findAllParentFolders(userId);
 	}
 

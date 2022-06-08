@@ -16,13 +16,13 @@ public interface UserDao {
 	 */
 	User addUser(User user);
 
-	void removeUser(int userId);
+	void removeUser(String userId);
 
 	List<User> findAllUsers();
 
 	Optional<User> findUserByUserName(String userName);
 
-	Optional<User> findUserById(int userId);
+	Optional<User> findUserById(String userId);
 
 	User saveUser(User userHibernateImpl);
 }

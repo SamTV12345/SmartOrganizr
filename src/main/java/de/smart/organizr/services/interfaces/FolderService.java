@@ -13,7 +13,7 @@ public interface FolderService {
 	 * @param userId the user id
 	 * @return a collection of folders
 	 */
-	List<Folder> findAllFolders(int userId);
+	List<Folder> findAllFolders(String userId);
 
 	/**
 	 * Finds a folder by id
@@ -34,7 +34,7 @@ public interface FolderService {
 	 * @param userId the user id
 	 * @return a collection of folders
 	 */
-	Collection<Folder> findAllParentFolders(int userId);
+	Collection<Folder> findAllParentFolders(String userId);
 
 	/**
 	 * Finds folder by user and name

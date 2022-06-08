@@ -28,7 +28,7 @@ public class AuthorServiceImpl implements AuthorService {
 	}
 
 	@Override
-	public List<Author> findAllAuthorsByUser(final int userId){
+	public List<Author> findAllAuthorsByUser(final String userId){
 		final Optional<User> optionalUser = userDao.findUserById(userId);
 		if(optionalUser.isEmpty()){
 			throw UserException.createUnknownUserException();
@@ -45,7 +45,7 @@ public class AuthorServiceImpl implements AuthorService {
 	public Optional<Author> findAuthorByUserAndName(final User user, final String authorName){
 		final Collection<Author> allAuthorsOfUser = findAllAuthorsByUser(user.getUserId());
 		final List<Author> namesOfAuthors =
-				allAuthorsOfUser.stream().filter(author->author.getName().equals(authorName)).collect(Collectors.toList());
+				allAuthorsOfUser.stream().filter(author -> author.getName().equals(authorName)).toList();
 		if(namesOfAuthors.isEmpty()){
 			return Optional.empty();
 		}

@@ -50,25 +50,6 @@ public class ViewConfiguration {
 	public KeycloakConfigResolver keycloakConfigResolver() {
 		return new KeycloakSpringBootConfigResolver();
 	}
-	
-	@Bean
-	@Scope("request")
-	@Autowired
-	public ChangePasswordView changePasswordView(final UserBean userBean) {
-		return new ChangePasswordView(userService, userBean);
-	}
-
-	@Bean
-	@Scope("request")
-	public RegisterView registerView(){
-		return new RegisterView(userService);
-	}
-
-	@Bean
-	@Scope("request")
-	public ResetPasswordView resetPasswordView(){
-		return new ResetPasswordView(userService);
-	}
 
 	@Bean
 	public ServletContextInitializer initializer() {

@@ -58,7 +58,7 @@
 
 		<div class="header-field">
 				<p:commandButton icon="pi pi-sign-out" action="#{userBean.logOut()}" styleClass="header-button" />
-				<p:commandLink value="#{userBean.user.userName}" action="editProfile" />
+				<p:commandLink value="#{userBean.username}" action="editProfile" />
 		</div>
 
 	</div>
@@ -74,7 +74,8 @@
 							icon="pi pi-home" />
 				<p:menuitem value="#{labels['template.menu.manage-authors']}"
 							action="/viewAuthors.xhtml?faces-redirect=true" icon="pi pi-user"/>
-				<p:menuitem value="#{labels['template.menu.manage-users']}" action="/manageUsers?faces-redirect=true" icon="pi pi-users"/>
+					<p:menuitem value="#{labels['template.menu.manage-users']}" action="/manageUsers?faces-redirect=true" icon="pi pi-users"
+								rendered="#{userBean.admin}"/>
 				<p:menuitem value="#{labels['template.tree-view-folders']}"
 							action="/elementsTreeView?faces-redirect=true"
 							icon="pi pi-folder"  rendered="#{not userBean.oldVersion}"/>

@@ -51,18 +51,4 @@ public class ManageUsersView {
 		JsfUtils.putUserIntoFlash(userToEdit);
 		return "editUser";
 	}
-	
-	/**
-	 * Methode zum Formatieren der Rollen Admin und User
-	 * @param user Benutzer, dessen Rolle dann abgefragt wird
-	 * @return Rollen in Form von String-Werten
-	 */
-	public String roleFormatted(UserHibernateImpl user) {
-		if(user.getRole() == Role.ADMIN) {
-			return "Admin";
-		} else if(user.getRole() == Role.USER) {
-			return "User";
-		}
-		return "";
-	}
 }

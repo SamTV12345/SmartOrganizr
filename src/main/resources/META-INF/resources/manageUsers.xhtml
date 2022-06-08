@@ -18,15 +18,7 @@
 				</p:column>
 				
 				<p:column headerText="#{labels['manage-users.column.username']}">
-					<h:outputText value="#{user.userName}" />
-				</p:column>
-				
-				<p:column headerText="#{labels['manage-users.column.email']}">
-					<h:outputText value="#{user.emailAddress}" />
-				</p:column>
-				
-				<p:column headerText="#{labels['manage-users.column.role']}">
-					<h:outputText value="#{manageUsersView.roleFormatted(user)}" />
+					<h:outputText value="#{user.username}" />
 				</p:column>
 				
 				<p:column headerText="#{labels['manage-users.column.actions']}">

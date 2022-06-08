@@ -37,7 +37,7 @@ public class UserDaoJpaImpl implements UserDao {
 	 * @param userId the user id to be removed
 	 */
 	@Override
-	public void removeUser(final int userId) {
+	public void removeUser(final String userId) {
 		userRepository.deleteById(userId);
 	}
 
@@ -59,7 +59,7 @@ public class UserDaoJpaImpl implements UserDao {
 	 */
 	@Override
 	public Optional<User> findUserByUserName(final String userName) {
-		final Optional<UserHibernateImpl> optionalUserHibernate = userRepository.findByUserName(userName);
+		final Optional<UserHibernateImpl> optionalUserHibernate = userRepository.findByUserId(userName);
 		if(optionalUserHibernate.isEmpty()){
 			return Optional.empty();
 		}
@@ -75,7 +75,7 @@ public class UserDaoJpaImpl implements UserDao {
 	 * @return an optional of the found user
 	 */
 	@Override
-	public Optional<User> findUserById(final int userId) {
+	public Optional<User> findUserById(final String userId) {
 		final Optional<UserHibernateImpl> optionalUser = userRepository.findByUserId(userId);
 		if(optionalUser.isEmpty()){
 			return Optional.empty();
