@@ -58,7 +58,7 @@
 
 		<div class="header-field">
 				<p:commandButton icon="pi pi-sign-out" action="#{userBean.logOut()}" styleClass="header-button" />
-				<p:commandLink value="#{userBean.username}" action="editProfile" />
+				<p:link value="#{userBean.username}" href="#{userBean.getAccountConsoleLink()}" target="_blank" />
 		</div>
 
 	</div>

@@ -5,7 +5,6 @@ import de.smart.organizr.entities.interfaces.User;
 import de.smart.organizr.enums.Version;
 import de.smart.organizr.services.interfaces.UserService;
 import lombok.Getter;
-import lombok.Setter;
 import org.keycloak.KeycloakPrincipal;
 import org.keycloak.KeycloakSecurityContext;
 import org.keycloak.representations.AccessToken;
@@ -38,6 +37,7 @@ public class UserBean {
     private String keyCloakURL;
     private boolean admin;
     private boolean initialized = false;
+
 
     public UserBean(final UserService userService, final ServletContext servletContext) {
         this.userService = userService;
@@ -122,6 +122,7 @@ public class UserBean {
         return optionalUser.orElseThrow().isSideBarCollapsed() ? "sidebar-collapsed" : "sidebar-expanded";
     }
 
+
     public boolean isSidebarCollapsed() {
         checkUserLoginStatus();
         return optionalUser.orElseThrow().isSideBarCollapsed();
@@ -132,18 +133,6 @@ public class UserBean {
             return false;
         }
         return version == Version.OLD_VERSION;
-    }
-
-    public void setOptionalUser(final User savedUser) {
-        this.optionalUser = Optional.of(savedUser);
-    }
-
-    public String getLocale() {
-        return locale;
-    }
-
-    public void setLocale(final String locale) {
-        this.locale = locale;
     }
 
     public String getTheme() {
@@ -188,6 +177,13 @@ public class UserBean {
             return null;
         }
         return optionalUser.get().getUsername();
+    }
+
+    public String getAccountConsoleLink(){
+        if(keyCloakURL.trim().endsWith("/")){
+            return keyCloakURL+"realms/"+realm+"/account";
+        }
+        return keyCloakURL+"/realms/"+realm+"/account";
     }
 
     public String extractUsernameFromSecurityContext(){
