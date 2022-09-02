@@ -140,6 +140,13 @@
 			<artifactId>springdoc-openapi-ui</artifactId>
 			<version>1.6.9</version>
 		</dependency>
+		<!-- https://mvnrepository.com/artifact/co.elastic.apm/apm-agent-attach -->
+		<dependency>
+			<groupId>co.elastic.apm</groupId>
+			<artifactId>apm-agent-attach</artifactId>
+			<version>1.32.0</version>
+			<scope>provided</scope>
+		</dependency>
 	</dependencies>
 
 	<dependencyManagement>
@@ -186,6 +193,9 @@
 							<KEYCLOAK_CREDENTIALS_SECRET>secret</KEYCLOAK_CREDENTIALS_SECRET>
 							<KEYCLOAK_SSL_REQUIRED>ssl-required</KEYCLOAK_SSL_REQUIRED>
 							<KEYCLOAK_RESOURCE>client-name</KEYCLOAK_RESOURCE>
+							<ELASTIC_APM_SERVICE_NAME>service-name</ELASTIC_APM_SERVICE_NAME>
+							<ELASTIC_APM_SERVER_URL>your-url</ELASTIC_APM_SERVER_URL>
+							<ELASTIC_APM_ENVIRONMENT>environment</ELASTIC_APM_ENVIRONMENT>
 						</environment>
 					</container>
 					<to>

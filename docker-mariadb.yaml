@@ -7,9 +7,7 @@ services:
     ports:
       - "3306:3306"
     volumes:
-      - /etc/localtime:/etc/localtime:ro
-      - /etc/timezone:/etc/timezone:ro
-      - /home/smartOrganizr/data:/var/lib/mysql
+      - ./data/data:/var/lib/mysql
     environment:
       - MYSQL_ROOT_PASSWORD=password #SQL root Passwort eingeben
       - MYSQL_PASSWORD=smartOrganizr #SQL Benutzer Passwort eingeben
