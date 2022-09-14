@@ -36,6 +36,9 @@ services:
       - KEYCLOAK_CREDENTIALS_SECRET=client-secret
       - KEYCLOAK_SSL_REQUIRED=external
       - KEYCLOAK_RESOURCE=your-client-name
+      - ELASTIC_APM_SERVER_URL=your-apm-server-url
+      - ELASTIC_APM_SERVICE_NAME=your-service
+      - ELASTIC_APM_ENVIRONMENT=your-environment
 networks:
   smartOrganizr:
     external: true
