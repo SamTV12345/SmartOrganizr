@@ -16,13 +16,21 @@ import de.smart.organizr.utils.JsfUtils;
 import de.smart.organizr.utils.NavigationUtils;
 import lombok.Getter;
 import lombok.Setter;
+import net.sourceforge.tess4j.Tesseract;
+import net.sourceforge.tess4j.TesseractException;
+import org.primefaces.PrimeFaces;
+import org.primefaces.event.CaptureEvent;
 import org.primefaces.model.DefaultStreamedContent;
 import org.primefaces.model.file.UploadedFile;
 
 import javax.annotation.PostConstruct;
+import javax.faces.FacesException;
 import javax.faces.context.ExternalContext;
 import javax.faces.context.FacesContext;
+import javax.imageio.ImageIO;
+import javax.imageio.stream.FileImageOutputStream;
 import javax.servlet.http.HttpServletResponse;
+import java.awt.image.BufferedImage;
 import java.io.*;
 import java.util.Calendar;
 import java.util.Collection;
@@ -220,6 +228,27 @@ public class EditNoteView {
 		catch (final ElementException |NoteException|IOException exception){
 			JsfUtils.putErrorMessage(exception.getLocalizedMessage());
 		}
+	}
+
+	public void onCaptureSongTitle(CaptureEvent captureEvent) throws TesseractException, IOException {
+		final String oncapture = oncapture(captureEvent);
+		System.out.println(oncapture);
+		setTitle(oncapture);
+		PrimeFaces.current().ajax().update("note-form:folder-name");
+	}
+
+	public String oncapture(CaptureEvent captureEvent) throws IOException, TesseractException {
+		byte[] data = captureEvent.getData();
+
+
+		Tesseract tesseract = new Tesseract();
+		tesseract.setDatapath("C:\\Program Files\\Tesseract-OCR\\tessdata");
+		tesseract.setOcrEngineMode(1);
+		tesseract.setPageSegMode(5);
+		tesseract.setLanguage("eng");
+		InputStream is = new ByteArrayInputStream(data);
+		BufferedImage newBi = ImageIO.read(is);
+		return tesseract.doOCR(newBi).split("\n")[0];
 	}
 
 	public void setPdfForView(final DefaultStreamedContent pdfForView) {
