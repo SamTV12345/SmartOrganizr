@@ -1,3 +1,4 @@
+/*
 package de.smart.organizr.configuration;
 
 
@@ -48,3 +49,4 @@ public class APMAgentConfig {
 		ElasticApmAttacher.attach(apmProps);
 	}
 }
+*/
