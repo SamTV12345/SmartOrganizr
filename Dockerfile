@@ -16,5 +16,5 @@ COPY --from=build /usr/src/myapp/target/*-SNAPSHOT.jar \
 	/app/smartOrganizr.jar
 
 WORKDIR /app
-ENTRYPOINT  ["java", "--illegal-access=permit", "-jar","--add-opens","java.base/java.lang=ALL-UNNAMED","smartOrganizr.jar"]
+ENTRYPOINT  ["java", "-jar","--add-opens","java.base/java.lang=ALL-UNNAMED","smartOrganizr.jar"]
 EXPOSE 8080
