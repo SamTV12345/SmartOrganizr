@@ -1,18 +1,29 @@
-image: maven:3.8.4-openjdk-17
+image: maven:latest
 
 stages:
   - test
+  - build
 
 cache:
   paths:
     - target/
-    - .m2/repository
-
-variables:
-  MAVEN_OPTS: "-Dmaven.repo.local=$CI_PROJECT_DIR/.m2/repository"
-
 
 test:
   stage: test
+  only:
+    - main
   script:
-    - mvn clean test -Dspring.profiles.active=testing $MAVEN_OPTS
+    - mvn test
+
+build_image:
+  image: docker:20.10.16
+  services:
+    - docker:20.10.16-dind
+  stage: build
+  only:
+    - main
+  when: manual
+  script:
+    - docker login -u $CI_USER -p $CI_PASSWORD
+    - docker build -t $CI_IMAGE:$CI_TAG .
+    - docker push $CI_IMAGE:$CI_TAG

@@ -1,0 +1,67 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: smartOrganizr
+  labels:
+    app: smartOrganizr
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: smartOrganizr
+  template:
+    metadata:
+      labels:
+        app: smartOrganizr
+    spec:
+      containers:
+        - name: smartOrganizr
+          image: samuel19982/smartorganizr:latest
+          env:
+            - name: SERVER_PORT
+              value: "8080"
+            - name: SPRING_DATASOURCE_URL
+              value: "jdbc:mysql://mariadb-service:3306/smartOrganizrDB"
+            - name: SPRING_DATASOURCE_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: mariadb-secret
+                  key: MARIADB_USERNAME
+            - name: SPRING_DATASOURCE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: mariadb-secret
+                  key: MARIADB_PASSWORD
+          ports:
+            - containerPort: 8080
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: smartOrganizr
+spec:
+  selector:
+    app: smartOrganizr
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 8080
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: smartOrganizr-ingress
+  annotations:
+    nginx.ingress.kubernetes.io/ssl-passthrough: "false"
+spec:
+  ingressClassName: public
+  rules:
+    - http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: smartOrganizr
+                port:
+                  number: 80
