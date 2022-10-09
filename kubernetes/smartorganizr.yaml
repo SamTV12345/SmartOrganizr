@@ -1,21 +1,21 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: smartOrganizr
+  name: smartorganizr
   labels:
-    app: smartOrganizr
+    app: smartorganizr
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: smartOrganizr
+      app: smartorganizr
   template:
     metadata:
       labels:
-        app: smartOrganizr
+        app: smartorganizr
     spec:
       containers:
-        - name: smartOrganizr
+        - name: smartorganizr
           image: samuel19982/smartorganizr:latest
           env:
             - name: SERVER_PORT
@@ -32,16 +32,41 @@ spec:
                 secretKeyRef:
                   name: mariadb-secret
                   key: MARIADB_PASSWORD
+            - name: KEYCLOAK_REALM
+              valueFrom:
+                secretKeyRef:
+                  name: keycloak-secret
+                  key: KEYCLOAK_REALM
+            - name: KEYCLOAK_AUTH_SERVER_URL
+              valueFrom:
+                secretKeyRef:
+                  name: keycloak-secret
+                  key: KEYCLOAK_AUTH_SERVER_URL
+            - name: KEYCLOAK_CREDENTIALS_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: keycloak-secret
+                  key: KEYCLOAK_CREDENTIALS_SECRET
+            - name: KEYCLOAK_SSL_REQUIRED
+              valueFrom:
+                secretKeyRef:
+                  name: keycloak-secret
+                  key: KEYCLOAK_SSL_REQUIRED
+            - name: KEYCLOAK_RESOURCE
+              valueFrom:
+                secretKeyRef:
+                  name: keycloak-secret
+                  key: KEYCLOAK_RESOURCE
           ports:
             - containerPort: 8080
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: smartOrganizr
+  name: smartorganizr
 spec:
   selector:
-    app: smartOrganizr
+    app: smartorganizr
   ports:
     - protocol: TCP
       port: 80
@@ -50,7 +75,7 @@ spec:
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: smartOrganizr-ingress
+  name: smartorganizr-ingress
   annotations:
     nginx.ingress.kubernetes.io/ssl-passthrough: "false"
 spec:
@@ -62,6 +87,6 @@ spec:
             pathType: Prefix
             backend:
               service:
-                name: smartOrganizr
+                name: smartorganizr
                 port:
                   number: 80
