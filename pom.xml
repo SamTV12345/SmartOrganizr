@@ -17,7 +17,7 @@
 	<properties>
 		<java.version>17</java.version>
 		<joinfaces.version>4.7.4</joinfaces.version>
-		<primefaces.version>11.0.0</primefaces.version>
+		<primefaces.version>12.0.0</primefaces.version>
 		<maven.build.timestamp.format>yyyyMMdd-HHmmssSSS</maven.build.timestamp.format>
 		<lombok.version>1.18.24</lombok.version>
 	</properties>
