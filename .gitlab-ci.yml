@@ -11,7 +11,7 @@ cache:
 test:
   stage: test
   only:
-    - main
+    - master
   script:
     - mvn test
 
@@ -21,7 +21,7 @@ build_image:
     - docker:20.10.16-dind
   stage: build
   only:
-    - main
+    - master
   when: manual
   script:
     - docker login -u $CI_USER -p $CI_PASSWORD
