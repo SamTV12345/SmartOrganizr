@@ -7,7 +7,7 @@ RUN npm run build
 FROM maven:3.8-eclipse-temurin-17 as build
 
 COPY src /usr/src/myapp/src
-COPY --from=uibuilder /ui/dist/ /usr/src/myapp/target/classes/public/
+COPY --from=uibuilder /ui/dist/ /usr/src/myapp/target/classes/public/ui
 COPY pom.xml /usr/src/myapp
 RUN mvn -f /usr/src/myapp/pom.xml package
 

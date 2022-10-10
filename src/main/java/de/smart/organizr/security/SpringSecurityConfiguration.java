@@ -27,9 +27,9 @@ class SpringSecurityConfiguration extends KeycloakWebSecurityConfigurerAdapter {
 
 	@Autowired
 	public void configureGlobal(
-			AuthenticationManagerBuilder auth) {
+			final AuthenticationManagerBuilder auth) {
 
-		KeycloakAuthenticationProvider keycloakAuthenticationProvider
+		final KeycloakAuthenticationProvider keycloakAuthenticationProvider
 				= keycloakAuthenticationProvider();
 		keycloakAuthenticationProvider.setGrantedAuthoritiesMapper(
 				new SimpleAuthorityMapper());
@@ -49,7 +49,7 @@ class SpringSecurityConfiguration extends KeycloakWebSecurityConfigurerAdapter {
 	}
 
 	@Override
-	protected void configure(HttpSecurity http) throws Exception {
+	protected void configure(final HttpSecurity http) throws Exception {
 		super.configure(http);
 		final String[] staticResources = {
 				"/css/**",
@@ -57,7 +57,8 @@ class SpringSecurityConfiguration extends KeycloakWebSecurityConfigurerAdapter {
 				"/assets/**",
 				"/fonts/**",
 				"/scripts/**",
-				"/favicon.ico"
+				"/favicon.ico",
+				"/ui/**"
 		};
 
 		http.addFilterAfter(new RootRedirect(), UsernamePasswordAuthenticationFilter.class)
