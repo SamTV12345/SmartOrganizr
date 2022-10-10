@@ -1,8 +1,15 @@
+FROM node:alpine AS uibuilder
+COPY ui /ui
+WORKDIR /ui/
+RUN npm install
+RUN npm run build
+
 FROM maven:3.8-eclipse-temurin-17 as build
 
 COPY src /usr/src/myapp/src
+COPY --from=uibuilder /ui/dist/ /usr/src/myapp/target/classes/public/
 COPY pom.xml /usr/src/myapp
-RUN mvn -f /usr/src/myapp/pom.xml clean package
+RUN mvn -f /usr/src/myapp/pom.xml package
 
 FROM alpine:latest AS runtime
 
