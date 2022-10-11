@@ -1,4 +1,4 @@
-export interface ApiLink {
-    rel: string,
-    href: string
+export interface ApiLink{
+    rel:string,
+    href:string
 }

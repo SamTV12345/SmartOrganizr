@@ -26,7 +26,7 @@ public class AuthorController {
 	private final AuthorService authorService;
 	private final AuthorResourceAssembler authorResourceAssembler;
 
-	@GetMapping("/")
+	@GetMapping("")
 	public ResponseEntity<PagedModel<AuthorRepresentationModel>> getAuthors(@RequestParam final int page, final
 	                                                                  PagedResourcesAssembler<Author> authorPagedResourcesAssembler){
 		final Pageable pageable = PageRequest.of(page,50, Sort.by("name").ascending());

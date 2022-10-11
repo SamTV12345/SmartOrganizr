@@ -65,21 +65,21 @@ class SpringSecurityConfiguration extends KeycloakWebSecurityConfigurerAdapter {
 		    .exceptionHandling().authenticationEntryPoint(authenticationEntryPoint())
 		;
 		http.csrf().disable().sessionManagement()
-		    .sessionAuthenticationStrategy(sessionAuthenticationStrategy())
-		    .and().authorizeRequests()
-		    .antMatchers("/register*").permitAll()
-		    .antMatchers(staticResources).permitAll()
+				.sessionAuthenticationStrategy(sessionAuthenticationStrategy())
+            .and().authorizeRequests()
+				.antMatchers("/register*").permitAll()
+            .antMatchers(staticResources).permitAll()
 		    .antMatchers("**/media/**").permitAll()
 		    .antMatchers("/api/public/**").permitAll()
 		    .antMatchers("/login*").permitAll()
-		    .antMatchers("/").permitAll()
-		    .antMatchers("/javax.faces.resource/**").permitAll()
-		    .antMatchers("/resetPassword*").permitAll()
-		    .antMatchers("/templates/**").denyAll()
-		    .antMatchers("/manageUsers.xhtml").hasRole("admin")
-		    .antMatchers("/**").hasRole("user")
+				                          .antMatchers("/").permitAll()
+				                          .antMatchers("/javax.faces.resource/**").permitAll()
+				                          .antMatchers("/resetPassword*").permitAll()
+				                          .antMatchers("/templates/**").denyAll()
+										  .antMatchers("/manageUsers.xhtml").hasRole("admin")
+				                          .antMatchers("/**").hasRole("user")
 		    .and()
-		    .logout().logoutUrl("/sso/url")
-		    .addLogoutHandler(keycloakLogoutHandler());
+				.logout().logoutUrl("/sso/url")
+				.addLogoutHandler(keycloakLogoutHandler());
 	}
 }

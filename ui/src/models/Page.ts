@@ -1,7 +1,7 @@
 import {ApiLink} from "./ApiLink";
 import {PageInfo} from "./PageInfo";
 
-export interface Page<T> {
+export interface Page<T>{
     _embedded: T,
     _links: {
         first: ApiLink,

@@ -16,10 +16,10 @@ const initKeycloak = (keycloak: Keycloak) => {
     return new Promise((resolve) => {
         keycloak.init({onLoad: 'login-required'})
             .then((res) => {
-                    setLoadedKeycloak(keycloak)
-                    console.log(keycloak.token)
-                    axios.defaults.headers["Authorization"] = `Bearer ${keycloak.token}`
-                    resolve(res)
+                setLoadedKeycloak(keycloak)
+                console.log(keycloak.token)
+                axios.defaults.headers["Authorization"]=`Bearer ${keycloak.token}`
+                resolve(res)
                 }
             )
             .catch((error) => {
