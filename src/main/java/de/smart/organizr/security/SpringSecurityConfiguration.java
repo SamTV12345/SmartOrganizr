@@ -74,7 +74,7 @@ class SpringSecurityConfiguration extends KeycloakWebSecurityConfigurerAdapter {
 				.antMatchers("/register*").permitAll()
             .antMatchers(staticResources).permitAll()
 		    .antMatchers("**/media/**").permitAll()
-
+		    .antMatchers("/api/public/**").permitAll()
 				                          .antMatchers("/login*").permitAll()
 				                          .antMatchers("/").permitAll()
 				                          .antMatchers("/javax.faces.resource/**").permitAll()
@@ -82,7 +82,7 @@ class SpringSecurityConfiguration extends KeycloakWebSecurityConfigurerAdapter {
 				                          .antMatchers("/templates/**").denyAll()
 										  .antMatchers("/manageUsers.xhtml").hasRole("admin")
 				                          .antMatchers("/**").hasRole("user")
-            .antMatchers("/api/v1").hasRole("user")
+            .antMatchers("/api/v1/**").hasRole("user")
 		    .and()
 				.logout().logoutUrl("/sso/url")
 				.addLogoutHandler(keycloakLogoutHandler());

@@ -29,7 +29,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 @RequestMapping("/api/v1/authors")
 public class AuthorController {
 	private final AuthorService authorService;
-	private final AuthorDtoMapper authorDtoMapper;
 	private final AuthorResourceAssembler authorResourceAssembler;
 
 	@GetMapping("")
