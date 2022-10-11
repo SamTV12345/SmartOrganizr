@@ -1,21 +1,23 @@
 import Keycloak from "keycloak-js";
 import {isLocalhost} from "./utils/Utilities";
-export const localKeycloak = new Keycloak({
-    clientId: "website",
-    url: "http://192.168.2.33/",
-    realm: "master"
-})
+
+export let keycloak:Keycloak = undefined as unknown as Keycloak
 
 export let apiURL=''
 
-const getKeycloak = ()=> {
-    if(isLocalhost){
-        apiURL="http://localhost:80"
-        return localKeycloak
-    }
-    else {
-        apiURL=window.location.protocol+"//"+window.location.hostname+"/api"
-    }
-    console.log("Nicht erreichbar")
+if(isLocalhost){
+        apiURL="http://localhost:8080/api"
 }
-export default getKeycloak;
+else {
+ apiURL=window.location.protocol+"//"+window.location.hostname+"/api"
+}
+
+const setKeycloak = (clientId:string, realm: string, url:string)=>{
+    keycloak  = new Keycloak({clientId,url,realm})
+    console.log("Gesetzt")
+}
+
+export const setLoadedKeycloak = (loadedKeycloak:Keycloak)=>{
+    keycloak  = loadedKeycloak
+}
+export default setKeycloak;

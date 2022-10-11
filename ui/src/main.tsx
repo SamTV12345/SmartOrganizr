@@ -2,19 +2,23 @@ import React from 'react'
 import ReactDOM from 'react-dom/client'
 import App from './App'
 import './index.css'
-import getKeycloak, {localKeycloak} from "./Keycloak";
+import getKeycloak, {apiURL, keycloak, setLoadedKeycloak} from "./Keycloak";
 import Keycloak from "keycloak-js";
 import { KeycloakContext } from './Keycloak/useKeycloak';
 import {store} from "./store/store";
 import {Provider} from "react-redux";
 import {I18nextProvider} from "react-i18next";
 import i18n from "./language/i18n";
+import axios from "axios";
+import setKeycloak from "./Keycloak";
 
-const initKeycloak = () => {
+const initKeycloak = (keycloak: Keycloak) => {
+    console.log()
     return new Promise((resolve, reject) => {
-        getKeycloak().init({onLoad: 'login-required'})
+        keycloak.init({onLoad: 'login-required'})
             .then((res) => {
-                    resolve(res)
+                setLoadedKeycloak(keycloak)
+                resolve(res)
                 }
             )
             .catch((error) => {
@@ -41,8 +45,15 @@ const renderApp= (keycloak: Keycloak)=>
 }
 
 const bootstrapApp = async () => {
-    await initKeycloak()
-    renderApp(localKeycloak as Keycloak)
+    if(keycloak === undefined){
+        console.log("Aufgerufen")
+        axios.get(apiURL+"/public")
+            .then(resp=>{
+                setKeycloak(resp.data.clientId,resp.data.realm, resp.data.url)
+                initKeycloak(keycloak).then(()=>renderApp(keycloak as Keycloak))
+
+            })
+    }
 }
 
-bootstrapApp().then(() => console.log("Started"))
+bootstrapApp().then(()=>{console.log("Started")})
