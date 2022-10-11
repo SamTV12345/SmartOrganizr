@@ -1,4 +1,4 @@
-import { createSlice } from '@reduxjs/toolkit'
+import {createSlice} from '@reduxjs/toolkit'
 import {AuthorEmbeddedContainer} from "../models/AuthorEmbeddedContainer";
 import {Author} from "../models/Author";
 import {Page} from "../models/Page";
@@ -7,13 +7,13 @@ import {Page} from "../models/Page";
 // Define a type for the slice state
 interface CommonProps {
     sideBarCollapsed: boolean,
-    authorPage: Page<AuthorEmbeddedContainer<Author>>| undefined
+    authorPage: Page<AuthorEmbeddedContainer<Author>> | undefined
 }
 
 // Define the initial state using that type
 const initialState: CommonProps = {
     sideBarCollapsed: false,
-    authorPage:undefined
+    authorPage: undefined
 }
 
 export const commonSlice = createSlice({
@@ -21,18 +21,18 @@ export const commonSlice = createSlice({
     // `createSlice` will infer the state type from the `initialState` argument
     initialState,
     reducers: {
-        setSideBarCollapsed: (state, action)=>{
+        setSideBarCollapsed: (state, action) => {
             state.sideBarCollapsed = action.payload
         },
-        setAuthorPage:(state, action)=>{
+        setAuthorPage: (state, action) => {
             state.authorPage = action.payload
         },
-        appendAuthorPage: (state, action)=>{
+        appendAuthorPage: (state, action) => {
 
         }
     }
 })
 
-export const { setSideBarCollapsed, setAuthorPage } = commonSlice.actions
+export const {setSideBarCollapsed, setAuthorPage} = commonSlice.actions
 
 export default commonSlice.reducer
