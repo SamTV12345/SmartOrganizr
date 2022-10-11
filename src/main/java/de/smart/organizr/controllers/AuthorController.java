@@ -1,14 +1,9 @@
 package de.smart.organizr.controllers;
 
-import de.smart.organizr.dto.AuthorDtoMapper;
 import de.smart.organizr.dto.AuthorRepresentationModel;
 import de.smart.organizr.dto.AuthorResourceAssembler;
-import de.smart.organizr.entities.classes.AuthorHibernateImpl;
 import de.smart.organizr.entities.interfaces.Author;
-import de.smart.organizr.entities.interfaces.User;
-import de.smart.organizr.exceptions.NoPermissionException;
 import de.smart.organizr.services.interfaces.AuthorService;
-import de.smart.organizr.services.interfaces.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -31,7 +26,7 @@ public class AuthorController {
 	private final AuthorService authorService;
 	private final AuthorResourceAssembler authorResourceAssembler;
 
-	@GetMapping("")
+	@GetMapping("/")
 	public ResponseEntity<PagedModel<AuthorRepresentationModel>> getAuthors(@RequestParam final int page, final
 	                                                                  PagedResourcesAssembler<Author> authorPagedResourcesAssembler){
 		final Pageable pageable = PageRequest.of(page,50, Sort.by("name").ascending());

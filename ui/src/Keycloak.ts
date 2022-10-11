@@ -14,7 +14,6 @@ else {
 
 const setKeycloak = (clientId:string, realm: string, url:string)=>{
     keycloak  = new Keycloak({clientId,url,realm})
-    console.log("Gesetzt")
 }
 
 export const setLoadedKeycloak = (loadedKeycloak:Keycloak)=>{

@@ -6,7 +6,6 @@ import org.keycloak.adapters.springsecurity.authentication.KeycloakAuthenticatio
 import org.keycloak.adapters.springsecurity.config.KeycloakWebSecurityConfigurerAdapter;
 import org.keycloak.adapters.springsecurity.filter.KeycloakAuthenticatedActionsFilter;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -18,9 +17,6 @@ import org.springframework.security.web.authentication.session.RegisterSessionAu
 import org.springframework.security.web.authentication.session.SessionAuthenticationStrategy;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 import org.springframework.security.web.servletapi.SecurityContextHolderAwareRequestFilter;
-import org.springframework.web.cors.CorsConfiguration;
-import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-import org.springframework.web.filter.CorsFilter;
 
 @KeycloakConfiguration
 class SpringSecurityConfiguration extends KeycloakWebSecurityConfigurerAdapter {
@@ -69,22 +65,21 @@ class SpringSecurityConfiguration extends KeycloakWebSecurityConfigurerAdapter {
 		    .exceptionHandling().authenticationEntryPoint(authenticationEntryPoint())
 		;
 		http.csrf().disable().sessionManagement()
-				.sessionAuthenticationStrategy(sessionAuthenticationStrategy())
-            .and().authorizeRequests()
-				.antMatchers("/register*").permitAll()
-            .antMatchers(staticResources).permitAll()
+		    .sessionAuthenticationStrategy(sessionAuthenticationStrategy())
+		    .and().authorizeRequests()
+		    .antMatchers("/register*").permitAll()
+		    .antMatchers(staticResources).permitAll()
 		    .antMatchers("**/media/**").permitAll()
 		    .antMatchers("/api/public/**").permitAll()
-				                          .antMatchers("/login*").permitAll()
-				                          .antMatchers("/").permitAll()
-				                          .antMatchers("/javax.faces.resource/**").permitAll()
-				                          .antMatchers("/resetPassword*").permitAll()
-				                          .antMatchers("/templates/**").denyAll()
-										  .antMatchers("/manageUsers.xhtml").hasRole("admin")
-				                          .antMatchers("/**").hasRole("user")
-            .antMatchers("/api/v1/**").hasRole("user")
+		    .antMatchers("/login*").permitAll()
+		    .antMatchers("/").permitAll()
+		    .antMatchers("/javax.faces.resource/**").permitAll()
+		    .antMatchers("/resetPassword*").permitAll()
+		    .antMatchers("/templates/**").denyAll()
+		    .antMatchers("/manageUsers.xhtml").hasRole("admin")
+		    .antMatchers("/**").hasRole("user")
 		    .and()
-				.logout().logoutUrl("/sso/url")
-				.addLogoutHandler(keycloakLogoutHandler());
+		    .logout().logoutUrl("/sso/url")
+		    .addLogoutHandler(keycloakLogoutHandler());
 	}
 }

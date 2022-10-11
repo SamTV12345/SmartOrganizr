@@ -13,11 +13,11 @@ import axios from "axios";
 import setKeycloak from "./Keycloak";
 
 const initKeycloak = (keycloak: Keycloak) => {
-    console.log()
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve) => {
         keycloak.init({onLoad: 'login-required'})
             .then((res) => {
                 setLoadedKeycloak(keycloak)
+                axios.defaults.headers.common["Authorization"]=`Bearer ${keycloak.token}`
                 resolve(res)
                 }
             )
