@@ -20,6 +20,7 @@
 		<primefaces.version>12.0.0</primefaces.version>
 		<maven.build.timestamp.format>yyyyMMdd-HHmmssSSS</maven.build.timestamp.format>
 		<lombok.version>1.18.24</lombok.version>
+		<mapstruct.version>1.5.3.Final</mapstruct.version>
 	</properties>
 
 	<name>SmartOrganizr</name>
@@ -62,6 +63,11 @@
 			<groupId>org.keycloak</groupId>
 			<artifactId>keycloak-spring-boot-starter</artifactId>
 			<version>19.0.3</version>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-hateoas</artifactId>
+			<version>2.7.4</version>
 		</dependency>
 		<dependency>
 			<groupId>org.hamcrest</groupId>
@@ -155,12 +161,12 @@
 			<artifactId>springdoc-openapi-ui</artifactId>
 			<version>1.6.11</version>
 		</dependency>
-		<!-- https://mvnrepository.com/artifact/co.elastic.apm/apm-agent-attach -->
-		<!--dependency>
-			<groupId>co.elastic.apm</groupId>
-			<artifactId>apm-agent-attach</artifactId>
-			<version>1.34.0</version>
-		</dependency-->
+		<!-- https://mvnrepository.com/artifact/org.mapstruct/mapstruct -->
+		<dependency>
+			<groupId>org.mapstruct</groupId>
+			<artifactId>mapstruct</artifactId>
+			<version>${mapstruct.version}</version>
+		</dependency>
 	</dependencies>
 
 	<build>
@@ -221,6 +227,11 @@
 							<groupId>org.projectlombok</groupId>
 							<artifactId>lombok</artifactId>
 							<version>${lombok.version}</version>
+						</path>
+						<path>
+							<groupId>org.mapstruct</groupId>
+							<artifactId>mapstruct-processor</artifactId>
+							<version>${mapstruct.version}</version>
 						</path>
 					</annotationProcessorPaths>
                 </configuration>

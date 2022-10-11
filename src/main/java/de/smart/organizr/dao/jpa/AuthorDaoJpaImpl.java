@@ -5,9 +5,10 @@ import de.smart.organizr.entities.classes.AuthorHibernateImpl;
 import de.smart.organizr.entities.interfaces.Author;
 import de.smart.organizr.entities.interfaces.User;
 import de.smart.organizr.repositories.AuthorRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import java.util.Optional;
-import java.util.Set;
 
 /**
  * The AuthorDaoJpaImpl class takes care of every database action related to authors
@@ -25,8 +26,8 @@ public class AuthorDaoJpaImpl implements AuthorDao {
 	 * @return a set of authors created by the user
 	 */
 	@Override
-	public Set<Author> findAllAuthorsOfUser(final User user){
-		return authorRepository.findAuthorsByCreator(user.getUserId());
+	public Page<Author> findAllAuthorsOfUser(final User user, final Pageable pageable){
+		return authorRepository.findAllByCreator(user.getUserId(), pageable);
 	}
 
 	/**

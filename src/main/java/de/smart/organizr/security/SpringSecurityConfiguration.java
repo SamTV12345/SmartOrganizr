@@ -82,7 +82,8 @@ class SpringSecurityConfiguration extends KeycloakWebSecurityConfigurerAdapter {
 				                          .antMatchers("/templates/**").denyAll()
 										  .antMatchers("/manageUsers.xhtml").hasRole("admin")
 				                          .antMatchers("/**").hasRole("user")
-				.and()
+            .antMatchers("/api/v1").hasRole("user")
+		    .and()
 				.logout().logoutUrl("/sso/url")
 				.addLogoutHandler(keycloakLogoutHandler());
 	}

@@ -22,6 +22,8 @@ import org.primefaces.PrimeFaces;
 import org.primefaces.event.CaptureEvent;
 import org.primefaces.model.DefaultStreamedContent;
 import org.primefaces.model.file.UploadedFile;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 
 import javax.annotation.PostConstruct;
 import javax.faces.FacesException;
@@ -155,7 +157,9 @@ public class EditNoteView {
 	}
 
 	public Collection<Author> getAllAuthors(){
-		return authorService.findAllAuthorsByUser(userBean.getUser().getUserId());
+		return authorService.findAllAuthorsByUser(userBean.getUser().getUserId(), PageRequest.of(0,2000,
+				                    Sort.by("name").ascending()))
+		                    .stream().toList();
 	}
 
 	public Folder getCurrentFolder() {

@@ -53,13 +53,4 @@ public class ElementController {
 		final String username = SecurityContextHolder.getContext().getAuthentication().getName();
 		return userService.findUserByUserName(username).orElseThrow(()->new NoPermissionException(username));
 	}
-
-	@GetMapping("/{id}")
-	public ResponseEntity<Element> findElementById(@PathVariable int id){
-		final User user = getUser();
-		final Optional<Folder> optionalFolder =  folderService.findFolderByID(id);
-		final Optional<Note> optionalNote =  noteService.findNoteById(id);
-
-		return ResponseEntity.ok(null);
-	}
 }
