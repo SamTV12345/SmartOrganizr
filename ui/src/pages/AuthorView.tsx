@@ -7,10 +7,12 @@ import axios from "axios";
 import {apiURL} from "../Keycloak";
 import {setAuthorPage} from "../store/CommonSlice";
 import {Waypoint} from "react-waypoint";
+import {useTranslation} from "react-i18next";
 
 export const AuthorView = ()=> {
     const dispatch = useAppDispatch()
     const authorPage = useAppSelector(state=>state.commonReducer.authorPage)
+    const {t} = useTranslation()
 
     const mergeAuthors = (oldAuthorList: Page<AuthorEmbeddedContainer<Author>>,newAuthorList: Page<AuthorEmbeddedContainer<Author>>)=>{
         const authorList =  [...oldAuthorList._embedded.authorRepresentationModelList,...newAuthorList._embedded.authorRepresentationModelList]
@@ -44,13 +46,12 @@ export const AuthorView = ()=> {
     useEffect(()=>{
         loadAuthors(apiURL+"/v1/authors/?page=0")
         },[])
-    return <div className="table w-full p-2">
-        <table className="w-3/5 border mx-auto">
-            <thead>
-            <tr className="bg-gray-50 border-b">
-                <th className="p-2 border-r cursor-pointer text-sm font-thin text-gray-500">
+    return <table className="w-full md:w-8/12  divide-y table-fixed divide-gray-700 md:mx-auto md:mt-4 md:mb-4 border-collapse" id="authorTable">
+            <thead className="bg-gray-700">
+            <tr className="">
+                <th className="py-3 px-6 text-xs font-medium tracking-wider text-left uppercase text-gray-400 md:rounded-tl-2xl">
                     <div className="flex items-center justify-center">
-                        ID
+                        {t('id')}
                         <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none"
                              viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"
@@ -58,9 +59,9 @@ export const AuthorView = ()=> {
                         </svg>
                     </div>
                 </th>
-                <th className="p-2 border-r cursor-pointer text-sm font-thin text-gray-500">
+                <th className="py-3 px-6 text-xs font-medium tracking-wider text-left uppercase text-gray-400">
                     <div className="flex items-center justify-center">
-                        Name
+                        {t('name')}
                         <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none"
                              viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"
@@ -68,9 +69,9 @@ export const AuthorView = ()=> {
                         </svg>
                     </div>
                 </th>
-                <th className="p-2 border-r cursor-pointer text-sm font-thin text-gray-500">
+                <th className="py-3 px-6 text-xs font-medium tracking-wider text-left uppercase text-gray-400 md:rounded-tr-2xl">
                     <div className="flex items-center justify-center">
-                        Email
+                        {t('extraInformation')}
                         <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none"
                              viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"
@@ -80,38 +81,26 @@ export const AuthorView = ()=> {
                 </th>
             </tr>
             </thead>
-            <tbody>
-            <tr className="bg-gray-50 text-center">
-                <td className="p-2 border-r">
-                    <input type="text" className="border p-1"/>
-                </td>
-                <td className="p-2 border-r">
-                    <input type="text" className="border p-1"/>
-                </td>
-                <td className="p-2 border-r">
-                    <input type="text" className="border p-1"/>
-                </td>
-            </tr>
+            <tbody className="divide-y bg-gray-800 divide-gray-700">
             {
-                authorPage && authorPage._embedded && authorPage._embedded.authorRepresentationModelList.map((author,index)=><tr className="bg-gray-50 text-center" key={author.id.toString()}>
-                    <td className="p-2 border-r cursor-pointer text-sm font-thin text-gray-500">
+                authorPage && authorPage._embedded && authorPage._embedded.authorRepresentationModelList.map((author,index)=>
+                        <tr className="hover:bg-gray-700" key={author.id.toString()}>
+                    <td className="py-4 px-6 text-sm font-medium whitespace-nowrap text-white border-inherit text-center">
                         {author.id}
                     </td>
-                <td className="p-2 border-r cursor-pointer text-sm font-thin text-gray-500">
+                <td className="py-4 px-6 text-sm font-medium whitespace-nowrap text-white text-center">
                     {author.name}
                 </td>
-                    <td className="p-2 border-r cursor-pointer text-sm font-thin text-gray-500">
+                    <td className="py-4 px-6 text-sm font-medium whitespace-nowrap text-white text-center">
                         {author.extraInformation}
+                        {authorPage.page.size-index<10 &&
+                            authorPage._links && authorPage._links.next
+                            && authorPage._links.next.href
+                            && <Waypoint onEnter={()=>loadAuthors(authorPage._links.next.href)}/>}
                     </td>
-                    {authorPage.page.size-index<10 &&
-                        authorPage._links && authorPage._links.next
-                        && authorPage._links.next.href
-                        && <Waypoint onEnter={()=>loadAuthors(authorPage._links.next.href)}/>}
                 </tr>
                 )
             }
             </tbody>
-
         </table>
-    </div>
 }

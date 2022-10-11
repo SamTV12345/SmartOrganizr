@@ -16,6 +16,21 @@
   }
 }
 
+@media (min-width: 768px) {
+  #authorTable tr:last-child {
+    border-bottom-right-radius: 1rem; /* 16px */
+    border-bottom-left-radius: 1rem; /* 16px */
+  }
+
+  #authorTable tr:last-child td:last-child {
+    border-bottom-right-radius: 1rem; /* 16px */
+  }
+
+  #authorTable tr:last-child td:first-child {
+    border-bottom-left-radius: 1rem; /* 16px */
+  }
+}
+
 .App-header {
   background-color: #282c34;
   min-height: 100vh;

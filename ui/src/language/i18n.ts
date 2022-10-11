@@ -9,7 +9,10 @@ const resources = {
            fast: 'Schnell',
            modern: 'Modern',
            selfHosted: 'Selbst gehostet',
-           authors: 'Komponisten'
+           authors: 'Komponisten',
+           id: 'ID',
+           name: 'Name',
+           extraInformation: 'Weitere Informationen'
        }
     },
     en:{
@@ -18,7 +21,10 @@ const resources = {
             fast: 'Fast',
             modern: 'Modern',
             selfHosted: 'Self hosted',
-            authors: 'Authors'
+            authors: 'Authors',
+            id: 'Id',
+            name: 'Name',
+            extraInformation: 'Further information'
         }
     }
 }
