@@ -1,6 +1,7 @@
 import {useAppSelector} from "../store/hooks";
 import {useNavigate} from "react-router-dom";
 import {useTranslation} from "react-i18next";
+import {HomeIcon} from "@primer/octicons-react";
 
 export const SideBar  = ()=>{
   const sideBarCollapsed = useAppSelector(state=>state.commonReducer.sideBarCollapsed)
@@ -14,20 +15,15 @@ export const SideBar  = ()=>{
     return ''
   }
 
-  return <aside className={`w-full h-full float-left ${sideBarCollapsed?'hidden': 'col-span-6 md:col-span-1'} z-10 flex`} aria-label="Sidebar">
+  return <aside className={`w-full h-full float-left ${sideBarCollapsed?'hidden': 'col-span-6 md:col-span-1'} z-10 w-full flex sticky`} aria-label="Sidebar">
   <div className="py-4 px-3 bg-gray-800 h-full w-full">
   <ul className="space-y-2">
   <li>
-    <a onClick={()=>navigate("/dashboard")
+    <a onClick={()=>navigate("/")
 }
   className={`flex items-center p-2 text-base font-normal rounded-lg text-white hover:bg-gray-700 ${highlightIfSelected("/dashboard")}`}>
-  <svg aria-hidden="true"
-  className="w-6 h-6 transition duration-75 text-white group-hover:text-white"
-  fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-  <path d="M2 10a8 8 0 018-8v8h8a8 8 0 11-16 0z"></path>
-    <path d="M12 2.252A8.014 8.014 0 0117.748 8H12V2.252z"></path>
-    </svg>
-    <span className="ml-3">{t('dashboard')}</span>
+      <HomeIcon className="w-6 h-6"/>
+    <span className="ml-3">{t('homepage')}</span>
   </a>
   </li>
   <li>
