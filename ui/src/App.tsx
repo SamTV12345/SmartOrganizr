@@ -20,7 +20,7 @@ function App() {
           <div className="grid  grid-rows-[auto_1fr] h-full md:grid-cols-[300px_1fr]">
               <Header/>
               <SideBar/>
-              <div className={`col-span-6 md:col-span-5 ${sideBarCollapsed?'xs:col-span-5':'hidden'} md:block w-full`}>
+              <div className={`col-span-6 md:col-span-5 ${sideBarCollapsed?'xs:col-span-5':'hidden'} md:block w-full overflow-x-auto`}>
                 <Routes>
                     <Route path={"/"} element={<WelcomePage/>}></Route>
                 </Routes>
