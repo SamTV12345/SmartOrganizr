@@ -2,15 +2,15 @@ import React from 'react'
 import ReactDOM from 'react-dom/client'
 import App from './App'
 import './index.css'
-import getKeycloak, {apiURL, keycloak, setLoadedKeycloak} from "./Keycloak";
+import setKeycloak, {apiURL, keycloak, setLoadedKeycloak} from "./Keycloak";
 import Keycloak from "keycloak-js";
-import { KeycloakContext } from './Keycloak/useKeycloak';
+import {KeycloakContext} from './Keycloak/useKeycloak';
 import {store} from "./store/store";
 import {Provider} from "react-redux";
 import {I18nextProvider} from "react-i18next";
 import i18n from "./language/i18n";
 import axios from "axios";
-import setKeycloak from "./Keycloak";
+import "primeicons/primeicons.css"
 
 const initKeycloak = (keycloak: Keycloak) => {
     return new Promise((resolve) => {

@@ -5,18 +5,19 @@ import LanguageDetector from 'i18next-browser-languagedetector'
 const resources = {
     de: {
        translation:{
-           homepage:"Startseite",
+           homepage: "Startseite",
            fast: 'Schnell',
            modern: 'Modern',
            selfHosted: 'Selbst gehostet',
            authors: 'Komponisten',
            id: 'ID',
            name: 'Name',
-           extraInformation: 'Weitere Informationen'
+           extraInformation: 'Weitere Informationen',
+           folderView: 'Ordneransicht'
        }
     },
     en:{
-        translation:{
+        translation: {
             homepage: "Homepage",
             fast: 'Fast',
             modern: 'Modern',
@@ -24,7 +25,8 @@ const resources = {
             authors: 'Authors',
             id: 'Id',
             name: 'Name',
-            extraInformation: 'Further information'
+            extraInformation: 'Further information',
+            folderView: 'Folder view'
         }
     }
 }

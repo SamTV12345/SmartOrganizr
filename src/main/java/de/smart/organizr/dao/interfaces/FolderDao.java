@@ -1,8 +1,10 @@
 package de.smart.organizr.dao.interfaces;
 
+import de.smart.organizr.entities.interfaces.Element;
 import de.smart.organizr.entities.interfaces.Folder;
 import de.smart.organizr.entities.interfaces.User;
 
+import java.util.Collection;
 import java.util.Optional;
 import java.util.Set;
 
@@ -45,7 +47,10 @@ public interface FolderDao {
 
 	/**
 	 * Deletes a folder
+	 *
 	 * @param folder the folder to be deleted
 	 */
 	void deleteFolder(Folder folder);
+
+	Collection<Element> findAllChildren(String userId, int number);
 }

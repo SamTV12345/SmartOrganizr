@@ -1,6 +1,7 @@
 package de.smart.organizr.repositories;
 
 import de.smart.organizr.entities.classes.FolderHibernateImpl;
+import de.smart.organizr.entities.interfaces.Element;
 import de.smart.organizr.entities.interfaces.Folder;
 import de.smart.organizr.entities.interfaces.User;
 import org.springframework.data.jpa.repository.Modifying;
@@ -25,4 +26,7 @@ public interface FolderRepository extends CrudRepository<FolderHibernateImpl, In
 	@Transactional
 	@Query("DELETE FROM FolderHibernateImpl f WHERE f.id=:id")
 	void deleteFolder(int id);
+
+	@Query("SELECT e FROM ElementHibernateImpl as e WHERE e.creator.userId=:userId and e.parent.id=:number")
+	Collection<Element> findAllChildren(String userId, int number);
 }

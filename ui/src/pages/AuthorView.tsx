@@ -44,8 +44,11 @@ export const AuthorView = ()=> {
     }
 
     useEffect(()=>{
-        loadAuthors(apiURL+"/v1/authors/?page=0")
-        },[])
+        if (!authorPage) {
+            loadAuthors(apiURL + "/v1/authors/?page=0")
+        }
+    },[])
+
     return <table className="w-full md:w-8/12  divide-y table-fixed divide-gray-700 md:mx-auto md:mt-4 md:mb-4 border-collapse" id="authorTable">
             <thead className="bg-gray-700">
             <tr className="">

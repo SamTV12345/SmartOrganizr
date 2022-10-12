@@ -1,12 +1,13 @@
 import './App.css'
 import './index.css'
 import {useKeycloak} from "./Keycloak/useKeycloak";
-import {BrowserRouter, Navigate, Route, Routes} from "react-router-dom";
+import {BrowserRouter, Route, Routes} from "react-router-dom";
 import {Header} from "./components/Header";
 import {SideBar} from "./components/SideBar";
 import {useAppSelector} from "./store/hooks";
 import {WelcomePage} from "./pages/WelcomePage";
 import {AuthorView} from "./pages/AuthorView";
+import {FolderView} from "./pages/FolderView";
 
 function App() {
     const sideBarCollapsed = useAppSelector(state=>state.commonReducer.sideBarCollapsed)
@@ -22,10 +23,11 @@ function App() {
               <Header/>
               <SideBar/>
               <div className={`col-span-6 md:col-span-5 ${sideBarCollapsed?'xs:col-span-5':'hidden'} md:block w-full overflow-x-auto`}>
-                <Routes>
-                    <Route path={"/"} element={<WelcomePage/>}></Route>
-                    <Route path={"/authors"} element={<AuthorView/>}></Route>
-                </Routes>
+                  <Routes>
+                      <Route path={"/"} element={<WelcomePage/>}></Route>
+                      <Route path={"/authors"} element={<AuthorView/>}/>
+                      <Route path={"/folders"} element={<FolderView/>}/>
+                  </Routes>
               </div>
           </div>
       </BrowserRouter>
