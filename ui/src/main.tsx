@@ -2,7 +2,7 @@ import React from 'react'
 import ReactDOM from 'react-dom/client'
 import App from './App'
 import './index.css'
-import setKeycloak, {apiURL, keycloak, setLoadedKeycloak} from "./Keycloak";
+import setKeycloak, {apiURL, keycloak, links, setLinks, setLoadedKeycloak} from "./Keycloak";
 import Keycloak from "keycloak-js";
 import {KeycloakContext} from './Keycloak/useKeycloak';
 import {store} from "./store/store";
@@ -17,7 +17,6 @@ const initKeycloak = (keycloak: Keycloak) => {
         keycloak.init({onLoad: 'login-required'})
             .then((res) => {
                 setLoadedKeycloak(keycloak)
-                console.log(keycloak.token)
                 axios.defaults.headers["Authorization"]=`Bearer ${keycloak.token}`
                 resolve(res)
                 }
@@ -50,9 +49,9 @@ const bootstrapApp = async () => {
         console.log("Aufgerufen")
         axios.get(apiURL+"/public")
             .then(resp=>{
+                setLinks(resp.data._links)
                 setKeycloak(resp.data.clientId,resp.data.realm, resp.data.url)
                 initKeycloak(keycloak).then(()=>renderApp(keycloak as Keycloak))
-
             })
     }
 }

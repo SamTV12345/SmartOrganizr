@@ -4,7 +4,7 @@ import {AuthorEmbeddedContainer} from "../models/AuthorEmbeddedContainer";
 import {Author} from "../models/Author";
 import {Page} from "../models/Page";
 import axios from "axios";
-import {apiURL} from "../Keycloak";
+import {apiURL, links} from "../Keycloak";
 import {setAuthorPage} from "../store/CommonSlice";
 import {Waypoint} from "react-waypoint";
 import {useTranslation} from "react-i18next";
@@ -44,8 +44,8 @@ export const AuthorView = ()=> {
     }
 
     useEffect(()=>{
-        if (!authorPage) {
-            loadAuthors(apiURL + "/v1/authors/?page=0")
+        if (!authorPage && links.author.href) {
+            loadAuthors(links.author.href)
         }
     },[])
 
