@@ -11,10 +11,14 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import javax.persistence.*;
+import javax.persistence.Column;
+import javax.persistence.DiscriminatorValue;
+import javax.persistence.Entity;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.Calendar;
-import java.util.Objects;
 
 @Entity
 @DiscriminatorValue("Note")
@@ -24,14 +28,16 @@ import java.util.Objects;
 @AllArgsConstructor
 @EqualsAndHashCode(callSuper = true)
 public class NoteHibernateImpl extends ElementHibernateImpl implements Note, Serializable {
-	private  String title;
-	private  Author author;
+	@Serial
+	private static final long serialVersionUID = 2460309513239727736L;
+	private String title;
+	private Author author;
 	@Column(columnDefinition = "integer default 0")
 	private int numberOfPages;
 
 	public NoteHibernateImpl(final Calendar creationDate, final int id,
 	                         final Folder parent, final String description,
-	                         final User creator, final String title, final Author author,  final int numberOfPages) {
+	                         final User creator, final String title, final Author author, final int numberOfPages) {
 		super(creationDate, id, "Element", parent, description, creator);
 		setTitle(title);
 		setNumberOfPages(numberOfPages);

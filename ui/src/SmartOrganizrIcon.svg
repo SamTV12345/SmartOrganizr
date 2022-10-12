@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   viewBox="0 0 22.754343 5.3709364"
+   width="18.203474"
+   height="4.2967491"
+   fill="white"
+   version="1.1"
+   id="svg4"
+   sodipodi:docname="SmartOrganizrIcon.svg"
+   inkscape:version="1.2.1 (9c6d41e410, 2022-07-14)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs8" />
+  <sodipodi:namedview
+     id="namedview6"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     showgrid="false"
+     inkscape:zoom="18.318485"
+     inkscape:cx="21.208086"
+     inkscape:cy="11.300061"
+     inkscape:window-width="1920"
+     inkscape:window-height="1009"
+     inkscape:window-x="-4"
+     inkscape:window-y="1072"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="svg4"
+     inkscape:lockguides="false" />
+  <path
+     fill-rule="evenodd"
+     d="m 20.666589,0.08086062 a 0.59679328,0.59911452 0 0 0 -0.59884,0 l -1.79038,1.04245898 a 0.59679328,0.59911452 0 0 0 -0.297373,0.51832 v 2.087657 c 0,0.213627 0.11322,0.410822 0.297373,0.51832 l 1.79038,1.042459 a 0.59679328,0.59911452 0 0 0 0.59884,0 l 1.790379,-1.042459 c 0.184154,-0.107156 0.297374,-0.304693 0.297374,-0.51832 v -2.087657 c 0,-0.213627 -0.11322,-0.410822 -0.297374,-0.51832 z m -0.342048,0.444372 a 0.08525618,0.08558779 0 0 1 0.08526,0 L 21.988745,1.4444456 20.367173,2.3886496 18.7456,1.4444456 Z M 18.491533,1.8901866 v 1.83911 c 0,0.03081 0.01603,0.05854 0.04263,0.07395 l 1.577239,0.918528 v -1.888409 z m 2.131404,2.831586 1.57724,-0.918528 a 0.08525618,0.08558779 0 0 0 0.04263,-0.07395 v -1.83911 l -1.619868,0.943177 z"
+     id="path2"
+     style="stroke-width:0.341687" />
+  <text
+           xml:space="preserve"
+     style="font-style:normal;font-weight:normal;font-size:2.66667px;line-height:1.25;font-family:sans-serif;fill:#FFFFF;fill-opacity:1;stroke:none;stroke-width:0.0472931"
+     x="-0.17153142"
+     y="3.0849514"
+     id="text222"
+     transform="matrix(0.9178065,0.00102945,-8.6717182e-4,1.0895533,0,0)"><tspan
+       sodipodi:role="line"
+       id="tspan220"
+       x="-0.17153142"
+       y="3.0849514"
+       style="font-size:2.66667px;stroke-width:0.0472931">Smartorganizr</tspan></text>
+</svg>

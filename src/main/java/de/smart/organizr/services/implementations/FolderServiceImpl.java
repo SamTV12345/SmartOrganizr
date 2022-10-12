@@ -42,7 +42,7 @@ public class FolderServiceImpl implements FolderService {
 	}
 
 	@Override
-	public Folder saveFolder(final Folder folder){
+	public Folder saveFolder(final Folder folder) {
 		return folderDao.saveFolder(folder);
 	}
 
@@ -52,13 +52,18 @@ public class FolderServiceImpl implements FolderService {
 	}
 
 	@Override
+	public Collection<Element> findChildren(final String userId, final int number) {
+		return folderDao.findAllChildren(userId, number);
+	}
+
+	@Override
 	public Optional<Folder> findFolderByUserAndName(final User user, final String s) {
 		return folderDao.findFolderByUserAndName(user, s);
 	}
 
-	public void recursivelyDeleteElements(final Folder folder){
-		for (final Element element: folder.getElements()){
-			if(element instanceof Folder folderInFolder){
+	public void recursivelyDeleteElements(final Folder folder) {
+		for (final Element element : folder.getElements()) {
+			if (element instanceof Folder folderInFolder) {
 				recursivelyDeleteElements(folderInFolder);
 				folderDao.deleteFolder(folderInFolder);
 			}

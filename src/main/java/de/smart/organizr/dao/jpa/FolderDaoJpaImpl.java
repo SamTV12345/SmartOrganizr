@@ -2,6 +2,7 @@ package de.smart.organizr.dao.jpa;
 
 import de.smart.organizr.dao.interfaces.FolderDao;
 import de.smart.organizr.entities.classes.FolderHibernateImpl;
+import de.smart.organizr.entities.interfaces.Element;
 import de.smart.organizr.entities.interfaces.Folder;
 import de.smart.organizr.entities.interfaces.User;
 import de.smart.organizr.repositories.FolderRepository;
@@ -73,5 +74,10 @@ public class FolderDaoJpaImpl implements FolderDao {
 	@Override
 	public void deleteFolder(final Folder folder) {
 		folderRepository.deleteFolder(folder.getId());
+	}
+
+	@Override
+	public Collection<Element> findAllChildren(final String userId, final int number) {
+		return folderRepository.findAllChildren(userId, number);
 	}
 }

@@ -1,33 +1,36 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
 import './App.css'
+import './index.css'
+import {useKeycloak} from "./Keycloak/useKeycloak";
+import {BrowserRouter, Route, Routes} from "react-router-dom";
+import {Header} from "./components/Header";
+import {SideBar} from "./components/SideBar";
+import {useAppSelector} from "./store/hooks";
+import {WelcomePage} from "./pages/WelcomePage";
+import {AuthorView} from "./pages/AuthorView";
+import {FolderView} from "./pages/FolderView";
 
 function App() {
-  const [count, setCount] = useState(0)
+    const sideBarCollapsed = useAppSelector(state=>state.commonReducer.sideBarCollapsed)
+
+    const keycloak = useKeycloak()
+    if(keycloak.tokenParsed === undefined){
+        return <div>Loading</div>
+    }
 
   return (
-    <div className="App">
-      <div>
-        <a href="https://vitejs.dev" target="_blank">
-          <img src="/vite.svg" className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://reactjs.org" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </div>
+      <BrowserRouter basename="/ui">
+          <div className="grid  grid-rows-[auto_1fr] h-full md:grid-cols-[300px_1fr]">
+              <Header/>
+              <SideBar/>
+              <div className={`col-span-6 md:col-span-5 ${sideBarCollapsed?'xs:col-span-5':'hidden'} md:block w-full overflow-x-auto`}>
+                  <Routes>
+                      <Route path={"/"} element={<WelcomePage/>}></Route>
+                      <Route path={"/authors"} element={<AuthorView/>}/>
+                      <Route path={"/folders"} element={<FolderView/>}/>
+                  </Routes>
+              </div>
+          </div>
+      </BrowserRouter>
   )
 }
 

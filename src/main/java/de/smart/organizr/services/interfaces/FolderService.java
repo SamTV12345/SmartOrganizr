@@ -1,5 +1,6 @@
 package de.smart.organizr.services.interfaces;
 
+import de.smart.organizr.entities.interfaces.Element;
 import de.smart.organizr.entities.interfaces.Folder;
 import de.smart.organizr.entities.interfaces.User;
 
@@ -31,15 +32,19 @@ public interface FolderService {
 
 	/**
 	 * Finds all parent folders by user id
+	 *
 	 * @param userId the user id
 	 * @return a collection of folders
 	 */
 	Collection<Folder> findAllParentFolders(String userId);
 
+	Collection<Element> findChildren(String userId, int number);
+
 	/**
 	 * Finds folder by user and name
+	 *
 	 * @param user the user
-	 * @param s the name
+	 * @param s    the name
 	 * @return an optional folder
 	 */
 	Optional<Folder> findFolderByUserAndName(User user, String s);

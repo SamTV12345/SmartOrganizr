@@ -6,12 +6,14 @@ import de.smart.organizr.entities.interfaces.Author;
 import de.smart.organizr.entities.interfaces.User;
 import de.smart.organizr.exceptions.UserException;
 import de.smart.organizr.services.interfaces.AuthorService;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 public class AuthorServiceImpl implements AuthorService {
 	private final AuthorDao authorDao;
@@ -28,12 +30,12 @@ public class AuthorServiceImpl implements AuthorService {
 	}
 
 	@Override
-	public List<Author> findAllAuthorsByUser(final String userId){
+	public Page<Author> findAllAuthorsByUser(final String userId, final Pageable pageable){
 		final Optional<User> optionalUser = userDao.findUserById(userId);
 		if(optionalUser.isEmpty()){
 			throw UserException.createUnknownUserException();
 		}
-		return new ArrayList<>(authorDao.findAllAuthorsOfUser(optionalUser.get()));
+		return authorDao.findAllAuthorsOfUser(optionalUser.get(), pageable);
 	}
 
 	@Override
@@ -43,9 +45,14 @@ public class AuthorServiceImpl implements AuthorService {
 
 	@Override
 	public Optional<Author> findAuthorByUserAndName(final User user, final String authorName){
-		final Collection<Author> allAuthorsOfUser = findAllAuthorsByUser(user.getUserId());
+		final Collection<Author> allAuthorsOfUser = findAllAuthorsByUser(user.getUserId(),  PageRequest.of(0,2000,
+				Sort.by("name").ascending()))
+				.stream().toList();
 		final List<Author> namesOfAuthors =
-				allAuthorsOfUser.stream().filter(author -> author.getName().equals(authorName)).toList();
+				allAuthorsOfUser
+						.stream()
+						.filter(author -> author.getName().equals(authorName))
+						.toList();
 		if(namesOfAuthors.isEmpty()){
 			return Optional.empty();
 		}

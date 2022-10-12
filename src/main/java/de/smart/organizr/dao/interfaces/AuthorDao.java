@@ -2,7 +2,8 @@ package de.smart.organizr.dao.interfaces;
 
 import de.smart.organizr.entities.interfaces.Author;
 import de.smart.organizr.entities.interfaces.User;
-import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import java.util.Optional;
 import java.util.Set;
@@ -16,7 +17,7 @@ public interface AuthorDao {
 	 * @param user the user
 	 * @return a set of authors
 	 */
-	Set<Author> findAllAuthorsOfUser(User user);
+	Page<Author> findAllAuthorsOfUser(User user, Pageable pageable);
 
 	/**
 	 * Finds an author by id
