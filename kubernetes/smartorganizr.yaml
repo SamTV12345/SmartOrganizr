@@ -57,6 +57,11 @@ spec:
                 secretKeyRef:
                   name: keycloak-secret
                   key: KEYCLOAK_RESOURCE
+            - name: UI_URL
+              valueFrom:
+                secretKeyRef:
+                  name: keycloak-secret
+                  key: UI_URL
           ports:
             - containerPort: 8080
 ---
