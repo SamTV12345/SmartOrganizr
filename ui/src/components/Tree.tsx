@@ -1,4 +1,4 @@
-import {Dispatch, FC, SetStateAction, useEffect, useState} from "react";
+import {Dispatch, FC, SetStateAction, useState} from "react";
 import "./Tree.css"
 import {ElementItem} from "../models/ElementItem";
 import axios from "axios";
@@ -7,7 +7,6 @@ import {Folder} from "../models/Folder";
 import {NoteItem} from "../models/NoteItem";
 import {setNodes} from "../store/CommonSlice";
 import {useAppDispatch, useAppSelector} from "../store/hooks";
-import {Tree} from "primereact";
 
 export interface TreeData {
     keyNum:number,
@@ -67,65 +66,88 @@ const TreeNode:FC<TreeDataExpanded> = ({ keyNum,icon,children
                         console.log(error)
                     })
             })
-            if (loadedChildren !== undefined) {
-                event.children = loadedChildren.map(element => {
-                    if ('length' in element) {
-                        const folder = element as Folder
-                        return {
-                            keyNum: element.id,
-                            icon: "pi pi-folder",
-                            name: element.name,
-                            length: folder.length,
-                            type: 'Folder',
-                            links: folder.links[0].href,
-                            children: []
-                            } as TreeData
-                        }
-                    else if ('numberOfPages' in element) {
-                        const note = element as NoteItem
 
-                        return {
-                            keyNum: note.id,
-                            icon: "pi pi-folder",
-                            name: note.title,
-                            length: note.numberOfPages,
-                            type: 'Note',
-                            } as TreeData
-                        }
-                    else {
-                        return {
-                            keyNum: 123,
-                            name: "??",
-                            length: 0,
-                            type: "??",
-                            } as TreeData
-                        }
-                    }
-                )
-                const test = [] as TreeData[]
-                traverseTree(event,nodes, test)
-                dispatch(setNodes(test))
+            if (loadedChildren === undefined) {
+                return
             }
+            
+            const mappedChildren = loadedChildren.map(element => {
+                if ('length' in element) {
+                    const folder = element as Folder
+                    return {
+                        keyNum: element.id,
+                        icon: "pi pi-folder",
+                        name: element.name,
+                        length: folder.length,
+                        type: 'Folder',
+                        links: folder.links[0].href,
+                        children: []
+                        } as TreeData
+                    }
+                else if ('numberOfPages' in element) {
+                    const note = element as NoteItem
+
+                    return {
+                        keyNum: note.id,
+                        icon: "pi pi-folder",
+                        name: note.title,
+                        length: note.numberOfPages,
+                        type: 'Note',
+                        } as TreeData
+                    }
+                else {
+                    return {
+                        keyNum: 123,
+                        name: "??",
+                        length: 0,
+                        type: "??",
+                        } as TreeData
+                    }
+                }
+            )
+
+            const test = replaceChildren(event.keyNum, mappedChildren, nodes)
+            dispatch(setNodes(test))
         }
     }
 
+    const replaceChildren = (keyNum: number, newChildren: TreeData[], nodes: TreeData[]): TreeData[] => {
+        return nodes.map(node => {
+            if (node.keyNum === keyNum) {
+                return {...node, children: newChildren} as TreeData
+            } else {
+                return {...node, children: replaceChildren(keyNum, newChildren, node.children || [])} as TreeData
+            }
+        })
+    }
 
-    const traverseTree = (event: TreeData, currentNodes: TreeData[], temp: TreeData[])=>{
+
+    /*const traverseTree = (event: TreeData, completeTree: TreeData[], destination: TreeData[]) => {
+        completeTree.forEach(node => {
+            if (node.keyNum === event.keyNum) {
+                destination.push(event)
+            } else if (node.children) {
+                traverseTree(event, node.children)
+            }
+        })
+    }*/
+
+    /* const traverseTree = (event: TreeData, currentNodes: TreeData[], temp: TreeData[]) => {
         console.log(event.children)
-          currentNodes.forEach(node=>{
+        currentNodes.forEach(node => {
             if (node.keyNum === event.keyNum) {
                 node = event;
                 temp.push(node)
-            }
-            else{
-                if(node.children && node.children.length>0){
-                    return node.children.forEach(nodeInLoop=>{
-                        return traverseTree(event,[nodeInLoop], temp)
+            } else {
+                temp.push({...node, children: []})
+                if (node.children && node.children.length > 0) {
+                    node.children.forEach(nodeInLoop => {
+                        traverseTree(event, [nodeInLoop], nodeInLoop.children || [])
                     })
                 }
             }
         })
-    }
+    } */
 
 
     const traverseTree2 = (currentNode: TreeData[])=>{
