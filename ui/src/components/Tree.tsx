@@ -7,7 +7,6 @@ import {Folder} from "../models/Folder";
 import {NoteItem} from "../models/NoteItem";
 import {setNodes} from "../store/CommonSlice";
 import {useAppDispatch, useAppSelector} from "../store/hooks";
-import {Tree} from "primereact";
 
 export interface TreeData {
     keyNum:number,
@@ -64,7 +63,7 @@ const TreeNode:FC<TreeDataExpanded> = ({ keyNum,icon,children
                     const folder = element as Folder
                     return {
                         keyNum: element.id,
-                        icon: "pi pi-folder",
+                        icon: "fa-solid  fa-folder",
                         name: element.name,
                         length: folder.length,
                         type: 'Folder',
@@ -76,7 +75,7 @@ const TreeNode:FC<TreeDataExpanded> = ({ keyNum,icon,children
 
                     return {
                         keyNum: note.id,
-                        icon: "pi pi-folder",
+                        icon: "fa fa-sheet-plastic",
                         name: note.title,
                         length: note.numberOfPages,
                         type: 'Note',
@@ -137,7 +136,7 @@ const TreeNode:FC<TreeDataExpanded> = ({ keyNum,icon,children
     */
 
     return (
-        <li className="d-tree-node border-0" key={keyNum}>
+        <li className="d-tree-node ml-5 p-2" key={keyNum}>
             <div className="flex gap-5" onClick={(e) => setChildVisiblity((v) => !v)}>
                 {hasChild && (
                     <div
@@ -145,21 +144,19 @@ const TreeNode:FC<TreeDataExpanded> = ({ keyNum,icon,children
                             childVisible ? "active" : ""
                         }`}
                     >
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 512" className="h-6"
-                             onClick={()=>onExpand({keyNum,icon,children,name,length,type,links})}>
-                            <path d="M246.6 278.6c12.5-12.5 12.5-32.8 0-45.3l-128-128c-9.2-9.2-22.9-11.9-34.9-6.9s-19.8 16.6-19.8 29.6l0 256c0 12.9 7.8 24.6 19.8 29.6s25.7 2.2 34.9-6.9l128-128z"/></svg>
+                        <i className="fa-solid fa-chevron-right" onClick={()=>onExpand({keyNum,icon,children,name,length,type,links})}/>
                     </div>
                 )}
 
                 <div className="col d-tree-head">
-                    <i className={` ${icon}`}> </i>
+                    <i className={` ${icon} mr-4`}> </i>
                     {name}
                 </div>
             </div>
 
             {hasChild && childVisible && (
                 <div className="d-tree-content">
-                    <ul className="d-flex d-tree-container flex-column">
+                    <ul className="d-flex d-tree-container flex-column ml-5 p-1">
                         <TreeElement data={children as TreeData[]}  setData={setData}/>
                     </ul>
                 </div>
