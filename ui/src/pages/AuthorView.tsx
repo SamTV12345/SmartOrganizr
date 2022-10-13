@@ -4,7 +4,7 @@ import {AuthorEmbeddedContainer} from "../models/AuthorEmbeddedContainer";
 import {Author} from "../models/Author";
 import {Page} from "../models/Page";
 import axios from "axios";
-import {apiURL, links} from "../Keycloak";
+import {links} from "../Keycloak";
 import {setAuthorPage} from "../store/CommonSlice";
 import {Waypoint} from "react-waypoint";
 import {useTranslation} from "react-i18next";
@@ -100,7 +100,7 @@ export const AuthorView = ()=> {
                         {authorPage.page.size-index<10 &&
                             authorPage._links && authorPage._links.next
                             && authorPage._links.next.href
-                            && <Waypoint onEnter={()=>loadAuthors(authorPage._links.next.href)}/>}
+                            && <Waypoint onEnter={()=>loadAuthors(fixLinkProtocol(authorPage._links.next.href))}/>}
                     </td>
                 </tr>
                 )
