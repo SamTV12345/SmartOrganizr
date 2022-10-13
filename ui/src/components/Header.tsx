@@ -1,6 +1,5 @@
 import {useAppDispatch, useAppSelector} from "../store/hooks";
 import {setSideBarCollapsed} from "../store/CommonSlice";
-import {PackageIcon, PersonFillIcon, PersonIcon} from "@primer/octicons-react";
 import mainlogo from '../SmartOrganizrIcon.svg'
 import {useState} from "react";
 

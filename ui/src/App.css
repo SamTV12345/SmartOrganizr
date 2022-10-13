@@ -17,41 +17,17 @@
 }
 
 @media (min-width: 768px) {
-  #authorTable tr:last-child, #folderTable tr:last-child {
+  #authorTable tr:last-child{
       border-bottom-right-radius: 1rem; /* 16px */
       border-bottom-left-radius: 1rem; /* 16px */
   }
 
-    #authorTable tr:last-child td:last-child, #folderTable tr:first-child {
+    #authorTable tr:last-child td:last-child {
         border-bottom-right-radius: 1rem; /* 16px */
     }
 
-    #authorTable tr:last-child td:first-child, .p-treetable .p-treetable-tbody > tr:last-child {
+    #authorTable tr:last-child td:first-child {
         border-bottom-left-radius: 1rem; /* 16px */
-    }
-
-    .p-treetable-tbody tr:last-child td:first-child {
-        border-bottom-left-radius: 1rem !important;
-    }
-
-    .p-treetable-tbody tr:last-child td:last-child {
-        border-bottom-right-radius: 1rem !important;
-    }
-
-    .p-treetable-tbody {
-        border-bottom-right-radius: 1rem !important;
-    }
-
-    .p-treetable-wrapper {
-        border-bottom-right-radius: 1rem;
-    }
-
-    .p-treetable .p-treetable-thead > tr > th:first-child {
-        border-top-left-radius: 1rem;
-    }
-
-    .p-treetable .p-treetable-thead > tr > th:last-child {
-        border-top-right-radius: 1rem;
     }
 }
 

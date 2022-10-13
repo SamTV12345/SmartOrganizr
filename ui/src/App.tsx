@@ -1,5 +1,6 @@
 import './App.css'
 import './index.css'
+import "@fortawesome/fontawesome-free/css/all.min.css"
 import {useKeycloak} from "./Keycloak/useKeycloak";
 import {BrowserRouter, Route, Routes} from "react-router-dom";
 import {Header} from "./components/Header";
@@ -8,7 +9,6 @@ import {useAppSelector} from "./store/hooks";
 import {WelcomePage} from "./pages/WelcomePage";
 import {AuthorView} from "./pages/AuthorView";
 import {FolderView} from "./pages/FolderView";
-import {TestPage} from "./pages/TestPage";
 
 function App() {
     const sideBarCollapsed = useAppSelector(state=>state.commonReducer.sideBarCollapsed)
@@ -28,7 +28,6 @@ function App() {
                       <Route path={"/"} element={<WelcomePage/>}/>
                       <Route path={"/authors"} element={<AuthorView/>}/>
                       <Route path={"/folder"} element={<FolderView/>}/>
-                      <Route path={"/test"} element={<TestPage/>}/>
                   </Routes>
               </div>
           </div>
