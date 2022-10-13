@@ -58,6 +58,41 @@ const TreeNode:FC<TreeDataExpanded> = ({ keyNum,icon,children
 
     const hasChild = type==='Folder' && length>0
 
+    function handleNewElements(event: TreeData, loadedChildren: ElementItem[]) {
+        event.children = loadedChildren.map(element => {
+                if ('length' in element) {
+                    const folder = element as Folder
+                    return {
+                        keyNum: element.id,
+                        icon: "pi pi-folder",
+                        name: element.name,
+                        length: folder.length,
+                        type: 'Folder',
+                        links: folder.links[0].href,
+                        children: []
+                    } as TreeData
+                } else if ('numberOfPages' in element) {
+                    const note = element as NoteItem
+
+                    return {
+                        keyNum: note.id,
+                        icon: "pi pi-folder",
+                        name: note.title,
+                        length: note.numberOfPages,
+                        type: 'Note',
+                    } as TreeData
+                } else {
+                    return {
+                        keyNum: 123,
+                        name: "??",
+                        length: 0,
+                        type: "??",
+                    } as TreeData
+                }
+            }
+        )
+    }
+
     const onExpand = async (event: TreeData) => {
         if (event.children?.length==0 && event.length > 0) {
             const loadedChildren: ElementItem[] = await new Promise<ElementItem[]>(resolve => {
@@ -67,80 +102,26 @@ const TreeNode:FC<TreeDataExpanded> = ({ keyNum,icon,children
                         console.log(error)
                     })
             })
-            if (loadedChildren !== undefined) {
-                event.children = loadedChildren.map(element => {
-                    if ('length' in element) {
-                        const folder = element as Folder
-                        return {
-                            keyNum: element.id,
-                            icon: "pi pi-folder",
-                            name: element.name,
-                            length: folder.length,
-                            type: 'Folder',
-                            links: folder.links[0].href,
-                            children: []
-                            } as TreeData
-                        }
-                    else if ('numberOfPages' in element) {
-                        const note = element as NoteItem
-
-                        return {
-                            keyNum: note.id,
-                            icon: "pi pi-folder",
-                            name: note.title,
-                            length: note.numberOfPages,
-                            type: 'Note',
-                            } as TreeData
-                        }
-                    else {
-                        return {
-                            keyNum: 123,
-                            name: "??",
-                            length: 0,
-                            type: "??",
-                            } as TreeData
-                        }
-                    }
-                )
-                const test = [] as TreeData[]
-                traverseTree(event,nodes, test)
-                dispatch(setNodes(test))
-            }
-        }
-    }
-
-
-    const traverseTree = (event: TreeData, currentNodes: TreeData[], temp: TreeData[])=>{
-        console.log(event.children)
-          currentNodes.forEach(node=>{
-            if (node.keyNum === event.keyNum) {
-                node = event;
-                temp.push(node)
-            }
-            else{
-                if(node.children && node.children.length>0){
-                    return node.children.forEach(nodeInLoop=>{
-                        return traverseTree(event,[nodeInLoop], temp)
-                    })
-                }
-            }
-        })
-    }
-
-
-    const traverseTree2 = (currentNode: TreeData[])=>{
-        currentNode.forEach(node=> {
-            if(node.children && node.children.length>0) {
-                console.log(node.children)
-                node.children.forEach(node1 =>{
-                traverseTree2([node1])
-                })
-                console.log(node)
+            if (loadedChildren === undefined) {
                 return
             }
+            handleNewElements(event, loadedChildren);
+            dispatch(setNodes(traverseTree(event,nodes)))
             }
-        )
     }
+
+
+    /**
+     * Traverses the tree and adds the new nodes.
+     * @param event
+     * @param nodes
+     */
+    const traverseTree = (event: TreeData, nodes: TreeData[]): TreeData[] =>
+        nodes.map(node =>
+            node.keyNum === event.keyNum ? event
+                : !node.children?.length ? node
+                    : { ...node, children: traverseTree(event, node.children)
+        })
 
     return (
         <li className="d-tree-node border-0" key={keyNum}>
