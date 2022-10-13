@@ -2,7 +2,6 @@ import {createSlice} from '@reduxjs/toolkit'
 import {AuthorEmbeddedContainer} from "../models/AuthorEmbeddedContainer";
 import {Author} from "../models/Author";
 import {Page} from "../models/Page";
-import TreeNode from "primereact/treenode";
 import {TreeData} from "../components/Tree";
 
 
