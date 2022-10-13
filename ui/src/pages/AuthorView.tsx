@@ -8,6 +8,7 @@ import {apiURL, links} from "../Keycloak";
 import {setAuthorPage} from "../store/CommonSlice";
 import {Waypoint} from "react-waypoint";
 import {useTranslation} from "react-i18next";
+import {fixLinkProtocol} from "../utils/Utilities";
 
 export const AuthorView = ()=> {
     const dispatch = useAppDispatch()
@@ -45,7 +46,7 @@ export const AuthorView = ()=> {
 
     useEffect(()=>{
         if (!authorPage && links.author.href) {
-            loadAuthors(links.author.href)
+            loadAuthors(fixLinkProtocol(links.author.href))
         }
     },[])
 

@@ -8,6 +8,7 @@ import {ElementItem} from "../models/ElementItem";
 import {NoteItem} from "../models/NoteItem";
 import "./FolderView.css"
 import "../css/md-dark-deeppurple/theme.css"
+import {fixLinkProtocol} from "../utils/Utilities";
 
 export const FolderView = () => {
     const [nodes, setNodes] = useState<TreeNode[]>([]);
@@ -58,7 +59,7 @@ export const FolderView = () => {
         if (!event.node.children && event.node.data.length > 0) {
 
             const loadedChildren: ElementItem[] = await new Promise<ElementItem[]>(resolve => {
-                axios.get(event.node.data.links)
+                axios.get(fixLinkProtocol(event.node.data.links))
                     .then(resp => resolve(resp.data))
                     .catch((error) => {
                         console.log(error)
