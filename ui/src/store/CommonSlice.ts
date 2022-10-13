@@ -3,13 +3,14 @@ import {AuthorEmbeddedContainer} from "../models/AuthorEmbeddedContainer";
 import {Author} from "../models/Author";
 import {Page} from "../models/Page";
 import TreeNode from "primereact/treenode";
+import {TreeData} from "../components/Tree";
 
 
 // Define a type for the slice state
 interface CommonProps {
     sideBarCollapsed: boolean,
     authorPage: Page<AuthorEmbeddedContainer<Author>> | undefined,
-    nodes: TreeNode[]
+    nodes: TreeData[]
 }
 
 // Define the initial state using that type

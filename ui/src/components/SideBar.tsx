@@ -38,7 +38,15 @@ export const SideBar  = ()=>{
       </a>
     </li>
     <li>
-      <a onClick={() => navigate('/folders')}
+      <a onClick={() => navigate('/test')}
+         className={`flex items-center p-2 text-base font-normal text-white rounded-lg hover:bg-gray-700 ${highlightIfSelected("/test")}`}>
+        <NoteIcon className="w-6 h-6"/>
+
+        <span className="flex-1 ml-3 whitespace-nowrap">{t('folderView')}</span>
+      </a>
+    </li>
+    <li>
+      <a onClick={() => navigate('/folder')}
          className={`flex items-center p-2 text-base font-normal text-white rounded-lg hover:bg-gray-700 ${highlightIfSelected("/folder")}`}>
         <NoteIcon className="w-6 h-6"/>
 
