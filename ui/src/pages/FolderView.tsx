@@ -18,7 +18,6 @@ export const FolderView = () => {
     const [loading, setLoading] = useState<boolean>(true);
     const [selectedNode, setSelectedNode] = useState<number>(1000)
 
-    useEffect(() => console.log(selectedNode), [selectedNode])
     const loadFolder = async (link: string) => {
         const folders: Folder[] = await new Promise<Folder[]>(resolve => {
             axios.get(link)
@@ -72,7 +71,7 @@ export const FolderView = () => {
                         return {
                             key: element.id,
                             data: {
-                                icon: <i className="pi pi-folder" aria-hidden="true"/>,
+                                icon: <i className="pi pi-folder " aria-hidden="true"/>,
                                 name: element.name,
                                 length: folder.length,
                                 type: 'Folder',
@@ -80,7 +79,6 @@ export const FolderView = () => {
                             },
                             leaf: folder.length == 0
                         }
-
                     } else if ('numberOfPages' in element) {
                         const note = element as NoteItem
 
@@ -106,9 +104,9 @@ export const FolderView = () => {
                         }
                     }
                 })
-
                 let _nodes = nodes.map(node => {
                     if (node.key === event.node.key) {
+                        console.log("Gefunden")
                         node = event.node;
                     }
 

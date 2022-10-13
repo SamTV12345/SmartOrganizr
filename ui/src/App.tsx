@@ -8,6 +8,7 @@ import {useAppSelector} from "./store/hooks";
 import {WelcomePage} from "./pages/WelcomePage";
 import {AuthorView} from "./pages/AuthorView";
 import {FolderView} from "./pages/FolderView";
+import {TestPage} from "./pages/TestPage";
 
 function App() {
     const sideBarCollapsed = useAppSelector(state=>state.commonReducer.sideBarCollapsed)
@@ -24,9 +25,10 @@ function App() {
               <SideBar/>
               <div className={`col-span-6 md:col-span-5 ${sideBarCollapsed?'xs:col-span-5':'hidden'} md:block w-full overflow-x-auto`}>
                   <Routes>
-                      <Route path={"/"} element={<WelcomePage/>}></Route>
+                      <Route path={"/"} element={<WelcomePage/>}/>
                       <Route path={"/authors"} element={<AuthorView/>}/>
-                      <Route path={"/folders"} element={<FolderView/>}/>
+                      <Route path={"/folder"} element={<FolderView/>}/>
+                      <Route path={"/test"} element={<TestPage/>}/>
                   </Routes>
               </div>
           </div>
