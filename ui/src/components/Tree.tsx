@@ -123,6 +123,19 @@ const TreeNode:FC<TreeDataExpanded> = ({ keyNum,icon,children
                     : { ...node, children: traverseTree(event, node.children)
         })
 
+
+    /*
+        const replaceChildren = (keyNum: number, newChildren: TreeData[], nodes: TreeData[]): TreeData[] => {
+            return nodes.map(node => {
+                if (node.keyNum === keyNum) {
+                    return {...node, children: newChildren} as TreeData
+                } else {
+                    return {...node, children: replaceChildren(keyNum, newChildren, node.children || [])} as TreeData
+                }
+        })
+    }
+    */
+
     return (
         <li className="d-tree-node border-0" key={keyNum}>
             <div className="flex gap-5" onClick={(e) => setChildVisiblity((v) => !v)}>
