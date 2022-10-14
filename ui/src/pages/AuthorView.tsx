@@ -10,13 +10,15 @@ import {Waypoint} from "react-waypoint";
 import {useTranslation} from "react-i18next";
 import {fixLinkProtocol} from "../utils/Utilities";
 import {Modal} from "../components/Modal";
-import {setAuthor, setModalOpen, setSelectedAuthorNotes} from "../ModalSlice";
-import {NoteItem} from "../models/NoteItem";
+import {setAuthor, setModalOpen} from "../ModalSlice";
+import {AuthorModal} from "../components/AuthorModal";
+import {AuthorPatchDto} from "../models/AuthorPatchDto";
 
 export const AuthorView = ()=> {
     const dispatch = useAppDispatch()
     const authorPage = useAppSelector(state=>state.commonReducer.authorPage)
     const {t} = useTranslation()
+    const selectedAuthor = useAppSelector(state=>state.modalReducer.selectedAuthor)
 
     const mergeAuthors = (oldAuthorList: Page<AuthorEmbeddedContainer<Author>>,newAuthorList: Page<AuthorEmbeddedContainer<Author>>)=>{
         const authorList =  [...oldAuthorList._embedded.authorRepresentationModelList,...newAuthorList._embedded.authorRepresentationModelList]
@@ -53,52 +55,27 @@ export const AuthorView = ()=> {
         }
     },[])
 
-    const AuthorModal = ()=>{
-        const selectedAuthor = useAppSelector(state=>state.modalReducer.selectedAuthor)
-        const selectedAuthorsNotes = useAppSelector(state=>state.modalReducer.selectedAuthorNotes)
-        const openModal = useAppSelector(state=>state.modalReducer.openModal)
 
 
-        const loadAuthorNotes = async (selectedAuthorId:number)=> {
-            if(selectedAuthorId=== undefined){
-                return
-            }
-            const authorsInResponse: NoteItem[] = await new Promise<NoteItem[]>(resolve => {
-                axios.get(apiURL + `/v1/authors/${selectedAuthorId}/notes`)
-                    .then(resp => resolve(resp.data))
-                    .catch((error) => {
-                        console.log(error)
-                    })
-            })
-            if (authorsInResponse !== undefined) {
-                dispatch(setSelectedAuthorNotes(authorsInResponse))
-            }
+    const updateAuthor = async(author:Author)=>{
+        if(author.id === undefined){
+            return
         }
-
-        useEffect(()=>{
-            if(openModal && selectedAuthor !== undefined){
-                loadAuthorNotes(selectedAuthor.id)
-            }
-        },[selectedAuthor])
-
-        return <div className="grid grid-cols-2 gap-5">
-                <div>Name</div>
-                <input value={selectedAuthor?.name} className="border text-sm rounded-lg block w-full p-2.5 bg-gray-700 border-gray-600 placeholder-gray-400 text-white focus:ring-blue-500 focus:border-blue-500" onChange={(v)=>dispatch(setAuthor(v.target.value))}/>
-                <div>Extra Information</div>
-                <div>{selectedAuthor?.extraInformation}</div>
-
-            <div className="col-span-2 text-center grid grid-cols-2">Enthaltene Stücke</div>
-            {
-                selectedAuthorsNotes&&selectedAuthorsNotes.map((note, index)=> <>
-                    <div key={index}>#{index+1}</div>
-                    <div key={index+"title"}>{note.title}</div>
-                </>)
-            }
-            </div>
+        console.log("Upgedated")
+        const authorInResponse: Author = await new Promise<Author>(resolve=>{
+            axios.patch(apiURL+`/v1/authors/${author.id}`,{name: author.name,extraInformation:author.extraInformation} as AuthorPatchDto)
+                .then(resp=>resolve(resp.data))
+                .catch((error)=>{
+                    console.log(error)
+                })})
+        if(authorInResponse !== undefined){
+            console.log(authorInResponse)
+        }
     }
 
     return <div>
-        <Modal headerText="Editieren eines Authors" children={<AuthorModal/>} onAccept={()=>{}} onCancel={()=>{}}/>
+        <Modal headerText="Editieren eines Authors" children={<AuthorModal/>} onAccept={()=>{
+            selectedAuthor&&updateAuthor(selectedAuthor)}} onCancel={()=>{}} acceptText={"Updaten"} cancelText={"Abbrechen"}/>
         <table className="w-full md:w-8/12  divide-y table-fixed divide-gray-700 md:mx-auto md:mt-4 md:mb-4 border-collapse" id="authorTable">
             <thead className="bg-gray-700">
             <tr className="">

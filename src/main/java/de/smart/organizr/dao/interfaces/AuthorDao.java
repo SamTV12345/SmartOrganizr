@@ -6,7 +6,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 import java.util.Optional;
-import java.util.Set;
 
 /**
  * The author Dao handles every action related to authors
@@ -20,13 +19,6 @@ public interface AuthorDao {
 	Page<Author> findAllAuthorsOfUser(User user, Pageable pageable);
 
 	/**
-	 * Finds an author by id
-	 * @param authorId the id of the author
-	 * @return an optional of the found author
-	 */
-	Optional<Author> findAuthorById(int authorId);
-
-	/**
 	 * Saves/updates an author
 	 * @param author the author
 	 * @return the saved author (with updated id, if id=0)
@@ -38,4 +30,6 @@ public interface AuthorDao {
 	 * @param authorToDelete the author to be deleted
 	 */
 	void deleteAuthor(Author authorToDelete);
+
+	Optional<Author> findAuthorByIdAndUser(int authorId, String user);
 }

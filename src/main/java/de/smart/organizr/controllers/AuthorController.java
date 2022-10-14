@@ -45,7 +45,7 @@ public class AuthorController {
 		return ResponseEntity.ok(pagedModel);
 	}
 
-	@GetMapping("{authorId}/notes")
+	@GetMapping("/{authorId}/notes")
 	public ResponseEntity<List<Note>> getNotes(@PathVariable int authorId){
 		final List<Note> notesOfAuthor = noteService.findAllNotesByAuthor(authorId, getUser());
 		return ResponseEntity.ok(notesOfAuthor);
@@ -56,9 +56,9 @@ public class AuthorController {
 		return ResponseEntity.ok(authorService.saveAuthor(author, getUser()));
 	}
 
-	@PatchMapping("")
-	public ResponseEntity<Author> updateAuthor(@RequestBody AuthorPatchDto authorPatchDto){
-		return ResponseEntity.ok(authorService.updateAuthor(authorPatchDto, getUser()));
+	@PatchMapping("/{authorId}")
+	public ResponseEntity<Author> updateAuthor(@RequestBody AuthorPatchDto authorPatchDto, @PathVariable int authorId){
+		return ResponseEntity.ok(authorService.updateAuthor(authorPatchDto, authorId, getUser()));
 	}
 
 	private String getUser() {

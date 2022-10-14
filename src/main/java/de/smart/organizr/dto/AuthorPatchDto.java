@@ -1,6 +1,5 @@
 package de.smart.organizr.dto;
 
-import de.smart.organizr.entities.interfaces.User;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
@@ -9,5 +8,4 @@ import lombok.Getter;
 public class AuthorPatchDto {
 	private String name;
 	private String extraInformation;
-	private User creator;
 }

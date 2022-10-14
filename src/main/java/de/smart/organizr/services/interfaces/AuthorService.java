@@ -28,7 +28,7 @@ public interface AuthorService {
 	 * @param authorId the author id
 	 * @return an optional of the author
 	 */
-	Optional<Author> findAuthorById(int authorId);
+	Optional<Author> findAuthorByIdAndUserId(int authorId, String userId);
 
 	/**
 	 * Finds an author by user and name
@@ -44,5 +44,5 @@ public interface AuthorService {
 	 */
 	void deleteAuthor(Author authorToDelete);
 
-	Author updateAuthor(AuthorPatchDto authorPatchDto, String user);
+	Author updateAuthor(AuthorPatchDto authorPatchDto,final int authorId, String user);
 }

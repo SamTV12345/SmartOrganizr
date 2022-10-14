@@ -29,16 +29,16 @@ export const modalSlice = createSlice({
         },
         setAuthorName: (state, action)=>{
             if(state.selectedAuthor!== undefined) {
-                state.selectedAuthor = {name: action.payload,extraInformation:state.selectedAuthor.extraInformation, id: state.selectedAuthor.id}
+                state.selectedAuthor.name = action.payload
             }
         },
         setSelectedAuthorNotes:(state, action)=>{
             state.selectedAuthorNotes = action.payload
-        }
+        },
     }
 
 })
 
-export const {setModalOpen, setAuthor, setSelectedAuthorNotes} = modalSlice.actions
+export const {setModalOpen, setAuthor, setSelectedAuthorNotes, setAuthorName} = modalSlice.actions
 
 export default modalSlice.reducer

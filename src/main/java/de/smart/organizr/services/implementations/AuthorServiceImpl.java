@@ -6,6 +6,7 @@ import de.smart.organizr.dto.AuthorPatchDto;
 import de.smart.organizr.dto.AuthorPatchDtoMapper;
 import de.smart.organizr.entities.interfaces.Author;
 import de.smart.organizr.entities.interfaces.User;
+import de.smart.organizr.exceptions.AuthorException;
 import de.smart.organizr.exceptions.UserException;
 import de.smart.organizr.i18n.I18nExceptionUtils;
 import de.smart.organizr.services.interfaces.AuthorService;
@@ -49,8 +50,8 @@ public class AuthorServiceImpl implements AuthorService {
 	}
 
 	@Override
-	public Optional<Author> findAuthorById(final int authorId){
-		return authorDao.findAuthorById(authorId);
+	public Optional<Author> findAuthorByIdAndUserId(final int authorId, final String userId){
+		return authorDao.findAuthorByIdAndUser(authorId, userId);
 	}
 
 	@Override
@@ -78,8 +79,13 @@ public class AuthorServiceImpl implements AuthorService {
 	}
 
 	@Override
-	public Author updateAuthor(final AuthorPatchDto authorPatchDto, final String user) {
-		final Author authorToSave = authorPatchDtoMapper.convertAuthor(authorPatchDto,user);
-		return authorDao.saveAuthor(authorToSave);
+	@Transactional
+	public Author updateAuthor(final AuthorPatchDto authorPatchDto, final int authorId, final String user) {
+		final Author author  =
+				authorDao.findAuthorByIdAndUser(authorId, user).orElseThrow(
+						AuthorException::createUnknownAuthorException);
+		author.setName(authorPatchDto.getName());
+		author.setExtraInformation(authorPatchDto.getExtraInformation());
+		return author;
 	}
 }
