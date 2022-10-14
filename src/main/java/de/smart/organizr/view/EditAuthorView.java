@@ -34,7 +34,7 @@ public class EditAuthorView {
 			setId(authorFromFlash.getId());
 			setName(authorFromFlash.getName());
 			setExtraInformation(authorFromFlash.getExtraInformation());
-			notesOfAuthor = noteService.findAllNotesByAuthor(authorFromFlash.getId());
+			notesOfAuthor = noteService.findAllNotesByAuthor(authorFromFlash.getId(), userBean.getUser().getUserId());
 		}
 		this.userBean = userBean;
 		this.authorService = authorService;

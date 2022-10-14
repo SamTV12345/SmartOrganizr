@@ -19,7 +19,7 @@ public interface NoteService {
 	 */
 	void deleteNote(Note note);
 
-	List<Note> findAllNotesByAuthor(int id);
+	List<Note> findAllNotesByAuthor(int id, final String userId);
 
 	Optional<Note> findNoteById(int id);
 }

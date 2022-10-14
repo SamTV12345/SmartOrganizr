@@ -37,12 +37,14 @@ public class NoteDaoJpaImpl implements NoteDao {
 
 	/**
 	 * Finds all notes by author
-	 * @param id the id of the author
+	 *
+	 * @param id     the id of the author
+	 * @param userId the id of the user
 	 * @return A list of all notes by this author
 	 */
 	@Override
-	public List<Note> findAllNotesByAuthor(final int id) {
-		return noteRepository.findAllNotesByAuthor(id);
+	public List<Note> findAllNotesByAuthor(final int id, final String userId) {
+		return noteRepository.findAllNotesByAuthor(id, userId);
 	}
 
 	@Override

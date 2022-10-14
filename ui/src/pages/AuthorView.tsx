@@ -4,11 +4,14 @@ import {AuthorEmbeddedContainer} from "../models/AuthorEmbeddedContainer";
 import {Author} from "../models/Author";
 import {Page} from "../models/Page";
 import axios from "axios";
-import {links} from "../Keycloak";
+import {apiURL, links} from "../Keycloak";
 import {setAuthorPage} from "../store/CommonSlice";
 import {Waypoint} from "react-waypoint";
 import {useTranslation} from "react-i18next";
 import {fixLinkProtocol} from "../utils/Utilities";
+import {Modal} from "../components/Modal";
+import {setAuthor, setModalOpen, setSelectedAuthorNotes} from "../ModalSlice";
+import {NoteItem} from "../models/NoteItem";
 
 export const AuthorView = ()=> {
     const dispatch = useAppDispatch()
@@ -50,7 +53,53 @@ export const AuthorView = ()=> {
         }
     },[])
 
-    return <table className="w-full md:w-8/12  divide-y table-fixed divide-gray-700 md:mx-auto md:mt-4 md:mb-4 border-collapse" id="authorTable">
+    const AuthorModal = ()=>{
+        const selectedAuthor = useAppSelector(state=>state.modalReducer.selectedAuthor)
+        const selectedAuthorsNotes = useAppSelector(state=>state.modalReducer.selectedAuthorNotes)
+        const openModal = useAppSelector(state=>state.modalReducer.openModal)
+
+
+        const loadAuthorNotes = async (selectedAuthorId:number)=> {
+            if(selectedAuthorId=== undefined){
+                return
+            }
+            const authorsInResponse: NoteItem[] = await new Promise<NoteItem[]>(resolve => {
+                axios.get(apiURL + `/v1/authors/${selectedAuthorId}/notes`)
+                    .then(resp => resolve(resp.data))
+                    .catch((error) => {
+                        console.log(error)
+                    })
+            })
+            if (authorsInResponse !== undefined) {
+                dispatch(setSelectedAuthorNotes(authorsInResponse))
+            }
+        }
+
+        useEffect(()=>{
+            if(openModal && selectedAuthor !== undefined){
+                loadAuthorNotes(selectedAuthor.id)
+            }
+        },[selectedAuthor])
+
+        return <div className="grid grid-cols-2 gap-5">
+                <div>Name</div>
+                <input value={selectedAuthor?.name} className="border text-sm rounded-lg block w-full p-2.5 bg-gray-700 border-gray-600 placeholder-gray-400 text-white focus:ring-blue-500 focus:border-blue-500" onChange={(v)=>dispatch(setAuthor(v.target.value))}/>
+                <div>Extra Information</div>
+                <div>{selectedAuthor?.extraInformation}</div>
+
+            <div className="col-span-2 text-center grid grid-cols-2">Enthaltene Stücke</div>
+            {
+                selectedAuthorsNotes&&selectedAuthorsNotes.map((note, index)=> <>
+                    <div key={index}>#{index+1}</div>
+                    <div key={index+"title"}>{note.title}</div>
+                </>)
+            }
+            </div>
+    }
+
+    return <div>
+        <Modal headerText="Editieren eines Authors" children={<AuthorModal/>} onAccept={()=>{}} onCancel={()=>{}}/>
+        <table className="w-full md:w-8/12  divide-y table-fixed divide-gray-700 md:mx-auto md:mt-4 md:mb-4 border-collapse" id="authorTable">
             <thead className="bg-gray-700">
             <tr className="">
                 <th className="py-3 px-6 text-xs font-medium tracking-wider text-left uppercase text-gray-400 md:rounded-tl-2xl">
@@ -92,7 +141,10 @@ export const AuthorView = ()=> {
                     <td className="py-4 px-6 text-sm font-medium whitespace-nowrap text-white border-inherit text-center">
                         {author.id}
                     </td>
-                <td className="py-4 px-6 text-sm font-medium whitespace-nowrap text-white text-center">
+                <td className="py-4 px-6 text-sm font-medium whitespace-nowrap text-white text-center" onClick={()=>{
+                    dispatch(setAuthor(author))
+                    dispatch(setModalOpen(true))
+                }}>
                     {author.name}
                 </td>
                     <td className="py-4 px-6 text-sm font-medium whitespace-nowrap text-white text-center">
@@ -107,4 +159,5 @@ export const AuthorView = ()=> {
             }
             </tbody>
         </table>
+    </div>
 }

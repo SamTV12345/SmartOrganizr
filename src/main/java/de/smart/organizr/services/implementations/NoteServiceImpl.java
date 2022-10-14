@@ -26,8 +26,8 @@ public class NoteServiceImpl implements NoteService {
 	}
 
 	@Override
-	public List<Note> findAllNotesByAuthor(final int id) {
-		return noteDao.findAllNotesByAuthor(id);
+	public List<Note> findAllNotesByAuthor(final int id, final String userId) {
+		return noteDao.findAllNotesByAuthor(id, userId);
 	}
 
 	@Override

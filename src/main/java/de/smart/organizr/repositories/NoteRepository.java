@@ -8,6 +8,6 @@ import org.springframework.data.repository.CrudRepository;
 import java.util.List;
 
 public interface NoteRepository extends CrudRepository<NoteHibernateImpl, Integer> {
-	@Query("SELECT note FROM NoteHibernateImpl note WHERE note.author.id=:id")
-	List<Note> findAllNotesByAuthor(int id);
+	@Query("SELECT note FROM NoteHibernateImpl note WHERE note.author.id=:id and note.creator.userId=:userId")
+	List<Note> findAllNotesByAuthor(int id, final String userId);
 }
