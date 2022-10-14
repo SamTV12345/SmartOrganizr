@@ -1,5 +1,6 @@
 package de.smart.organizr.controllers;
 
+import de.smart.organizr.dto.AuthorPatchDto;
 import de.smart.organizr.dto.AuthorRepresentationModel;
 import de.smart.organizr.dto.AuthorResourceAssembler;
 import de.smart.organizr.entities.interfaces.Author;
@@ -17,7 +18,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
@@ -45,6 +49,16 @@ public class AuthorController {
 	public ResponseEntity<List<Note>> getNotes(@PathVariable int authorId){
 		final List<Note> notesOfAuthor = noteService.findAllNotesByAuthor(authorId, getUser());
 		return ResponseEntity.ok(notesOfAuthor);
+	}
+
+	@PostMapping("")
+	public ResponseEntity<Author> createAuthor(@RequestBody Author author){
+		return ResponseEntity.ok(authorService.saveAuthor(author, getUser()));
+	}
+
+	@PatchMapping("")
+	public ResponseEntity<Author> updateAuthor(@RequestBody AuthorPatchDto authorPatchDto){
+		return ResponseEntity.ok(authorService.updateAuthor(authorPatchDto, getUser()));
 	}
 
 	private String getUser() {

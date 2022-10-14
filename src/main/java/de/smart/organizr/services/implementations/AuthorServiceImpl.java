@@ -2,30 +2,40 @@ package de.smart.organizr.services.implementations;
 
 import de.smart.organizr.dao.interfaces.AuthorDao;
 import de.smart.organizr.dao.interfaces.UserDao;
+import de.smart.organizr.dto.AuthorPatchDto;
+import de.smart.organizr.dto.AuthorPatchDtoMapper;
 import de.smart.organizr.entities.interfaces.Author;
 import de.smart.organizr.entities.interfaces.User;
 import de.smart.organizr.exceptions.UserException;
+import de.smart.organizr.i18n.I18nExceptionUtils;
 import de.smart.organizr.services.interfaces.AuthorService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
+@RequiredArgsConstructor
+@Component
 public class AuthorServiceImpl implements AuthorService {
 	private final AuthorDao authorDao;
 	private final UserDao userDao;
+	private final AuthorPatchDtoMapper authorPatchDtoMapper;
 
-	public AuthorServiceImpl(final AuthorDao authorDao, final UserDao userDao) {
-		this.authorDao = authorDao;
-		this.userDao = userDao;
-	}
+
 
 	@Override
-	public Author saveAuthor(final Author author){
+	@Transactional
+	public Author saveAuthor(final Author author, String userId){
+		final User user =
+				userDao.findUserById(userId).orElseThrow(()->new UserException(I18nExceptionUtils.getUserUnknown()));
+		author.setCreator(user);
 		return authorDao.saveAuthor(author);
 	}
 
@@ -65,5 +75,11 @@ public class AuthorServiceImpl implements AuthorService {
 	@Override
 	public void deleteAuthor(final Author authorToDelete) {
 		authorDao.deleteAuthor(authorToDelete);
+	}
+
+	@Override
+	public Author updateAuthor(final AuthorPatchDto authorPatchDto, final String user) {
+		final Author authorToSave = authorPatchDtoMapper.convertAuthor(authorPatchDto,user);
+		return authorDao.saveAuthor(authorToSave);
 	}
 }

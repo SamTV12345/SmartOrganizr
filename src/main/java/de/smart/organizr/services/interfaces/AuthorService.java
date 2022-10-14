@@ -1,11 +1,11 @@
 package de.smart.organizr.services.interfaces;
 
+import de.smart.organizr.dto.AuthorPatchDto;
 import de.smart.organizr.entities.interfaces.Author;
 import de.smart.organizr.entities.interfaces.User;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
-import java.util.List;
 import java.util.Optional;
 
 public interface AuthorService {
@@ -14,7 +14,7 @@ public interface AuthorService {
 	 * @param author the author to be saved
 	 * @return the saved author
 	 */
-	Author saveAuthor(Author author);
+	Author saveAuthor(Author author, String userId);
 
 	/**
 	 * Finds all authors by user
@@ -43,4 +43,6 @@ public interface AuthorService {
 	 * @param authorToDelete the author to be deleted
 	 */
 	void deleteAuthor(Author authorToDelete);
+
+	Author updateAuthor(AuthorPatchDto authorPatchDto, String user);
 }
