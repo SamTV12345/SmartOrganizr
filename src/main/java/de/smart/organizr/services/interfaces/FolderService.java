@@ -49,6 +49,8 @@ public interface FolderService {
 	 */
 	Optional<Folder> findFolderByUserAndName(User user, String s);
 
+	void moveElementToFolder(int from, int to, String username);
+
 	/**
 	 * Deletes a folder
 	 * @param folder the folder to be deleted

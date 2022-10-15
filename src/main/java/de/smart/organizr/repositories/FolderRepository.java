@@ -29,4 +29,11 @@ public interface FolderRepository extends CrudRepository<FolderHibernateImpl, In
 
 	@Query("SELECT e FROM ElementHibernateImpl as e WHERE e.creator.userId=:userId and e.parent.id=:number")
 	Collection<Element> findAllChildren(String userId, int number);
+
+	@Query("SELECT e FROM ElementHibernateImpl as e WHERE e.creator.userId=:username AND e.id=:elementId")
+	Optional<Element> findElementByIdAndUsername(int elementId, String username);
+
+
+	@Query("SELECT f from FolderHibernateImpl f WHERE f.id=:folderId AND f.creator.userId=:username")
+	Optional<Folder> findFolderByIdAndUsername(int folderId, String username);
 }

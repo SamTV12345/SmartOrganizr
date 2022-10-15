@@ -1,4 +1,4 @@
-import React, {Dispatch, FC, SetStateAction, useEffect, useState} from "react";
+import React, {Dispatch, FC, SetStateAction, useState} from "react";
 import "./Tree.css"
 import {ElementItem} from "../models/ElementItem";
 import axios from "axios";
@@ -7,6 +7,7 @@ import {Folder} from "../models/Folder";
 import {NoteItem} from "../models/NoteItem";
 import {setNodes} from "../store/CommonSlice";
 import {useAppDispatch, useAppSelector} from "../store/hooks";
+import {apiURL} from "../Keycloak";
 
 export interface TreeData {
     keyNum:number,
@@ -129,6 +130,18 @@ const TreeNode:FC<TreeDataExpanded> = ({ keyNum,icon,children
         ev.dataTransfer.setData("id",JSON.stringify(id))
     }
 
+    const moveToFolder = async (element: TreeData, nodes: TreeData[], keyNum:number)=>{
+        await new Promise<ElementItem[]>(resolve => {
+            axios.patch(apiURL+`/v1/elements/${element.keyNum}/${keyNum}`)
+                .then(resp => {
+                    dispatch(setNodes(addChild(element, deleteChild(element.keyNum, nodes), keyNum)))
+                })
+                .catch((error) => {
+                    console.log(error)
+                })
+        })
+    }
+
     //delete child
     const deleteChild = (keyNum:number, nodes:TreeData[]):TreeData[] =>{
         return nodes.map(node => {
@@ -170,7 +183,7 @@ const TreeNode:FC<TreeDataExpanded> = ({ keyNum,icon,children
                      const  element= JSON.parse(e.dataTransfer.getData("id"))
                      if(element.keyNum!==keyNum) {
                          e.preventDefault();
-                         dispatch(setNodes(addChild(element, deleteChild(element.keyNum, nodes), keyNum)))
+                         moveToFolder(element,nodes, keyNum)
                      }
                  }}>
                 {hasChild && (

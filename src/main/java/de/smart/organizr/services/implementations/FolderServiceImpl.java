@@ -7,8 +7,10 @@ import de.smart.organizr.entities.interfaces.Element;
 import de.smart.organizr.entities.interfaces.Folder;
 import de.smart.organizr.entities.interfaces.Note;
 import de.smart.organizr.entities.interfaces.User;
+import de.smart.organizr.exceptions.ElementException;
 import de.smart.organizr.exceptions.UserException;
 import de.smart.organizr.services.interfaces.FolderService;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -73,6 +75,24 @@ public class FolderServiceImpl implements FolderService {
 				}
 			}
 		}
+	}
+
+	@Override
+	@Transactional
+	public void moveElementToFolder(int from, int to, String username){
+		final Element element =
+				folderDao.findByIdAndUsername(from, username).orElseThrow(
+						ElementException::createElementNameMayNotBeEmptyException);
+		//Remove from old parent
+		element.getParent().getElements().removeIf(e->e.getId()==element.getId());
+
+		//Add to new folder
+		final Folder toFolder =
+				folderDao.findFolderByIdAndUsername(to, username).orElseThrow(
+						ElementException::createElementIdMayNotBeNegative);
+		toFolder.getElements().add(element);
+		element.setParent(toFolder);
+
 	}
 
 	@Override

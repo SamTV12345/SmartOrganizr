@@ -67,6 +67,16 @@ public class FolderDaoJpaImpl implements FolderDao {
 	}
 
 	@Override
+	public Optional<Element> findByIdAndUsername(final int elementId, final String username) {
+		return folderRepository.findElementByIdAndUsername(elementId,username);
+	}
+
+	@Override
+	public Optional<Folder> findFolderByIdAndUsername(final int folderId, final String username) {
+		return folderRepository.findFolderByIdAndUsername(folderId,username);
+	}
+
+	@Override
 	public Optional<Folder> findFolderByUserAndName(final User user, final String s) {
 		return folderRepository.findFolderByUserAndName(user, s);
 	}

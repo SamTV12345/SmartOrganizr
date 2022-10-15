@@ -20,6 +20,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 
@@ -58,6 +59,12 @@ public class ElementController {
 		Collection<Element> children = folderService.findChildren(user.getUserId(), folderId);
 
 		return ResponseEntity.ok(addChildrenLinkIfFolder(children));
+	}
+
+	@PatchMapping("/{from}/{to}")
+	public ResponseEntity<Void> moveElement(@PathVariable int from, @PathVariable int to){
+		folderService.moveElementToFolder(from,to, getUser().getUserId());
+		return ResponseEntity.ok().build();
 	}
 
 	public List<Object> addChildrenLinkIfFolder(final Collection<? extends Element> elements) {
