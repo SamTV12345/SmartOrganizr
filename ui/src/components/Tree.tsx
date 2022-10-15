@@ -2,7 +2,7 @@ import {Dispatch, FC, SetStateAction, useEffect, useState} from "react";
 import "./Tree.css"
 import {ElementItem} from "../models/ElementItem";
 import axios from "axios";
-import {fixLinkProtocol} from "../utils/Utilities";
+import {fixProtocol} from "../utils/Utilities";
 import {Folder} from "../models/Folder";
 import {NoteItem} from "../models/NoteItem";
 import {setNodes} from "../store/CommonSlice";
@@ -95,7 +95,7 @@ const TreeNode:FC<TreeDataExpanded> = ({ keyNum,icon,children
     const onExpand = async (event: TreeData) => {
         if (event.children?.length==0 && event.length > 0) {
             const loadedChildren: ElementItem[] = await new Promise<ElementItem[]>(resolve => {
-                axios.get(fixLinkProtocol(event.links))
+                axios.get(fixProtocol(event.links))
                     .then(resp => resolve(resp.data))
                     .catch((error) => {
                         console.log(error)

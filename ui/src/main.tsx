@@ -19,6 +19,16 @@ const initKeycloak = (keycloak: Keycloak) => {
                 axios.defaults.headers["Authorization"] =`Bearer ${keycloak.token}`
                 axios.defaults.headers['Content-Type']  = 'application/json'
                 resolve(res)
+
+                let updateToken = ()=>setInterval(()=>{
+                    keycloak.updateToken(30)
+                        .then((refreshed)=>{
+                            if(refreshed){
+                                axios.defaults.headers["Authorization"] =`Bearer ${keycloak.token}`
+                            }
+                        })
+                }, 30000)
+                updateToken()
                 }
             )
             .catch((error) => {
@@ -26,6 +36,7 @@ const initKeycloak = (keycloak: Keycloak) => {
             })
     })
 }
+
 
 const root = ReactDOM.createRoot(document.getElementById('root') as HTMLElement)
 
