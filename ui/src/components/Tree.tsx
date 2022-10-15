@@ -134,7 +134,6 @@ const TreeNode:FC<TreeDataExpanded> = ({ keyNum,icon,children
         return nodes.map(node => {
                 const children = node.children?.map(c=>c.keyNum)
                 if(children && children.includes(keyNum)){
-                    console.log("Remove")
                     return {...node, children: node.children?.filter(c=>c.keyNum!==keyNum)} as TreeData
                 }
                 else {
@@ -148,12 +147,10 @@ const TreeNode:FC<TreeDataExpanded> = ({ keyNum,icon,children
         return nodes.map(node => {
             //if other children are in this folder
             if(node.keyNum === parentId && node.children){
-                console.log("add with children")
-                return {...node, children: [...node.children,event]} as TreeData
+                return {...node, children: [...node.children,event].sort((c1,c2)=>c1.name.localeCompare(c2.name))} as TreeData
             }
             // if not other children are in this folder
             else if(node.keyNum === parentId && !node.children){
-                console.log("add with no children")
                 return {...node, children: [event]} as TreeData
             }
             else {
