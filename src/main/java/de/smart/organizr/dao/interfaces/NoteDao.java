@@ -23,4 +23,6 @@ public interface NoteDao {
 	List<Note> findAllNotesByAuthor(int id, final String userId);
 
 	Optional<Note> findNoteById(int id);
+
+	void deleteById(int noteId);
 }

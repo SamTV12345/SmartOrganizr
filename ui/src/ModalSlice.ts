@@ -6,15 +6,19 @@ import {NoteItem} from "./models/NoteItem";
 // Define a type for the slice state
 interface ModalProps {
     openModal:boolean,
+    openAddModal: boolean,
     selectedAuthor: Author| undefined,
-    selectedAuthorNotes: NoteItem[]| undefined
+    selectedAuthorNotes: NoteItem[]| undefined,
+    createdAuthor: Author
 }
 
 // Define the initial state using that type
 const initialState: ModalProps = {
     openModal: false,
+    openAddModal: false,
     selectedAuthor: undefined,
-    selectedAuthorNotes: undefined
+    selectedAuthorNotes: undefined,
+    createdAuthor: {name:'',extraInformation:'',id:0}
 }
 
 export const modalSlice = createSlice({
@@ -24,6 +28,9 @@ export const modalSlice = createSlice({
         setModalOpen: (state, action)=>{
             state.openModal = action.payload
         },
+        setOpenAddModal: (state, action)=>{
+            state.openAddModal = action.payload
+        },
         setAuthor: (state, action)=>{
             state.selectedAuthor  = action.payload
         },
@@ -32,13 +39,28 @@ export const modalSlice = createSlice({
                 state.selectedAuthor.name = action.payload
             }
         },
+        setAuthorExtraInformation: (state, action)=>{
+            if(state.selectedAuthor!== undefined) {
+                state.selectedAuthor.extraInformation = action.payload
+            }
+        },
         setSelectedAuthorNotes:(state, action)=>{
             state.selectedAuthorNotes = action.payload
         },
+        setCreatedAuthorName: (state, action)=>{
+                state.createdAuthor.name = action.payload
+        },
+        setCreatedAuthorExtraInformation: (state, action)=>{
+                state.createdAuthor.extraInformation = action.payload
+        },
+        setCreatedAuthor: (state, action)=>{
+            state.createdAuthor = action.payload
+        }
     }
 
 })
 
-export const {setModalOpen, setAuthor, setSelectedAuthorNotes, setAuthorName} = modalSlice.actions
+export const {setModalOpen, setAuthor, setSelectedAuthorNotes, setAuthorName, setAuthorExtraInformation, setOpenAddModal,
+             setCreatedAuthorExtraInformation, setCreatedAuthorName, setCreatedAuthor} = modalSlice.actions
 
 export default modalSlice.reducer

@@ -32,4 +32,6 @@ public interface AuthorDao {
 	void deleteAuthor(Author authorToDelete);
 
 	Optional<Author> findAuthorByIdAndUser(int authorId, String user);
+
+	int getAuthorIndex(String authorName);
 }

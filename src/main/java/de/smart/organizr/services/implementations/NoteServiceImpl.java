@@ -26,6 +26,11 @@ public class NoteServiceImpl implements NoteService {
 	}
 
 	@Override
+	public void deleteNoteById(final int noteId) {
+		noteDao.deleteById(noteId);
+	}
+
+	@Override
 	public List<Note> findAllNotesByAuthor(final int id, final String userId) {
 		return noteDao.findAllNotesByAuthor(id, userId);
 	}

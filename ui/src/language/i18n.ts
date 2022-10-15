@@ -13,7 +13,8 @@ const resources = {
            id: 'ID',
            name: 'Name',
            extraInformation: 'Weitere Informationen',
-           folderView: 'Ordneransicht'
+           folderView: 'Ordneransicht',
+           cancel: 'Abbrechen'
        }
     },
     en:{
@@ -26,7 +27,8 @@ const resources = {
             id: 'Id',
             name: 'Name',
             extraInformation: 'Further information',
-            folderView: 'Folder view'
+            folderView: 'Folder view',
+            cancel: 'Cancel'
         }
     }
 }

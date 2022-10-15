@@ -3,11 +3,9 @@ package de.smart.organizr.view;
 import de.smart.organizr.entities.interfaces.Author;
 import de.smart.organizr.services.interfaces.AuthorService;
 import de.smart.organizr.utils.JsfUtils;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 
-import java.util.Collection;
 import java.util.List;
 
 public class ViewAuthorView {
@@ -41,7 +39,7 @@ public class ViewAuthorView {
 	}
 
 	public void deleteAuthor(final Author author) {
-		authorService.deleteAuthor(author);
+		authorService.deleteAuthor(author.getId(), userBean.getUser().getUserId());
 		allAuthors.remove(author);
 	}
 }

@@ -17,6 +17,7 @@ import org.springframework.hateoas.PagedModel;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -51,17 +52,23 @@ public class AuthorController {
 		return ResponseEntity.ok(notesOfAuthor);
 	}
 
-	@PostMapping("")
-	public ResponseEntity<Author> createAuthor(@RequestBody Author author){
-		return ResponseEntity.ok(authorService.saveAuthor(author, getUser()));
-	}
-
 	@PatchMapping("/{authorId}")
 	public ResponseEntity<Author> updateAuthor(@RequestBody AuthorPatchDto authorPatchDto, @PathVariable int authorId){
 		return ResponseEntity.ok(authorService.updateAuthor(authorPatchDto, authorId, getUser()));
 	}
 
-	private String getUser() {
+	@DeleteMapping("/{authorId}")
+	public ResponseEntity<Void> deleteAuthor(@PathVariable int authorId) {
+		authorService.deleteAuthor(authorId, getUser());
+		return ResponseEntity.ok().build();
+	}
+
+	@PostMapping("")
+	public ResponseEntity<Author> createAuthor(@RequestBody AuthorPatchDto authorPatchDto){
+		return ResponseEntity.ok(authorService.createAuthor(authorPatchDto, getUser()));
+	}
+
+		private String getUser() {
 		return SecurityContextHolder.getContext().getAuthentication().getName();
 	}
 }

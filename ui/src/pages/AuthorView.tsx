@@ -10,28 +10,33 @@ import {Waypoint} from "react-waypoint";
 import {useTranslation} from "react-i18next";
 import {fixLinkProtocol} from "../utils/Utilities";
 import {Modal} from "../components/Modal";
-import {setAuthor, setModalOpen} from "../ModalSlice";
+import {setAuthor, setModalOpen, setOpenAddModal} from "../ModalSlice";
 import {AuthorModal} from "../components/AuthorModal";
 import {AuthorPatchDto} from "../models/AuthorPatchDto";
+import {AddModal} from "../components/AddModal";
+import {AuthorAddModal} from "../components/AuthorAddModal";
+import {mergeAuthorInList, mergeAuthors, removeAuthor} from "../utils/AuthorUtilList";
 
 export const AuthorView = ()=> {
     const dispatch = useAppDispatch()
     const authorPage = useAppSelector(state=>state.commonReducer.authorPage)
     const {t} = useTranslation()
     const selectedAuthor = useAppSelector(state=>state.modalReducer.selectedAuthor)
+    const createdAuthor = useAppSelector(state=>state.modalReducer.createdAuthor)
 
-    const mergeAuthors = (oldAuthorList: Page<AuthorEmbeddedContainer<Author>>,newAuthorList: Page<AuthorEmbeddedContainer<Author>>)=>{
-        const authorList =  [...oldAuthorList._embedded.authorRepresentationModelList,...newAuthorList._embedded.authorRepresentationModelList]
-        return {
-            page:newAuthorList.page,
-            _embedded:{
-                authorRepresentationModelList: authorList
-            } ,
-            _links:newAuthorList._links
-        } as Page<AuthorEmbeddedContainer<Author>>
+
+
+    const deleteAuthor = async (authorPageInParam: Page<AuthorEmbeddedContainer<Author>>,author:Author)=>{
+        await new Promise<Author>(resolve=>{
+            axios.delete(`${apiURL}/v1/authors/${author.id}`)
+                .then(()=>{
+                    dispatch(setAuthorPage(removeAuthor(authorPageInParam,author.id)))
+                    dispatch(setAuthor(undefined))
+                    dispatch(setModalOpen(false))
+                })
+                .catch((err)=>console.log(err))
+        })
     }
-
-
     const loadAuthors = async (link:string)=>{
         const authorsInResponse: Page<AuthorEmbeddedContainer<Author>> = await new Promise<Page<AuthorEmbeddedContainer<Author>>>(resolve=>{
             axios.get(link)
@@ -58,24 +63,27 @@ export const AuthorView = ()=> {
 
 
     const updateAuthor = async(author:Author)=>{
-        if(author.id === undefined){
-            return
-        }
-        console.log("Upgedated")
         const authorInResponse: Author = await new Promise<Author>(resolve=>{
             axios.patch(apiURL+`/v1/authors/${author.id}`,{name: author.name,extraInformation:author.extraInformation} as AuthorPatchDto)
                 .then(resp=>resolve(resp.data))
                 .catch((error)=>{
                     console.log(error)
                 })})
-        if(authorInResponse !== undefined){
-            console.log(authorInResponse)
+        if(authorInResponse !== undefined && authorPage){
+            dispatch(setAuthorPage(mergeAuthorInList(authorPage,author)))
         }
     }
 
     return <div>
+        <div className="flex justify-end mr-5 mt-5 mb-5">
+        <button data-modal-toggle="defaultModal" type="button" className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center bg-blue-600 hover:bg-blue-700 focus:ring-blue-800"  onClick={()=>dispatch(setOpenAddModal(true))}>
+            <i className="fa-solid fa-plus"/>
+        </button>
+        </div>
+        <AddModal acceptText={"Erstellen"} children={<AuthorAddModal/>} headerText={"Author erstellen"} onAccept={()=>{}}/>
         <Modal headerText="Editieren eines Authors" children={<AuthorModal/>} onAccept={()=>{
-            selectedAuthor&&updateAuthor(selectedAuthor)}} onCancel={()=>{}} acceptText={"Updaten"} cancelText={"Abbrechen"}/>
+            selectedAuthor&&updateAuthor(selectedAuthor)}} onCancel={()=>{}} acceptText={"Updaten"} cancelText={"Abbrechen"}
+            onDelete={()=>selectedAuthor&&authorPage&&deleteAuthor(authorPage,selectedAuthor)}/>
         <table className="w-full md:w-8/12  divide-y table-fixed divide-gray-700 md:mx-auto md:mt-4 md:mb-4 border-collapse" id="authorTable">
             <thead className="bg-gray-700">
             <tr className="">

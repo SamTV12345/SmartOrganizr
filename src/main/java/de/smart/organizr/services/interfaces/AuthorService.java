@@ -16,6 +16,8 @@ public interface AuthorService {
 	 */
 	Author saveAuthor(Author author, String userId);
 
+	Author createAuthor(AuthorPatchDto authorPatchDto, String userId);
+
 	/**
 	 * Finds all authors by user
 	 * @param userId the user id
@@ -40,9 +42,9 @@ public interface AuthorService {
 
 	/**
 	 * Deletes the author
-	 * @param authorToDelete the author to be deleted
+	 * @param authorId the id of the author to delete
 	 */
-	void deleteAuthor(Author authorToDelete);
+	void deleteAuthor(int authorId, String userId);
 
 	Author updateAuthor(AuthorPatchDto authorPatchDto,final int authorId, String user);
 }

@@ -4,12 +4,17 @@ import de.smart.organizr.dao.interfaces.AuthorDao;
 import de.smart.organizr.dao.interfaces.UserDao;
 import de.smart.organizr.dto.AuthorPatchDto;
 import de.smart.organizr.dto.AuthorPatchDtoMapper;
+import de.smart.organizr.dto.AuthorWithIndex;
+import de.smart.organizr.dto.AuthorWithIndexMapper;
+import de.smart.organizr.entities.classes.UserHibernateImpl;
 import de.smart.organizr.entities.interfaces.Author;
+import de.smart.organizr.entities.interfaces.Note;
 import de.smart.organizr.entities.interfaces.User;
 import de.smart.organizr.exceptions.AuthorException;
 import de.smart.organizr.exceptions.UserException;
 import de.smart.organizr.i18n.I18nExceptionUtils;
 import de.smart.organizr.services.interfaces.AuthorService;
+import de.smart.organizr.services.interfaces.NoteService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -28,6 +33,8 @@ public class AuthorServiceImpl implements AuthorService {
 	private final AuthorDao authorDao;
 	private final UserDao userDao;
 	private final AuthorPatchDtoMapper authorPatchDtoMapper;
+	private final NoteService noteService;
+	private final AuthorWithIndexMapper authorWithIndexMapper;
 
 
 
@@ -38,6 +45,15 @@ public class AuthorServiceImpl implements AuthorService {
 				userDao.findUserById(userId).orElseThrow(()->new UserException(I18nExceptionUtils.getUserUnknown()));
 		author.setCreator(user);
 		return authorDao.saveAuthor(author);
+	}
+
+	@Override
+	public AuthorWithIndex createAuthor(final AuthorPatchDto authorPatchDto, final String userId) {
+		final User user = userDao.findUserById(userId).orElseThrow(UserException::createUnknownUserException);
+		final Author author = authorPatchDtoMapper.convertAuthorWithUser(authorPatchDto, (UserHibernateImpl) user);
+		final int index = authorDao.getAuthorIndex(authorPatchDto.getName());
+		final Author savedAuthor = authorDao.saveAuthor(author);
+		return authorWithIndexMapper.convertAuthor(savedAuthor, index);
 	}
 
 	@Override
@@ -74,8 +90,14 @@ public class AuthorServiceImpl implements AuthorService {
 	}
 
 	@Override
-	public void deleteAuthor(final Author authorToDelete) {
-		authorDao.deleteAuthor(authorToDelete);
+	@Transactional
+	public void deleteAuthor(final int authorIdToDelete, final String userId) {
+		final Author author =
+				authorDao.findAuthorByIdAndUser(authorIdToDelete,userId).orElseThrow(
+						AuthorException::createUnknownAuthorException);
+		final List<Note> notes = noteService.findAllNotesByAuthor(authorIdToDelete,userId);
+		notes.forEach(note->noteService.deleteNoteById(note.getId()));
+		authorDao.deleteAuthor(author);
 	}
 
 	@Override

@@ -56,4 +56,9 @@ public class NoteDaoJpaImpl implements NoteDao {
 		return Optional.of(optionalNote.get());
 
 	}
+
+	@Override
+	public void deleteById(final int noteId) {
+		noteRepository.deleteById(noteId);
+	}
 }

@@ -58,4 +58,9 @@ public class AuthorDaoJpaImpl implements AuthorDao {
 	public void deleteAuthor(final Author authorToDelete) {
 		authorRepository.deleteById(authorToDelete.getId());
 	}
+
+	@Override
+	public int getAuthorIndex(final String authorName){
+		return authorRepository.getIndexOnPage(authorName);
+	}
 }

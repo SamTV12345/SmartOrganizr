@@ -11,4 +11,7 @@ import org.springframework.data.repository.CrudRepository;
 public interface AuthorRepository extends CrudRepository<AuthorHibernateImpl,Integer> {
 	@Query("SELECT a FROM AuthorHibernateImpl a WHERE a.creator.userId=:userId")
 	Page<Author> findAllByCreator(final String userId, final Pageable pageable);
+
+	@Query("SELECT COUNT(a) FROM AuthorHibernateImpl a WHERE a.name<:name ORDER BY a.name,a.id ASC")
+	int getIndexOnPage(String name);
 }
