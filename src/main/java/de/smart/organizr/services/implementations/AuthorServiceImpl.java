@@ -57,10 +57,15 @@ public class AuthorServiceImpl implements AuthorService {
 	}
 
 	@Override
-	public Page<Author> findAllAuthorsByUser(final String userId, final Pageable pageable){
+	public Page<Author> findAllAuthorsByUser(final String userId, final Optional<String> optionalFullTextSearch,
+	                                         final Pageable pageable){
 		final Optional<User> optionalUser = userDao.findUserById(userId);
 		if(optionalUser.isEmpty()){
 			throw UserException.createUnknownUserException();
+		}
+		if(optionalFullTextSearch.isPresent()){
+			return authorDao.findAllAuthorsOfUserWithFullText(optionalUser.get(),pageable,optionalFullTextSearch.get());
+
 		}
 		return authorDao.findAllAuthorsOfUser(optionalUser.get(), pageable);
 	}
@@ -72,7 +77,8 @@ public class AuthorServiceImpl implements AuthorService {
 
 	@Override
 	public Optional<Author> findAuthorByUserAndName(final User user, final String authorName){
-		final Collection<Author> allAuthorsOfUser = findAllAuthorsByUser(user.getUserId(),  PageRequest.of(0,2000,
+		final Collection<Author> allAuthorsOfUser = findAllAuthorsByUser(user.getUserId(), Optional.empty(),
+				PageRequest.of(0,2000,
 				Sort.by("name").ascending()))
 				.stream().toList();
 		final List<Author> namesOfAuthors =

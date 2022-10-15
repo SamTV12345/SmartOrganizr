@@ -30,6 +30,12 @@ public class AuthorDaoJpaImpl implements AuthorDao {
 		return authorRepository.findAllByCreator(user.getUserId(), pageable);
 	}
 
+	@Override
+	public Page<Author> findAllAuthorsOfUserWithFullText(final User user, final Pageable pageable,
+	                                                     final String searchString){
+		return authorRepository.findAllByCreatorAndName(user.getUserId(), pageable, searchString);
+	}
+
 	/**
 	 * Finds the requested author by id
 	 * @param authorId the author id

@@ -1,5 +1,3 @@
-import {links} from "../Keycloak";
-
 export const isLocalhost = Boolean(
     window.location.hostname === 'localhost' ||
     // [::1] is the IPv6 localhost address.
@@ -12,5 +10,10 @@ export const isLocalhost = Boolean(
 
 
 export const fixLinkProtocol = (link:string)=>{
+    const replacedLink = link.substring(0,link.indexOf('{'))
+    return window.location.protocol+replacedLink.substring(replacedLink.indexOf(":")+1,replacedLink.length)
+}
+
+export const fixProtocol = (link:string)=>{
     return window.location.protocol+link.substring(link.indexOf(":")+1,link.length)
 }

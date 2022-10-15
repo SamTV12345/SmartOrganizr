@@ -31,6 +31,9 @@ public interface AuthorDao {
 	 */
 	void deleteAuthor(Author authorToDelete);
 
+	Page<Author> findAllAuthorsOfUserWithFullText(User user, Pageable pageable,
+	                                              String searchString);
+
 	Optional<Author> findAuthorByIdAndUser(int authorId, String user);
 
 	int getAuthorIndex(String authorName);

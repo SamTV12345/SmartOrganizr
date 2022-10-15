@@ -12,6 +12,10 @@ public interface AuthorRepository extends CrudRepository<AuthorHibernateImpl,Int
 	@Query("SELECT a FROM AuthorHibernateImpl a WHERE a.creator.userId=:userId")
 	Page<Author> findAllByCreator(final String userId, final Pageable pageable);
 
+	@Query("SELECT a FROM AuthorHibernateImpl a WHERE a.creator.userId=:userId AND " +
+			"(a.name LIKE CONCAT('%',:searchText,'%') OR a.extraInformation LIKE CONCAT('%',:searchText,'%'))")
+	Page<Author> findAllByCreatorAndName(final String userId, final Pageable pageable, String searchText);
+
 	@Query("SELECT COUNT(a) FROM AuthorHibernateImpl a WHERE a.name<:name ORDER BY a.name,a.id ASC")
 	int getIndexOnPage(String name);
 }

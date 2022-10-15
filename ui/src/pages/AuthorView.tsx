@@ -8,7 +8,7 @@ import {apiURL, links} from "../Keycloak";
 import {setAuthorPage} from "../store/CommonSlice";
 import {Waypoint} from "react-waypoint";
 import {useTranslation} from "react-i18next";
-import {fixLinkProtocol} from "../utils/Utilities";
+import {fixLinkProtocol, fixProtocol} from "../utils/Utilities";
 import {Modal} from "../components/Modal";
 import {setAuthor, setModalOpen, setOpenAddModal} from "../ModalSlice";
 import {AuthorModal} from "../components/AuthorModal";
@@ -16,13 +16,13 @@ import {AuthorPatchDto} from "../models/AuthorPatchDto";
 import {AddModal} from "../components/AddModal";
 import {AuthorAddModal} from "../components/AuthorAddModal";
 import {mergeAuthorInList, mergeAuthors, removeAuthor} from "../utils/AuthorUtilList";
+import {AuthorSearchBar} from "../components/AuthorSearchBar";
 
 export const AuthorView = ()=> {
     const dispatch = useAppDispatch()
     const authorPage = useAppSelector(state=>state.commonReducer.authorPage)
     const {t} = useTranslation()
     const selectedAuthor = useAppSelector(state=>state.modalReducer.selectedAuthor)
-    const createdAuthor = useAppSelector(state=>state.modalReducer.createdAuthor)
 
 
 
@@ -37,7 +37,9 @@ export const AuthorView = ()=> {
                 .catch((err)=>console.log(err))
         })
     }
+
     const loadAuthors = async (link:string)=>{
+
         const authorsInResponse: Page<AuthorEmbeddedContainer<Author>> = await new Promise<Page<AuthorEmbeddedContainer<Author>>>(resolve=>{
             axios.get(link)
                 .then(resp=>resolve(resp.data))
@@ -120,6 +122,13 @@ export const AuthorView = ()=> {
             </tr>
             </thead>
             <tbody className="divide-y bg-gray-800 divide-gray-700">
+            <tr>
+                <td className="col-span-3 bg-gray-800" colSpan={3}>
+                    <div className="flex justify-center">
+                        <AuthorSearchBar/>
+                    </div>
+                </td>
+            </tr>
             {
                 authorPage && authorPage._embedded && authorPage._embedded.authorRepresentationModelList.map((author,index)=>
                         <tr className="hover:bg-gray-700" key={author.id.toString()}>
@@ -137,7 +146,9 @@ export const AuthorView = ()=> {
                         {authorPage.page.size-index<10 &&
                             authorPage._links && authorPage._links.next
                             && authorPage._links.next.href
-                            && <Waypoint onEnter={()=>loadAuthors(fixLinkProtocol(authorPage._links.next.href))}/>}
+                            && <Waypoint onEnter={()=>{
+                                loadAuthors(fixProtocol(authorPage._links.next.href))
+                            }}/>}
                     </td>
                 </tr>
                 )

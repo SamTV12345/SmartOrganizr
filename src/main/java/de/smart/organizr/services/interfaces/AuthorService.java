@@ -20,10 +20,12 @@ public interface AuthorService {
 
 	/**
 	 * Finds all authors by user
-	 * @param userId the user id
+	 *
+	 * @param userId           the user id
+	 * @param optionalFullText
 	 * @return all authors that were created by the user
 	 */
-	Page<Author> findAllAuthorsByUser(String userId, Pageable pageable);
+	Page<Author> findAllAuthorsByUser(String userId, final Optional<String> optionalFullText, Pageable pageable);
 
 	/**
 	 * Finds the author by id

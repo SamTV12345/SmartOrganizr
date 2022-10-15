@@ -27,6 +27,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.List;
+import java.util.Optional;
 
 
 @Controller
@@ -38,10 +39,12 @@ public class AuthorController {
 	private final AuthorResourceAssembler authorResourceAssembler;
 
 	@GetMapping("")
-	public ResponseEntity<PagedModel<AuthorRepresentationModel>> getAuthors(@RequestParam final int page, final
-	                                                                  PagedResourcesAssembler<Author> authorPagedResourcesAssembler){
+	public ResponseEntity<PagedModel<AuthorRepresentationModel>> getAuthors(@RequestParam final int page,
+	                                                                        @RequestParam(value = "name",
+			                                                                        required = false) final Optional<String> name,
+	                                                                        final PagedResourcesAssembler<Author> authorPagedResourcesAssembler){
 		final Pageable pageable = PageRequest.of(page,50, Sort.by("name").ascending());
-		final Page<Author> authors = authorService.findAllAuthorsByUser(getUser(), pageable);
+		final Page<Author> authors = authorService.findAllAuthorsByUser(getUser(), name, pageable);
 		final PagedModel<AuthorRepresentationModel> pagedModel = authorPagedResourcesAssembler.toModel(authors, authorResourceAssembler);
 		return ResponseEntity.ok(pagedModel);
 	}

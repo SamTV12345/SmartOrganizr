@@ -3,11 +3,9 @@ package de.smart.organizr.controllers;
 import de.smart.organizr.security.KeycloakModel;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.hateoas.Link;
 import org.springframework.hateoas.RepresentationModel;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 
@@ -29,7 +27,7 @@ public class IndexController {
 	@GetMapping("")
 	public ResponseEntity<RepresentationModel<KeycloakModel>> getIndexLinks(){
 		final RepresentationModel<KeycloakModel> representationModel = new KeycloakModel(clientId,authURL,realm);
-		representationModel.add(linkTo(methodOn(AuthorController.class).getAuthors(0,null))
+		representationModel.add(linkTo(methodOn(AuthorController.class).getAuthors(0,null,null))
 				.withRel("author"));
 		return ResponseEntity.ok(representationModel);
 	}

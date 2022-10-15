@@ -9,6 +9,8 @@ export let links = {
     author: {} as ApiLink
 }
 
+export const waitTime = 1000
+
 if(isLocalhost){
         apiURL="http://localhost:8080/api"
 }

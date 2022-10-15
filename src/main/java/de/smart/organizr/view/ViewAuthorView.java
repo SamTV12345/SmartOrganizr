@@ -7,6 +7,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 
 import java.util.List;
+import java.util.Optional;
 
 public class ViewAuthorView {
 	private final AuthorService authorService;
@@ -16,7 +17,8 @@ public class ViewAuthorView {
 	public ViewAuthorView(final AuthorService authorService, final UserBean userBean) {
 		this.authorService = authorService;
 		this.userBean = userBean;
-		allAuthors = authorService.findAllAuthorsByUser(userBean.getUser().getUserId(), PageRequest.of(0,2000,
+		allAuthors = authorService.findAllAuthorsByUser(userBean.getUser().getUserId(), Optional.empty(),
+				                          PageRequest.of(0,2000,
 				Sort.by("name").ascending()))
 		                          .stream().toList();
 	}
