@@ -1,4 +1,4 @@
-import {Dispatch, FC, SetStateAction, useEffect, useState} from "react";
+import React, {Dispatch, FC, SetStateAction, useEffect, useState} from "react";
 import "./Tree.css"
 import {ElementItem} from "../models/ElementItem";
 import axios from "axios";
@@ -123,21 +123,59 @@ const TreeNode:FC<TreeDataExpanded> = ({ keyNum,icon,children
         })
 
 
-    /*
-        const replaceChildren = (keyNum: number, newChildren: TreeData[], nodes: TreeData[]): TreeData[] => {
-            return nodes.map(node => {
-                if (node.keyNum === keyNum) {
-                    return {...node, children: newChildren} as TreeData
-                } else {
-                    return {...node, children: replaceChildren(keyNum, newChildren, node.children || [])} as TreeData
+
+    const drag = (ev: React.DragEvent<HTMLDivElement>, id: TreeData)=>{
+        // @ts-ignore
+        ev.dataTransfer.setData("id",JSON.stringify(id))
+    }
+
+    //delete child
+    const deleteChild = (keyNum:number, nodes:TreeData[]):TreeData[] =>{
+        return nodes.map(node => {
+                const children = node.children?.map(c=>c.keyNum)
+                if(children && children.includes(keyNum)){
+                    console.log("Remove")
+                    return {...node, children: node.children?.filter(c=>c.keyNum!==keyNum)} as TreeData
+                }
+                else {
+                    return {...node, children: deleteChild(keyNum, node.children || [])} as TreeData
                 }
         })
     }
-    */
+
+    //add child
+    const addChild = (event: TreeData, nodes: TreeData[], parentId:number):TreeData[] =>{
+        return nodes.map(node => {
+            //if other children are in this folder
+            if(node.keyNum === parentId && node.children){
+                console.log("add with children")
+                return {...node, children: [...node.children,event]} as TreeData
+            }
+            // if not other children are in this folder
+            else if(node.keyNum === parentId && !node.children){
+                console.log("add with no children")
+                return {...node, children: [event]} as TreeData
+            }
+            else {
+                return {...node, children: addChild(event, node.children || [],parentId)} as TreeData
+            }
+        })
+    }
 
     return (
         <li className="d-tree-node ml-5 p-2" key={keyNum}>
-            <div className="flex gap-5" onClick={(e) => setChildVisiblity((v) => !v)}>
+            <div className="flex gap-5" onClick={(e) => setChildVisiblity((v) => !v)}
+                 draggable={true} onDragStart={(e)=>drag(e,{keyNum,icon,children,name,length,type,links} as TreeData)}
+                 onDragOver={(e)=>{
+                     type=='Folder'?e.preventDefault():''
+                 }}
+                 onDrop={(e)=>{
+                     const  element= JSON.parse(e.dataTransfer.getData("id"))
+                     if(element.keyNum!==keyNum) {
+                         e.preventDefault();
+                         dispatch(setNodes(addChild(element, deleteChild(element.keyNum, nodes), keyNum)))
+                     }
+                 }}>
                 {hasChild && (
                     <div
                         className={`d-inline d-tree-toggler ${
