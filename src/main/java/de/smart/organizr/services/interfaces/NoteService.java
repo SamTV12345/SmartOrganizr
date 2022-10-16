@@ -1,6 +1,9 @@
 package de.smart.organizr.services.interfaces;
 
+import de.smart.organizr.dto.NotePatchDto;
+import de.smart.organizr.dto.NotePostDto;
 import de.smart.organizr.entities.interfaces.Note;
+import de.smart.organizr.entities.interfaces.User;
 
 import java.util.List;
 import java.util.Optional;
@@ -19,7 +22,14 @@ public interface NoteService {
 	 */
 	void deleteNote(Note note);
 
-	List<Note> findAllNotesByAuthor(int id);
+	void deleteNoteById(int noteId);
+	List<Note> findAllNotesByAuthor(int id, final String userId);
 
 	Optional<Note> findNoteById(int id);
+
+	Note updateNote(NotePatchDto note, User user);
+
+	Note saveNoteForUser(NotePostDto notePostDto, String userId);
+
+	int getParentOfNote(int noteId, final String userId);
 }

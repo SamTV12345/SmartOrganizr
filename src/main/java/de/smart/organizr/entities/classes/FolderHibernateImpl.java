@@ -40,6 +40,11 @@ public class FolderHibernateImpl extends ElementHibernateImpl implements Folder,
 		this(name, Calendar.getInstance(), description, creator);
 	}
 
+	public FolderHibernateImpl(final String name,final Folder parent, final String description, final User creator){
+		this(Calendar.getInstance(),0,name, parent, description,creator, new LinkedList<>());
+	}
+
+
 	public FolderHibernateImpl(final Calendar creationDate, final int id, final String name,
 	                           final Folder parent, final String description,
 	                           final User creator, final List<Element> elements) {

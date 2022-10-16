@@ -1,31 +1,42 @@
-import {Dispatch, FC, SetStateAction, useEffect, useState} from "react";
+import React, {Dispatch, FC, SetStateAction, useState} from "react";
 import "./Tree.css"
 import {ElementItem} from "../models/ElementItem";
 import axios from "axios";
-import {fixLinkProtocol} from "../utils/Utilities";
+import {fixProtocol} from "../utils/Utilities";
 import {Folder} from "../models/Folder";
-import {NoteItem} from "../models/NoteItem";
-import {setNodes} from "../store/CommonSlice";
+import {setLoadedFolders, setNodes} from "../store/CommonSlice";
 import {useAppDispatch, useAppSelector} from "../store/hooks";
+import {apiURL} from "../Keycloak";
+import {setModalOpen, setSelectedFolder} from "../ModalSlice";
+import {Author} from "../models/Author";
+import {addChild, deleteChild, handleNewElements, traverseTree} from "../utils/ElementUtils";
 
 export interface TreeData {
+    creationDate: Date,
     keyNum:number,
     icon:string,
     name:string,
     length:number,
+    author?: Author
     type: string,
     links: string,
+    description: string,
+    numberOfPages?:number,
     children?: TreeData[]
 }
 
 export interface TreeDataExpanded {
+    creationDate: Date,
     keyNum:number,
     icon:string,
     name:string,
     length:number,
     type: string,
     links: string,
+    author?: Author
+    description:string,
     children?: TreeData[],
+    numberOfPages?:number,
     nodes: TreeData[]
     setData: Dispatch<SetStateAction<TreeData[]>>
 }
@@ -39,63 +50,31 @@ export const TreeElement:FC<TreeProps> = ({data})=>{
     return <div>
         <ul>
             {data && data.map(tree=>{
-                return <TreeNode name={tree.name} setData={setNodes} key={tree.keyNum+"tree"}
-                                 icon={tree.icon} keyNum={tree.keyNum}
+                return <TreeNode name={tree.name} setData={setNodes} key={tree.keyNum+"tree"} author={tree.author}
+                                 icon={tree.icon} keyNum={tree.keyNum} numberOfPages={tree.numberOfPages}
                                  children={tree.children} length={data.length}
-                                 links={tree.links} type={tree.type} nodes={data}/>
+                                 links={tree.links} type={tree.type} nodes={data} description={tree.description} creationDate={tree.creationDate}/>
             })}
         </ul>
         </div>
 }
 
-const TreeNode:FC<TreeDataExpanded> = ({ keyNum,icon,children
-                                           ,name, length,
-                                           setData,type,links }) => {
+const TreeNode:FC<TreeDataExpanded> = ({ keyNum,icon,children,author
+                                           ,name, length,description,numberOfPages,
+                                           setData,type,links,creationDate }) => {
     const [childVisible, setChildVisiblity] = useState(false);
     const dispatch = useAppDispatch()
     const nodes = useAppSelector(state=>state.commonReducer.nodes)
-
+    const loadedFolders = useAppSelector(state=>state.commonReducer.loadedFolders)
     const hasChild = type==='Folder' && length>0
 
-    function handleNewElements(event: TreeData, loadedChildren: ElementItem[]) {
-        event.children = loadedChildren.map(element => {
-                if ('length' in element) {
-                    const folder = element as Folder
-                    return {
-                        keyNum: element.id,
-                        icon: "fa-solid  fa-folder",
-                        name: element.name,
-                        length: folder.length,
-                        type: 'Folder',
-                        links: folder.links[0].href,
-                        children: []
-                    } as TreeData
-                } else if ('numberOfPages' in element) {
-                    const note = element as NoteItem
 
-                    return {
-                        keyNum: note.id,
-                        icon: "fa fa-sheet-plastic",
-                        name: note.title,
-                        length: note.numberOfPages,
-                        type: 'Note',
-                    } as TreeData
-                } else {
-                    return {
-                        keyNum: 123,
-                        name: "??",
-                        length: 0,
-                        type: "??",
-                    } as TreeData
-                }
-            }
-        )
-    }
 
     const onExpand = async (event: TreeData) => {
-        if (event.children?.length==0 && event.length > 0) {
+        if (!loadedFolders.includes(event.keyNum)) {
+            dispatch(setLoadedFolders(event.keyNum))
             const loadedChildren: ElementItem[] = await new Promise<ElementItem[]>(resolve => {
-                axios.get(fixLinkProtocol(event.links))
+                axios.get(fixProtocol(event.links))
                     .then(resp => resolve(resp.data))
                     .catch((error) => {
                         console.log(error)
@@ -110,47 +89,58 @@ const TreeNode:FC<TreeDataExpanded> = ({ keyNum,icon,children
     }
 
 
-    /**
-     * Traverses the tree and adds the new nodes.
-     * @param event
-     * @param nodes
-     */
-    const traverseTree = (event: TreeData, nodes: TreeData[]): TreeData[] =>
-        nodes.map(node =>
-            node.keyNum === event.keyNum ? event
-                : !node.children?.length ? node
-                    : { ...node, children: traverseTree(event, node.children)
-        })
+    const drag = (ev: React.DragEvent<HTMLDivElement>, id: TreeData)=>{
+        // @ts-ignore
+        ev.dataTransfer.setData("id",JSON.stringify(id))
+    }
 
-
-    /*
-        const replaceChildren = (keyNum: number, newChildren: TreeData[], nodes: TreeData[]): TreeData[] => {
-            return nodes.map(node => {
-                if (node.keyNum === keyNum) {
-                    return {...node, children: newChildren} as TreeData
-                } else {
-                    return {...node, children: replaceChildren(keyNum, newChildren, node.children || [])} as TreeData
-                }
+    const moveToFolder = async (element: TreeData, nodes: TreeData[], keyNum:number)=>{
+        await new Promise<ElementItem[]>(resolve => {
+            axios.patch(apiURL+`/v1/elements/${element.keyNum}/${keyNum}`)
+                .then(resp => {
+                    dispatch(setNodes(addChild(element, deleteChild(element.keyNum, nodes), keyNum)))
+                })
+                .catch((error) => {
+                    console.log(error)
+                })
         })
     }
-    */
 
     return (
         <li className="d-tree-node ml-5 p-2" key={keyNum}>
-            <div className="flex gap-5" onClick={(e) => setChildVisiblity((v) => !v)}>
+            <div className="flex gap-5"
+                 draggable={true} onDragStart={(e)=>drag(e,{keyNum,icon,children,author,name,length,type,links} as TreeData)}
+                 onDragOver={(e)=>{
+                     type=='Folder'?e.preventDefault():''
+                 }}
+                 onDrop={(e)=>{
+                     const  element= JSON.parse(e.dataTransfer.getData("id"))
+                     if(element.keyNum!==keyNum) {
+                         e.preventDefault();
+                         moveToFolder(element,nodes, keyNum)
+                     }
+                 }}>
                 {hasChild && (
                     <div
                         className={`d-inline d-tree-toggler ${
                             childVisible ? "active" : ""
                         }`}
                     >
-                        <i className="fa-solid fa-chevron-right" onClick={()=>onExpand({keyNum,icon,children,name,length,type,links})}/>
+                        <i className="fa-solid fa-chevron-right" onClick={()=>{
+                            setChildVisiblity((v) => !v)
+                            onExpand({keyNum,icon,numberOfPages,
+                                creationDate,description,children,author,name,length,type,links})
+                        }}/>
                     </div>
                 )}
 
                 <div className="col d-tree-head">
-                    <i className={` ${icon} mr-4`}> </i>
-                    {name}
+                    <i className={` ${icon} mr-2`}/>
+                    <span className="mr-2">{name}</span>
+                    <i className="fa-solid fa-pen" onClick={()=>{
+                        dispatch(setSelectedFolder({id: keyNum, length,numberOfPages,author,description,name,type} as ElementItem))
+                        dispatch(setModalOpen(true))
+                    }}/>
                 </div>
             </div>
 

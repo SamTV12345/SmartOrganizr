@@ -9,6 +9,8 @@ import {useAppSelector} from "./store/hooks";
 import {WelcomePage} from "./pages/WelcomePage";
 import {AuthorView} from "./pages/AuthorView";
 import {FolderView} from "./pages/FolderView";
+import axios from "axios";
+import internal from "stream";
 
 function App() {
     const sideBarCollapsed = useAppSelector(state=>state.commonReducer.sideBarCollapsed)
@@ -17,6 +19,8 @@ function App() {
     if(keycloak.tokenParsed === undefined){
         return <div>Loading</div>
     }
+
+
 
   return (
       <BrowserRouter basename="/ui">

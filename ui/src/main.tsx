@@ -2,7 +2,7 @@ import React from 'react'
 import ReactDOM from 'react-dom/client'
 import App from './App'
 import './index.css'
-import setKeycloak, {apiURL, keycloak, links, setLinks, setLoadedKeycloak} from "./Keycloak";
+import setKeycloak, {apiURL, keycloak, setLinks, setLoadedKeycloak} from "./Keycloak";
 import Keycloak from "keycloak-js";
 import {KeycloakContext} from './Keycloak/useKeycloak';
 import {store} from "./store/store";
@@ -16,8 +16,19 @@ const initKeycloak = (keycloak: Keycloak) => {
         keycloak.init({onLoad: 'login-required'})
             .then((res) => {
                 setLoadedKeycloak(keycloak)
-                axios.defaults.headers["Authorization"]=`Bearer ${keycloak.token}`
+                axios.defaults.headers["Authorization"] =`Bearer ${keycloak.token}`
+                axios.defaults.headers['Content-Type']  = 'application/json'
                 resolve(res)
+
+                let updateToken = ()=>setInterval(()=>{
+                    keycloak.updateToken(30)
+                        .then((refreshed)=>{
+                            if(refreshed){
+                                axios.defaults.headers["Authorization"] =`Bearer ${keycloak.token}`
+                            }
+                        })
+                }, 30000)
+                updateToken()
                 }
             )
             .catch((error) => {
@@ -25,6 +36,7 @@ const initKeycloak = (keycloak: Keycloak) => {
             })
     })
 }
+
 
 const root = ReactDOM.createRoot(document.getElementById('root') as HTMLElement)
 
@@ -45,7 +57,6 @@ const renderApp= (keycloak: Keycloak)=>
 
 const bootstrapApp = async () => {
     if(keycloak === undefined){
-        console.log("Aufgerufen")
         axios.get(apiURL+"/public")
             .then(resp=>{
                 setLinks(resp.data._links)

@@ -30,14 +30,20 @@ public class AuthorDaoJpaImpl implements AuthorDao {
 		return authorRepository.findAllByCreator(user.getUserId(), pageable);
 	}
 
+	@Override
+	public Page<Author> findAllAuthorsOfUserWithFullText(final User user, final Pageable pageable,
+	                                                     final String searchString){
+		return authorRepository.findAllByCreatorAndName(user.getUserId(), pageable, searchString);
+	}
+
 	/**
 	 * Finds the requested author by id
 	 * @param authorId the author id
 	 * @return an optional author that is found
 	 */
 	@Override
-	public Optional<Author> findAuthorById(final int authorId) {
-		final Optional<AuthorHibernateImpl> optionalAuthor =  authorRepository.findById(authorId);
+	public Optional<Author> findAuthorByIdAndUser(final int authorId, final String user) {
+		final Optional<AuthorHibernateImpl> optionalAuthor =  authorRepository.findAuthorById(authorId, user);
 		if(optionalAuthor.isEmpty()){
 			return Optional.empty();
 		}
@@ -57,5 +63,10 @@ public class AuthorDaoJpaImpl implements AuthorDao {
 	@Override
 	public void deleteAuthor(final Author authorToDelete) {
 		authorRepository.deleteById(authorToDelete.getId());
+	}
+
+	@Override
+	public int getAuthorIndex(final String authorName){
+		return authorRepository.getIndexOnPage(authorName);
 	}
 }

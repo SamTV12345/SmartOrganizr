@@ -1,8 +1,12 @@
 package de.smart.organizr.services.interfaces;
 
+import de.smart.organizr.dto.FolderPatchDto;
+import de.smart.organizr.dto.FolderPostDto;
 import de.smart.organizr.entities.interfaces.Element;
 import de.smart.organizr.entities.interfaces.Folder;
 import de.smart.organizr.entities.interfaces.User;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import java.util.Collection;
 import java.util.List;
@@ -30,6 +34,8 @@ public interface FolderService {
 	 */
 	Folder saveFolder(Folder folder);
 
+	Folder saveFolderForUser(FolderPostDto folder, String userId);
+
 	/**
 	 * Finds all parent folders by user id
 	 *
@@ -49,9 +55,15 @@ public interface FolderService {
 	 */
 	Optional<Folder> findFolderByUserAndName(User user, String s);
 
+	void moveElementToFolder(int from, int to, String username);
+
 	/**
 	 * Deletes a folder
 	 * @param folder the folder to be deleted
 	 */
 	void deleteFolder(Folder folder);
+
+	Folder updateFolder(FolderPatchDto folderPatchDto, User user);
+
+	Page<Folder> findAllFoldersWithName(String folderName, User user, Pageable pageable);
 }
