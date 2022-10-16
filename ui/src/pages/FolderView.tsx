@@ -7,9 +7,11 @@ import {useAppDispatch, useAppSelector} from "../store/hooks";
 import {setNodes} from "../store/CommonSlice";
 import {Modal} from "../components/Modal";
 import {NoteModal} from "../components/NoteModal";
-import {setModalOpen} from "../ModalSlice";
+import {setModalOpen, setOpenAddModal} from "../ModalSlice";
 import {replaceFolder, replaceNote} from "../utils/ElementUtils";
 import {NoteItem} from "../models/NoteItem";
+import {AddModal} from "../components/AddModal";
+import {ElementAddModal} from "../components/ElementAddModal";
 
 export const FolderView = ()=>{
     const dispatch = useAppDispatch()
@@ -113,6 +115,12 @@ export const FolderView = ()=>{
     }
 
     return <div>
+        <div className="flex justify-end mr-5 mt-5 mb-5">
+            <button data-modal-toggle="defaultModal" type="button" className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center bg-blue-600 hover:bg-blue-700 focus:ring-blue-800"  onClick={()=>dispatch(setOpenAddModal(true))}>
+                <i className="fa-solid fa-plus"/>
+            </button>
+        </div>
+        <AddModal headerText={"Neues Element"} onAccept={()=>{}} acceptText={"Erstellen"} children={<ElementAddModal/>}/>
         <Modal headerText="Element editieren" onAccept={()=>updateElement()} acceptText="Updaten" children={<NoteModal/>}
                cancelText={"Abbrechen"} onCancel={()=>{dispatch(setModalOpen(false))}} onDelete={()=>{}}/>
         <div className="border-0 w-full md:w-8/12  table-fixed md:mx-auto md:mt-4 md:mb-4 bg-gray-800 text-white p-6">
