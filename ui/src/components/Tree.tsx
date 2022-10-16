@@ -107,7 +107,7 @@ const TreeNode:FC<TreeDataExpanded> = ({ keyNum,icon,children,author
 
     return (
         <li className="d-tree-node ml-5 p-2" key={keyNum}>
-            <div className="flex gap-5" onClick={(e) => setChildVisiblity((v) => !v)}
+            <div className="flex gap-5"
                  draggable={true} onDragStart={(e)=>drag(e,{keyNum,icon,children,author,name,length,type,links} as TreeData)}
                  onDragOver={(e)=>{
                      type=='Folder'?e.preventDefault():''
@@ -125,8 +125,11 @@ const TreeNode:FC<TreeDataExpanded> = ({ keyNum,icon,children,author
                             childVisible ? "active" : ""
                         }`}
                     >
-                        <i className="fa-solid fa-chevron-right" onClick={()=>onExpand({keyNum,icon,numberOfPages,
-                            creationDate,description,children,author,name,length,type,links})}/>
+                        <i className="fa-solid fa-chevron-right" onClick={()=>{
+                            setChildVisiblity((v) => !v)
+                            onExpand({keyNum,icon,numberOfPages,
+                                creationDate,description,children,author,name,length,type,links})
+                        }}/>
                     </div>
                 )}
 
