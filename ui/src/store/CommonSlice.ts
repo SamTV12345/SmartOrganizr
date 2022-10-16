@@ -31,7 +31,6 @@ export const commonSlice = createSlice({
             state.sideBarCollapsed = action.payload
         },
         setAuthorPage: (state, action) => {
-            console.log(action.payload)
             state.authorPage = action.payload
         },
         setNodes: (state, action) => {

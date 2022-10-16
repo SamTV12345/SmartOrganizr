@@ -57,7 +57,6 @@ const renderApp= (keycloak: Keycloak)=>
 
 const bootstrapApp = async () => {
     if(keycloak === undefined){
-        console.log("Aufgerufen")
         axios.get(apiURL+"/public")
             .then(resp=>{
                 setLinks(resp.data._links)
