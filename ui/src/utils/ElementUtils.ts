@@ -3,41 +3,45 @@ import {Folder} from "../models/Folder";
 import {NoteItem} from "../models/NoteItem";
 import {TreeData} from "../components/Tree";
 
+export const mapDtoToTreeData = (element: ElementItem)=> {
+    if ('length' in element) {
+        const folder = element as Folder
+        return {
+            keyNum: element.id,
+            icon: "fa-solid  fa-folder",
+            name: element.name,
+            creationDate: element.creationDate,
+            length: folder.length,
+            type: 'Folder',
+            links: folder.links[0].href,
+            description: '',
+            children: []
+        } as TreeData
+    } else if ('numberOfPages' in element) {
+        const note = element as NoteItem
+        return {
+            keyNum: note.id,
+            icon: "fa fa-sheet-plastic",
+            name: note.title,
+            creationDate: element.creationDate,
+            numberOfPages: note.numberOfPages,
+            description: note.description,
+            author: note.author,
+            type: 'Note',
+        } as TreeData
+    } else {
+        return {
+            keyNum: 123,
+            name: "??",
+            length: 0,
+            type: "??",
+        } as TreeData
+    }
+}
+
 export const handleNewElements = (event: TreeData, loadedChildren: ElementItem[]) => {
     event.children = loadedChildren.map(element => {
-            if ('length' in element) {
-                const folder = element as Folder
-                return {
-                    keyNum: element.id,
-                    icon: "fa-solid  fa-folder",
-                    name: element.name,
-                    creationDate: element.creationDate,
-                    length: folder.length,
-                    type: 'Folder',
-                    links: folder.links[0].href,
-                    description: '',
-                    children: []
-                } as TreeData
-            } else if ('numberOfPages' in element) {
-                const note = element as NoteItem
-                return {
-                    keyNum: note.id,
-                    icon: "fa fa-sheet-plastic",
-                    name: note.title,
-                    creationDate: element.creationDate,
-                    numberOfPages: note.numberOfPages,
-                    description: note.description,
-                    author: note.author,
-                    type: 'Note',
-                } as TreeData
-            } else {
-                return {
-                    keyNum: 123,
-                    name: "??",
-                    length: 0,
-                    type: "??",
-                } as TreeData
-            }
+            return mapDtoToTreeData(element);
         }
     )
 }

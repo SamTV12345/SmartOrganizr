@@ -79,4 +79,12 @@ public class NoteServiceImpl implements NoteService {
 		return noteDao.saveNote(new NoteHibernateImpl(Calendar.getInstance(),0,parent, notePostDto.getDescription(),
 				user, notePostDto.getTitle(),author,notePostDto.getNumberOfPages()));
 	}
+
+	@Override
+	public int getParentOfNote(final int noteId, final String userId) {
+		
+		return folderDao.findByIdAndUsername(noteId,userId).orElseThrow(ElementException::createElementIdMayNotBeNegative)
+		                .getParent()
+		                .getId();
+	}
 }

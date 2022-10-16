@@ -73,13 +73,19 @@ public class ElementController {
 	}
 
 	@PostMapping("/folders")
-	public ResponseEntity<Folder> createFolder(@RequestBody final FolderPostDto folderPostDto){
-		return ResponseEntity.ok(folderService.saveFolderForUser(folderPostDto,getUser().getUserId()));
+	public ResponseEntity<Object> createFolder(@RequestBody final FolderPostDto folderPostDto){
+		return ResponseEntity.ok(addChildLinkIfFolder(folderService.saveFolderForUser(folderPostDto,
+				getUser().getUserId())));
 	}
 
 	@PostMapping("/notes")
 	public ResponseEntity<Note> createNote(@RequestBody final NotePostDto notePostDto){
 			return ResponseEntity.ok(noteService.saveNoteForUser(notePostDto,getUser().getUserId()));
+	}
+
+	@GetMapping("/{noteId}/parent")
+	public ResponseEntity<Integer> getParentOfNote(@PathVariable int noteId){
+		return ResponseEntity.ok(noteService.getParentOfNote(noteId, getUser().getUserId()));
 	}
 
 	@GetMapping("/folders")
@@ -107,19 +113,21 @@ public class ElementController {
 
 	public List<Object> addChildrenLinkIfFolder(final Collection<? extends Element> elements) {
 		return elements.stream()
-		               .map(element -> {
-			               if (element instanceof FolderHibernateImpl folder) {
-				               final FolderRepresentationalModel folderRepresentationalModel =
-						               folderDtoMapper.convertFolderToRep(folder);
+		               .map(this::addChildLinkIfFolder).toList();
+	}
 
-				               final Link link = linkTo(methodOn(ElementController.class).findNextChildren(
-						               folderRepresentationalModel.getId()))
-						               .withRel("children");
-				               folderRepresentationalModel.add(link);
-				               return folderRepresentationalModel;
-			               }
-			               return element;
-		               }).toList();
+	private Object addChildLinkIfFolder(final Element element) {
+		if (element instanceof FolderHibernateImpl folder) {
+			final FolderRepresentationalModel folderRepresentationalModel =
+					folderDtoMapper.convertFolderToRep(folder);
+
+			final Link link = linkTo(methodOn(ElementController.class).findNextChildren(
+					folderRepresentationalModel.getId()))
+					.withRel("children");
+			folderRepresentationalModel.add(link);
+			return folderRepresentationalModel;
+		}
+		return element;
 	}
 
 

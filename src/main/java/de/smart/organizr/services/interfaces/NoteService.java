@@ -30,4 +30,6 @@ public interface NoteService {
 	Note updateNote(NotePatchDto note, User user);
 
 	Note saveNoteForUser(NotePostDto notePostDto, String userId);
+
+	int getParentOfNote(int noteId, final String userId);
 }

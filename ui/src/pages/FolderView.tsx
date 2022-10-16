@@ -8,7 +8,7 @@ import {setNodes} from "../store/CommonSlice";
 import {Modal} from "../components/Modal";
 import {NoteModal} from "../components/NoteModal";
 import {setModalOpen, setOpenAddModal} from "../ModalSlice";
-import {replaceFolder, replaceNote} from "../utils/ElementUtils";
+import {addChild, mapDtoToTreeData, replaceFolder, replaceNote} from "../utils/ElementUtils";
 import {NoteItem} from "../models/NoteItem";
 import {AddModal} from "../components/AddModal";
 import {ElementAddModal} from "../components/ElementAddModal";
@@ -125,7 +125,6 @@ export const FolderView = ()=>{
 
     const createElement =  async () => {
         if(elementType === 'Note') {
-            console.log("Creating new note")
             const newElement = await new Promise<NoteItem>((resolve, reject) => {
                 axios.post(apiURL + "/v1/elements/notes", {
                     title: name,
@@ -140,11 +139,12 @@ export const FolderView = ()=>{
                     })
             })
             if(newElement!==undefined){
-                console.log(newElement)
+                axios.get(apiURL+`/v1/elements/${newElement.id}/parent`)
+                    .then(resp=>dispatch(setNodes(addChild(mapDtoToTreeData(newElement),nodes,resp.data))))
+                    .catch(err=>console.log(err))
             }
         }
         else{
-            console.log("Creating new folder")
             const newFolder = await new Promise<Folder>((resolve, reject) => {
                 axios.post(apiURL + "/v1/elements/folders", {
                     name,
@@ -158,6 +158,14 @@ export const FolderView = ()=>{
             })
             if(newFolder!==undefined){
                 console.log(newFolder)
+                newFolder.length = 0
+                newFolder.links = []
+                // @ts-ignore
+                newFolder.links[0] = newFolder._links
+                console.log(newFolder)
+                axios.get(apiURL+`/v1/elements/${newFolder.id}/parent`)
+                    .then(resp=>dispatch(setNodes(addChild(mapDtoToTreeData(newFolder),nodes,resp.data))))
+                    .catch(err=>console.log(err))
             }
         }
     }

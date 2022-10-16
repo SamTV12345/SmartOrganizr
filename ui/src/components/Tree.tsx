@@ -4,7 +4,7 @@ import {ElementItem} from "../models/ElementItem";
 import axios from "axios";
 import {fixProtocol} from "../utils/Utilities";
 import {Folder} from "../models/Folder";
-import {setNodes} from "../store/CommonSlice";
+import {setLoadedFolders, setNodes} from "../store/CommonSlice";
 import {useAppDispatch, useAppSelector} from "../store/hooks";
 import {apiURL} from "../Keycloak";
 import {setModalOpen, setSelectedFolder} from "../ModalSlice";
@@ -65,13 +65,14 @@ const TreeNode:FC<TreeDataExpanded> = ({ keyNum,icon,children,author
     const [childVisible, setChildVisiblity] = useState(false);
     const dispatch = useAppDispatch()
     const nodes = useAppSelector(state=>state.commonReducer.nodes)
-
+    const loadedFolders = useAppSelector(state=>state.commonReducer.loadedFolders)
     const hasChild = type==='Folder' && length>0
 
 
 
     const onExpand = async (event: TreeData) => {
-        if (event.children?.length==0 && event.length > 0) {
+        if (!loadedFolders.includes(event.keyNum)) {
+            dispatch(setLoadedFolders(event.keyNum))
             const loadedChildren: ElementItem[] = await new Promise<ElementItem[]>(resolve => {
                 axios.get(fixProtocol(event.links))
                     .then(resp => resolve(resp.data))

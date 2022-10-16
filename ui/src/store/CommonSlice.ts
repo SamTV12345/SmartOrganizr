@@ -11,7 +11,7 @@ interface CommonProps {
     authorPage: Page<AuthorEmbeddedContainer<Author>> | undefined,
     nodes: TreeData[],
     authorSearchText: string
-
+    loadedFolders: number[]
 }
 
 // Define the initial state using that type
@@ -19,7 +19,8 @@ const initialState: CommonProps = {
     sideBarCollapsed: false,
     authorPage: undefined,
     nodes: [],
-    authorSearchText: ''
+    authorSearchText: '',
+    loadedFolders:[]
 }
 
 export const commonSlice = createSlice({
@@ -38,11 +39,14 @@ export const commonSlice = createSlice({
         },
         setAuthorSearchText: (state, action)=>{
             state.authorSearchText = action.payload
+        },
+        setLoadedFolders:(state, action)=>{
+            state.loadedFolders = [...state.loadedFolders,action.payload]
         }
     }
 
 })
 
-export const {setSideBarCollapsed, setAuthorPage, setNodes, setAuthorSearchText} = commonSlice.actions
+export const {setSideBarCollapsed, setAuthorPage, setNodes, setAuthorSearchText, setLoadedFolders} = commonSlice.actions
 
 export default commonSlice.reducer
