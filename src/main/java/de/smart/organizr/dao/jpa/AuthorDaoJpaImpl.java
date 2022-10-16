@@ -43,7 +43,7 @@ public class AuthorDaoJpaImpl implements AuthorDao {
 	 */
 	@Override
 	public Optional<Author> findAuthorByIdAndUser(final int authorId, final String user) {
-		final Optional<AuthorHibernateImpl> optionalAuthor =  authorRepository.findById(authorId);
+		final Optional<AuthorHibernateImpl> optionalAuthor =  authorRepository.findAuthorById(authorId, user);
 		if(optionalAuthor.isEmpty()){
 			return Optional.empty();
 		}

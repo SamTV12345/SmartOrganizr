@@ -2,6 +2,7 @@ package de.smart.organizr.controllers;
 
 import de.smart.organizr.dto.FolderDtoMapper;
 import de.smart.organizr.dto.FolderRepresentationalModel;
+import de.smart.organizr.dto.NotePatchDto;
 import de.smart.organizr.entities.classes.FolderHibernateImpl;
 import de.smart.organizr.entities.interfaces.Element;
 import de.smart.organizr.entities.interfaces.Folder;
@@ -9,6 +10,7 @@ import de.smart.organizr.entities.interfaces.Note;
 import de.smart.organizr.entities.interfaces.User;
 import de.smart.organizr.exceptions.NoPermissionException;
 import de.smart.organizr.services.interfaces.FolderService;
+import de.smart.organizr.services.interfaces.NoteService;
 import de.smart.organizr.services.interfaces.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -23,6 +25,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import java.util.Collection;
@@ -36,6 +39,7 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 @RequestMapping("/api/v1/elements")
 public class ElementController {
 	private final FolderService folderService;
+	private final NoteService noteService;
 	private final UserService userService;
 	private final FolderDtoMapper folderDtoMapper;
 
@@ -85,10 +89,10 @@ public class ElementController {
 		               }).toList();
 	}
 
-	//TODO Implementieren
-	@PatchMapping
-	public ResponseEntity<Note> updateNote(){
-		return null;
+
+	@PatchMapping("/notes")
+	public ResponseEntity<Note> updateNote(@RequestBody NotePatchDto note){
+		return ResponseEntity.ok(noteService.updateNote(note, getUser()));
 	}
 
 	private User getUser() {

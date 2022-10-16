@@ -1,6 +1,7 @@
 package de.smart.organizr.dao.interfaces;
 
 import de.smart.organizr.entities.interfaces.Note;
+import de.smart.organizr.entities.interfaces.User;
 
 import java.util.List;
 import java.util.Optional;
@@ -25,4 +26,6 @@ public interface NoteDao {
 	Optional<Note> findNoteById(int id);
 
 	void deleteById(int noteId);
+
+	Optional<Note> findNoteByIdAndUser(int id, User user);
 }

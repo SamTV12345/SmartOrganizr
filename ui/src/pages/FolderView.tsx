@@ -8,12 +8,12 @@ import {setNodes} from "../store/CommonSlice";
 import {Modal} from "../components/Modal";
 import {NoteModal} from "../components/NoteModal";
 import {setModalOpen} from "../ModalSlice";
+import {ElementItem} from "../models/ElementItem";
 
 export const FolderView = ()=>{
     const dispatch = useAppDispatch()
     const nodes = useAppSelector(state=>state.commonReducer.nodes)
     const element = useAppSelector(state=>state.modalReducer.selectedFolder)
-
 
     const loadFolder = async (link: string) => {
         const folders: Folder[] = await new Promise<Folder[]>(resolve => {
@@ -46,8 +46,52 @@ export const FolderView = ()=>{
         loadFolder(apiURL + "/v1/elements/parentDecks")
     }, [])
 
+
+    const updateElement = async ()=>{
+        if(element===undefined){
+            return
+        }
+
+        if(element.author!== undefined) {
+            const updatedElement = await new Promise<ElementItem>((resolve, reject) => {
+                axios.patch(apiURL + "/v1/elements/notes", {
+                    id: element.id,
+                    title: element.name,
+                    numberOfPages: element.numberOfPages,
+                    description: element.description,
+                    authorId: element.author?.id
+                })
+                    .then(resp => resolve(resp.data))
+                    .catch((error) => {
+                        console.log(error)
+                    })
+            })
+            if (updatedElement !== undefined) {
+                console.log(updatedElement)
+            }
+        }
+        else{
+            const updatedElement = await new Promise<Folder>((resolve, reject) => {
+                axios.patch(apiURL + "/v1/elements/folders", {
+                    id: element.id,
+                    title: element.name,
+                    numberOfPages: element.numberOfPages,
+                    description: element.description,
+                    authorId: element.author?.id
+                })
+                    .then(resp => resolve(resp.data))
+                    .catch((error) => {
+                        console.log(error)
+                    })
+            })
+            if (updatedElement !== undefined) {
+                console.log(updatedElement)
+            }
+        }
+    }
+
     return <div className="border-0 w-full md:w-8/12  table-fixed md:mx-auto md:mt-4 md:mb-4 bg-gray-800 text-white p-6">
-        <Modal headerText="Element editieren" onAccept={()=>console.log("Test")} acceptText="Updaten" children={<NoteModal/>}
+        <Modal headerText="Element editieren" onAccept={()=>updateElement()} acceptText="Updaten" children={<NoteModal/>}
                cancelText={"Abbrechen"} onCancel={()=>{dispatch(setModalOpen(false))}} onDelete={()=>{}}/>
         <div className="mx-auto">
            <TreeElement data={nodes} setData={setNodes}/>

@@ -3,6 +3,7 @@ package de.smart.organizr.dao.jpa;
 import de.smart.organizr.dao.interfaces.NoteDao;
 import de.smart.organizr.entities.classes.NoteHibernateImpl;
 import de.smart.organizr.entities.interfaces.Note;
+import de.smart.organizr.entities.interfaces.User;
 import de.smart.organizr.repositories.NoteRepository;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -60,5 +61,10 @@ public class NoteDaoJpaImpl implements NoteDao {
 	@Override
 	public void deleteById(final int noteId) {
 		noteRepository.deleteById(noteId);
+	}
+
+	@Override
+	public Optional<Note> findNoteByIdAndUser(final int id, final User user) {
+		return noteRepository.findNoteByIdAndUser(id, user.getUserId());
 	}
 }

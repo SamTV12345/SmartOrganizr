@@ -54,7 +54,7 @@ export const NoteModal = () => {
             " placeholder-gray-400 text-white focus:ring-blue-500 focus:border-blue-500"} value={selectedFolder?.numberOfPages}
                onChange={(v)=>dispatch(setSelectedFolderPage(v.target.value))}/>
     </div>
-        <div className="grid grid-cols-2 mt-5">
+        {selectedFolder?.type!=='Folder'&&<div className="grid grid-cols-2 mt-5">
             <h2 className="col-span-2 text-center font-medium">Autor</h2>
             <div>Author:</div>
             <div>
@@ -78,6 +78,6 @@ export const NoteModal = () => {
                         <li key={a.id}
                             className={`${selectedAuthorId===a.id?'bg-gray-500 ':''}text-center`} onClick={()=>setSelectedAuthorId(a.id)}>{a.name}</li>)}
             </ul>}
-        </div>
+        </div>}
     </div>
 }
