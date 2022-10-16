@@ -8,7 +8,8 @@ import {setNodes} from "../store/CommonSlice";
 import {Modal} from "../components/Modal";
 import {NoteModal} from "../components/NoteModal";
 import {setModalOpen} from "../ModalSlice";
-import {ElementItem} from "../models/ElementItem";
+import {replaceFolder, replaceNote} from "../utils/ElementUtils";
+import {NoteItem} from "../models/NoteItem";
 
 export const FolderView = ()=>{
     const dispatch = useAppDispatch()
@@ -51,9 +52,8 @@ export const FolderView = ()=>{
         if(element===undefined){
             return
         }
-
         if(element.author!== undefined) {
-            const updatedElement = await new Promise<ElementItem>((resolve, reject) => {
+            const updatedElement = await new Promise<NoteItem>((resolve, reject) => {
                 axios.patch(apiURL + "/v1/elements/notes", {
                     id: element.id,
                     title: element.name,
@@ -67,17 +67,28 @@ export const FolderView = ()=>{
                     })
             })
             if (updatedElement !== undefined) {
-                console.log(updatedElement)
+                const event = {
+                    children: undefined,
+                    icon: '',
+                    length: updatedElement.numberOfPages as number,
+                    name: updatedElement.title,
+                    links: "",
+                    creationDate: updatedElement.creationDate,
+                    description: updatedElement.description,
+                    type: 'Note',
+                    numberOfPages: updatedElement.numberOfPages,
+                    author: updatedElement.author,
+                    keyNum: updatedElement.id
+                }
+                dispatch(setNodes(replaceNote(event,nodes)))
             }
         }
         else{
             const updatedElement = await new Promise<Folder>((resolve, reject) => {
                 axios.patch(apiURL + "/v1/elements/folders", {
-                    id: element.id,
-                    title: element.name,
-                    numberOfPages: element.numberOfPages,
-                    description: element.description,
-                    authorId: element.author?.id
+                     folderId: element.id,
+                     name:element.name,
+                     description:element.description
                 })
                     .then(resp => resolve(resp.data))
                     .catch((error) => {
@@ -85,7 +96,18 @@ export const FolderView = ()=>{
                     })
             })
             if (updatedElement !== undefined) {
-                console.log(updatedElement)
+                const event = {
+                    children: undefined,
+                    icon: '',
+                    name: updatedElement.name,
+                    links: "",
+                    length:0,
+                    creationDate: updatedElement.creationDate,
+                    description: updatedElement.description,
+                    type: 'Folder',
+                    keyNum: updatedElement.id
+                }
+                dispatch(setNodes(replaceFolder(event, nodes)))
             }
         }
     }

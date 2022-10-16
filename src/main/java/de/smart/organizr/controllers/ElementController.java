@@ -1,6 +1,7 @@
 package de.smart.organizr.controllers;
 
 import de.smart.organizr.dto.FolderDtoMapper;
+import de.smart.organizr.dto.FolderPatchDto;
 import de.smart.organizr.dto.FolderRepresentationalModel;
 import de.smart.organizr.dto.NotePatchDto;
 import de.smart.organizr.entities.classes.FolderHibernateImpl;
@@ -93,6 +94,11 @@ public class ElementController {
 	@PatchMapping("/notes")
 	public ResponseEntity<Note> updateNote(@RequestBody NotePatchDto note){
 		return ResponseEntity.ok(noteService.updateNote(note, getUser()));
+	}
+
+	@PatchMapping("/folders")
+	public ResponseEntity<Folder> updateFolders(@RequestBody FolderPatchDto folderPatchDto){
+		return ResponseEntity.ok(folderService.updateFolder(folderPatchDto, getUser()));
 	}
 
 	private User getUser() {

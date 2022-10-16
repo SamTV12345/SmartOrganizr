@@ -1,5 +1,6 @@
 package de.smart.organizr.services.interfaces;
 
+import de.smart.organizr.dto.FolderPatchDto;
 import de.smart.organizr.entities.interfaces.Element;
 import de.smart.organizr.entities.interfaces.Folder;
 import de.smart.organizr.entities.interfaces.User;
@@ -56,4 +57,6 @@ public interface FolderService {
 	 * @param folder the folder to be deleted
 	 */
 	void deleteFolder(Folder folder);
+
+	Folder updateFolder(FolderPatchDto folderPatchDto, User user);
 }

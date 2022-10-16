@@ -3,6 +3,7 @@ package de.smart.organizr.services.implementations;
 import de.smart.organizr.dao.interfaces.FolderDao;
 import de.smart.organizr.dao.interfaces.NoteDao;
 import de.smart.organizr.dao.interfaces.UserDao;
+import de.smart.organizr.dto.FolderPatchDto;
 import de.smart.organizr.entities.interfaces.Element;
 import de.smart.organizr.entities.interfaces.Folder;
 import de.smart.organizr.entities.interfaces.Note;
@@ -99,5 +100,15 @@ public class FolderServiceImpl implements FolderService {
 	public void deleteFolder(final Folder folder) {
 		recursivelyDeleteElements(folder);
 		folderDao.deleteFolder(folder);
+	}
+
+	@Override
+	@Transactional
+	public Folder updateFolder(final FolderPatchDto folderPatchDto, final User user) {
+		final Folder folder =
+				(Folder) folderDao.findByIdAndUsername(folderPatchDto.getFolderId(),user.getUserId()).orElseThrow(ElementException::createElementIdMayNotBeNegative);
+		folder.setName(folderPatchDto.getName());
+		folder.setDescription(folderPatchDto.getDescription());
+		return folder;
 	}
 }

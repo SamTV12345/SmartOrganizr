@@ -4,12 +4,12 @@ import {ElementItem} from "../models/ElementItem";
 import axios from "axios";
 import {fixProtocol} from "../utils/Utilities";
 import {Folder} from "../models/Folder";
-import {NoteItem} from "../models/NoteItem";
 import {setNodes} from "../store/CommonSlice";
 import {useAppDispatch, useAppSelector} from "../store/hooks";
 import {apiURL} from "../Keycloak";
 import {setModalOpen, setSelectedFolder} from "../ModalSlice";
 import {Author} from "../models/Author";
+import {addChild, deleteChild, handleNewElements, traverseTree} from "../utils/ElementUtils";
 
 export interface TreeData {
     creationDate: Date,
@@ -68,44 +68,7 @@ const TreeNode:FC<TreeDataExpanded> = ({ keyNum,icon,children,author
 
     const hasChild = type==='Folder' && length>0
 
-    function handleNewElements(event: TreeData, loadedChildren: ElementItem[]) {
-        event.children = loadedChildren.map(element => {
-                if ('length' in element) {
-                    const folder = element as Folder
-                    return {
-                        keyNum: element.id,
-                        icon: "fa-solid  fa-folder",
-                        name: element.name,
-                        creationDate: element.creationDate,
-                        length: folder.length,
-                        type: 'Folder',
-                        links: folder.links[0].href,
-                        description:'',
-                        children: []
-                    } as TreeData
-                } else if ('numberOfPages' in element) {
-                    const note = element as NoteItem
-                    return {
-                        keyNum: note.id,
-                        icon: "fa fa-sheet-plastic",
-                        name: note.title,
-                        creationDate: element.creationDate,
-                        numberOfPages: note.numberOfPages,
-                        description: note.description,
-                        author: note.author,
-                        type: 'Note',
-                    } as TreeData
-                } else {
-                    return {
-                        keyNum: 123,
-                        name: "??",
-                        length: 0,
-                        type: "??",
-                    } as TreeData
-                }
-            }
-        )
-    }
+
 
     const onExpand = async (event: TreeData) => {
         if (event.children?.length==0 && event.length > 0) {
@@ -125,20 +88,6 @@ const TreeNode:FC<TreeDataExpanded> = ({ keyNum,icon,children,author
     }
 
 
-    /**
-     * Traverses the tree and adds the new nodes.
-     * @param event
-     * @param nodes
-     */
-    const traverseTree = (event: TreeData, nodes: TreeData[]): TreeData[] =>
-        nodes.map(node =>
-            node.keyNum === event.keyNum ? event
-                : !node.children?.length ? node
-                    : { ...node, children: traverseTree(event, node.children)
-        })
-
-
-
     const drag = (ev: React.DragEvent<HTMLDivElement>, id: TreeData)=>{
         // @ts-ignore
         ev.dataTransfer.setData("id",JSON.stringify(id))
@@ -153,36 +102,6 @@ const TreeNode:FC<TreeDataExpanded> = ({ keyNum,icon,children,author
                 .catch((error) => {
                     console.log(error)
                 })
-        })
-    }
-
-    //delete child
-    const deleteChild = (keyNum:number, nodes:TreeData[]):TreeData[] =>{
-        return nodes.map(node => {
-                const children = node.children?.map(c=>c.keyNum)
-                if(children && children.includes(keyNum)){
-                    return {...node, children: node.children?.filter(c=>c.keyNum!==keyNum)} as TreeData
-                }
-                else {
-                    return {...node, children: deleteChild(keyNum, node.children || [])} as TreeData
-                }
-        })
-    }
-
-    //add child
-    const addChild = (event: TreeData, nodes: TreeData[], parentId:number):TreeData[] =>{
-        return nodes.map(node => {
-            //if other children are in this folder
-            if(node.keyNum === parentId && node.children){
-                return {...node, children: [...node.children,event].sort((c1,c2)=>c1.name.localeCompare(c2.name))} as TreeData
-            }
-            // if not other children are in this folder
-            else if(node.keyNum === parentId && !node.children){
-                return {...node, children: [event]} as TreeData
-            }
-            else {
-                return {...node, children: addChild(event, node.children || [],parentId)} as TreeData
-            }
         })
     }
 
