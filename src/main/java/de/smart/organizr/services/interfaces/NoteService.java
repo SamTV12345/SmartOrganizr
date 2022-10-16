@@ -1,6 +1,7 @@
 package de.smart.organizr.services.interfaces;
 
 import de.smart.organizr.dto.NotePatchDto;
+import de.smart.organizr.dto.NotePostDto;
 import de.smart.organizr.entities.interfaces.Note;
 import de.smart.organizr.entities.interfaces.User;
 
@@ -27,4 +28,6 @@ public interface NoteService {
 	Optional<Note> findNoteById(int id);
 
 	Note updateNote(NotePatchDto note, User user);
+
+	Note saveNoteForUser(NotePostDto notePostDto, String userId);
 }

@@ -1,9 +1,13 @@
 package de.smart.organizr.controllers;
 
+import de.smart.organizr.dto.ElementRepresentationModel;
+import de.smart.organizr.dto.ElementResourceAssembler;
 import de.smart.organizr.dto.FolderDtoMapper;
 import de.smart.organizr.dto.FolderPatchDto;
+import de.smart.organizr.dto.FolderPostDto;
 import de.smart.organizr.dto.FolderRepresentationalModel;
 import de.smart.organizr.dto.NotePatchDto;
+import de.smart.organizr.dto.NotePostDto;
 import de.smart.organizr.entities.classes.FolderHibernateImpl;
 import de.smart.organizr.entities.interfaces.Element;
 import de.smart.organizr.entities.interfaces.Folder;
@@ -19,15 +23,23 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.hateoas.Link;
+import org.springframework.hateoas.PagedModel;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.Collection;
 import java.util.List;
@@ -42,6 +54,7 @@ public class ElementController {
 	private final FolderService folderService;
 	private final NoteService noteService;
 	private final UserService userService;
+	private final ElementResourceAssembler elementResourceAssembler;
 	private final FolderDtoMapper folderDtoMapper;
 
 
@@ -57,6 +70,25 @@ public class ElementController {
 			throws NoPermissionException {
 		final User user = getUser();
 		return ResponseEntity.ok(addChildrenLinkIfFolder(folderService.findAllParentFolders(user.getUserId())));
+	}
+
+	@PostMapping("/folders")
+	public ResponseEntity<Folder> createFolder(@RequestBody final FolderPostDto folderPostDto){
+		return ResponseEntity.ok(folderService.saveFolderForUser(folderPostDto,getUser().getUserId()));
+	}
+
+	@PostMapping("/notes")
+	public ResponseEntity<Note> createNote(@RequestBody final NotePostDto notePostDto){
+			return ResponseEntity.ok(noteService.saveNoteForUser(notePostDto,getUser().getUserId()));
+	}
+
+	@GetMapping("/folders")
+	public ResponseEntity<PagedModel<ElementRepresentationModel>> searchFolders(@RequestParam final int page,
+	                                                        @RequestParam final String folderName,
+	                                                        final PagedResourcesAssembler<Folder> authorPagedResourcesAssembler){
+		final Pageable pageable = PageRequest.of(page,50, Sort.by("name").ascending());
+		final Page<Folder> matchingFolders =  folderService.findAllFoldersWithName(folderName, getUser(), pageable);
+		return ResponseEntity.ok(authorPagedResourcesAssembler.toModel(matchingFolders,elementResourceAssembler));
 	}
 
 	@GetMapping("/{folderId}/children")

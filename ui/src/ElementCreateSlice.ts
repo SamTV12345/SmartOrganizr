@@ -6,19 +6,21 @@ interface ElementProps {
     description: string,
     parent: number | undefined,
     // Note
-    title: string,
     author: number | undefined,
+    authorName:string,
     numberOfPages: number,
-    type:string
+    type:string,
+    searchParentName: string|undefined
 }
 
 const elementInitialState: ElementProps = {
     name: '',
     description: '',
     parent: undefined,
+    authorName:'',
     author: undefined,
     numberOfPages: 0,
-    title: '',
+    searchParentName:undefined,
     type:'Note'
 }
 
@@ -33,10 +35,8 @@ export const elementSlice = createSlice({
             state.description = action.payload
         },
         setElementParent: (state, action)=>{
+            //id
             state.parent = action.payload
-        },
-        setElementTitle: (state, action)=>{
-            state.title = action.payload
         },
         setElementAuthor: (state, action)=>{
             state.author = action.payload
@@ -44,13 +44,20 @@ export const elementSlice = createSlice({
         setElementNumberOfPages:(state, action)=>{
             state.numberOfPages = action.payload
         },
+        setElementSelectedAuthorName:(state, action)=>{
+            state.authorName = action.payload
+        },
         setElementType: (state, action)=>{
             state.type = action.payload
+        },
+        setElementParentName: (state, action)=>{
+            //name
+            state.searchParentName = action.payload
         }
     }
 })
 
-export const {setElementName,setElementNumberOfPages,setElementDescription,setElementParent,
-                setElementTitle,setElementType,setElementAuthor} = elementSlice.actions
+export const {setElementName,setElementNumberOfPages,setElementDescription,setElementParent
+    ,setElementType,setElementAuthor, setElementParentName, setElementSelectedAuthorName} = elementSlice.actions
 
 export default elementSlice.reducer

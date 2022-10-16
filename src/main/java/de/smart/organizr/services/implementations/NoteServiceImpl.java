@@ -1,18 +1,25 @@
 package de.smart.organizr.services.implementations;
 
 import de.smart.organizr.dao.interfaces.AuthorDao;
+import de.smart.organizr.dao.interfaces.FolderDao;
 import de.smart.organizr.dao.interfaces.NoteDao;
+import de.smart.organizr.dao.interfaces.UserDao;
 import de.smart.organizr.dto.NotePatchDto;
+import de.smart.organizr.dto.NotePostDto;
+import de.smart.organizr.entities.classes.NoteHibernateImpl;
 import de.smart.organizr.entities.interfaces.Author;
+import de.smart.organizr.entities.interfaces.Folder;
 import de.smart.organizr.entities.interfaces.Note;
 import de.smart.organizr.entities.interfaces.User;
 import de.smart.organizr.exceptions.AuthorException;
 import de.smart.organizr.exceptions.ElementException;
+import de.smart.organizr.exceptions.UserException;
 import de.smart.organizr.services.interfaces.NoteService;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Calendar;
 import java.util.List;
 import java.util.Optional;
 
@@ -21,6 +28,8 @@ import java.util.Optional;
 public class NoteServiceImpl implements NoteService {
 	private final NoteDao noteDao;
 	private final AuthorDao authorDao;
+	private final FolderDao folderDao;
+	private final UserDao userDao;
 
 	@Override
 	public Note saveNote(final Note note){
@@ -58,5 +67,16 @@ public class NoteServiceImpl implements NoteService {
 		originalNote.setDescription(note.getDescription());
 		originalNote.setNumberOfPages(note.getNumberOfPages());
 		return originalNote;
+	}
+
+	@Override
+	public Note saveNoteForUser(final NotePostDto notePostDto, final String userId) {
+		final Folder parent = folderDao.findFolderByIdAndUsername(notePostDto.getParentId(),userId).orElseThrow(
+				ElementException::createElementNameMayNotBeEmptyException);
+		final Author author =
+				authorDao.findAuthorByIdAndUser(notePostDto.getAuthorId(), userId).orElseThrow(AuthorException::createUnknownAuthorException);
+		final User user = userDao.findUserById(userId).orElseThrow(UserException::createUnknownUserException);
+		return noteDao.saveNote(new NoteHibernateImpl(Calendar.getInstance(),0,parent, notePostDto.getDescription(),
+				user, notePostDto.getTitle(),author,notePostDto.getNumberOfPages()));
 	}
 }

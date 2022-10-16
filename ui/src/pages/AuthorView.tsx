@@ -15,16 +15,16 @@ import {AuthorModal} from "../components/AuthorModal";
 import {AuthorPatchDto} from "../models/AuthorPatchDto";
 import {AddModal} from "../components/AddModal";
 import {AuthorAddModal} from "../components/AuthorAddModal";
-import {mergeAuthorInList, mergeAuthors, removeAuthor} from "../utils/AuthorUtilList";
+import {mergeAuthorInList, mergeAuthors, mergeNewAuthorInList, removeAuthor} from "../utils/AuthorUtilList";
 import {AuthorSearchBar} from "../components/AuthorSearchBar";
+import {AuthorWithIndex} from "../models/AuthorWithIndex";
 
 export const AuthorView = ()=> {
     const dispatch = useAppDispatch()
     const authorPage = useAppSelector(state=>state.commonReducer.authorPage)
     const {t} = useTranslation()
     const selectedAuthor = useAppSelector(state=>state.modalReducer.selectedAuthor)
-
-
+    const createdAuthor = useAppSelector(state=>state.modalReducer.createdAuthor)
 
     const deleteAuthor = async (authorPageInParam: Page<AuthorEmbeddedContainer<Author>>,author:Author)=>{
         await new Promise<Author>(resolve=>{
@@ -76,13 +76,26 @@ export const AuthorView = ()=> {
         }
     }
 
+
+    const createAuthor = async(author:Author)=>{
+        const authorInResponse: AuthorWithIndex = await new Promise<AuthorWithIndex>(resolve=>{
+            axios.post(apiURL+`/v1/authors`,{name: author.name,extraInformation:author.extraInformation} as AuthorPatchDto)
+                .then(resp=>resolve(resp.data))
+                .catch((error)=>{
+                    console.log(error)
+                })})
+        if(authorInResponse !== undefined && authorPage){
+            dispatch(setAuthorPage(mergeNewAuthorInList(authorPage,authorInResponse)))
+        }
+    }
+
     return <div>
         <div className="flex justify-end mr-5 mt-5 mb-5">
         <button data-modal-toggle="defaultModal" type="button" className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center bg-blue-600 hover:bg-blue-700 focus:ring-blue-800"  onClick={()=>dispatch(setOpenAddModal(true))}>
             <i className="fa-solid fa-plus"/>
         </button>
         </div>
-        <AddModal acceptText={"Erstellen"} children={<AuthorAddModal/>} headerText={"Author erstellen"} onAccept={()=>{}}/>
+        <AddModal acceptText={"Erstellen"} children={<AuthorAddModal/>} headerText={"Author erstellen"} onAccept={()=>{createAuthor(createdAuthor)}}/>
         <Modal headerText="Editieren eines Authors" children={<AuthorModal/>} onAccept={()=>{
             selectedAuthor&&updateAuthor(selectedAuthor)}} onCancel={()=>{}} acceptText={"Updaten"} cancelText={"Abbrechen"}
             onDelete={()=>selectedAuthor&&authorPage&&deleteAuthor(authorPage,selectedAuthor)}/>

@@ -4,6 +4,8 @@ import de.smart.organizr.entities.classes.FolderHibernateImpl;
 import de.smart.organizr.entities.interfaces.Element;
 import de.smart.organizr.entities.interfaces.Folder;
 import de.smart.organizr.entities.interfaces.User;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
@@ -36,4 +38,8 @@ public interface FolderRepository extends CrudRepository<FolderHibernateImpl, In
 
 	@Query("SELECT f from FolderHibernateImpl f WHERE f.id=:folderId AND f.creator.userId=:username")
 	Optional<Folder> findFolderByIdAndUsername(int folderId, String username);
+
+	@Query("SELECT f FROM FolderHibernateImpl f WHERE (f.name LIKE CONCAT('%',:folderName,'%') OR f.description LIKE " +
+			"CONCAT('%',:folderName,'%')) AND f.creator.userId=:userId")
+	Page<Folder> findFolderByNameAndUser(String folderName, String userId, Pageable pageable);
 }

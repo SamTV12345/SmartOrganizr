@@ -18,6 +18,14 @@ export const FolderView = ()=>{
     const nodes = useAppSelector(state=>state.commonReducer.nodes)
     const element = useAppSelector(state=>state.modalReducer.selectedFolder)
 
+    //Create element
+    const elementType = useAppSelector(state=>state.elementReducer.type)
+    const name        = useAppSelector(state=>state.elementReducer.name)
+    const description = useAppSelector(state=>state.elementReducer.description)
+    const parentId    = useAppSelector(state=>state.elementReducer.parent)
+    const numberOfPages    = useAppSelector(state=>state.elementReducer.numberOfPages)
+    const authorId    = useAppSelector(state=>state.elementReducer.author)
+
     const loadFolder = async (link: string) => {
         const folders: Folder[] = await new Promise<Folder[]>(resolve => {
             axios.get(link)
@@ -114,13 +122,53 @@ export const FolderView = ()=>{
         }
     }
 
+
+    const createElement =  async () => {
+        if(elementType === 'Note') {
+            console.log("Creating new note")
+            const newElement = await new Promise<NoteItem>((resolve, reject) => {
+                axios.post(apiURL + "/v1/elements/notes", {
+                    title: name,
+                    numberOfPages: numberOfPages,
+                    description: description,
+                    authorId,
+                    parentId
+                })
+                    .then(resp => resolve(resp.data))
+                    .catch((error) => {
+                        console.log(error)
+                    })
+            })
+            if(newElement!==undefined){
+                console.log(newElement)
+            }
+        }
+        else{
+            console.log("Creating new folder")
+            const newFolder = await new Promise<Folder>((resolve, reject) => {
+                axios.post(apiURL + "/v1/elements/folders", {
+                    name,
+                    description: description,
+                    parentId
+                })
+                    .then(resp => resolve(resp.data))
+                    .catch((error) => {
+                        console.log(error)
+                    })
+            })
+            if(newFolder!==undefined){
+                console.log(newFolder)
+            }
+        }
+    }
+
     return <div>
         <div className="flex justify-end mr-5 mt-5 mb-5">
             <button data-modal-toggle="defaultModal" type="button" className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center bg-blue-600 hover:bg-blue-700 focus:ring-blue-800"  onClick={()=>dispatch(setOpenAddModal(true))}>
                 <i className="fa-solid fa-plus"/>
             </button>
         </div>
-        <AddModal headerText={"Neues Element"} onAccept={()=>{}} acceptText={"Erstellen"} children={<ElementAddModal/>}/>
+        <AddModal headerText={"Neues Element"} onAccept={()=>{createElement()}} acceptText={"Erstellen"} children={<ElementAddModal/>}/>
         <Modal headerText="Element editieren" onAccept={()=>updateElement()} acceptText="Updaten" children={<NoteModal/>}
                cancelText={"Abbrechen"} onCancel={()=>{dispatch(setModalOpen(false))}} onDelete={()=>{}}/>
         <div className="border-0 w-full md:w-8/12  table-fixed md:mx-auto md:mt-4 md:mb-4 bg-gray-800 text-white p-6">

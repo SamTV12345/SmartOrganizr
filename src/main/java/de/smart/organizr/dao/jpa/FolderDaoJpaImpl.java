@@ -6,6 +6,8 @@ import de.smart.organizr.entities.interfaces.Element;
 import de.smart.organizr.entities.interfaces.Folder;
 import de.smart.organizr.entities.interfaces.User;
 import de.smart.organizr.repositories.FolderRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import java.util.Collection;
 import java.util.Optional;
@@ -89,5 +91,10 @@ public class FolderDaoJpaImpl implements FolderDao {
 	@Override
 	public Collection<Element> findAllChildren(final String userId, final int number) {
 		return folderRepository.findAllChildren(userId, number);
+	}
+
+	@Override
+	public Page<Folder> findAllFoldersWithName(final String folderName, final User user, final Pageable pageable) {
+		return folderRepository.findFolderByNameAndUser(folderName,user.getUserId(),pageable);
 	}
 }

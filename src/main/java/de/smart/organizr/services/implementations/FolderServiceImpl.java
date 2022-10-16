@@ -4,6 +4,8 @@ import de.smart.organizr.dao.interfaces.FolderDao;
 import de.smart.organizr.dao.interfaces.NoteDao;
 import de.smart.organizr.dao.interfaces.UserDao;
 import de.smart.organizr.dto.FolderPatchDto;
+import de.smart.organizr.dto.FolderPostDto;
+import de.smart.organizr.entities.classes.FolderHibernateImpl;
 import de.smart.organizr.entities.interfaces.Element;
 import de.smart.organizr.entities.interfaces.Folder;
 import de.smart.organizr.entities.interfaces.Note;
@@ -11,9 +13,12 @@ import de.smart.organizr.entities.interfaces.User;
 import de.smart.organizr.exceptions.ElementException;
 import de.smart.organizr.exceptions.UserException;
 import de.smart.organizr.services.interfaces.FolderService;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
@@ -47,6 +52,26 @@ public class FolderServiceImpl implements FolderService {
 	@Override
 	public Folder saveFolder(final Folder folder) {
 		return folderDao.saveFolder(folder);
+	}
+
+	@Override
+	@Transactional
+	public Folder saveFolderForUser(final FolderPostDto folder, final String userId) {
+		final User user =
+				userDao.findUserById(userId).orElseThrow(UserException::createUnknownUserException);
+		final Folder newFolder;
+		if(folder.getParentId()!=0){
+			final Folder parentFolder =
+					folderDao.findFolderByIdAndUsername(folder.getParentId(),userId).orElseThrow(
+							ElementException::createElementNameMayNotBeEmptyException);
+			newFolder =  new FolderHibernateImpl(folder.getName(), parentFolder,folder.getDescription(),user);
+		}
+		else{
+			newFolder =  new FolderHibernateImpl(folder.getName(), Calendar.getInstance(),
+					folder.getDescription(),user);
+		}
+
+		return folderDao.saveFolder(newFolder);
 	}
 
 	@Override
@@ -110,5 +135,10 @@ public class FolderServiceImpl implements FolderService {
 		folder.setName(folderPatchDto.getName());
 		folder.setDescription(folderPatchDto.getDescription());
 		return folder;
+	}
+
+	@Override
+	public Page<Folder> findAllFoldersWithName(final String folderName, final User user, final Pageable pageable) {
+		return folderDao.findAllFoldersWithName(folderName, user, pageable);
 	}
 }

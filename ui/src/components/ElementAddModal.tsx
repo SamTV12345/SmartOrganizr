@@ -1,6 +1,7 @@
 import {useAppDispatch, useAppSelector} from "../store/hooks";
 import {setElementType} from "../ElementCreateSlice";
 import {CreateFolder} from "./CreateFolder";
+import {CreateNote} from "./CreateNote";
 
 export const ElementAddModal = ()=>{
     const type = useAppSelector(state=>state.elementReducer.type)
@@ -19,6 +20,7 @@ export const ElementAddModal = ()=>{
                 <label htmlFor="bordered-radio-2"
                        className="py-4 ml-2 w-full text-sm font-medium text-gray-900 dark:text-gray-300">Note</label>
         </div>
-        <CreateFolder/>
+        {type==='Folder'&&<CreateFolder/>}
+        {type==='Note'&&<CreateNote/>}
     </div>
 }

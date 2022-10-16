@@ -3,6 +3,8 @@ package de.smart.organizr.dao.interfaces;
 import de.smart.organizr.entities.interfaces.Element;
 import de.smart.organizr.entities.interfaces.Folder;
 import de.smart.organizr.entities.interfaces.User;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import java.util.Collection;
 import java.util.Optional;
@@ -56,4 +58,6 @@ public interface FolderDao {
 	void deleteFolder(Folder folder);
 
 	Collection<Element> findAllChildren(String userId, int number);
+
+	Page<Folder> findAllFoldersWithName(String folderName, User user, Pageable pageable);
 }
