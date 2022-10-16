@@ -8,25 +8,35 @@ import {NoteItem} from "../models/NoteItem";
 import {setNodes} from "../store/CommonSlice";
 import {useAppDispatch, useAppSelector} from "../store/hooks";
 import {apiURL} from "../Keycloak";
+import {setModalOpen, setSelectedFolder} from "../ModalSlice";
+import {Author} from "../models/Author";
 
 export interface TreeData {
+    creationDate: Date,
     keyNum:number,
     icon:string,
     name:string,
     length:number,
+    author?: Author
     type: string,
     links: string,
+    description: string,
+    numberOfPages?:number,
     children?: TreeData[]
 }
 
 export interface TreeDataExpanded {
+    creationDate: Date,
     keyNum:number,
     icon:string,
     name:string,
     length:number,
     type: string,
     links: string,
+    author?: Author
+    description:string,
     children?: TreeData[],
+    numberOfPages?:number,
     nodes: TreeData[]
     setData: Dispatch<SetStateAction<TreeData[]>>
 }
@@ -40,18 +50,18 @@ export const TreeElement:FC<TreeProps> = ({data})=>{
     return <div>
         <ul>
             {data && data.map(tree=>{
-                return <TreeNode name={tree.name} setData={setNodes} key={tree.keyNum+"tree"}
-                                 icon={tree.icon} keyNum={tree.keyNum}
+                return <TreeNode name={tree.name} setData={setNodes} key={tree.keyNum+"tree"} author={tree.author}
+                                 icon={tree.icon} keyNum={tree.keyNum} numberOfPages={tree.numberOfPages}
                                  children={tree.children} length={data.length}
-                                 links={tree.links} type={tree.type} nodes={data}/>
+                                 links={tree.links} type={tree.type} nodes={data} description={tree.description} creationDate={tree.creationDate}/>
             })}
         </ul>
         </div>
 }
 
-const TreeNode:FC<TreeDataExpanded> = ({ keyNum,icon,children
-                                           ,name, length,
-                                           setData,type,links }) => {
+const TreeNode:FC<TreeDataExpanded> = ({ keyNum,icon,children,author
+                                           ,name, length,description,numberOfPages,
+                                           setData,type,links,creationDate }) => {
     const [childVisible, setChildVisiblity] = useState(false);
     const dispatch = useAppDispatch()
     const nodes = useAppSelector(state=>state.commonReducer.nodes)
@@ -66,19 +76,23 @@ const TreeNode:FC<TreeDataExpanded> = ({ keyNum,icon,children
                         keyNum: element.id,
                         icon: "fa-solid  fa-folder",
                         name: element.name,
+                        creationDate: element.creationDate,
                         length: folder.length,
                         type: 'Folder',
                         links: folder.links[0].href,
+                        description:'',
                         children: []
                     } as TreeData
                 } else if ('numberOfPages' in element) {
                     const note = element as NoteItem
-
                     return {
                         keyNum: note.id,
                         icon: "fa fa-sheet-plastic",
                         name: note.title,
-                        length: note.numberOfPages,
+                        creationDate: element.creationDate,
+                        numberOfPages: note.numberOfPages,
+                        description: note.description,
+                        author: note.author,
                         type: 'Note',
                     } as TreeData
                 } else {
@@ -175,7 +189,7 @@ const TreeNode:FC<TreeDataExpanded> = ({ keyNum,icon,children
     return (
         <li className="d-tree-node ml-5 p-2" key={keyNum}>
             <div className="flex gap-5" onClick={(e) => setChildVisiblity((v) => !v)}
-                 draggable={true} onDragStart={(e)=>drag(e,{keyNum,icon,children,name,length,type,links} as TreeData)}
+                 draggable={true} onDragStart={(e)=>drag(e,{keyNum,icon,children,author,name,length,type,links} as TreeData)}
                  onDragOver={(e)=>{
                      type=='Folder'?e.preventDefault():''
                  }}
@@ -192,13 +206,18 @@ const TreeNode:FC<TreeDataExpanded> = ({ keyNum,icon,children
                             childVisible ? "active" : ""
                         }`}
                     >
-                        <i className="fa-solid fa-chevron-right" onClick={()=>onExpand({keyNum,icon,children,name,length,type,links})}/>
+                        <i className="fa-solid fa-chevron-right" onClick={()=>onExpand({keyNum,icon,numberOfPages,
+                            creationDate,description,children,author,name,length,type,links})}/>
                     </div>
                 )}
 
                 <div className="col d-tree-head">
-                    <i className={` ${icon} mr-4`}> </i>
-                    {name}
+                    <i className={` ${icon} mr-2`}/>
+                    <span className="mr-2">{name}</span>
+                    <i className="fa-solid fa-pen" onClick={()=>{
+                        dispatch(setSelectedFolder({id: keyNum, length,numberOfPages,author,description,name,type} as ElementItem))
+                        dispatch(setModalOpen(true))
+                    }}/>
                 </div>
             </div>
 

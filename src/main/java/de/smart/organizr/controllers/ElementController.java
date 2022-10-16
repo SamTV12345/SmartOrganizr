@@ -5,6 +5,7 @@ import de.smart.organizr.dto.FolderRepresentationalModel;
 import de.smart.organizr.entities.classes.FolderHibernateImpl;
 import de.smart.organizr.entities.interfaces.Element;
 import de.smart.organizr.entities.interfaces.Folder;
+import de.smart.organizr.entities.interfaces.Note;
 import de.smart.organizr.entities.interfaces.User;
 import de.smart.organizr.exceptions.NoPermissionException;
 import de.smart.organizr.services.interfaces.FolderService;
@@ -82,6 +83,12 @@ public class ElementController {
 			               }
 			               return element;
 		               }).toList();
+	}
+
+	//TODO Implementieren
+	@PatchMapping
+	public ResponseEntity<Note> updateNote(){
+		return null;
 	}
 
 	private User getUser() {

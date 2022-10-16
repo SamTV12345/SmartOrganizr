@@ -1,6 +1,7 @@
 import {createSlice} from '@reduxjs/toolkit'
 import {Author} from "./models/Author";
 import {NoteItem} from "./models/NoteItem";
+import {ElementItem} from "./models/ElementItem";
 
 
 // Define a type for the slice state
@@ -9,6 +10,7 @@ interface ModalProps {
     openAddModal: boolean,
     selectedAuthor: Author| undefined,
     selectedAuthorNotes: NoteItem[]| undefined,
+    selectedFolder: ElementItem|undefined,
     createdAuthor: Author
 }
 
@@ -18,6 +20,7 @@ const initialState: ModalProps = {
     openAddModal: false,
     selectedAuthor: undefined,
     selectedAuthorNotes: undefined,
+    selectedFolder: undefined,
     createdAuthor: {name:'',extraInformation:'',id:0}
 }
 
@@ -55,12 +58,40 @@ export const modalSlice = createSlice({
         },
         setCreatedAuthor: (state, action)=>{
             state.createdAuthor = action.payload
+        },
+        setSelectedFolder: (state, action)=>{
+            state.selectedFolder = action.payload
+        },
+        setSelectedFolderName:(state, action)=>{
+            if(state.selectedFolder!== undefined) {
+                state.selectedFolder.name = action.payload
+            }
+        },
+        setSelectedFolderDescription: (state, action)=>{
+            if(state.selectedFolder!== undefined) {
+                state.selectedFolder.description = action.payload
+            }
+        },
+        setSelectedFolderPage: (state, action)=>{
+            if(state.selectedFolder!== undefined){
+                state.selectedFolder.numberOfPages = action.payload
+            }
+        },
+        setSelectedAuthorName: (state, action)=>{
+            if(state.selectedFolder!== undefined && state.selectedFolder.author){
+                state.selectedFolder.author.name = action.payload
+            }
+        },
+        setSelectedFolderAuthor: (state, action)=>{
+            if(state.selectedFolder!== undefined && state.selectedFolder.author){
+                state.selectedFolder.author = action.payload
+            }
         }
     }
-
 })
 
 export const {setModalOpen, setAuthor, setSelectedAuthorNotes, setAuthorName, setAuthorExtraInformation, setOpenAddModal,
-             setCreatedAuthorExtraInformation, setCreatedAuthorName, setCreatedAuthor} = modalSlice.actions
+             setCreatedAuthorExtraInformation, setCreatedAuthorName, setSelectedFolderDescription, setSelectedFolder, setSelectedFolderName,
+    setSelectedFolderPage, setSelectedAuthorName, setSelectedFolderAuthor} = modalSlice.actions
 
 export default modalSlice.reducer
