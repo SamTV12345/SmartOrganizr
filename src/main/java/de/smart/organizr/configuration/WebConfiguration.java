@@ -13,4 +13,10 @@ public class WebConfiguration implements WebMvcConfigurer {
 		// Forward to home page so that route is preserved.(i.e forward:/intex.html)
 		return "forward:/ui/index.html";
 	}
+
+	@RequestMapping(value = "/ui")
+	public String redirectFromFrontendSlash() {
+		// Forward to home page so that route is preserved.(i.e forward:/intex.html)
+		return "forward:/ui/index.html";
+	}
 }
