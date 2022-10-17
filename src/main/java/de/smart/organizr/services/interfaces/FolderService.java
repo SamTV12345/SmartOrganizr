@@ -66,4 +66,6 @@ public interface FolderService {
 	Folder updateFolder(FolderPatchDto folderPatchDto, User user);
 
 	Page<Folder> findAllFoldersWithName(String folderName, User user, Pageable pageable);
+
+	void deleteElementByIdAndUser(int elementId, String userId);
 }

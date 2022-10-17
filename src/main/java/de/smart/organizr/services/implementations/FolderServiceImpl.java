@@ -141,4 +141,28 @@ public class FolderServiceImpl implements FolderService {
 	public Page<Folder> findAllFoldersWithName(final String folderName, final User user, final Pageable pageable) {
 		return folderDao.findAllFoldersWithName(folderName, user, pageable);
 	}
+
+	@Override
+	@Transactional
+	public void deleteElementByIdAndUser(final int elementId, final String userId) {
+		final Element elementToDelete =
+				folderDao.findByIdAndUsername(elementId,userId).orElseThrow(
+						ElementException::createElementNameMayNotBeEmptyException);
+		if(elementToDelete instanceof Folder f){
+			final Collection<Element> elementsToDelete = folderDao.findAllChildren(userId,elementId);
+			//Delete recursively
+			elementsToDelete.forEach(element -> {
+				if(element instanceof Folder){
+					deleteElementByIdAndUser(element.getId(),userId);
+				}
+				else{
+					noteDao.deleteById(element.getId());
+				}
+			});
+			folderDao.deleteFolderById(f);
+		}
+		else if (elementToDelete instanceof Note n){
+			noteDao.deleteById(n.getId());
+		}
+	}
 }
