@@ -71,6 +71,7 @@ const TreeNode:FC<TreeDataExpanded> = ({ keyNum,icon,children,author
 
 
     const onExpand = async (event: TreeData) => {
+        console.log(event)
         if (!loadedFolders.includes(event.keyNum)) {
             dispatch(setLoadedFolders(event.keyNum))
             const loadedChildren: ElementItem[] = await new Promise<ElementItem[]>(resolve => {
