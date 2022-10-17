@@ -58,7 +58,6 @@ class SpringSecurityConfiguration extends KeycloakWebSecurityConfigurerAdapter {
 		};
 
 		http.addFilterAfter(new RootRedirect(), UsernamePasswordAuthenticationFilter.class)
-			.addFilterAfter(new RootRedirect(), UsernamePasswordAuthenticationFilter.class)
 		    .addFilterBefore(keycloakPreAuthActionsFilter(), LogoutFilter.class)
 		    .addFilterBefore(keycloakAuthenticationProcessingFilter(), BasicAuthenticationFilter.class)
 		    .addFilterBefore(keycloakAuthenticatedActionsFilter(), BasicAuthenticationFilter.class)
