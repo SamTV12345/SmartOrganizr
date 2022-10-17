@@ -105,6 +105,11 @@ export const addChild = (event: TreeData, nodes: TreeData[], parentId: number): 
     })
 }
 
+
+export const deleteTopElements = (keyNum: number, nodes:TreeData[]):TreeData[]=>{
+    return nodes.filter(node => node.keyNum !== keyNum)
+}
+
 export const deleteChild = (keyNum: number, nodes: TreeData[]): TreeData[] => {
     return nodes.map(node => {
         const children = node.children?.map(c => c.keyNum)
@@ -114,4 +119,8 @@ export const deleteChild = (keyNum: number, nodes: TreeData[]): TreeData[] => {
             return {...node, children: deleteChild(keyNum, node.children || [])} as TreeData
         }
     })
+}
+
+export const addAsParent = (event:TreeData,nodes: TreeData[])=>{
+    return [...nodes,event].sort((e,e1)=>e.name.localeCompare(e1.name))
 }

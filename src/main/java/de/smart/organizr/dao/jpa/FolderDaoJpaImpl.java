@@ -97,4 +97,9 @@ public class FolderDaoJpaImpl implements FolderDao {
 	public Page<Folder> findAllFoldersWithName(final String folderName, final User user, final Pageable pageable) {
 		return folderRepository.findFolderByNameAndUser(folderName,user.getUserId(),pageable);
 	}
+
+	@Override
+	public void deleteFolderById(final Folder f) {
+		folderRepository.deleteById(f.getId());
+	}
 }

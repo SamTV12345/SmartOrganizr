@@ -8,6 +8,7 @@ import de.smart.organizr.dto.NotePatchDto;
 import de.smart.organizr.dto.NotePostDto;
 import de.smart.organizr.entities.classes.NoteHibernateImpl;
 import de.smart.organizr.entities.interfaces.Author;
+import de.smart.organizr.entities.interfaces.Element;
 import de.smart.organizr.entities.interfaces.Folder;
 import de.smart.organizr.entities.interfaces.Note;
 import de.smart.organizr.entities.interfaces.User;
@@ -82,9 +83,12 @@ public class NoteServiceImpl implements NoteService {
 
 	@Override
 	public int getParentOfNote(final int noteId, final String userId) {
-		
-		return folderDao.findByIdAndUsername(noteId,userId).orElseThrow(ElementException::createElementIdMayNotBeNegative)
-		                .getParent()
-		                .getId();
+		final Element parent =
+				folderDao.findByIdAndUsername(noteId,userId).orElseThrow(ElementException::createElementIdMayNotBeNegative)
+				         .getParent();
+		if(parent == null){
+			return -100;
+		}
+		return parent.getId();
 	}
 }

@@ -6,6 +6,7 @@ import {CreateNote} from "./CreateNote";
 export const ElementAddModal = ()=>{
     const type = useAppSelector(state=>state.elementReducer.type)
     const dispatch = useAppDispatch()
+
     return <div className="grid grid-cols-2">
         <h2 className="col-span-2 text-center text-xl">Typ</h2>
         <div className="flex items-center pl-4 rounded border border-gray-200 dark:border-gray-700">

@@ -8,7 +8,15 @@ import {setNodes} from "../store/CommonSlice";
 import {Modal} from "../components/Modal";
 import {NoteModal} from "../components/NoteModal";
 import {setModalOpen, setOpenAddModal} from "../ModalSlice";
-import {addChild, mapDtoToTreeData, replaceFolder, replaceNote} from "../utils/ElementUtils";
+import {
+    addAsParent,
+    addChild,
+    deleteChild,
+    deleteTopElements,
+    mapDtoToTreeData,
+    replaceFolder,
+    replaceNote
+} from "../utils/ElementUtils";
 import {NoteItem} from "../models/NoteItem";
 import {AddModal} from "../components/AddModal";
 import {ElementAddModal} from "../components/ElementAddModal";
@@ -157,16 +165,36 @@ export const FolderView = ()=>{
                     })
             })
             if(newFolder!==undefined){
-                console.log(newFolder)
                 newFolder.length = 0
                 newFolder.links = []
                 // @ts-ignore
                 newFolder.links[0] = newFolder._links
                 console.log(newFolder)
                 axios.get(apiURL+`/v1/elements/${newFolder.id}/parent`)
-                    .then(resp=>dispatch(setNodes(addChild(mapDtoToTreeData(newFolder),nodes,resp.data))))
+                    .then(resp=>{
+                        console.log(resp)
+                        if(resp.data===-100){
+                            console.log("Hier123")
+                            dispatch(setNodes(addAsParent(mapDtoToTreeData(newFolder), nodes)))
+                        }
+                        else {
+                            dispatch(setNodes(addChild(mapDtoToTreeData(newFolder), nodes, resp.data)))
+                        }
+                    })
                     .catch(err=>console.log(err))
             }
+        }
+    }
+
+    const deleteElement = ()=> {
+        if(element) {
+                axios.delete(apiURL + `/v1/elements/${element.id}`)
+                    .then(() => {
+                        dispatch(setNodes(deleteChild(element.id,deleteTopElements(element.id, nodes))))
+                    })
+                    .catch((error) => {
+                        console.log(error)
+                    })
         }
     }
 
@@ -178,7 +206,7 @@ export const FolderView = ()=>{
         </div>
         <AddModal headerText={"Neues Element"} onAccept={()=>{createElement()}} acceptText={"Erstellen"} children={<ElementAddModal/>}/>
         <Modal headerText="Element editieren" onAccept={()=>updateElement()} acceptText="Updaten" children={<NoteModal/>}
-               cancelText={"Abbrechen"} onCancel={()=>{dispatch(setModalOpen(false))}} onDelete={()=>{}}/>
+               cancelText={"Abbrechen"} onCancel={()=>{dispatch(setModalOpen(false))}} onDelete={deleteElement}/>
         <div className="border-0 w-full md:w-8/12  table-fixed md:mx-auto md:mt-4 md:mb-4 bg-gray-800 text-white p-6">
         <div className="mx-auto">
            <TreeElement data={nodes} setData={setNodes}/>

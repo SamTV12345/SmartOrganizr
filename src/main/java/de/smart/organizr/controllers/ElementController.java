@@ -33,6 +33,7 @@ import org.springframework.hateoas.PagedModel;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -130,6 +131,12 @@ public class ElementController {
 		return element;
 	}
 
+	@DeleteMapping("/{elementId}")
+	public ResponseEntity<Void> deleteElement(@PathVariable int elementId){
+			folderService.deleteElementByIdAndUser(elementId, getUser().getUserId());
+			return ResponseEntity.ok()
+			                     .build();
+	}
 
 	@PatchMapping("/notes")
 	public ResponseEntity<Note> updateNote(@RequestBody NotePatchDto note){

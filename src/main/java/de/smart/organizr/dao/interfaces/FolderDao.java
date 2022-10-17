@@ -60,4 +60,6 @@ public interface FolderDao {
 	Collection<Element> findAllChildren(String userId, int number);
 
 	Page<Folder> findAllFoldersWithName(String folderName, User user, Pageable pageable);
+
+	void deleteFolderById(Folder f);
 }
