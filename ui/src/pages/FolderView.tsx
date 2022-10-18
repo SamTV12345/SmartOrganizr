@@ -20,6 +20,8 @@ import {
 import {NoteItem} from "../models/NoteItem";
 import {AddModal} from "../components/AddModal";
 import {ElementAddModal} from "../components/ElementAddModal";
+import {choiceNote, folderIcon} from "../utils/Constants";
+import {useTranslation} from "react-i18next";
 
 export const FolderView = ()=>{
     const dispatch = useAppDispatch()
@@ -34,6 +36,9 @@ export const FolderView = ()=>{
     const numberOfPages    = useAppSelector(state=>state.elementReducer.numberOfPages)
     const authorId    = useAppSelector(state=>state.elementReducer.author)
 
+    const {t} = useTranslation(
+
+    )
     const loadFolder = async (link: string) => {
         const folders: Folder[] = await new Promise<Folder[]>(resolve => {
             axios.get(link)
@@ -46,7 +51,7 @@ export const FolderView = ()=>{
             const dataOfFolder = folders.map(folder => {
                 return {
                     keyNum: folder.id,
-                    icon: "fa fa-folder",
+                    icon: folderIcon,
                     name: folder.name,
                     creationDate: folder.creationDate,
                     description: '',
@@ -73,7 +78,7 @@ export const FolderView = ()=>{
             return
         }
         if(element.author!== undefined) {
-            const updatedElement = await new Promise<NoteItem>((resolve, reject) => {
+            const updatedElement = await new Promise<NoteItem>((resolve) => {
                 axios.patch(apiURL + "/v1/elements/notes", {
                     id: element.id,
                     title: element.name,
@@ -104,7 +109,7 @@ export const FolderView = ()=>{
             }
         }
         else{
-            const updatedElement = await new Promise<Folder>((resolve, reject) => {
+            const updatedElement = await new Promise<Folder>((resolve) => {
                 axios.patch(apiURL + "/v1/elements/folders", {
                      folderId: element.id,
                      name:element.name,
@@ -134,8 +139,8 @@ export const FolderView = ()=>{
 
 
     const createElement =  async () => {
-        if(elementType === 'Note') {
-            const newElement = await new Promise<NoteItem>((resolve, reject) => {
+        if(elementType === choiceNote) {
+            const newElement = await new Promise<NoteItem>((resolve) => {
                 axios.post(apiURL + "/v1/elements/notes", {
                     title: name,
                     numberOfPages: numberOfPages,
@@ -155,7 +160,7 @@ export const FolderView = ()=>{
             }
         }
         else{
-            const newFolder = await new Promise<Folder>((resolve, reject) => {
+            const newFolder = await new Promise<Folder>((resolve) => {
                 axios.post(apiURL + "/v1/elements/folders", {
                     name,
                     description: description,
@@ -171,12 +176,10 @@ export const FolderView = ()=>{
                 newFolder.links = []
                 // @ts-ignore
                 newFolder.links[0] = newFolder._links
-                console.log(newFolder)
                 axios.get(apiURL+`/v1/elements/${newFolder.id}/parent`)
                     .then(resp=>{
                         console.log(resp)
                         if(resp.data===-100){
-                            console.log("Hier123")
                             dispatch(setNodes(addAsParent(mapDtoToTreeData(newFolder), nodes)))
                         }
                         else {
@@ -207,9 +210,9 @@ export const FolderView = ()=>{
                 <i className="fa-solid fa-plus"/>
             </button>
         </div>
-        <AddModal headerText={"Neues Element"} onAccept={()=>{createElement()}} acceptText={"Erstellen"} children={<ElementAddModal/>}/>
-        <Modal headerText="Element editieren" onAccept={()=>updateElement()} acceptText="Updaten" children={<NoteModal/>}
-               cancelText={"Abbrechen"} onCancel={()=>{dispatch(setModalOpen(false))}} onDelete={deleteElement}/>
+        <AddModal headerText={t('newElement')} onAccept={()=>{createElement()}} acceptText={t('create')} children={<ElementAddModal/>}/>
+        <Modal headerText={t('editElement')} onAccept={()=>updateElement()} acceptText={t('update')} children={<NoteModal/>}
+               cancelText={t('cancel')} onCancel={()=>{dispatch(setModalOpen(false))}} onDelete={deleteElement}/>
         <div className="border-0 w-full md:w-8/12  table-fixed md:mx-auto md:mt-4 md:mb-4 bg-gray-800 text-white p-6">
         <div className="mx-auto">
            <TreeElement data={nodes} setData={setNodes}/>

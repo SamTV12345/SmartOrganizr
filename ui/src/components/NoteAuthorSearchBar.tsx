@@ -8,9 +8,12 @@ import {useDebounce} from "../utils/DebounceHook";
 import {apiURL} from "../Keycloak";
 import axios from "axios";
 import {setElementAuthor} from "../ElementCreateSlice";
+import {choiceFolder} from "../utils/Constants";
+import {useTranslation} from "react-i18next";
 
 export const NoteAuthorSearchBar = ()=> {
     const dispatch = useAppDispatch()
+    const {t} =useTranslation()
     const selectedFolder = useAppSelector(state => state.modalReducer.selectedFolder)
     const [typed, setTyped] = useState<boolean>()
     const selectedAuthorId = useAppSelector(state=>state.elementReducer.author)
@@ -35,8 +38,8 @@ export const NoteAuthorSearchBar = ()=> {
             loadAuthors(apiURL + `/v1/authors?page=0&name=${selectedFolder?.author?.name}`)
     }, 1000, [selectedFolder?.author?.name])
 
-    return selectedFolder?.type !== 'Folder' ? <div className="grid grid-cols-2 mt-5 col-span-2">
-        <div>Author:</div>
+    return selectedFolder?.type !== choiceFolder? <div className="grid grid-cols-2 mt-5 col-span-2">
+        <div>{t('author')}</div>
         <div>
             <input value={selectedFolder?.author?.name}
                    className="border text-sm rounded-lg block w-full p-2.5 bg-gray-700 border-gray-600 placeholder-gray-400

@@ -2,13 +2,14 @@ import {ElementItem} from "../models/ElementItem";
 import {Folder} from "../models/Folder";
 import {NoteItem} from "../models/NoteItem";
 import {TreeData} from "../components/Tree";
+import {folderIcon, noteIcon} from "./Constants";
 
 export const mapDtoToTreeData = (element: ElementItem)=> {
     if ('length' in element) {
         const folder = element as Folder
         return {
             keyNum: element.id,
-            icon: "fa-solid  fa-folder",
+            icon: folderIcon,
             name: element.name,
             creationDate: element.creationDate,
             length: folder.length,
@@ -21,7 +22,7 @@ export const mapDtoToTreeData = (element: ElementItem)=> {
         const note = element as NoteItem
         return {
             keyNum: note.id,
-            icon: "fa fa-sheet-plastic",
+            icon: noteIcon,
             name: note.title,
             creationDate: element.creationDate,
             numberOfPages: note.numberOfPages,
@@ -73,7 +74,7 @@ export const replaceNote = (event: TreeData, nodes: TreeData[]): TreeData[] =>
 export const replaceFolder = (event: TreeData, nodes: TreeData[]): TreeData[] =>
     nodes.map(node => node.keyNum === event.keyNum ? {
             keyNum: event.keyNum,
-            icon: 'fa fa-folder',
+            icon: folderIcon,
             name: event.name,
             creationDate: node.creationDate,
             description: event.description,

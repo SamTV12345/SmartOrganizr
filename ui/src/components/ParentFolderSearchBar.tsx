@@ -9,6 +9,7 @@ import axios from "axios";
 import {useDebounce} from "../utils/DebounceHook";
 import {apiURL} from "../Keycloak";
 import {useAppDispatch, useAppSelector} from "../store/hooks";
+import {useTranslation} from "react-i18next";
 
 export const ParentFolderSearchBar = ()=>{
     const [currentFolder,setCurrentFolder] = useState<Page<FolderEmbeddedContainer<Folder>>>()
@@ -16,7 +17,7 @@ export const ParentFolderSearchBar = ()=>{
     const searchParentName = useAppSelector(state=>state.elementReducer.searchParentName)
     const [selectedId, setSelectedFolderId] = useState<number>(-100)
     const dispatch = useAppDispatch()
-
+    const {t} = useTranslation()
     useDebounce(()=>{
         if(elementParentName) {
             loadSearchedFolder(apiURL + `/v1/elements/folders?page=0&folderName=${elementParentName}`);
@@ -37,7 +38,7 @@ export const ParentFolderSearchBar = ()=>{
     }
 
     return <div className="col-span-2 grid grid-cols-2">
-        <div>Parentfolder</div>
+        <div>{t('superFolder')}</div>
     <div>
     <input className="border text-sm rounded-lg block w-full p-2.5 bg-gray-700 border-gray-600
     placeholder-gray-400 text-white focus:ring-blue-500 focus:border-blue-500" value={searchParentName}

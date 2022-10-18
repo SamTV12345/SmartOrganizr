@@ -11,12 +11,15 @@ import {I18nextProvider} from "react-i18next";
 import i18n from "./language/i18n";
 import axios from "axios";
 
+
+export let accountURL = ''
+
 const initKeycloak = (keycloak: Keycloak) => {
     return new Promise((resolve) => {
         keycloak.init({onLoad: 'login-required'})
             .then((res) => {
                 setLoadedKeycloak(keycloak)
-                axios.defaults.headers["Authorization"] =`Bearer ${keycloak.token}`
+                axios.defaults.headers["Authorization"] = `Bearer ${keycloak.token}`
                 axios.defaults.headers['Content-Type']  = 'application/json'
                 resolve(res)
 
@@ -24,7 +27,7 @@ const initKeycloak = (keycloak: Keycloak) => {
                     keycloak.updateToken(30)
                         .then((refreshed)=>{
                             if(refreshed){
-                                axios.defaults.headers["Authorization"] =`Bearer ${keycloak.token}`
+                                axios.defaults.headers["Authorization"] = `Bearer ${keycloak.token}`
                             }
                         })
                 }, 30000)
@@ -60,6 +63,7 @@ const bootstrapApp = async () => {
         axios.get(apiURL+"/public")
             .then(resp=>{
                 setLinks(resp.data._links)
+                accountURL = resp.data.url+"/realms/"+resp.data.realm+"/account"
                 setKeycloak(resp.data.clientId,resp.data.realm, resp.data.url)
                 initKeycloak(keycloak).then(()=>renderApp(keycloak as Keycloak))
             })

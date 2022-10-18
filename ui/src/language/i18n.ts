@@ -1,35 +1,16 @@
 import i18n from 'i18next'
 import {initReactI18next} from "react-i18next";
 import LanguageDetector from 'i18next-browser-languagedetector'
+import de_translation from './json/de.json'
+import en_translation from './json/en.json'
+
 
 const resources = {
     de: {
-       translation:{
-           homepage: "Startseite",
-           fast: 'Schnell',
-           modern: 'Modern',
-           selfHosted: 'Selbst gehostet',
-           authors: 'Komponisten',
-           id: 'ID',
-           name: 'Name',
-           extraInformation: 'Weitere Informationen',
-           folderView: 'Ordneransicht',
-           cancel: 'Abbrechen'
-       }
+       translation:de_translation
     },
     en:{
-        translation: {
-            homepage: "Homepage",
-            fast: 'Fast',
-            modern: 'Modern',
-            selfHosted: 'Self hosted',
-            authors: 'Authors',
-            id: 'Id',
-            name: 'Name',
-            extraInformation: 'Further information',
-            folderView: 'Folder view',
-            cancel: 'Cancel'
-        }
+        translation: en_translation
     }
 }
 

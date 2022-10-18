@@ -4,13 +4,14 @@ import axios from "axios";
 import {apiURL} from "../Keycloak";
 import {setAuthorExtraInformation, setAuthorName, setSelectedAuthorNotes} from "../ModalSlice";
 import React, {useEffect} from "react";
+import {useTranslation} from "react-i18next";
 
 export const AuthorModal = ()=>{
     const selectedAuthor = useAppSelector(state=>state.modalReducer.selectedAuthor)
     const selectedAuthorsNotes = useAppSelector(state=>state.modalReducer.selectedAuthorNotes)
     const openModal = useAppSelector(state=>state.modalReducer.openModal)
     const dispatch = useAppDispatch()
-
+    const {t} = useTranslation()
 
     const loadAuthorNotes = async (selectedAuthorId:number)=> {
         if(selectedAuthorId=== undefined){
@@ -35,16 +36,16 @@ export const AuthorModal = ()=>{
     },[selectedAuthor])
 
     return <div className="grid grid-cols-2 gap-5">
-        <div>Name</div>
+        <div>{t('name')}</div>
         <input value={selectedAuthor?.name}
                className="border text-sm rounded-lg block w-full p-2.5 bg-gray-700 border-gray-600
                 placeholder-gray-400 text-white focus:ring-blue-500 focus:border-blue-500" onChange={(v)=>dispatch(setAuthorName(v.target.value))}/>
-    <div>Extra Information</div>
+    <div>{t('extraInformation')}</div>
         <input value={selectedAuthor?.extraInformation}
                className="border text-sm rounded-lg block w-full p-2.5 bg-gray-700 border-gray-600
                 placeholder-gray-400 text-white focus:ring-blue-500 focus:border-blue-500" onChange={(v)=>dispatch(setAuthorExtraInformation(v.target.value))}/>
 
-    <div className="col-span-2 text-center grid grid-cols-2">Enthaltene Stücke</div>
+    <div className="col-span-2 text-center grid grid-cols-2">{t('containedNotes')}</div>
     {
         selectedAuthorsNotes&&selectedAuthorsNotes.map((note, index)=> <React.Fragment key={index+"Index"}>
             <div key={index}>#{index+1}</div>

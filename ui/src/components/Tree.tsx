@@ -10,6 +10,7 @@ import {apiURL} from "../Keycloak";
 import {setModalOpen, setSelectedFolder} from "../ModalSlice";
 import {Author} from "../models/Author";
 import {addChild, deleteChild, handleNewElements, traverseTree} from "../utils/ElementUtils";
+import {choiceFolder} from "../utils/Constants";
 
 export interface TreeData {
     creationDate: Date,
@@ -66,12 +67,11 @@ const TreeNode:FC<TreeDataExpanded> = ({ keyNum,icon,children,author
     const dispatch = useAppDispatch()
     const nodes = useAppSelector(state=>state.commonReducer.nodes)
     const loadedFolders = useAppSelector(state=>state.commonReducer.loadedFolders)
-    const hasChild = type==='Folder' && length>0
+    const hasChild = type===choiceFolder && length>0
 
 
 
     const onExpand = async (event: TreeData) => {
-        console.log(event)
         if (!loadedFolders.includes(event.keyNum)) {
             dispatch(setLoadedFolders(event.keyNum))
             const loadedChildren: ElementItem[] = await new Promise<ElementItem[]>(resolve => {
@@ -96,9 +96,9 @@ const TreeNode:FC<TreeDataExpanded> = ({ keyNum,icon,children,author
     }
 
     const moveToFolder = async (element: TreeData, nodes: TreeData[], keyNum:number)=>{
-        await new Promise<ElementItem[]>(resolve => {
+        await new Promise<ElementItem[]>(() => {
             axios.patch(apiURL+`/v1/elements/${element.keyNum}/${keyNum}`)
-                .then(resp => {
+                .then(() => {
                     dispatch(setNodes(addChild(element, deleteChild(element.keyNum, nodes), keyNum)))
                 })
                 .catch((error) => {

@@ -27,7 +27,7 @@ export const AuthorView = ()=> {
     const createdAuthor = useAppSelector(state=>state.modalReducer.createdAuthor)
 
     const deleteAuthor = async (authorPageInParam: Page<AuthorEmbeddedContainer<Author>>,author:Author)=>{
-        await new Promise<Author>(resolve=>{
+        await new Promise<Author>(()=>{
             axios.delete(`${apiURL}/v1/authors/${author.id}`)
                 .then(()=>{
                     dispatch(setAuthorPage(removeAuthor(authorPageInParam,author.id)))
@@ -95,9 +95,9 @@ export const AuthorView = ()=> {
             <i className="fa-solid fa-plus"/>
         </button>
         </div>
-        <AddModal acceptText={"Erstellen"} children={<AuthorAddModal/>} headerText={"Author erstellen"} onAccept={()=>{createAuthor(createdAuthor)}}/>
-        <Modal headerText="Editieren eines Authors" children={<AuthorModal/>} onAccept={()=>{
-            selectedAuthor&&updateAuthor(selectedAuthor)}} onCancel={()=>{}} acceptText={"Updaten"} cancelText={"Abbrechen"}
+        <AddModal acceptText={t('create')} children={<AuthorAddModal/>} headerText={t('createAuthor')} onAccept={()=>{createAuthor(createdAuthor)}}/>
+        <Modal headerText={t('editAuthor')} children={<AuthorModal/>} onAccept={()=>{
+            selectedAuthor&&updateAuthor(selectedAuthor)}} onCancel={()=>{}} acceptText={t('update')} cancelText={t('cancel')}
             onDelete={()=>selectedAuthor&&authorPage&&deleteAuthor(authorPage,selectedAuthor)}/>
         <table className="w-full md:w-8/12  divide-y table-fixed divide-gray-700 md:mx-auto md:mt-4 md:mb-4 border-collapse" id="authorTable">
             <thead className="bg-gray-700">
