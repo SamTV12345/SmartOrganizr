@@ -7,6 +7,7 @@ import {useDebounce} from "../utils/DebounceHook";
 import {apiURL} from "../Keycloak";
 import axios from "axios";
 import {setElementAuthor, setElementSelectedAuthorName} from "../ElementCreateSlice";
+import {useTranslation} from "react-i18next";
 
 export const NoteAuthorCreateSearchBar = ()=> {
     const dispatch = useAppDispatch()
@@ -14,7 +15,7 @@ export const NoteAuthorCreateSearchBar = ()=> {
     const authorName = useAppSelector(state=>state.elementReducer.authorName)
     const selectedAuthorId = useAppSelector(state=>state.elementReducer.author)
     const [currentSearchAuthors, setCurrentSearchAuthors] = useState<Page<AuthorEmbeddedContainer<Author>>>()
-
+    const {t} = useTranslation()
 
     const loadAuthors = async (link: string) => {
         const authorsInResponse: Page<AuthorEmbeddedContainer<Author>> = await new Promise<Page<AuthorEmbeddedContainer<Author>>>(resolve => {
@@ -35,7 +36,7 @@ export const NoteAuthorCreateSearchBar = ()=> {
     }, 1000, [authorName])
 
     return  <div className="grid grid-cols-2 mt-5 col-span-2">
-        <div>Author:</div>
+        <div>{t('author')}</div>
         <div>
             <input value={authorName}
                    className="border text-sm rounded-lg block w-full p-2.5 bg-gray-700 border-gray-600 placeholder-gray-400

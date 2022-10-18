@@ -2,9 +2,13 @@ import {useAppDispatch, useAppSelector} from "../store/hooks";
 import {setSideBarCollapsed} from "../store/CommonSlice";
 import mainlogo from '../SmartOrganizrIcon.svg'
 import {useState} from "react";
+import {keycloak, uiURL} from "../Keycloak";
+import {useTranslation} from "react-i18next";
+import {accountURL} from "../main";
 
 
 export const Header = ()=>{
+    const {t} = useTranslation()
     const dispatch = useAppDispatch()
     const sideBarCollapsed = useAppSelector(state=>state.commonReducer.sideBarCollapsed)
     const [avatarDrodownClicked, setAvatarDropdownClicked] = useState<boolean>(false)
@@ -30,18 +34,12 @@ export const Header = ()=>{
                             className="absolute z-40 right-0 z-10 mt-2 w-56 origin-top-right rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none"
                             role="menu" aria-orientation="vertical" aria-labelledby="menu-button" >
                             <div className="py-1" role="none">
-                                <a href="#" className="text-gray-700 block px-4 py-2 text-sm" role="menuitem"
-                                    id="menu-item-0">Account settings</a>
-                                <a href="#" className="text-gray-700 block px-4 py-2 text-sm" role="menuitem"
-                                    id="menu-item-1">Support</a>
-                                <a href="#" className="text-gray-700 block px-4 py-2 text-sm" role="menuitem"
-                                    id="menu-item-2">License</a>
-                                <form method="POST" action="#" role="none">
-                                    <button type="submit"
+                                <a href={accountURL} className="text-gray-700 block px-4 py-2 text-sm" role="menuitem"
+                                    id="menu-item-0">{t('accountSettings')}</a>
+                                    <button type="submit" onClick={()=>keycloak.logout({redirectUri: uiURL})}
                                             className="text-gray-700 block w-full px-4 py-2 text-left text-sm"
-                                            role="menuitem"  id="menu-item-3">Sign out
+                                            role="menuitem"  id="menu-item-3">{t('signOut')}
                                     </button>
-                                </form>
                             </div>
                         </div>}
                     </div>
