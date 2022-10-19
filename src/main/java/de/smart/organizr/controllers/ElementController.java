@@ -8,6 +8,8 @@ import de.smart.organizr.dto.FolderPostDto;
 import de.smart.organizr.dto.FolderRepresentationalModel;
 import de.smart.organizr.dto.NotePatchDto;
 import de.smart.organizr.dto.NotePostDto;
+import de.smart.organizr.dto.NoteRepresentationModel;
+import de.smart.organizr.dto.NoteResourceAssembler;
 import de.smart.organizr.entities.classes.FolderHibernateImpl;
 import de.smart.organizr.entities.interfaces.Element;
 import de.smart.organizr.entities.interfaces.Folder;
@@ -56,6 +58,7 @@ public class ElementController {
 	private final NoteService noteService;
 	private final UserService userService;
 	private final ElementResourceAssembler elementResourceAssembler;
+	private final NoteResourceAssembler noteResourceAssembler;
 	private final FolderDtoMapper folderDtoMapper;
 
 
@@ -96,6 +99,15 @@ public class ElementController {
 		final Pageable pageable = PageRequest.of(page,50, Sort.by("name").ascending());
 		final Page<Folder> matchingFolders =  folderService.findAllFoldersWithName(folderName, getUser(), pageable);
 		return ResponseEntity.ok(authorPagedResourcesAssembler.toModel(matchingFolders,elementResourceAssembler));
+	}
+
+	@GetMapping("/notes")
+	public ResponseEntity<PagedModel<NoteRepresentationModel>> searchNotes(@RequestParam final int page,
+	                                                                       @RequestParam(required = false) final String noteName,
+	                                                                       final PagedResourcesAssembler<Note> notePagedResourcesAssembler){
+		final Pageable pageable = PageRequest.of(page,50, Sort.by("title").ascending());
+		final Page<Note> matchingNotes =  noteService.findAllNotesByName(noteName, getUser(), pageable);
+		return ResponseEntity.ok(notePagedResourcesAssembler.toModel(matchingNotes,noteResourceAssembler));
 	}
 
 	@GetMapping("/{folderId}/children")

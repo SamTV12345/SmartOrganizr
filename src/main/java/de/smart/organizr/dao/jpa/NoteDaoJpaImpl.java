@@ -5,6 +5,8 @@ import de.smart.organizr.entities.classes.NoteHibernateImpl;
 import de.smart.organizr.entities.interfaces.Note;
 import de.smart.organizr.entities.interfaces.User;
 import de.smart.organizr.repositories.NoteRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
@@ -66,5 +68,15 @@ public class NoteDaoJpaImpl implements NoteDao {
 	@Override
 	public Optional<Note> findNoteByIdAndUser(final int id, final User user) {
 		return noteRepository.findNoteByIdAndUser(id, user.getUserId());
+	}
+
+	@Override
+	public Page<Note> findPagedNotesOfAuthorByName(final String noteName, final String userId, final Pageable pageable) {
+		return noteRepository.findNotesByName(noteName,userId,pageable);
+	}
+
+	@Override
+	public Page<Note> findPagedNotesOfAuthorByName(final String userId, final Pageable pageable) {
+		return noteRepository.findNotesByName(userId,pageable);
 	}
 }

@@ -17,6 +17,8 @@ import de.smart.organizr.exceptions.ElementException;
 import de.smart.organizr.exceptions.UserException;
 import de.smart.organizr.services.interfaces.NoteService;
 import lombok.AllArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -90,5 +92,13 @@ public class NoteServiceImpl implements NoteService {
 			return -100;
 		}
 		return parent.getId();
+	}
+
+	@Override
+	public Page<Note> findAllNotesByName(final String noteName, final User user, final Pageable pageable) {
+		if(noteName==null){
+			return noteDao.findPagedNotesOfAuthorByName(user.getUserId(), pageable);
+		}
+		return noteDao.findPagedNotesOfAuthorByName(noteName, user.getUserId(), pageable);
 	}
 }

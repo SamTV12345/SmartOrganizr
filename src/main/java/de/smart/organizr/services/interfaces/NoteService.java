@@ -4,6 +4,8 @@ import de.smart.organizr.dto.NotePatchDto;
 import de.smart.organizr.dto.NotePostDto;
 import de.smart.organizr.entities.interfaces.Note;
 import de.smart.organizr.entities.interfaces.User;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 import java.util.Optional;
@@ -32,4 +34,6 @@ public interface NoteService {
 	Note saveNoteForUser(NotePostDto notePostDto, String userId);
 
 	int getParentOfNote(int noteId, final String userId);
+
+	Page<Note> findAllNotesByName(String noteName, User user, Pageable pageable);
 }
