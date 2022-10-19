@@ -50,7 +50,6 @@ export const commonSlice = createSlice({
             state.loadedFolders = [...state.loadedFolders,action.payload]
         },
         setNotesSearched:(state, action)=>{
-            console.log(action.payload)
             state.elementsSearched = action.payload
         },
         setNotesSearchText:(state, action)=>{

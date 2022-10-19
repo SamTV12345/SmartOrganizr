@@ -6,6 +6,7 @@ import {ElementEmbeddedContainer} from "../models/ElementEmbeddedContainer";
 import {NoteItem} from "../models/NoteItem";
 import {useDebounce} from "../utils/DebounceHook";
 import {apiURL} from "../Keycloak";
+import {useEffect} from "react";
 
 export const ElementSearchBar = ()=>{
     const dispatch = useAppDispatch()
@@ -24,8 +25,12 @@ export const ElementSearchBar = ()=>{
         }
     }
 
+    useEffect(()=>{
+            loadNotes(apiURL+`/v1/elements/notes?page=0`)
+        },[])
+
     useDebounce(()=>{
-        loadNotes(apiURL+"/v1/elements/notes?page=0")
+        loadNotes(apiURL+`/v1/elements/notes?page=0&noteName=${text}`)
         },
         1000,[text])
 

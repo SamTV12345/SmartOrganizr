@@ -178,7 +178,6 @@ export const FolderView = ()=>{
                 newFolder.links[0] = newFolder._links
                 axios.get(apiURL+`/v1/elements/${newFolder.id}/parent`)
                     .then(resp=>{
-                        console.log(resp)
                         if(resp.data===-100){
                             dispatch(setNodes(addAsParent(mapDtoToTreeData(newFolder), nodes)))
                         }
