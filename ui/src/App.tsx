@@ -10,6 +10,7 @@ import {WelcomePage} from "./pages/WelcomePage";
 import {AuthorView} from "./pages/AuthorView";
 import {FolderView} from "./pages/FolderView";
 import {useTranslation} from "react-i18next";
+import {SearchElementView} from "./pages/SearchElementView";
 
 function App() {
     const sideBarCollapsed = useAppSelector(state=>state.commonReducer.sideBarCollapsed)
@@ -31,6 +32,7 @@ function App() {
                       <Route path={"/"} element={<WelcomePage/>}/>
                       <Route path={"/authors"} element={<AuthorView/>}/>
                       <Route path={"/folder"} element={<FolderView/>}/>
+                      <Route path={"/notes"} element={<SearchElementView/>}/>
                   </Routes>
               </div>
           </div>

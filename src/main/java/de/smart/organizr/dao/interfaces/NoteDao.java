@@ -2,6 +2,8 @@ package de.smart.organizr.dao.interfaces;
 
 import de.smart.organizr.entities.interfaces.Note;
 import de.smart.organizr.entities.interfaces.User;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 import java.util.Optional;
@@ -28,4 +30,8 @@ public interface NoteDao {
 	void deleteById(int noteId);
 
 	Optional<Note> findNoteByIdAndUser(int id, User user);
+
+	Page<Note> findPagedNotesOfAuthorByName(String noteName, final String userId, Pageable pageable);
+
+	Page<Note> findPagedNotesOfAuthorByName(String userId, Pageable pageable);
 }
