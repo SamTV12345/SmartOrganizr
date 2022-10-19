@@ -3,8 +3,8 @@ package de.smart.organizr.entities.classes;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import de.smart.organizr.entities.interfaces.User;
 import lombok.AllArgsConstructor;
+import lombok.Data;
 import lombok.EqualsAndHashCode;
-import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import javax.persistence.Entity;
@@ -20,7 +20,7 @@ import java.util.Set;
 @Table(name = "Concert")
 @NoArgsConstructor
 @AllArgsConstructor
-@Getter
+@Data
 @EqualsAndHashCode
 public class ConcertHibernateImpl {
 	@Id
