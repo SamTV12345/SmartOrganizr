@@ -35,9 +35,9 @@ build_image:
     - docker push $CI_IMAGE:$CI_TAG
 
 pushToHub:
-  image: docker:20.10.16
+  image: docker:dind
   services:
-    - docker:20.10.16-dind
+    - docker:dind
   stage: push
   tags: [pi]
   only:
