@@ -3,6 +3,7 @@ image: maven:latest
 stages:
   - test
   - build
+  - push
 
 cache:
   paths:
@@ -27,3 +28,19 @@ build_image:
     - docker login -u $CI_USER -p $CI_PASSWORD
     - docker build -t $CI_IMAGE:$CI_TAG .
     - docker push $CI_IMAGE:$CI_TAG
+
+pushToHub:
+  image: docker:20.10.16
+  services:
+    - docker:20.10.16-dind
+  stage: push
+  tags: [pi]
+  only:
+    - master
+  script:
+    - sleep 10
+    - docker login -u $HARBOR_USER -p $HARBOR_PASSWORD
+    - docker pull  --platform linux/amd64 $CI_IMAGE:$CI_TAG
+    - docker image tag $HARBOR_URL
+    - docker push $HARBOR_URL
+  
