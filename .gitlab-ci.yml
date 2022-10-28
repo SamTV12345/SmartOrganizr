@@ -5,12 +5,17 @@ stages:
   - build
   - push
 
+variables:
+  MAVEN_OPTS: "-Dhttps.protocols=TLSv1.2 -Dmaven.repo.local=$CI_PROJECT_DIR/.m2/repository -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=WARN -Dorg.slf4j.simpleLogger.showDateTime=true -Djava.awt.headless=true"
+
 cache:
   paths:
     - target/
+    - .m2/repository
 
 test:
   stage: test
+  tags: [pi]
   only:
     - master
   script:
