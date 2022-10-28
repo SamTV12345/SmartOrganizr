@@ -2,6 +2,7 @@ import {useAppDispatch, useAppSelector} from "../store/hooks";
 import {setOpenAddModal} from "../ModalSlice";
 import {FC} from "react";
 import {useTranslation} from "react-i18next";
+import {createPortal} from "react-dom";
 
 export interface ModalProps {
     children: any,
@@ -18,9 +19,10 @@ export const AddModal:FC<ModalProps>  = ({headerText,children, onAccept,acceptTe
     const {t} = useTranslation()
 
 
-    return  openModal ? <div id="defaultModal" tabIndex={-1} aria-hidden="true" className="overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 w-full md:inset-0 h-modal md:h-full z-40">
+    return  openModal ? createPortal(
+        <div id="defaultModal" onClick={()=>dispatch(setOpenAddModal(false))} tabIndex={-1} aria-hidden="true" className="overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 w-full md:inset-0 h-modal md:h-full z-40">
     <div className="grid place-items-center h-screen">
-    <div className="relative rounded-lg shadow bg-gray-700 justify-center w-full md:w-2/4">
+    <div className="relative rounded-lg shadow bg-gray-700 justify-center w-full md:w-2/4" onClick={e=>e.stopPropagation()}>
     <div className="flex justify-between items-start p-4 rounded-t border-b border-gray-600">
     <h3 className="text-xl font-semibold text-white">
         {headerText}
@@ -39,5 +41,5 @@ export const AddModal:FC<ModalProps>  = ({headerText,children, onAccept,acceptTe
     </div>
     </div>
     </div>
-    </div>:<div></div>
+    </div>, document.getElementById('modal') as Element):<div></div>
 }
