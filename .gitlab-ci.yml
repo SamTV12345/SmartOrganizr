@@ -41,6 +41,6 @@ pushToHub:
     - sleep 10
     - docker login -u $HARBOR_USER -p $HARBOR_PASSWORD
     - docker pull  --platform linux/amd64 $CI_IMAGE:$CI_TAG
-    - docker image tag $HARBOR_URL
+    - docker image tag $CI_IMAGE:$CI_TAG $HARBOR_URL
     - docker push $HARBOR_URL
   
