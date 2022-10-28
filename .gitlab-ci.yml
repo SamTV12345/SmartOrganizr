@@ -22,9 +22,9 @@ test:
     - mvn test
 
 build_image:
-  image: docker:20.10.16
+  image: docker:dind
   services:
-    - docker:20.10.16-dind
+    - docker:dind
   stage: build
   only:
     - master
