@@ -7,6 +7,7 @@ stages:
 
 variables:
   MAVEN_OPTS: "-Dhttps.protocols=TLSv1.2 -Dmaven.repo.local=$CI_PROJECT_DIR/.m2/repository -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=WARN -Dorg.slf4j.simpleLogger.showDateTime=true -Djava.awt.headless=true"
+  DOCKER_TLS_CERTDIR: "/certs"
 
 cache:
   paths:
@@ -22,9 +23,9 @@ test:
     - mvn test
 
 build_image:
-  image: docker:dind
+  image: docker:20.10.16
   services:
-    - docker:dind
+    - docker:20.10.16-dind
   stage: build
   only:
     - master
