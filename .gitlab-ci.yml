@@ -36,6 +36,8 @@ build_image:
     - docker push $CI_IMAGE:$CI_TAG
 
 pushToHub:
+  needs: 
+    - build_image
   image: docker:dind
   services:
     - docker:dind
