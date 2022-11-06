@@ -2,9 +2,12 @@ package de.smart.organizr.dao.jpa;
 
 import de.smart.organizr.dao.interfaces.FolderDao;
 import de.smart.organizr.entities.classes.FolderHibernateImpl;
+import de.smart.organizr.entities.interfaces.Element;
 import de.smart.organizr.entities.interfaces.Folder;
 import de.smart.organizr.entities.interfaces.User;
 import de.smart.organizr.repositories.FolderRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import java.util.Collection;
 import java.util.Optional;
@@ -66,6 +69,16 @@ public class FolderDaoJpaImpl implements FolderDao {
 	}
 
 	@Override
+	public Optional<Element> findByIdAndUsername(final int elementId, final String username) {
+		return folderRepository.findElementByIdAndUsername(elementId,username);
+	}
+
+	@Override
+	public Optional<Folder> findFolderByIdAndUsername(final int folderId, final String username) {
+		return folderRepository.findFolderByIdAndUsername(folderId,username);
+	}
+
+	@Override
 	public Optional<Folder> findFolderByUserAndName(final User user, final String s) {
 		return folderRepository.findFolderByUserAndName(user, s);
 	}
@@ -73,5 +86,20 @@ public class FolderDaoJpaImpl implements FolderDao {
 	@Override
 	public void deleteFolder(final Folder folder) {
 		folderRepository.deleteFolder(folder.getId());
+	}
+
+	@Override
+	public Collection<Element> findAllChildren(final String userId, final int number) {
+		return folderRepository.findAllChildren(userId, number);
+	}
+
+	@Override
+	public Page<Folder> findAllFoldersWithName(final String folderName, final User user, final Pageable pageable) {
+		return folderRepository.findFolderByNameAndUser(folderName,user.getUserId(),pageable);
+	}
+
+	@Override
+	public void deleteFolderById(final Folder f) {
+		folderRepository.deleteById(f.getId());
 	}
 }

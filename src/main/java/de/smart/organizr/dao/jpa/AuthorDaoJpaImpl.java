@@ -5,9 +5,10 @@ import de.smart.organizr.entities.classes.AuthorHibernateImpl;
 import de.smart.organizr.entities.interfaces.Author;
 import de.smart.organizr.entities.interfaces.User;
 import de.smart.organizr.repositories.AuthorRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import java.util.Optional;
-import java.util.Set;
 
 /**
  * The AuthorDaoJpaImpl class takes care of every database action related to authors
@@ -25,8 +26,14 @@ public class AuthorDaoJpaImpl implements AuthorDao {
 	 * @return a set of authors created by the user
 	 */
 	@Override
-	public Set<Author> findAllAuthorsOfUser(final User user){
-		return authorRepository.findAuthorsByCreator(user.getUserId());
+	public Page<Author> findAllAuthorsOfUser(final User user, final Pageable pageable){
+		return authorRepository.findAllByCreator(user.getUserId(), pageable);
+	}
+
+	@Override
+	public Page<Author> findAllAuthorsOfUserWithFullText(final User user, final Pageable pageable,
+	                                                     final String searchString){
+		return authorRepository.findAllByCreatorAndName(user.getUserId(), pageable, searchString);
 	}
 
 	/**
@@ -35,8 +42,8 @@ public class AuthorDaoJpaImpl implements AuthorDao {
 	 * @return an optional author that is found
 	 */
 	@Override
-	public Optional<Author> findAuthorById(final int authorId) {
-		final Optional<AuthorHibernateImpl> optionalAuthor =  authorRepository.findById(authorId);
+	public Optional<Author> findAuthorByIdAndUser(final int authorId, final String user) {
+		final Optional<AuthorHibernateImpl> optionalAuthor =  authorRepository.findAuthorById(authorId, user);
 		if(optionalAuthor.isEmpty()){
 			return Optional.empty();
 		}
@@ -56,5 +63,10 @@ public class AuthorDaoJpaImpl implements AuthorDao {
 	@Override
 	public void deleteAuthor(final Author authorToDelete) {
 		authorRepository.deleteById(authorToDelete.getId());
+	}
+
+	@Override
+	public int getAuthorIndex(final String authorName){
+		return authorRepository.getIndexOnPage(authorName);
 	}
 }

@@ -3,13 +3,20 @@ image: maven:latest
 stages:
   - test
   - build
+  - push
+
+variables:
+  MAVEN_OPTS: "-Dhttps.protocols=TLSv1.2 -Dmaven.repo.local=$CI_PROJECT_DIR/.m2/repository -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=WARN -Dorg.slf4j.simpleLogger.showDateTime=true -Djava.awt.headless=true"
+  DOCKER_TLS_CERTDIR: "/certs"
 
 cache:
   paths:
     - target/
+    - .m2/repository
 
 test:
   stage: test
+  tags: [pi]
   only:
     - master
   script:
@@ -27,3 +34,21 @@ build_image:
     - docker login -u $CI_USER -p $CI_PASSWORD
     - docker build -t $CI_IMAGE:$CI_TAG .
     - docker push $CI_IMAGE:$CI_TAG
+
+pushToHub:
+  needs: 
+    - build_image
+  image: docker:dind
+  services:
+    - docker:dind
+  stage: push
+  tags: [pi]
+  only:
+    - master
+  script:
+    - sleep 10
+    - docker login $HARBOR_BASEURL -u $HARBOR_USER -p $HARBOR_PASSWORD
+    - docker pull  --platform linux/amd64 $CI_IMAGE:$CI_TAG
+    - docker image tag $CI_IMAGE:$CI_TAG $HARBOR_URL
+    - docker push $HARBOR_URL
+  

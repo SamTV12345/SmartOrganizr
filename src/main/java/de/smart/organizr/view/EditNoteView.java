@@ -22,19 +22,27 @@ import org.primefaces.PrimeFaces;
 import org.primefaces.event.CaptureEvent;
 import org.primefaces.model.DefaultStreamedContent;
 import org.primefaces.model.file.UploadedFile;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 
 import javax.annotation.PostConstruct;
-import javax.faces.FacesException;
 import javax.faces.context.ExternalContext;
 import javax.faces.context.FacesContext;
 import javax.imageio.ImageIO;
-import javax.imageio.stream.FileImageOutputStream;
 import javax.servlet.http.HttpServletResponse;
 import java.awt.image.BufferedImage;
-import java.io.*;
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 
 @Setter
 @Getter
@@ -155,7 +163,10 @@ public class EditNoteView {
 	}
 
 	public Collection<Author> getAllAuthors(){
-		return authorService.findAllAuthorsByUser(userBean.getUser().getUserId());
+		return authorService.findAllAuthorsByUser(userBean.getUser().getUserId(), Optional.empty(),
+				                    PageRequest.of(0,2000,
+				                    Sort.by("name").ascending()))
+		                    .stream().toList();
 	}
 
 	public Folder getCurrentFolder() {

@@ -1,13 +1,24 @@
 package de.smart.organizr.entities.classes;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
-import de.smart.organizr.constants.Constants;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import de.smart.organizr.entities.interfaces.Element;
 import de.smart.organizr.entities.interfaces.Folder;
 import de.smart.organizr.entities.interfaces.User;
 import de.smart.organizr.validators.ElementValidator;
 
-import javax.persistence.*;
+import javax.persistence.DiscriminatorColumn;
+import javax.persistence.DiscriminatorType;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.Inheritance;
+import javax.persistence.InheritanceType;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.Table;
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.Calendar;
 import java.util.Objects;
@@ -15,8 +26,10 @@ import java.util.Objects;
 @Entity
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 @Table(name = "Elements")
-@DiscriminatorColumn(name = "Type", discriminatorType = DiscriminatorType.STRING )
+@DiscriminatorColumn(name = "Type", discriminatorType = DiscriminatorType.STRING)
 public class ElementHibernateImpl implements Element, Serializable {
+	@Serial
+	private static final long serialVersionUID = -7407462616923074611L;
 	private Calendar creationDate;
 	private int id;
 	private String name;
@@ -25,7 +38,7 @@ public class ElementHibernateImpl implements Element, Serializable {
 	private String description;
 	private User creator;
 
-	public ElementHibernateImpl(){
+	public ElementHibernateImpl() {
 	}
 
 	protected ElementHibernateImpl(final String name, final Calendar creationDate, final String description,
@@ -137,6 +150,7 @@ public class ElementHibernateImpl implements Element, Serializable {
 
 	@Override
 	@ManyToOne(targetEntity = UserHibernateImpl.class)
+	@JsonIgnore
 	@JoinColumn(name = "user_id_fk")
 	public User getCreator() {
 		return creator;

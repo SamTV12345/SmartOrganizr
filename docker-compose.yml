@@ -39,6 +39,7 @@ services:
       - ELASTIC_APM_SERVER_URL=your-apm-server-url
       - ELASTIC_APM_SERVICE_NAME=your-service
       - ELASTIC_APM_ENVIRONMENT=your-environment
+      - UI_URL=<your-frontend-resource>
 networks:
   smartOrganizr:
     external: true

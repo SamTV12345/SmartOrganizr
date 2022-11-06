@@ -2,10 +2,10 @@ package de.smart.organizr.dao.interfaces;
 
 import de.smart.organizr.entities.interfaces.Author;
 import de.smart.organizr.entities.interfaces.User;
-import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import java.util.Optional;
-import java.util.Set;
 
 /**
  * The author Dao handles every action related to authors
@@ -16,14 +16,7 @@ public interface AuthorDao {
 	 * @param user the user
 	 * @return a set of authors
 	 */
-	Set<Author> findAllAuthorsOfUser(User user);
-
-	/**
-	 * Finds an author by id
-	 * @param authorId the id of the author
-	 * @return an optional of the found author
-	 */
-	Optional<Author> findAuthorById(int authorId);
+	Page<Author> findAllAuthorsOfUser(User user, Pageable pageable);
 
 	/**
 	 * Saves/updates an author
@@ -37,4 +30,11 @@ public interface AuthorDao {
 	 * @param authorToDelete the author to be deleted
 	 */
 	void deleteAuthor(Author authorToDelete);
+
+	Page<Author> findAllAuthorsOfUserWithFullText(User user, Pageable pageable,
+	                                              String searchString);
+
+	Optional<Author> findAuthorByIdAndUser(int authorId, String user);
+
+	int getAuthorIndex(String authorName);
 }

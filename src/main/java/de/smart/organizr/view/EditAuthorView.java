@@ -34,7 +34,7 @@ public class EditAuthorView {
 			setId(authorFromFlash.getId());
 			setName(authorFromFlash.getName());
 			setExtraInformation(authorFromFlash.getExtraInformation());
-			notesOfAuthor = noteService.findAllNotesByAuthor(authorFromFlash.getId());
+			notesOfAuthor = noteService.findAllNotesByAuthor(authorFromFlash.getId(), userBean.getUser().getUserId());
 		}
 		this.userBean = userBean;
 		this.authorService = authorService;
@@ -42,7 +42,8 @@ public class EditAuthorView {
 
 	public String saveAuthor(){
 		try {
-			authorService.saveAuthor(new AuthorHibernateImpl(id, name, extraInformation, userBean.getUser()));
+			authorService.saveAuthor(new AuthorHibernateImpl(id, name, extraInformation, userBean.getUser()),
+					userBean.getUser().getUserId());
 			return NavigationUtils.navigateToViewAuthors();
 		}
 		catch (final AuthorException authorException){
@@ -63,7 +64,8 @@ public class EditAuthorView {
 
 	public void saveAndCreateAnotherAuthor(){
 		try {
-			authorService.saveAuthor(new AuthorHibernateImpl(id, name, extraInformation, userBean.getUser()));
+			authorService.saveAuthor(new AuthorHibernateImpl(id, name, extraInformation, userBean.getUser()),
+					userBean.getUser().getUserId());
 			setId(0);
 			setExtraInformation("");
 			setName("");
