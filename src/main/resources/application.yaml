@@ -1,0 +1,14 @@
+springdoc:
+  api-docs:
+    path: /api-docs
+spring:
+  config:
+    import: optional:file:config.yml
+  jpa:
+    hibernate:
+      ddl-auto: update
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${issuer}

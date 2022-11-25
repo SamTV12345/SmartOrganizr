@@ -2,8 +2,9 @@ package de.smart.organizr.entities.interfaces;
 
 import de.smart.organizr.entities.classes.FolderHibernateImpl;
 import de.smart.organizr.entities.classes.UserHibernateImpl;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 
-import javax.persistence.*;
 import java.util.Calendar;
 
 public interface Element {
