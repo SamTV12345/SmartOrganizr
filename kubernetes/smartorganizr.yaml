@@ -37,11 +37,6 @@ spec:
                 secretKeyRef:
                   name: keycloak-secret
                   key: KEYCLOAK_REALM
-            - name: KEYCLOAK_AUTH_SERVER_URL
-              valueFrom:
-                secretKeyRef:
-                  name: keycloak-secret
-                  key: KEYCLOAK_AUTH_SERVER_URL
             - name: ISSUER
               valueFrom:
                 secretKeyRef:
