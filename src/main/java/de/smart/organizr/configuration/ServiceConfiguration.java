@@ -5,10 +5,8 @@ import de.smart.organizr.dao.interfaces.FolderDao;
 import de.smart.organizr.dao.interfaces.NoteDao;
 import de.smart.organizr.dao.interfaces.UserDao;
 import de.smart.organizr.services.implementations.FolderServiceImpl;
-import de.smart.organizr.services.implementations.PDFServiceImpl;
 import de.smart.organizr.services.implementations.UserServiceImpl;
 import de.smart.organizr.services.interfaces.FolderService;
-import de.smart.organizr.services.interfaces.PDFService;
 import de.smart.organizr.services.interfaces.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -37,11 +35,5 @@ public class ServiceConfiguration {
 	@Bean
 	public FolderService folderService(){
 		return new FolderServiceImpl(folderDao, userDao, noteDao);
-	}
-
-
-	@Bean
-	public PDFService pdfService(){
-		return new PDFServiceImpl();
 	}
 }

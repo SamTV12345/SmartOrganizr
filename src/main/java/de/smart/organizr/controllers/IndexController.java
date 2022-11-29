@@ -17,9 +17,9 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 @RequestMapping("/api/public")
 public class IndexController {
 
-	@Value("${keycloak.auth-server-url}")
+	@Value("${auth-url}")
 	private String authURL;
-	@Value("${keycloak.realm}")
+	@Value("${realm}")
 	private String realm;
 	@Value("${ui.url}")
 	private String clientId;

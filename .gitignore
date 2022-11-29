@@ -50,7 +50,7 @@ Thumbs.db
 *.mov
 *.wmv
 
-config.properties
+config.yml
 
 rsa.private.key
 rsa.public.key

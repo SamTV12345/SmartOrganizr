@@ -31,14 +31,9 @@ services:
       - SPRING_DATASOURCE_URL=jdbc:mysql://smartOrganizrdb:3306/smartOrganizr
       - SPRING_DATASOURCE_USERNAME=smartOrganizrUser
       - SPRING_DATASOURCE_PASSWORD=smartOrganizr
-      - KEYCLOAK_REALM=your-realm
-      - KEYCLOAK_AUTH_SERVER_URL=url
-      - KEYCLOAK_CREDENTIALS_SECRET=client-secret
-      - KEYCLOAK_SSL_REQUIRED=external
-      - KEYCLOAK_RESOURCE=your-client-name
-      - ELASTIC_APM_SERVER_URL=your-apm-server-url
-      - ELASTIC_APM_SERVICE_NAME=your-service
-      - ELASTIC_APM_ENVIRONMENT=your-environment
+      - ISSUER=<issuer-in- well-known/openid-configuration>
+      - AUTH_URL=<url where your auth is done>
+      - REALM=<keycloak-realm>
       - UI_URL=<your-frontend-resource>
 networks:
   smartOrganizr:

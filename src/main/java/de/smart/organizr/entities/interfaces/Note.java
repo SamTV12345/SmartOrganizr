@@ -1,9 +1,8 @@
 package de.smart.organizr.entities.interfaces;
 
 import de.smart.organizr.entities.classes.AuthorHibernateImpl;
-
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 
 public interface Note extends Element{
 	/**
