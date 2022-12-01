@@ -1,14 +1,6 @@
-FROM node:alpine AS uibuilder
-COPY ui /ui
-WORKDIR /ui/
-RUN npm install
-RUN npm run build
-
 FROM maven:3.8-eclipse-temurin-17 as build
 
-COPY src /usr/src/myapp/src
-COPY --from=uibuilder /ui/dist/ /usr/src/myapp/target/classes/public/ui
-COPY pom.xml /usr/src/myapp
+ADD . /usr/src/myapp
 RUN mvn -f /usr/src/myapp/pom.xml package
 
 FROM alpine:latest AS runtime
@@ -19,7 +11,7 @@ RUN apk --no-cache add openjdk17-jre-headless \
 	--repository=http://dl-cdn.alpinelinux.org/alpine/edge/community
 
 # Copy the package
-COPY --from=build /usr/src/myapp/target/*-SNAPSHOT.jar \
+COPY --from=build /usr/src/myapp/api/target/*-SNAPSHOT.jar \
 	/app/smartOrganizr.jar
 
 WORKDIR /app
