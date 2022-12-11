@@ -145,14 +145,14 @@ export const AuthorView = ()=> {
             </tr>
             {
                 authorPage && authorPage._embedded && authorPage._embedded.authorRepresentationModelList.map((author,index)=>
-                        <tr className="hover:bg-gray-700" key={author.id.toString()}>
+                        <tr className="hover:bg-gray-700" key={author.id.toString()} onClick={()=>{
+                            dispatch(setAuthor(author))
+                            dispatch(setModalOpen(true))
+                        }}>
                     <td className="py-4 px-6 text-sm font-medium whitespace-nowrap text-white border-inherit text-center">
                         {author.id}
                     </td>
-                <td className="py-4 px-6 text-sm font-medium whitespace-nowrap text-white text-center" onClick={()=>{
-                    dispatch(setAuthor(author))
-                    dispatch(setModalOpen(true))
-                }}>
+                <td className="py-4 px-6 text-sm font-medium whitespace-nowrap text-white text-center" >
                     {author.name}
                 </td>
                     <td className="py-4 px-6 text-sm font-medium whitespace-nowrap text-white text-center">
