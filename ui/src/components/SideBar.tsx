@@ -48,6 +48,14 @@ export const SideBar  = ()=>{
         <span className="flex-1 ml-3 whitespace-nowrap">{t('notesView')}</span>
       </a>
     </li>
+
+    <li>
+      <a onClick={() => navigate('/concerts')}
+         className={`flex items-center p-2 text-base font-normal text-white rounded-lg hover:bg-gray-700  h-20 ${highlightIfSelected("/notes")}`}>
+        <i className="fa-solid fa-ticket fa-xl"></i>
+        <span className="flex-1 ml-3 whitespace-nowrap">{t('concertView')}</span>
+      </a>
+    </li>
   </ul>
   </div>
   </aside>

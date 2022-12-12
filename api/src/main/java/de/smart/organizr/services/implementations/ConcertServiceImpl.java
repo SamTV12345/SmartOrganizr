@@ -1,5 +1,6 @@
 package de.smart.organizr.services.implementations;
 
+import de.smart.organizr.dto.ConcertDto;
 import de.smart.organizr.dto.ConcertPatchDto;
 import de.smart.organizr.dto.ConcertPostDto;
 import de.smart.organizr.dto.ConcertPostDtoMapper;
@@ -8,8 +9,13 @@ import de.smart.organizr.exceptions.ConcertException;
 import de.smart.organizr.repositories.ConcertRepository;
 import de.smart.organizr.services.interfaces.ConcertService;
 import lombok.AllArgsConstructor;
+import org.springframework.stereotype.Component;
+
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @AllArgsConstructor
+@Component
 public class ConcertServiceImpl implements ConcertService {
 	private final ConcertRepository concertRepository;
 	private final ConcertPostDtoMapper concertPostDtoMapper;
@@ -26,5 +32,14 @@ public class ConcertServiceImpl implements ConcertService {
 				concertRepository.findConcertByIdAndUser(id,userId).orElseThrow(()-> new ConcertException("Concert " +
 						"not found"));
 		return concertHibernate;
+	}
+
+	@Override
+	public Set<ConcertDto> getConcertsOfUser(final String userId) {
+		final Set<ConcertHibernateImpl> concertsOfUser = concertRepository.findAllByUser(userId);
+
+		return concertsOfUser.stream()
+		                     .map(concertPostDtoMapper::convertConcertToDto)
+		                     .collect(Collectors.toSet());
 	}
 }

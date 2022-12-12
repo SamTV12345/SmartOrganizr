@@ -6,4 +6,6 @@ import org.mapstruct.Mapper;
 @Mapper(componentModel = "spring")
 public interface ConcertPostDtoMapper {
 	ConcertHibernateImpl convertConcert(ConcertPostDto concertPostDto);
+
+	ConcertDto convertConcertToDto(ConcertHibernateImpl concertHibernate);
 }

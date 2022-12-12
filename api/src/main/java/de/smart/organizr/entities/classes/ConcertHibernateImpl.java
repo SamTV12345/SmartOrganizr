@@ -25,7 +25,7 @@ import java.util.Set;
 @EqualsAndHashCode
 public class ConcertHibernateImpl {
 	@Id
-	private int id;
+	private String id;
 	private String title;
 	private String description;
 	private Calendar dueDate;
