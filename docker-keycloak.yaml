@@ -7,7 +7,6 @@ services:
     environment:
       - KEYCLOAK_ADMIN=admin
       - KEYCLOAK_ADMIN_PASSWORD=admin
-      - KC_LOG_LEVEL=ALL
     command:
       - start-dev
     volumes:

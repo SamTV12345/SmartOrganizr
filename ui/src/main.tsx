@@ -21,6 +21,7 @@ const initKeycloak = (keycloak: Keycloak) => {
                 setLoadedKeycloak(keycloak)
                 axios.defaults.headers["Authorization"] = `Bearer ${keycloak.token}`
                 axios.defaults.headers['Content-Type']  = 'application/json'
+                syncUser()
                 resolve(res)
 
                 let updateToken = ()=>setInterval(()=>{
@@ -40,6 +41,11 @@ const initKeycloak = (keycloak: Keycloak) => {
     })
 }
 
+
+const syncUser = ()=>{
+    axios.put(apiURL+"/v1/users")
+        .then(()=>console.log("User was silently created."))
+}
 
 const root = ReactDOM.createRoot(document.getElementById('root') as HTMLElement)
 
