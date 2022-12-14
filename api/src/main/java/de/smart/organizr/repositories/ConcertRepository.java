@@ -13,4 +13,7 @@ public interface ConcertRepository extends JpaRepository<ConcertHibernateImpl, I
 
 	@Query("SELECT c from ConcertHibernateImpl c WHERE c.creator.userId=:userId")
 	Set<ConcertHibernateImpl> findAllByUser(String userId);
+
+	@Query("SELECT c from ConcertHibernateImpl c WHERE c.creator.userId=:userId ORDER BY c.dueDate DESC")
+	Set<ConcertHibernateImpl> findAllByUserSortedDescending(String userId);
 }

@@ -17,6 +17,9 @@ export const concertSlice = createSlice({
     reducers: {
         setConcerts : (state, action:PayloadAction<ConcertDto[]>)=>{
             state.concerts = action.payload
+        },
+        updateConcert: (state, action:PayloadAction<ConcertDto>)=>{
+            state.concerts = state.concerts.map(c=>c.id==action.payload.id?action.payload: c)
         }
     }
 })

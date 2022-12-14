@@ -35,7 +35,7 @@ public class ConcertServiceImpl implements ConcertService {
 	}
 
 	@Override
-	public Set<ConcertDto> getConcertsOfUser(final String userId) {
+	public Set<ConcertDto> getConcertsOfUserSortedByDate(final String userId) {
 		final Set<ConcertHibernateImpl> concertsOfUser = concertRepository.findAllByUser(userId);
 
 		return concertsOfUser.stream()

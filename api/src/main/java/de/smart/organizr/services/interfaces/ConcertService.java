@@ -12,5 +12,5 @@ public interface ConcertService {
 
 	ConcertHibernateImpl updateConcert(ConcertPatchDto concertPatchDto, int id, String userId);
 
-	Set<ConcertDto> getConcertsOfUser(String user);
+	Set<ConcertDto> getConcertsOfUserSortedByDate(String user);
 }

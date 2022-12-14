@@ -19,7 +19,7 @@ public class ConcertController {
 	private final ConcertService concertService;
 	@GetMapping("")
 	public ResponseEntity<Set<ConcertDto>> getConcertsOfUser(){
-		return ResponseEntity.ok(concertService.getConcertsOfUser(getUser()));
+		return ResponseEntity.ok(concertService.getConcertsOfUserSortedByDate(getUser()));
 	}
 
 	private String getUser() {

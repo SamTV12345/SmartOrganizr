@@ -4,7 +4,7 @@ export interface ConcertDto {
     id: string,
     title:string,
     description: string,
-    dueData: Date,
+    dueDate: string,
     location:string,
     noteInConcerts: NoteItem[]
 }
