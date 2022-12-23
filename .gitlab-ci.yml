@@ -1,6 +1,7 @@
 image: maven:latest
 
 stages:
+  - sync
   - test
   - build
   - push
@@ -13,6 +14,16 @@ cache:
   paths:
     - target/
     - .m2/repository
+
+sync:
+  stage: sync
+  tags: [pi]
+  only:
+    - master
+  script:
+    - git remote add github https://github.com/SamTV12345/SmartOrganizr.git
+    - git remote set-url origin https://$GH_USER:$GH_TOKEN@github.com/SmartOrganizr.git
+    - git push origin master --force
 
 test:
   stage: test
