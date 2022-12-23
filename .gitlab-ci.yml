@@ -21,7 +21,7 @@ sync:
   only:
     - master
   script:
-    - git remote set-url origin https://$GH_USER:$GH_TOKEN@github.com/SamTV12345SmartOrganizr.git
+    - git remote set-url origin https://$GH_USER:$GH_TOKEN@github.com/SamTV12345/SmartOrganizr.git
     - git fetch origin
     - git push origin master --force
 
