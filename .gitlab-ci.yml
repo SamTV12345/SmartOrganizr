@@ -23,7 +23,7 @@ sync:
   script:
     - git remote add github https://$GH_USER:$GH_TOKEN@github.com/SamTV12345/SmartOrganizr.git || echo "Already exists"
     - git fetch github
-    - git push github master --force
+    - git push -u github master --force
 
 test:
   stage: test
