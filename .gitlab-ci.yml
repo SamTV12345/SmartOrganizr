@@ -23,6 +23,8 @@ sync:
   script:
     - git remote add github https://github.com/SamTV12345/SmartOrganizr.git
     - git remote set-url origin https://$GH_USER:$GH_TOKEN@github.com/SmartOrganizr.git
+    - git fetch --all
+    - git pull origin master
     - git push origin master --force
 
 test:
