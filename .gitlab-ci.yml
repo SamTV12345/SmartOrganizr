@@ -22,8 +22,7 @@ sync:
     - master
   script:
     - git remote set-url origin https://$GH_USER:$GH_TOKEN@github.com/SmartOrganizr.git
-    - git fetch --all
-    - git pull origin master
+    - git fetch origin
     - git push origin master --force
 
 test:
