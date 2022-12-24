@@ -3,12 +3,14 @@ import {ConcertDto} from "../../models/ConcertDto";
 import exp from "constants";
 
 interface ConcertSliceProps {
-    concerts: ConcertDto[]
+    concerts: ConcertDto[],
+    selectedConcert: string
 }
 
 
 const initialState: ConcertSliceProps = {
-    concerts: []
+    concerts: [],
+    selectedConcert: ''
 }
 export const concertSlice = createSlice({
     name: 'commonSlice',
@@ -20,6 +22,9 @@ export const concertSlice = createSlice({
         },
         updateConcert: (state, action:PayloadAction<ConcertDto>)=>{
             state.concerts = state.concerts.map(c=>c.id==action.payload.id?action.payload: c)
+        },
+        setSelectedConcert: (state, action:PayloadAction<string>)=>{
+            state.selectedConcert = action.payload
         }
     }
 })

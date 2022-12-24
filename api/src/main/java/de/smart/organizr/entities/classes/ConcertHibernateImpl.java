@@ -5,6 +5,7 @@ import de.smart.organizr.entities.interfaces.User;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
@@ -31,6 +32,11 @@ public class ConcertHibernateImpl {
 	private Calendar dueDate;
 	private String location;
 	@ManyToMany
+	@JoinTable(
+			name = "notes_in_concert",
+			joinColumns = { @JoinColumn(name = "concert_id_fk") },
+			inverseJoinColumns = { @JoinColumn(name = "note_id_fk") }
+	)
 	private Set<NoteInConcert> noteInConcerts;
 	@ManyToOne(targetEntity = UserHibernateImpl.class)
 	@JsonIgnore

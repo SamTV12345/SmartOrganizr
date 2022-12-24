@@ -1,7 +1,9 @@
 import {ConcertDto} from "../models/ConcertDto";
 import {FC, useState} from "react";
-import {useAppDispatch} from "../store/hooks";
+import {useAppDispatch, useAppSelector} from "../store/hooks";
 import {concertActions} from "../store/slices/ConcertSlice";
+import {AddNoteToConcert} from "./AddNoteToConcert";
+import {setModalOpen} from "../ModalSlice";
 
 interface ConcertItem {
     concert: ConcertDto,
@@ -13,7 +15,9 @@ export const ConcertItem:FC<ConcertItem> = ({concert, keyNum})=>{
     const [isTipOpen, setTipOpen] = useState<boolean>(false)
     const [isAdditionalTipsOpen, setAdditionalTipsOpen] = useState<boolean>(false)
     const dispatch = useAppDispatch()
+    const openModal = useAppSelector(state=>state.modalReducer.openModal)
 
+    console.log(concert.noteInConcerts)
     return <div id="accordion-collapsed" className="mt-4 w-full" data-accordion="collapse" key={keyNum}>
         <input  className="text-xl" value={concert.title} onChange={(e)=>dispatch(concertActions.updateConcert({
             id: concert.id,
@@ -25,10 +29,14 @@ export const ConcertItem:FC<ConcertItem> = ({concert, keyNum})=>{
         }))}/>
         <h3 id="accordion-collapse-heading-1"  onClick={()=>setNotesOpen(!isNotesOpen)}>
             <button type="button"
-                    className="flex items-center justify-between w-full p-5 font-medium text-left text-gray-500 border border-b-0 border-gray-200 rounded-t-xl focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-800 dark:border-gray-700 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800"
+                    className="flex items-center justify-between w-full p-5 font-medium text-left text-gray-500 border border-b-0 border-gray-200 rounded-t-xl"
                     data-accordion-target="#accordion-collapse-body-1" aria-expanded="true"
                     aria-controls="accordion-collapse-body-1">
                 <span>Enthaltene Stücke</span>
+                <div onClick={()=>{
+                    dispatch(concertActions.setSelectedConcert(concert.id))
+                    dispatch(setModalOpen(true))}}>+</div>
+                {openModal&&<AddNoteToConcert/>}
                 <svg data-accordion-icon className={`w-6 h-6 shrink-0 ${isNotesOpen?'rotate-180':''}`} fill="currentColor" viewBox="0 0 20 20"
                      xmlns="http://www.w3.org/2000/svg">
                     <path fillRule="evenodd"
@@ -38,18 +46,15 @@ export const ConcertItem:FC<ConcertItem> = ({concert, keyNum})=>{
             </button>
         </h3>
         <div id="accordion-collapse-body-1" className={isNotesOpen?'visible':'hidden'} aria-labelledby="accordion-collapse-heading-1">
-            <div className="p-5 font-light border border-b-0 border-gray-200 dark:border-gray-700 dark:bg-gray-900">
-                <p className="mb-2 text-gray-500 dark:text-gray-400">Flowbite is an open-source library of interactive
-                    components built on top of Tailwind CSS including buttons, dropdowns, modals, navbars, and more.</p>
-                <p className="text-gray-500 dark:text-gray-400">Check out this guide to learn how to <a
-                    href="/docs/getting-started/introduction/"
-                    className="text-blue-600 dark:text-blue-500 hover:underline">get started</a> and start developing
-                    websites even faster with components on top of Tailwind CSS.</p>
+            <div className="p-5 font-light border border-b-0">
+                <ol>
+                    {concert.noteInConcerts.map(note=><li className="list-decimal" key={note.noteId}>{note.noteInConcert.title}</li>)}
+                </ol>
             </div>
         </div>
         <h2 id="accordion-collapse-heading-2" onClick={()=>setTipOpen(!isTipOpen)}>
             <button type="button"
-                    className="flex items-center justify-between w-full p-5 font-medium text-left text-gray-500 border border-b-0 border-gray-200 focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-800 dark:border-gray-700 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800"
+                    className="flex items-center justify-between w-full p-5 font-medium text-left text-gray-500 border border-b-0 border-gray-200"
                     data-accordion-target="#accordion-collapse-body-2" aria-expanded="false"
                     aria-controls="accordion-collapse-body-2">
                 <span>Hinweise</span>
@@ -62,10 +67,10 @@ export const ConcertItem:FC<ConcertItem> = ({concert, keyNum})=>{
             </button>
         </h2>
         <div id="accordion-collapse-body-2" className={isTipOpen?'visible':'hidden'} aria-labelledby="accordion-collapse-heading-2">
-                <div className="p-5 font-light border border-b-0 border-gray-200 dark:border-gray-700 dark:bg-gray-900">
+                <div className="p-5 font-light border border-b-0 border-gray-200">
                     <div className="grid grid-cols-2">
                         <div>Datum</div>
-                        <input type="date" value={concert.dueDate} onChange={(e)=>dispatch(concertActions.updateConcert({
+                        <input type="datetime-local" value={new Date(concert.dueDate).toISOString().split('.')[0]} onChange={(e)=>dispatch(concertActions.updateConcert({
                             id: concert.id,
                             dueDate: e.target.value,
                             title: concert.title,
@@ -95,15 +100,14 @@ export const ConcertItem:FC<ConcertItem> = ({concert, keyNum})=>{
                         }))}/>
 
                         <div className="flex flex-row-reverse col-span-2">
-                        <button className="bg-slate-400 p-2 rounded">Speichern</button>
+                        <button className="bg-blue-700 text-white p-2 rounded">Speichern</button>
                         </div>
                     </div>
-
                 </div>
         </div>
         <h2 id="accordion-collapse-heading-3" onClick={()=>setAdditionalTipsOpen(!isAdditionalTipsOpen)}>
             <button type="button"
-                    className="flex items-center justify-between w-full p-5 font-medium text-left text-gray-500 border border-gray-200 focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-800 dark:border-gray-700 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800"
+                    className="flex items-center justify-between w-full p-5 font-medium text-left text-gray-500 border border-gray-200"
                     data-accordion-target="#accordion-collapse-body-3" aria-expanded="false"
                     aria-controls="accordion-collapse-body-3">
                 <span>Weitere Hinweise</span>
@@ -116,7 +120,7 @@ export const ConcertItem:FC<ConcertItem> = ({concert, keyNum})=>{
             </button>
         </h2>
         <div id="accordion-collapse-body-3"  className={isAdditionalTipsOpen?'visible':'hidden'} aria-labelledby="accordion-collapse-heading-3">
-            <div className="p-5 font-light border border-t-0 border-gray-200 dark:border-gray-700">
+            <div className="p-5 font-light border border-t-0 border-gray-200">
 
             </div>
         </div>

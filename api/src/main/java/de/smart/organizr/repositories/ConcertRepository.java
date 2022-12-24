@@ -9,7 +9,7 @@ import java.util.Set;
 
 public interface ConcertRepository extends JpaRepository<ConcertHibernateImpl, Integer> {
 	@Query("SELECT c from ConcertHibernateImpl c WHERE c.id=:id AND c.creator.userId=:userId")
-	Optional<ConcertHibernateImpl> findConcertByIdAndUser(final int id, final String userId);
+	Optional<ConcertHibernateImpl> findConcertByIdAndUser(final String id, final String userId);
 
 	@Query("SELECT c from ConcertHibernateImpl c WHERE c.creator.userId=:userId")
 	Set<ConcertHibernateImpl> findAllByUser(String userId);

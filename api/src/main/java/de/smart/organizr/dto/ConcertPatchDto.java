@@ -14,5 +14,4 @@ public class ConcertPatchDto {
 	private String description;
 	private Calendar dueDate;
 	private String location;
-	private Set<NoteInConcert> noteInConcerts;
 }

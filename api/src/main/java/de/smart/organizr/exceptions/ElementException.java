@@ -15,4 +15,8 @@ public final class ElementException extends RuntimeException {
 	public static ElementException createElementIdMayNotBeNegative() {
 		return new ElementException(I18nExceptionUtils.getElementIdMayNotBeNegative());
 	}
+
+	public static ElementException createElementUnknown(int id){
+		return new ElementException("Unknown element with id #"+id);
+	}
 }

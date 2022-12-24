@@ -1,4 +1,5 @@
 import {NoteItem} from "./NoteItem";
+import {NoteInConcert} from "./NoteInConcert";
 
 export interface ConcertDto {
     id: string,
@@ -6,5 +7,5 @@ export interface ConcertDto {
     description: string,
     dueDate: string,
     location:string,
-    noteInConcerts: NoteItem[]
+    noteInConcerts: NoteInConcert[]
 }
