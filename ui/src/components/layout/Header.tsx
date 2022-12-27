@@ -1,10 +1,10 @@
-import {useAppDispatch, useAppSelector} from "../store/hooks";
-import {setSideBarCollapsed} from "../store/CommonSlice";
-import mainlogo from '../SmartOrganizrIcon.svg'
+import {useAppDispatch, useAppSelector} from "../../store/hooks";
+import {setSideBarCollapsed} from "../../store/CommonSlice";
+import mainlogo from '../../SmartOrganizrIcon.svg'
 import {useState} from "react";
-import {keycloak, uiURL} from "../Keycloak";
+import {keycloak, uiURL} from "../../Keycloak";
 import {useTranslation} from "react-i18next";
-import {accountURL} from "../main";
+import {accountURL} from "../../main";
 
 
 export const Header = ()=>{

@@ -1,14 +1,14 @@
-import {setSelectedAuthorName, setSelectedFolderAuthor} from "../ModalSlice";
+import {setSelectedAuthorName, setSelectedFolderAuthor} from "../../ModalSlice";
 import React, {useState} from "react";
-import {useAppDispatch, useAppSelector} from "../store/hooks";
-import {Page} from "../models/Page";
-import {AuthorEmbeddedContainer} from "../models/AuthorEmbeddedContainer";
-import {Author} from "../models/Author";
-import {useDebounce} from "../utils/DebounceHook";
-import {apiURL} from "../Keycloak";
+import {useAppDispatch, useAppSelector} from "../../store/hooks";
+import {Page} from "../../models/Page";
+import {AuthorEmbeddedContainer} from "../../models/AuthorEmbeddedContainer";
+import {Author} from "../../models/Author";
+import {useDebounce} from "../../utils/DebounceHook";
+import {apiURL} from "../../Keycloak";
 import axios from "axios";
-import {setElementAuthor} from "../ElementCreateSlice";
-import {choiceFolder} from "../utils/Constants";
+import {setElementAuthor} from "../../ElementCreateSlice";
+import {choiceFolder} from "../../utils/Constants";
 import {useTranslation} from "react-i18next";
 
 export const NoteAuthorSearchBar = ()=> {

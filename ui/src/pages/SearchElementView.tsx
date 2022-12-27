@@ -1,5 +1,5 @@
 import {useTranslation} from "react-i18next";
-import {ElementSearchBar} from "../components/ElementSearchBar";
+import {ElementSearchBar} from "../components/searchBars/ElementSearchBar";
 import {useAppDispatch, useAppSelector} from "../store/hooks";
 import {Waypoint} from "react-waypoint";
 import {fixProtocol} from "../utils/Utilities";

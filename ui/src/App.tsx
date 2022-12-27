@@ -3,8 +3,8 @@ import './index.css'
 import "@fortawesome/fontawesome-free/css/all.min.css"
 import {useKeycloak} from "./Keycloak/useKeycloak";
 import {BrowserRouter, Route, Routes} from "react-router-dom";
-import {Header} from "./components/Header";
-import {SideBar} from "./components/SideBar";
+import {Header} from "./components/layout/Header";
+import {SideBar} from "./components/layout/SideBar";
 import {useAppSelector} from "./store/hooks";
 import {WelcomePage} from "./pages/WelcomePage";
 import {AuthorView} from "./pages/AuthorView";

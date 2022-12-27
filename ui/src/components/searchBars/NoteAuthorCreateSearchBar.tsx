@@ -1,12 +1,12 @@
 import React, {useState} from "react";
-import {useAppDispatch, useAppSelector} from "../store/hooks";
-import {Page} from "../models/Page";
-import {AuthorEmbeddedContainer} from "../models/AuthorEmbeddedContainer";
-import {Author} from "../models/Author";
-import {useDebounce} from "../utils/DebounceHook";
-import {apiURL} from "../Keycloak";
+import {useAppDispatch, useAppSelector} from "../../store/hooks";
+import {Page} from "../../models/Page";
+import {AuthorEmbeddedContainer} from "../../models/AuthorEmbeddedContainer";
+import {Author} from "../../models/Author";
+import {useDebounce} from "../../utils/DebounceHook";
+import {apiURL} from "../../Keycloak";
 import axios from "axios";
-import {setElementAuthor, setElementSelectedAuthorName} from "../ElementCreateSlice";
+import {setElementAuthor, setElementSelectedAuthorName} from "../../ElementCreateSlice";
 import {useTranslation} from "react-i18next";
 
 export const NoteAuthorCreateSearchBar = ()=> {

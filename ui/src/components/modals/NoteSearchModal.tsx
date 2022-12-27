@@ -1,17 +1,16 @@
 import {useTranslation} from "react-i18next";
-import {ElementSearchBar} from "./ElementSearchBar";
-import {useAppDispatch, useAppSelector} from "../store/hooks";
+import {ElementSearchBar} from "../searchBars/ElementSearchBar";
+import {useAppDispatch, useAppSelector} from "../../store/hooks";
 import {Waypoint} from "react-waypoint";
-import {fixProtocol} from "../utils/Utilities";
-import {Page} from "../models/Page";
-import {ElementEmbeddedContainer} from "../models/ElementEmbeddedContainer";
-import {NoteItem} from "../models/NoteItem";
+import {fixProtocol} from "../../utils/Utilities";
+import {Page} from "../../models/Page";
+import {ElementEmbeddedContainer} from "../../models/ElementEmbeddedContainer";
+import {NoteItem} from "../../models/NoteItem";
 import axios from "axios";
-import {setNotesSearched} from "../store/CommonSlice";
+import {setNotesSearched} from "../../store/CommonSlice";
 import {useState} from "react";
-import {ConcertDto} from "../models/ConcertDto";
-import {apiURL} from "../Keycloak";
-import {ConcertPutDto} from "../models/ConcertPutDto";
+import {ConcertDto} from "../../models/ConcertDto";
+import {apiURL} from "../../Keycloak";
 
 export const NoteSearchModal = () => {
     const {t} = useTranslation()

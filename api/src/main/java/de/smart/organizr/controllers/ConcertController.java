@@ -4,6 +4,7 @@ import de.smart.organizr.dto.ConcertDto;
 import de.smart.organizr.dto.ConcertPatchDto;
 import de.smart.organizr.dto.ConcertPostDto;
 import de.smart.organizr.services.interfaces.ConcertService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -31,8 +32,8 @@ public class ConcertController {
 	}
 
 	@PostMapping("")
-	public ResponseEntity<ConcertDto> createConcert(@RequestBody ConcertPostDto concertPostDto){
-		return ResponseEntity.ok(concertService.createConcertForUser(concertPostDto));
+	public ResponseEntity<ConcertDto> createConcert(@Valid @RequestBody ConcertPostDto concertPostDto){
+		return ResponseEntity.ok(concertService.createConcertForUser(concertPostDto,  getUser()));
 	}
 
 	@PutMapping("/{concertId}")

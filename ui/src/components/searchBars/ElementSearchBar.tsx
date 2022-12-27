@@ -1,11 +1,11 @@
-import {setNotesSearched, setNotesSearchText} from "../store/CommonSlice";
-import {useAppDispatch, useAppSelector} from "../store/hooks";
-import {Page} from "../models/Page";
+import {setNotesSearched, setNotesSearchText} from "../../store/CommonSlice";
+import {useAppDispatch, useAppSelector} from "../../store/hooks";
+import {Page} from "../../models/Page";
 import axios from "axios";
-import {ElementEmbeddedContainer} from "../models/ElementEmbeddedContainer";
-import {NoteItem} from "../models/NoteItem";
-import {useDebounce} from "../utils/DebounceHook";
-import {apiURL} from "../Keycloak";
+import {ElementEmbeddedContainer} from "../../models/ElementEmbeddedContainer";
+import {NoteItem} from "../../models/NoteItem";
+import {useDebounce} from "../../utils/DebounceHook";
+import {apiURL} from "../../Keycloak";
 import {useEffect} from "react";
 
 export const ElementSearchBar = ()=>{

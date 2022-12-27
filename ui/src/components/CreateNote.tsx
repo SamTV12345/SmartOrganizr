@@ -1,7 +1,7 @@
 import {setElementDescription, setElementName, setElementNumberOfPages} from "../ElementCreateSlice";
 import {useAppDispatch, useAppSelector} from "../store/hooks";
-import {ParentFolderSearchBar} from "./ParentFolderSearchBar";
-import {NoteAuthorCreateSearchBar} from "./NoteAuthorCreateSearchBar";
+import {ParentFolderSearchBar} from "./searchBars/ParentFolderSearchBar";
+import {NoteAuthorCreateSearchBar} from "./searchBars/NoteAuthorCreateSearchBar";
 import {useTranslation} from "react-i18next";
 
 export const CreateNote = ()=>{

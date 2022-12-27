@@ -1,6 +1,6 @@
-import {setCreatedAuthorExtraInformation, setCreatedAuthorName} from "../ModalSlice";
+import {setCreatedAuthorExtraInformation, setCreatedAuthorName} from "../../ModalSlice";
 import React from "react";
-import {useAppDispatch, useAppSelector} from "../store/hooks";
+import {useAppDispatch, useAppSelector} from "../../store/hooks";
 import {useTranslation} from "react-i18next";
 
 export const AuthorAddModal = ()=>{

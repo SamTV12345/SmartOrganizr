@@ -6,15 +6,16 @@ import de.smart.organizr.dto.ConcertPostDto;
 import de.smart.organizr.dto.ConcertPostDtoMapper;
 import de.smart.organizr.entities.classes.ConcertHibernateImpl;
 import de.smart.organizr.entities.classes.NoteInConcert;
-import de.smart.organizr.entities.interfaces.Note;
+import de.smart.organizr.entities.interfaces.User;
 import de.smart.organizr.exceptions.ConcertException;
 import de.smart.organizr.exceptions.ElementException;
-import de.smart.organizr.exceptions.NoteException;
 import de.smart.organizr.repositories.ConcertRepository;
 import de.smart.organizr.repositories.NoteInConcertRepository;
 import de.smart.organizr.repositories.NoteRepository;
+import de.smart.organizr.repositories.UserRepository;
 import de.smart.organizr.services.interfaces.ConcertService;
 import lombok.AllArgsConstructor;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,6 +23,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Random;
 import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @AllArgsConstructor
@@ -32,10 +34,15 @@ public class ConcertServiceImpl implements ConcertService {
 
 	private final NoteInConcertRepository noteInConcertRepository;
 	private final ConcertPostDtoMapper concertPostDtoMapper;
+	private final UserRepository userRepository;
 
 	@Override
-	public ConcertDto createConcertForUser(final ConcertPostDto concertPostDto){
+	public ConcertDto createConcertForUser(final ConcertPostDto concertPostDto, final String user){
 		final ConcertHibernateImpl concertHibernate = concertPostDtoMapper.convertConcert(concertPostDto);
+		final User userWhoOwnsConcert =
+				userRepository.findByUserId(user).orElseThrow(()->new UsernameNotFoundException(user));
+		concertHibernate.setId(UUID.randomUUID().toString());
+		concertHibernate.setCreator(userWhoOwnsConcert);
 		final ConcertHibernateImpl savedConcert =  concertRepository.save(concertHibernate);
 		return concertPostDtoMapper.convertConcertToDto(savedConcert);
 	}

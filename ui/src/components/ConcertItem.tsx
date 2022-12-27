@@ -2,7 +2,7 @@ import {ConcertDto} from "../models/ConcertDto";
 import {FC, useState} from "react";
 import {useAppDispatch, useAppSelector} from "../store/hooks";
 import {concertActions} from "../store/slices/ConcertSlice";
-import {AddNoteToConcert} from "./AddNoteToConcert";
+import {AddNoteToConcert} from "./modals/AddNoteToConcert";
 import {setModalOpen} from "../ModalSlice";
 
 interface ConcertItem {
@@ -17,7 +17,6 @@ export const ConcertItem:FC<ConcertItem> = ({concert, keyNum})=>{
     const dispatch = useAppDispatch()
     const openModal = useAppSelector(state=>state.modalReducer.openModal)
 
-    console.log(concert.noteInConcerts)
     return <div id="accordion-collapsed" className="mt-4 w-full" data-accordion="collapse" key={keyNum}>
         <input  className="text-xl" value={concert.title} onChange={(e)=>dispatch(concertActions.updateConcert({
             id: concert.id,
@@ -70,7 +69,8 @@ export const ConcertItem:FC<ConcertItem> = ({concert, keyNum})=>{
                 <div className="p-5 font-light border border-b-0 border-gray-200">
                     <div className="grid grid-cols-2">
                         <div>Datum</div>
-                        <input type="datetime-local" value={new Date(concert.dueDate).toISOString().split('.')[0]} onChange={(e)=>dispatch(concertActions.updateConcert({
+                        <input type="datetime-local" value={new Date(concert.dueDate).toISOString().split('.')[0]}
+                               onChange={(e)=>dispatch(concertActions.updateConcert({
                             id: concert.id,
                             dueDate: e.target.value,
                             title: concert.title,
@@ -121,7 +121,6 @@ export const ConcertItem:FC<ConcertItem> = ({concert, keyNum})=>{
         </h2>
         <div id="accordion-collapse-body-3"  className={isAdditionalTipsOpen?'visible':'hidden'} aria-labelledby="accordion-collapse-heading-3">
             <div className="p-5 font-light border border-t-0 border-gray-200">
-
             </div>
         </div>
     </div>

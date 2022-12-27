@@ -1,6 +1,6 @@
 import {useAppDispatch, useAppSelector} from "../store/hooks";
 import {setElementDescription, setElementName} from "../ElementCreateSlice";
-import {ParentFolderSearchBar} from "./ParentFolderSearchBar";
+import {ParentFolderSearchBar} from "./searchBars/ParentFolderSearchBar";
 import {useTranslation} from "react-i18next";
 
 export const CreateFolder = ()=>{

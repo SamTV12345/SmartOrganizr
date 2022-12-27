@@ -13,6 +13,7 @@ import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 
 import java.util.Calendar;
@@ -24,6 +25,7 @@ import java.util.Set;
 @AllArgsConstructor
 @Getter
 @EqualsAndHashCode
+@Setter
 public class ConcertHibernateImpl {
 	@Id
 	private String id;

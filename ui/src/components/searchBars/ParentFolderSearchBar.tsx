@@ -1,14 +1,14 @@
-import {setElementParent, setElementParentName} from "../ElementCreateSlice";
+import {setElementParent, setElementParentName} from "../../ElementCreateSlice";
 import {Waypoint} from "react-waypoint";
-import {fixProtocol} from "../utils/Utilities";
+import {fixProtocol} from "../../utils/Utilities";
 import {useState} from "react";
-import {Page} from "../models/Page";
-import {FolderEmbeddedContainer} from "../models/FolderEmbeddedContainer";
-import {Folder} from "../models/Folder";
+import {Page} from "../../models/Page";
+import {FolderEmbeddedContainer} from "../../models/FolderEmbeddedContainer";
+import {Folder} from "../../models/Folder";
 import axios from "axios";
-import {useDebounce} from "../utils/DebounceHook";
-import {apiURL} from "../Keycloak";
-import {useAppDispatch, useAppSelector} from "../store/hooks";
+import {useDebounce} from "../../utils/DebounceHook";
+import {apiURL} from "../../Keycloak";
+import {useAppDispatch, useAppSelector} from "../../store/hooks";
 import {useTranslation} from "react-i18next";
 
 export const ParentFolderSearchBar = ()=>{

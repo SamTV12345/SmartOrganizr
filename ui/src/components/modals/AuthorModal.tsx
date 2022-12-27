@@ -1,8 +1,8 @@
-import {useAppDispatch, useAppSelector} from "../store/hooks";
-import {NoteItem} from "../models/NoteItem";
+import {useAppDispatch, useAppSelector} from "../../store/hooks";
+import {NoteItem} from "../../models/NoteItem";
 import axios from "axios";
-import {apiURL} from "../Keycloak";
-import {setAuthorExtraInformation, setAuthorName, setSelectedAuthorNotes} from "../ModalSlice";
+import {apiURL} from "../../Keycloak";
+import {setAuthorExtraInformation, setAuthorName, setSelectedAuthorNotes} from "../../ModalSlice";
 import React, {useEffect} from "react";
 import {useTranslation} from "react-i18next";
 

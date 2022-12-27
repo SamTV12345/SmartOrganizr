@@ -1,7 +1,7 @@
-import {setSelectedFolderDescription, setSelectedFolderName, setSelectedFolderPage} from "../ModalSlice";
+import {setSelectedFolderDescription, setSelectedFolderName, setSelectedFolderPage} from "../../ModalSlice";
 import React from "react";
-import {useAppDispatch, useAppSelector} from "../store/hooks";
-import {NoteAuthorSearchBar} from "./NoteAuthorSearchBar";
+import {useAppDispatch, useAppSelector} from "../../store/hooks";
+import {NoteAuthorSearchBar} from "../searchBars/NoteAuthorSearchBar";
 import {useTranslation} from "react-i18next";
 
 export const NoteModal = () => {

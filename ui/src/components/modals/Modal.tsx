@@ -1,5 +1,5 @@
-import {useAppDispatch, useAppSelector} from "../store/hooks";
-import {setModalOpen} from "../ModalSlice";
+import {useAppDispatch, useAppSelector} from "../../store/hooks";
+import {setModalOpen} from "../../ModalSlice";
 import {FC} from "react";
 import {useTranslation} from "react-i18next";
 import {createPortal} from "react-dom";

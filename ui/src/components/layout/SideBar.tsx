@@ -1,4 +1,4 @@
-import {useAppSelector} from "../store/hooks";
+import {useAppSelector} from "../../store/hooks";
 import {useNavigate} from "react-router-dom";
 import {useTranslation} from "react-i18next";
 
