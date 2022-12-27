@@ -2,7 +2,7 @@ import './App.css'
 import './index.css'
 import "@fortawesome/fontawesome-free/css/all.min.css"
 import {useKeycloak} from "./Keycloak/useKeycloak";
-import {BrowserRouter, Route, Routes} from "react-router-dom";
+import {BrowserRouter, Navigate, Route, Routes} from "react-router-dom";
 import {Header} from "./components/layout/Header";
 import {SideBar} from "./components/layout/SideBar";
 import {useAppSelector} from "./store/hooks";
@@ -30,7 +30,8 @@ function App() {
               <SideBar/>
               <div className={`col-span-6 md:col-span-5 ${sideBarCollapsed?'xs:col-span-5':'hidden'} md:block w-full overflow-x-auto`}>
                   <Routes>
-                      <Route path={"/"} element={<WelcomePage/>}/>
+                      <Route path="/" element={<Navigate to={"/welcome"}/>}/>
+                      <Route path={"/welcome"} element={<WelcomePage/>}/>
                       <Route path={"/authors"} element={<AuthorView/>}/>
                       <Route path={"/folder"} element={<FolderView/>}/>
                       <Route path={"/notes"} element={<SearchElementView/>}/>

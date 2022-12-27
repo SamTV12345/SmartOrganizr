@@ -16,7 +16,7 @@ import {AuthorPatchDto} from "../models/AuthorPatchDto";
 import {AddModal} from "../components/modals/AddModal";
 import {AuthorAddModal} from "../components/modals/AuthorAddModal";
 import {mergeAuthorInList, mergeAuthors, mergeNewAuthorInList, removeAuthor} from "../utils/AuthorUtilList";
-import {AuthorSearchBar} from "../components/AuthorSearchBar";
+import {AuthorSearchBar} from "../components/searchBars/AuthorSearchBar";
 import {AuthorWithIndex} from "../models/AuthorWithIndex";
 
 export const AuthorView = ()=> {
