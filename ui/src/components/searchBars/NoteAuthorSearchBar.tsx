@@ -10,6 +10,7 @@ import axios from "axios";
 import {setElementAuthor} from "../../ElementCreateSlice";
 import {choiceFolder} from "../../utils/Constants";
 import {useTranslation} from "react-i18next";
+import {FormInput} from "../form/FormInput";
 
 export const NoteAuthorSearchBar = ()=> {
     const dispatch = useAppDispatch()
@@ -38,16 +39,13 @@ export const NoteAuthorSearchBar = ()=> {
             loadAuthors(apiURL + `/v1/authors?page=0&name=${selectedFolder?.author?.name}`)
     }, 1000, [selectedFolder?.author?.name])
 
-    return selectedFolder?.type !== choiceFolder? <div className="grid grid-cols-2 mt-5 col-span-2">
-        <div>{t('author')}</div>
-        <div>
-            <input value={selectedFolder?.author?.name}
-                   className="border text-sm rounded-lg block w-full p-2.5 bg-gray-700 border-gray-600 placeholder-gray-400
-                    text-white focus:ring-blue-500 focus:border-blue-500" onChange={(v) => {
+    return selectedFolder?.type !== choiceFolder?
+        <>
+            <FormInput id={'author'} label={t('author')} value={selectedFolder?.author?.name as string} onChange={(v) => {
                 !typed && setTyped(true)
-                dispatch(setSelectedAuthorName(v.target.value))
-            }}
-            />
+                dispatch(setSelectedAuthorName(v))
+            }}/>
+        <div>
             <i className="fa fa-check" onClick={() => {
                 if (selectedAuthorId !== -100) {
                     dispatch(setSelectedFolderAuthor(currentSearchAuthors?._embedded.authorRepresentationModelList.find(a => a.id === selectedAuthorId)))
@@ -61,6 +59,6 @@ export const NoteAuthorSearchBar = ()=> {
                     <li key={a.id}
                         className={`${selectedAuthorId === a.id ? 'bg-gray-500 ' : ''}text-center`}
                         onClick={() => dispatch(setElementAuthor(a.id))}>{a.name}</li>)}
-        </ul>}
-    </div>:<div></div>
+        </ul>}</>
+    :<div></div>
 }

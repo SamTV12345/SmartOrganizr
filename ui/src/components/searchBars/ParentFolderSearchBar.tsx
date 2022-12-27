@@ -10,6 +10,7 @@ import {useDebounce} from "../../utils/DebounceHook";
 import {apiURL} from "../../Keycloak";
 import {useAppDispatch, useAppSelector} from "../../store/hooks";
 import {useTranslation} from "react-i18next";
+import {FormInput} from "../form/FormInput";
 
 export const ParentFolderSearchBar = ()=>{
     const [currentFolder,setCurrentFolder] = useState<Page<FolderEmbeddedContainer<Folder>>>()
@@ -37,12 +38,8 @@ export const ParentFolderSearchBar = ()=>{
         }
     }
 
-    return <div className="col-span-2 grid grid-cols-2">
-        <div>{t('superFolder')}</div>
-    <div>
-    <input className="border text-sm rounded-lg block w-full p-2.5 bg-gray-700 border-gray-600
-    placeholder-gray-400 text-white focus:ring-blue-500 focus:border-blue-500" value={searchParentName}
-    onChange={(v)=>dispatch(setElementParentName(v.target.value))}/>
+    return <>
+    <FormInput id={'superFolder'} label={t('superFolder')} value={searchParentName as string} onChange={(v)=>dispatch(setElementParentName(v))}/>
     <i className="fa fa-check" onClick={()=>{
         if(selectedId!==-100 &&currentFolder?._embedded.elementRepresentationModelList){
             dispatch(setElementParentName(currentFolder._embedded.elementRepresentationModelList.find(a=>a.id===selectedId)?.name))
@@ -59,6 +56,5 @@ export const ParentFolderSearchBar = ()=>{
                     }}/>}</li>
         )}
     </ul>
-</div>
-    </div>
+</>
 }

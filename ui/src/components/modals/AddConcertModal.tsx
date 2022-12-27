@@ -1,6 +1,7 @@
 import {Modal} from "./Modal";
 import {AddModal} from "./AddModal";
 import {useState} from "react";
+import {FormInput} from "../form/FormInput";
 
 export const AddConcertModal = () => {
     const [title, setTitle] = useState<string>("")
@@ -10,14 +11,9 @@ export const AddConcertModal = () => {
 
     return <AddModal headerText={"Konzert hinzufügen"} onAccept={()=>{}} acceptText={"Erstellen"}>
         <div className="grid grid-cols-2 gap-4">
-            <div>Titel</div>
-            <input type="text" onChange={(c)=>setTitle(c.target.value)} value={title}/>
-
-            <div>Beschreibung</div>
-            <input type="text" onChange={(c)=>setDescription(c.target.value)} value={description}/>
-
-            <div>Datum</div>
-            <input type="date" onChange={(c)=>setDueDate(c.target.value)} value={dueDate}/>
+            <FormInput id={"titel"} label={"Titel"} value={title} onChange={(c)=>setTitle(c)}/>
+            <FormInput id={"description"} label={"Beschreibung"} value={description} onChange={(c)=>setDescription(c)}/>
+            <FormInput id={"dueDate"} label={"Fälligkeitsdatum"} value={dueDate} onChange={(c)=>setDueDate(c)}/>
         </div>
     </AddModal>
 }

@@ -8,6 +8,7 @@ import {apiURL} from "../../Keycloak";
 import axios from "axios";
 import {setElementAuthor, setElementSelectedAuthorName} from "../../ElementCreateSlice";
 import {useTranslation} from "react-i18next";
+import {FormInput} from "../form/FormInput";
 
 export const NoteAuthorCreateSearchBar = ()=> {
     const dispatch = useAppDispatch()
@@ -35,16 +36,11 @@ export const NoteAuthorCreateSearchBar = ()=> {
             loadAuthors(apiURL + `/v1/authors?page=0&name=${authorName}`)
     }, 1000, [authorName])
 
-    return  <div className="grid grid-cols-2 mt-5 col-span-2">
-        <div>{t('author')}</div>
+    return <>
+        <FormInput id={'author'} label={t('author')} value={authorName} onChange={(v) => {
+            !typed && setTyped(true)
+            dispatch(setElementSelectedAuthorName(v))}}/>
         <div>
-            <input value={authorName}
-                   className="border text-sm rounded-lg block w-full p-2.5 bg-gray-700 border-gray-600 placeholder-gray-400
-                    text-white focus:ring-blue-500 focus:border-blue-500" onChange={(v) => {
-                !typed && setTyped(true)
-                dispatch(setElementSelectedAuthorName(v.target.value))
-            }}
-            />
             <i className="fa fa-check" onClick={() => {
                 if (selectedAuthorId !== -100) {
                     dispatch(setElementSelectedAuthorName(currentSearchAuthors?._embedded.authorRepresentationModelList.find(a => a.id === selectedAuthorId)?.name))
@@ -60,5 +56,5 @@ export const NoteAuthorCreateSearchBar = ()=> {
                         className={`${selectedAuthorId === a.id ? 'bg-gray-500 ' : ''}text-center`}
                         onClick={() => dispatch(setElementAuthor(a.id))}>{a.name}</li>)}
         </ul>}
-    </div>
+        </>
 }
