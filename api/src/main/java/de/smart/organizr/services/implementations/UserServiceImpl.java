@@ -1,6 +1,7 @@
 package de.smart.organizr.services.implementations;
 
 import de.smart.organizr.dao.interfaces.UserDao;
+import de.smart.organizr.entities.classes.UserHibernateImpl;
 import de.smart.organizr.entities.interfaces.User;
 import de.smart.organizr.exceptions.UserException;
 import de.smart.organizr.services.interfaces.UserService;
@@ -59,5 +60,15 @@ public class UserServiceImpl implements UserService {
 			user.setUsername(username);
 		}
 		return user;
+	}
+
+	@Override
+	public void createIfNotExists(final String name) {
+		final Optional<User> optionalUser = userDao.findUserById(name);
+		if(optionalUser.isEmpty()){
+			//Create user
+			userDao.saveUser(new UserHibernateImpl(name, name, "saga", false));
+		}
+
 	}
 }

@@ -49,4 +49,6 @@ public interface UserService {
 	User saveUser(User userHibernateImpl);
 
 	User updateUser(final String userId, final String username);
+
+	void createIfNotExists(String name);
 }

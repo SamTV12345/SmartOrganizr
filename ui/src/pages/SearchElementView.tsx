@@ -1,5 +1,5 @@
 import {useTranslation} from "react-i18next";
-import {ElementSearchBar} from "../components/ElementSearchBar";
+import {ElementSearchBar} from "../components/searchBars/ElementSearchBar";
 import {useAppDispatch, useAppSelector} from "../store/hooks";
 import {Waypoint} from "react-waypoint";
 import {fixProtocol} from "../utils/Utilities";
@@ -8,6 +8,7 @@ import {ElementEmbeddedContainer} from "../models/ElementEmbeddedContainer";
 import {NoteItem} from "../models/NoteItem";
 import axios from "axios";
 import {setNotesSearched} from "../store/CommonSlice";
+import {TableData} from "../components/table/TableData";
 
 export const SearchElementView = ()=>{
     const {t} = useTranslation()
@@ -90,17 +91,20 @@ export const SearchElementView = ()=>{
         </tr>
         {searchedElements&& searchedElements._embedded&& searchedElements._embedded.noteRepresentationModelList&& searchedElements._embedded.noteRepresentationModelList.map((element, index)=>
                 <tr key={element.id}>
-            <td className="py-4 px-6 text-sm font-medium whitespace-nowrap text-white border-inherit text-center">{element.title}</td>
-            <td className="py-4 px-6 text-sm font-medium whitespace-nowrap text-white border-inherit text-center">{element.author.name}</td>
-            <td className="py-4 px-6 text-sm font-medium whitespace-nowrap text-white border-inherit text-center">{element.description}</td>
-            <td className="py-4 px-6 text-sm font-medium whitespace-nowrap text-white border-inherit text-center">{element.parent.name}
-                {searchedElements.page.size-index<5 &&
-                    searchedElements._links && searchedElements._links.next
-                    && searchedElements._links.next.href
-                    && <Waypoint onEnter={()=>{
-                        loadNotes(fixProtocol(searchedElements._links.next.href))
-                    }}/>}
-            </td>
+                    <TableData content={element.title}/>
+                    <TableData content={element.author.name}/>
+                    <TableData content={element.description}/>
+                    <TableData content={
+                        <>
+                            {element.parent.name}
+                            {searchedElements.page.size-index<5 &&
+                                searchedElements._links && searchedElements._links.next
+                                && searchedElements._links.next.href
+                                && <Waypoint onEnter={()=>{
+                                    loadNotes(fixProtocol(searchedElements._links.next.href))
+                                }}/>}
+                        </>
+                    }/>
         </tr>
         )
         }

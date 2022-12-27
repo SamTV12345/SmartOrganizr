@@ -2,12 +2,14 @@ import {configureStore} from '@reduxjs/toolkit'
 import commonReducer from "./CommonSlice";
 import modalReducer from "../ModalSlice";
 import elementReducer from "../ElementCreateSlice";
+import {concertReducer} from "./slices/ConcertSlice";
 
 export const store = configureStore({
     reducer: {
         commonReducer,
         modalReducer,
-        elementReducer
+        elementReducer,
+        concertReducer
     },
 })
 

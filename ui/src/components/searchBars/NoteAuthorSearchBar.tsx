@@ -1,21 +1,25 @@
+import {setSelectedAuthorName, setSelectedFolderAuthor} from "../../ModalSlice";
 import React, {useState} from "react";
-import {useAppDispatch, useAppSelector} from "../store/hooks";
-import {Page} from "../models/Page";
-import {AuthorEmbeddedContainer} from "../models/AuthorEmbeddedContainer";
-import {Author} from "../models/Author";
-import {useDebounce} from "../utils/DebounceHook";
-import {apiURL} from "../Keycloak";
+import {useAppDispatch, useAppSelector} from "../../store/hooks";
+import {Page} from "../../models/Page";
+import {AuthorEmbeddedContainer} from "../../models/AuthorEmbeddedContainer";
+import {Author} from "../../models/Author";
+import {useDebounce} from "../../utils/DebounceHook";
+import {apiURL} from "../../Keycloak";
 import axios from "axios";
-import {setElementAuthor, setElementSelectedAuthorName} from "../ElementCreateSlice";
+import {setElementAuthor} from "../../ElementCreateSlice";
+import {choiceFolder} from "../../utils/Constants";
 import {useTranslation} from "react-i18next";
+import {FormInput} from "../form/FormInput";
 
-export const NoteAuthorCreateSearchBar = ()=> {
+export const NoteAuthorSearchBar = ()=> {
     const dispatch = useAppDispatch()
+    const {t} =useTranslation()
+    const selectedFolder = useAppSelector(state => state.modalReducer.selectedFolder)
     const [typed, setTyped] = useState<boolean>()
-    const authorName = useAppSelector(state=>state.elementReducer.authorName)
     const selectedAuthorId = useAppSelector(state=>state.elementReducer.author)
     const [currentSearchAuthors, setCurrentSearchAuthors] = useState<Page<AuthorEmbeddedContainer<Author>>>()
-    const {t} = useTranslation()
+
 
     const loadAuthors = async (link: string) => {
         const authorsInResponse: Page<AuthorEmbeddedContainer<Author>> = await new Promise<Page<AuthorEmbeddedContainer<Author>>>(resolve => {
@@ -31,24 +35,20 @@ export const NoteAuthorCreateSearchBar = ()=> {
     }
 
     useDebounce(() => {
-        if ( authorName && authorName.length > 0)
-            loadAuthors(apiURL + `/v1/authors?page=0&name=${authorName}`)
-    }, 1000, [authorName])
+        if (selectedFolder && selectedFolder.author && selectedFolder.author.name.length > 0)
+            loadAuthors(apiURL + `/v1/authors?page=0&name=${selectedFolder?.author?.name}`)
+    }, 1000, [selectedFolder?.author?.name])
 
-    return  <div className="grid grid-cols-2 mt-5 col-span-2">
-        <div>{t('author')}</div>
-        <div>
-            <input value={authorName}
-                   className="border text-sm rounded-lg block w-full p-2.5 bg-gray-700 border-gray-600 placeholder-gray-400
-                    text-white focus:ring-blue-500 focus:border-blue-500" onChange={(v) => {
+    return selectedFolder?.type !== choiceFolder?
+        <>
+            <FormInput id={'author'} label={t('author')} value={selectedFolder?.author?.name as string} onChange={(v) => {
                 !typed && setTyped(true)
-                dispatch(setElementSelectedAuthorName(v.target.value))
-            }}
-            />
+                dispatch(setSelectedAuthorName(v))
+            }}/>
+        <div>
             <i className="fa fa-check" onClick={() => {
                 if (selectedAuthorId !== -100) {
-                    dispatch(setElementSelectedAuthorName(currentSearchAuthors?._embedded.authorRepresentationModelList.find(a => a.id === selectedAuthorId)?.name))
-                    dispatch(setElementAuthor(currentSearchAuthors?._embedded.authorRepresentationModelList.find(a => a.id === selectedAuthorId)?.id))
+                    dispatch(setSelectedFolderAuthor(currentSearchAuthors?._embedded.authorRepresentationModelList.find(a => a.id === selectedAuthorId)))
                 }
             }}/>
         </div>
@@ -59,6 +59,6 @@ export const NoteAuthorCreateSearchBar = ()=> {
                     <li key={a.id}
                         className={`${selectedAuthorId === a.id ? 'bg-gray-500 ' : ''}text-center`}
                         onClick={() => dispatch(setElementAuthor(a.id))}>{a.name}</li>)}
-        </ul>}
-    </div>
+        </ul>}</>
+    :<div></div>
 }

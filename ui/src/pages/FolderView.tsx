@@ -5,8 +5,6 @@ import axios from "axios";
 import {apiURL} from "../Keycloak";
 import {useAppDispatch, useAppSelector} from "../store/hooks";
 import {setNodes} from "../store/CommonSlice";
-import {Modal} from "../components/Modal";
-import {NoteModal} from "../components/NoteModal";
 import {setModalOpen, setOpenAddModal} from "../ModalSlice";
 import {
     addAsParent,
@@ -18,10 +16,12 @@ import {
     replaceNote
 } from "../utils/ElementUtils";
 import {NoteItem} from "../models/NoteItem";
-import {AddModal} from "../components/AddModal";
 import {ElementAddModal} from "../components/ElementAddModal";
 import {choiceNote, folderIcon} from "../utils/Constants";
 import {useTranslation} from "react-i18next";
+import {AddModal} from "../components/modals/AddModal";
+import {Modal} from "../components/modals/Modal";
+import {NoteModal} from "../components/modals/NoteModal";
 
 export const FolderView = ()=>{
     const dispatch = useAppDispatch()
