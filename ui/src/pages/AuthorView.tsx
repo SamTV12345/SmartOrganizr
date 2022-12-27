@@ -18,6 +18,7 @@ import {AuthorAddModal} from "../components/modals/AuthorAddModal";
 import {mergeAuthorInList, mergeAuthors, mergeNewAuthorInList, removeAuthor} from "../utils/AuthorUtilList";
 import {AuthorSearchBar} from "../components/searchBars/AuthorSearchBar";
 import {AuthorWithIndex} from "../models/AuthorWithIndex";
+import {TableData} from "../components/table/TableData";
 
 export const AuthorView = ()=> {
     const dispatch = useAppDispatch()
@@ -149,21 +150,18 @@ export const AuthorView = ()=> {
                             dispatch(setAuthor(author))
                             dispatch(setModalOpen(true))
                         }}>
-                    <td className="py-4 px-6 text-sm font-medium whitespace-nowrap text-white border-inherit text-center">
-                        {author.id}
-                    </td>
-                <td className="py-4 px-6 text-sm font-medium whitespace-nowrap text-white text-center" >
-                    {author.name}
-                </td>
-                    <td className="py-4 px-6 text-sm font-medium whitespace-nowrap text-white text-center">
-                        {author.extraInformation}
-                        {authorPage.page.size-index<10 &&
-                            authorPage._links && authorPage._links.next
-                            && authorPage._links.next.href
-                            && <Waypoint onEnter={()=>{
-                                loadAuthors(fixProtocol(authorPage._links.next.href))
-                            }}/>}
-                    </td>
+                            <TableData content={author.id}/>
+                            <TableData content={author.name}/>
+                            <TableData content={<>
+                                {author.extraInformation}
+                                {authorPage.page.size-index<10 &&
+                                    authorPage._links && authorPage._links.next
+                                    && authorPage._links.next.href
+                                    && <Waypoint onEnter={()=>{
+                                        loadAuthors(fixProtocol(authorPage._links.next.href))
+                                    }}/>}
+                            </>
+                            }/>
                 </tr>
                 )
             }
