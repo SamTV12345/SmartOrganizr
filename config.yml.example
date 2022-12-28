@@ -1,0 +1,23 @@
+spring:
+  datasource:
+    password: password
+    username: root
+    url: jdbc:mysql://<ip>/smartOrganizr
+  jpa:
+    hibernate:
+      ddl-auto: update
+ui:
+  url: <ui-client>
+logging:
+  level:
+    root: INFO
+    org.springframework.web: info
+    org.springframework.security: trace
+    org.springframework.security.oauth2: trace
+
+server:
+  port: '8080'
+realm: master
+
+issuer: http://<keycloak-url>/realms/master
+auth-url: http://<keycloak-url>

@@ -1,24 +1,47 @@
-# SMARTORGANIZR
+# ![SmartOrganizr](ui/public/package.svg)  SmartOrganizr
 
-Smartorganizr is a responsive, feature-packed Java Server Faces application which lets you organise your IRL folders.
+SmartOrganizr is an application designed to make the life of musicians easier. It offers many useful features that help musicians organize and manage their musical activities.
 
+## Features
+
+- Rehearsal and performance management: With SmartOrganizr, musicians can easily plan and manage their rehearsals and performances. They can add, edit, and delete dates, and record all important information such as location, time, and notes to be played.
+
+- Music notation management: SmartOrganizr allows musicians to manage and organize their music notation. They can add, edit, and delete notation. They can also be sorted into folders.
+
+- Artist management: SmartOrganizr also includes a feature that allows musicians to manage their artists. They can add, edit, and delete artists. This enables the musician to keep track of which track was released by which artist. In the future statistics about artists and notes will be added.
 
 ## Installation
-The application can be run with 
-```
-mvn spring-boot:run
-```
 
-For using a persistent database you need to create a config.properties file in the root directory of the project 
-(Where the **pom.xml** is located). The important config properties are:
+SmartOrganizr is available as a web application for Windows, Mac, and Linux. To install the application, please follow these steps:
 
-- spring.datasource.url=<url-to-database>
-- spring.datasource.username=<your-username>
-- spring.datasource.password=<your-password
-- spring.jpa.hibernate.ddl-auto=update
-## Docker installation
-Please have a look at [Dockerhub](https://hub.docker.com/repository/docker/samuel19982/smartorganizr) for a detailed 
-manual.
+1. Download the docker-compose.yaml file from the root of this project.
+2. Add your keycloak configuration.
+3. Launch the application by executing ``docker-compose up -d`` and open in your browser http://<your-ip>.
+
+## Usage
+
+After installation, you can start and use SmartOrganizr like any other web based application. You can navigate the pages via the sidebar and add the respective item by clicking the blue plus icon.
 
 
+## How to dev
 
+### Prerequisites
+- Maven
+- Keycloak (https://www.keycloak.org/)
+- MariaDB (https://mariadb.org/)
+
+### Setup 1
+- Start with creating a config.yml file in the root of the project. You can use the config.yml.example file as a template.
+- Create a keycloak realm and client. The client should be a public client with the following settings:
+    - Access Type: public
+    - Valid Redirect URIs: http://localhost:5173/*, http://localhost:8080/*
+    - Web Origins: +
+- Execute mvn package to build the project and include the ui into the jar.
+- Start the application with ``mvn spring-boot:run``. The database migrations will be executed automatically.
+- Enter your browser at http://localhost:8080/ui and login with the keycloak credentials.
+
+
+## Setup 2
+- For development purposes, you can also start the application with ``mvn spring-boot:run -Dspring-boot.run.profiles=dev``. This will start the application with CORS enabled. So you can start the React application with live reloading. This should only be used for development purposes as it opens your server for XSS.
+
+If you face any problem you can open an issue on [GitHub](https://github.com/SamTV12345/SmartOrganizr/issues).
