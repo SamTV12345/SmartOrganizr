@@ -1,4 +1,4 @@
-# ![SmartOrganizr](ui/public/package.svg)  SmartOrganizr
+# <img src="ui/public/package.svg" style="color: white;"/>  SmartOrganizr
 
 SmartOrganizr is an application designed to make the life of musicians easier. It offers many useful features that help musicians organize and manage their musical activities.
 
