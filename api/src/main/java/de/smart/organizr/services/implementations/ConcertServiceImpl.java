@@ -5,6 +5,7 @@ import de.smart.organizr.dto.ConcertPatchDto;
 import de.smart.organizr.dto.ConcertPostDto;
 import de.smart.organizr.dto.ConcertPostDtoMapper;
 import de.smart.organizr.entities.classes.ConcertHibernateImpl;
+import de.smart.organizr.entities.classes.NoteHibernateImpl;
 import de.smart.organizr.entities.classes.NoteInConcert;
 import de.smart.organizr.entities.interfaces.User;
 import de.smart.organizr.exceptions.ConcertException;
@@ -48,10 +49,16 @@ public class ConcertServiceImpl implements ConcertService {
 	}
 
 	@Override
+	@Transactional
 	public ConcertDto updateConcert(final ConcertPatchDto concertPatchDto, String id, String userId){
 		final ConcertHibernateImpl concertHibernate =
 				concertRepository.findConcertByIdAndUser(id,userId).orElseThrow(()-> new ConcertException("Concert " +
 						"not found"));
+		concertHibernate.setLocation(concertPatchDto.getLocation());
+		concertHibernate.setTitle(concertPatchDto.getTitle());
+		concertHibernate.setDescription(concertPatchDto.getDescription());
+		concertHibernate.setDueDate(concertPatchDto.getDueDate());
+		concertHibernate.setHints(concertPatchDto.getHints());
 
 		return concertPostDtoMapper.convertConcertToDto(concertHibernate);
 	}
@@ -78,7 +85,7 @@ public class ConcertServiceImpl implements ConcertService {
 				.stream()
 				.map(id->noteRepository.findNoteByIdAndUser(id, userId).orElseThrow(()->ElementException.createElementUnknown(id)))
 				.map(note->{
-					NoteInConcert noteToSave = new NoteInConcert(note.getId(),note, ran.nextInt(100000));
+					NoteInConcert noteToSave = new NoteInConcert((NoteHibernateImpl) note, concertHibernate, ran.nextInt(100000));
 					final NoteInConcert savedNote = noteInConcertRepository.save(noteToSave);
 					return savedNote;
 				})
@@ -93,7 +100,6 @@ public class ConcertServiceImpl implements ConcertService {
 		final ConcertHibernateImpl concertHibernate =
 				concertRepository.findConcertByIdAndUser(concertId, user).orElseThrow(()->new ConcertException(
 						"Concert not found"));
-		concertHibernate.getNoteInConcerts()
-		                .removeIf(c->c.getNoteId()==noteId);
+		noteInConcertRepository.deleteNoteInConcert(noteId,concertId);
 	}
 }

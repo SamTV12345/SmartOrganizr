@@ -24,4 +24,5 @@ public class ConcertPostDto {
 	private String location;
 	@NotNull
 	private Set<NoteInConcert> noteInConcerts;
+	private String hints;
 }

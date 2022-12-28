@@ -7,5 +7,6 @@ export interface ConcertDto {
     description: string,
     dueDate: string,
     location:string,
-    noteInConcerts: NoteInConcert[]
+    noteInConcerts: NoteInConcert[],
+    hints: string
 }

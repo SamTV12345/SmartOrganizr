@@ -12,6 +12,13 @@ const initialState: ConcertSliceProps = {
     concerts: [],
     selectedConcert: ''
 }
+
+
+type DeleteProps = {
+    concertId:string,
+    noteId: number
+}
+
 export const concertSlice = createSlice({
     name: 'commonSlice',
     // `createSlice` will infer the state type from the `initialState` argument
@@ -25,6 +32,11 @@ export const concertSlice = createSlice({
         },
         setSelectedConcert: (state, action:PayloadAction<string>)=>{
             state.selectedConcert = action.payload
+        },
+        removeNoteFromConcert:(state, action:PayloadAction<DeleteProps>)=>{
+            const foundConcert = state.concerts.filter(c=> c.id==action.payload.concertId)[0]
+            foundConcert.noteInConcerts = foundConcert.noteInConcerts
+                .filter(n=>n.noteInConcert.id!=action.payload.noteId)
         }
     }
 })

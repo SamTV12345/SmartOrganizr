@@ -18,4 +18,5 @@ public class ConcertDto {
 	private Calendar dueDate;
 	private String location;
 	private Set<NoteInConcert> noteInConcerts;
+	private String hints;
 }
