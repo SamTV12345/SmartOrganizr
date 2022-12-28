@@ -32,5 +32,7 @@
   "create": "Create",
   "notesView": "Notes View",
   "concertView": "Concert View",
-  "year": "Year"
+  "year": "Year",
+  "appearanceDate": "Appearance date",
+  "hints": "Hints"
 }

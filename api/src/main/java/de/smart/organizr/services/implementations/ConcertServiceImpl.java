@@ -97,9 +97,21 @@ public class ConcertServiceImpl implements ConcertService {
 	@Override
 	@Transactional
 	public void removeNoteFromConcert(final String concertId, final int noteId, final String user) {
+		// Ensures that the user owns the concert and the note
+		concertRepository.findConcertByIdAndUser(concertId, user).orElseThrow(()->new ConcertException(
+						"Concert not found"));
+		noteInConcertRepository.deleteNoteInConcert(noteId,concertId);
+	}
+
+	@Override
+	public void removeConcert(final String concertId, final String user) {
 		final ConcertHibernateImpl concertHibernate =
 				concertRepository.findConcertByIdAndUser(concertId, user).orElseThrow(()->new ConcertException(
 						"Concert not found"));
-		noteInConcertRepository.deleteNoteInConcert(noteId,concertId);
+
+		// Remove all notes from concert
+		noteInConcertRepository.deleteAllInBatch(concertHibernate.getNoteInConcerts());
+		// Remove concert
+		concertRepository.deleteById(concertId);
 	}
 }

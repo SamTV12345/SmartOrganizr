@@ -61,7 +61,7 @@ export const NoteSearchModal = () => {
             })
 
         axios.put(apiURL+"/v1/concerts"+"/"+originalConcert.id+"/notes", selectedNotes)
-            .then(c=>dispatch(concertActions.updateConcert({
+            .then(()=>dispatch(concertActions.updateConcert({
                 id: originalConcert.id,
                 noteInConcerts: [...originalConcert.noteInConcerts, ...notesToAdd],
                 dueDate: originalConcert.dueDate,

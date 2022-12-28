@@ -52,6 +52,15 @@ public class ConcertController {
 				.build();
 	}
 
+	@DeleteMapping("/{concertId}")
+	public ResponseEntity<Void> removeConcert(@PathVariable String concertId){
+		concertService.removeConcert(concertId, getUser());
+		return ResponseEntity
+				.noContent()
+				.build();
+	}
+
+
 	@DeleteMapping("/{concertId}/{noteId}")
 	public ResponseEntity<Void> deleteNoteFromConcert(@PathVariable String concertId,
 	                                             @PathVariable int noteId){

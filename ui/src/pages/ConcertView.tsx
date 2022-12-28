@@ -8,6 +8,7 @@ import {ConcertYear} from "../components/ConcertYear";
 import {ConcertItem} from "../components/ConcertItem";
 import {setModalOpen, setOpenAddModal} from "../ModalSlice";
 import {AddConcertModal} from "../components/modals/AddConcertModal";
+import {PlusIcon} from "../components/form/PlusIcon";
 
 export const ConcertView = ()=>{
     const concertsOfUser = useAppSelector(state=>state.concertReducer.concerts)
@@ -15,7 +16,9 @@ export const ConcertView = ()=>{
     let currentYear=0
 
     useEffect(()=>{
-    retrieveConcertsOfUser()
+        if(concertsOfUser.length===0) {
+            retrieveConcertsOfUser()
+        }
     }, [])
 
 
@@ -28,13 +31,7 @@ export const ConcertView = ()=>{
 
     return <div className="md:ml-8 mt-4 md:mr-4">
         <AddConcertModal/>
-        <div id="menubar" className="justify-end flex" onClick={()=>{
-            dispatch(setOpenAddModal(true))
-        }
-        }><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-        </svg>
-        </div>
+        <PlusIcon onClick={()=>dispatch(setOpenAddModal(true))}/>
         {
            concertsOfUser.map((c)=>{
                const currentDate = new Date(c.dueDate)
@@ -43,7 +40,7 @@ export const ConcertView = ()=>{
 
                    currentYear = currentDate.getFullYear()
                    return <>
-                        <ConcertYear year={currentDate.getFullYear()} keyNum={c.id+"year"}/>
+                        <ConcertYear year={currentDate.getFullYear()} keyNum={c.id+"year"} concertId={c.id}/>
                        <ConcertItem concert={c} keyNum={c.id}/>
                    </>
                }

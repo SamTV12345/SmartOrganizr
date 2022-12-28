@@ -37,6 +37,10 @@ export const concertSlice = createSlice({
             const foundConcert = state.concerts.filter(c=> c.id==action.payload.concertId)[0]
             foundConcert.noteInConcerts = foundConcert.noteInConcerts
                 .filter(n=>n.noteInConcert.id!=action.payload.noteId)
+        },
+        removeConcert(state, action:PayloadAction<string>) {
+            state.concerts = state.concerts
+                                  .filter(c=>c.id!=action.payload)
         }
     }
 })

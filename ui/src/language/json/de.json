@@ -32,5 +32,8 @@
   "create": "Erstellen",
   "notesView": "Notenansicht",
   "concertView": "Konzertansicht",
-  "year": "Jahr"
+  "year": "Jahr",
+  "appearanceDate": "Aufführungstermin",
+  "hints": "Hinweise",
+  "location": "Aufführungsort"
 }

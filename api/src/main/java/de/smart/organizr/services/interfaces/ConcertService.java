@@ -17,4 +17,6 @@ public interface ConcertService {
 	void addNotesToConcert(String concertId, List<Integer> noteIdsToAdd,  final String userId);
 
 	void removeNoteFromConcert(String concertId, int noteId, String user);
+
+	void removeConcert(String concertId, String user);
 }
