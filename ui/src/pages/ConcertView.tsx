@@ -25,7 +25,8 @@ export const ConcertView = ()=>{
 
     const retrieveConcertsOfUser = ()=>{
         axios.get(apiURL+"/v1/concerts")
-            .then(resp=>dispatch(concertActions.setConcerts(resp.data)))
+            .then(resp=>
+                dispatch(concertActions.setConcerts(resp.data)))
             .catch(error=>console.log(error))
     }
 

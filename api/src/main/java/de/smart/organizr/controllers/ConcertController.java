@@ -27,7 +27,7 @@ public class ConcertController {
 
 	private final ConcertService concertService;
 	@GetMapping("")
-	public ResponseEntity<Set<ConcertDto>> getConcertsOfUser(){
+	public ResponseEntity<List<ConcertDto>> getConcertsOfUser(){
 		return ResponseEntity.ok(concertService.getConcertsOfUserSortedByDate(getUser()));
 	}
 

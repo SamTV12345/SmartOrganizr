@@ -64,12 +64,12 @@ public class ConcertServiceImpl implements ConcertService {
 	}
 
 	@Override
-	public Set<ConcertDto> getConcertsOfUserSortedByDate(final String userId) {
+	public List<ConcertDto> getConcertsOfUserSortedByDate(final String userId) {
 		final Set<ConcertHibernateImpl> concertsOfUser = concertRepository.findAllByUser(userId);
 
 		return concertsOfUser.stream()
 		                     .map(concertPostDtoMapper::convertConcertToDto)
-		                     .collect(Collectors.toSet());
+		                     .collect(Collectors.toList());
 	}
 
 	@Override
