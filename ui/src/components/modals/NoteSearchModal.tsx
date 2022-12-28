@@ -55,7 +55,6 @@ export const NoteSearchModal = () => {
         const notesToAdd = searchedElements._embedded.noteRepresentationModelList.filter(n=>selectedNotes.includes(n.id))
             .map(n=> {
                 return {
-                    noteId: n.id,
                     noteInConcert:n,
                     placeInConcert:2
                 } satisfies NoteInConcert
