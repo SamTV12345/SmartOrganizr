@@ -5,6 +5,7 @@ import de.smart.organizr.dto.ConcertPatchDto;
 import de.smart.organizr.dto.ConcertPostDto;
 
 import java.util.List;
+import java.util.Map;
 
 public interface ConcertService {
 	ConcertDto createConcertForUser(ConcertPostDto concertPostDto, final String user);
@@ -18,4 +19,6 @@ public interface ConcertService {
 	void removeNoteFromConcert(String concertId, int noteId, String user);
 
 	void removeConcert(String concertId, String user);
+
+	void saveOrderOfNotes(String concertId, Map<Integer, Integer> noteOrder, String user);
 }

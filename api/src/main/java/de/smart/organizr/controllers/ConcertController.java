@@ -3,6 +3,7 @@ package de.smart.organizr.controllers;
 import de.smart.organizr.dto.ConcertDto;
 import de.smart.organizr.dto.ConcertPatchDto;
 import de.smart.organizr.dto.ConcertPostDto;
+import de.smart.organizr.dto.NoteOrderInConcert;
 import de.smart.organizr.services.interfaces.ConcertService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -17,7 +18,9 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 @Controller
@@ -66,6 +69,18 @@ public class ConcertController {
 	                                             @PathVariable int noteId){
 		concertService.removeNoteFromConcert(concertId, noteId, getUser());
 
+		return ResponseEntity
+				.noContent()
+				.build();
+	}
+
+	@PutMapping("/{concertId}/order")
+	public ResponseEntity<Void> saveOrderOfNotes(@PathVariable String concertId,
+	                                             @RequestBody List<NoteOrderInConcert> noteOrder){
+		final Map<Integer, Integer> mapOfNoteOrder = new HashMap<>();
+		final int[] i = {0};
+		noteOrder.forEach(noteOrderInConcert -> mapOfNoteOrder.put(noteOrderInConcert.getNoteId(), i[0]++));
+		concertService.saveOrderOfNotes(concertId, mapOfNoteOrder, getUser());
 		return ResponseEntity
 				.noContent()
 				.build();

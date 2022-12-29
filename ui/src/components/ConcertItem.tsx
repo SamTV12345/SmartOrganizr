@@ -1,5 +1,5 @@
 import {ConcertDto} from "../models/ConcertDto";
-import React, {FC, useState} from "react";
+import React, {FC, DragEvent} from "react";
 import {useAppDispatch, useAppSelector} from "../store/hooks";
 import {concertActions} from "../store/slices/ConcertSlice";
 import {AddNoteToConcert} from "./modals/AddNoteToConcert";
@@ -11,6 +11,8 @@ import axios from "axios";
 import {AccordeonItem} from "./layout/AccordeonItem";
 import {TrashIcon} from "./icons/TrashIcon";
 import {FormTextArea} from "./form/FormTextArea";
+import {NoteInConcert} from "../models/NoteInConcert";
+import {PlusIcon} from "./form/PlusIcon";
 
 interface ConcertItem {
     concert: ConcertDto,
@@ -20,6 +22,12 @@ interface ConcertItem {
 export const ConcertItem: FC<ConcertItem> = ({concert, keyNum}) => {
     const dispatch = useAppDispatch()
     const openModal = useAppSelector(state => state.modalReducer.openModal)
+
+    const onNoteDragStart = (e: DragEvent<HTMLDivElement>, note: NoteInConcert)=>{
+        e.dataTransfer.setData("text", JSON.stringify(note.noteInConcert.id))
+        e.dataTransfer.effectAllowed = "move"
+    }
+
 
     return <Accordeon keyNum={keyNum}>
         <div className="grid grid-cols-2 pb-2">
@@ -39,14 +47,32 @@ export const ConcertItem: FC<ConcertItem> = ({concert, keyNum}) => {
             }))} id={"title"} label={"Konzert"}/>
         </div>
         <AccordeonItem title={"Enthaltene Stücke"} first>
-            <div className="grid place-items-end" onClick={() => {
+            <PlusIcon onClick={() => {
                 dispatch(concertActions.setSelectedConcert(concert.id))
                 dispatch(setModalOpen(true))
-            }}>+
-            </div>
+            }}/>
             {openModal && <AddNoteToConcert/>}
             <div className="grid grid-cols-1 gap-4">
-                {concert.noteInConcerts.map(note => <div className="flex"
+                {concert.noteInConcerts.map(note => <div className="flex" draggable onDragStart={ (e)=>{
+                    onNoteDragStart(e, note)
+                }}
+                        onDragOver={(e)=>{
+                            e.preventDefault()
+                            e.dataTransfer.dropEffect = "move"
+                        }
+                }
+                                                         onDrop={(e)=>{
+                                                             const  element= JSON.parse(e.dataTransfer.getData("text"))
+                                                             console.log(concert.noteInConcerts)
+                                                             if(element!==note.noteInConcert.id) {
+                                                                 e.preventDefault()
+                                                                 dispatch(concertActions.swapNotesInConcert({concertId: concert.id,
+                                                                     noteId1: element,
+                                                                     noteId2: note.noteInConcert.id}))
+                                                                 console.log("Changed both elements")
+                                                                 console.log(concert.noteInConcerts)
+                                                             }
+                                                         }}
                                                         key={note.noteInConcert.id+"inplace"}>{note.noteInConcert.title}
                 <TrashIcon onClick={()=>{
                     axios.delete(apiURL + "/v1/concerts/" + concert.id + "/" + note.noteInConcert.id)
@@ -55,6 +81,16 @@ export const ConcertItem: FC<ConcertItem> = ({concert, keyNum}) => {
                         })
                 }}/>
                 </div>)}
+            </div>
+            <div className="flex flex-row-reverse col-span-2">
+                <button className="bg-blue-700 text-white p-2 rounded" onClick={() => {
+                    const mapOfConcerts = concert.noteInConcerts.map(note=> {
+                        return {noteId:note.noteInConcert.id}
+                    })
+                    axios.put(apiURL + "/v1/concerts/"+concert.id+"/order", mapOfConcerts)
+                        .then(() => {
+                        })
+                }}>Speichern</button>
             </div>
         </AccordeonItem>
 

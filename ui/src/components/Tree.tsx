@@ -91,7 +91,6 @@ const TreeNode:FC<TreeDataExpanded> = ({ keyNum,icon,children,author
 
 
     const drag = (ev: React.DragEvent<HTMLDivElement>, id: TreeData)=>{
-        // @ts-ignore
         ev.dataTransfer.setData("id",JSON.stringify(id))
     }
 

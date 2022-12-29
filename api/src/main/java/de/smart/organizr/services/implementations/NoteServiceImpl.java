@@ -15,6 +15,7 @@ import de.smart.organizr.entities.interfaces.User;
 import de.smart.organizr.exceptions.AuthorException;
 import de.smart.organizr.exceptions.ElementException;
 import de.smart.organizr.exceptions.UserException;
+import de.smart.organizr.repositories.NoteInConcertRepository;
 import de.smart.organizr.services.interfaces.NoteService;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -34,6 +35,7 @@ public class NoteServiceImpl implements NoteService {
 	private final FolderDao folderDao;
 	private final UserDao userDao;
 
+
 	@Override
 	public Note saveNote(final Note note){
 		return noteDao.saveNote(note);
@@ -41,6 +43,7 @@ public class NoteServiceImpl implements NoteService {
 
 	@Override
 	public void deleteNote(final Note note) {
+
 		noteDao.deleteNote(note);
 	}
 

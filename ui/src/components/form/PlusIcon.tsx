@@ -2,7 +2,7 @@ import {setOpenAddModal} from "../../ModalSlice";
 import {FC} from "react";
 
 type PlusIconProp = {
-    onClick: () => void
+    onClick: () => void,
 }
 
 export const PlusIcon:FC<PlusIconProp> = ({onClick})=>{

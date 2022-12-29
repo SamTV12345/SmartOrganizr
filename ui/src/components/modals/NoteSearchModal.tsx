@@ -60,10 +60,11 @@ export const NoteSearchModal = () => {
                 } satisfies NoteInConcert
             })
 
+         const uniqueArray =    [...new Map([...originalConcert.noteInConcerts, ...notesToAdd].map(item => [item.noteInConcert.id, item])).values()]
         axios.put(apiURL+"/v1/concerts"+"/"+originalConcert.id+"/notes", selectedNotes)
             .then(()=>dispatch(concertActions.updateConcert({
                 id: originalConcert.id,
-                noteInConcerts: [...originalConcert.noteInConcerts, ...notesToAdd],
+                noteInConcerts: uniqueArray,
                 dueDate: originalConcert.dueDate,
                 title: originalConcert.title,
                 location: originalConcert.location,
@@ -100,7 +101,7 @@ export const NoteSearchModal = () => {
                 </td>
             </tr>
             {searchedElements && searchedElements._embedded && searchedElements._embedded.noteRepresentationModelList && searchedElements._embedded.noteRepresentationModelList.map((element, index) =>
-                <tr key={element.id+"tr"} className={`${selectedNotes.includes(element.id) ? 'bg-gray-900' : ''}`}
+            <tr key={element.id+"tr"} className={`${selectedNotes.includes(element.id) ? 'bg-gray-900' : ''}`}
                     onClick={() => {
                         if (selectedNotes.includes(element.id)) {
                             setSelectedNotes(selectedNotes.filter(i => element.id != i));

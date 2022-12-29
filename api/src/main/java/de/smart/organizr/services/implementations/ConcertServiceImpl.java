@@ -22,7 +22,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collection;
 import java.util.List;
-import java.util.Random;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -79,13 +79,15 @@ public class ConcertServiceImpl implements ConcertService {
 				concertRepository.findConcertByIdAndUser(concertId, userId).orElseThrow(()->new ConcertException(
 				"Concert not found"));
 
-		Random ran = new Random();
 
+		final int[] currentPlace = new int[]{concertHibernate.getNoteInConcerts().size()};
 		final Collection<NoteInConcert> notesToAdd = noteIdsToAdd
 				.stream()
+				.filter(id->noteInConcertRepository.findNoteInConcertByConcertAndNoteId(concertId,id).isEmpty())
 				.map(id->noteRepository.findNoteByIdAndUser(id, userId).orElseThrow(()->ElementException.createElementUnknown(id)))
 				.map(note->{
-					NoteInConcert noteToSave = new NoteInConcert((NoteHibernateImpl) note, concertHibernate, ran.nextInt(100000));
+					NoteInConcert noteToSave = new NoteInConcert((NoteHibernateImpl) note, concertHibernate,
+							currentPlace[0]++);
 					final NoteInConcert savedNote = noteInConcertRepository.save(noteToSave);
 					return savedNote;
 				})
@@ -98,9 +100,19 @@ public class ConcertServiceImpl implements ConcertService {
 	@Transactional
 	public void removeNoteFromConcert(final String concertId, final int noteId, final String user) {
 		// Ensures that the user owns the concert and the note
-		concertRepository.findConcertByIdAndUser(concertId, user).orElseThrow(()->new ConcertException(
+		final ConcertHibernateImpl concert =
+				concertRepository.findConcertByIdAndUser(concertId, user).orElseThrow(()->new ConcertException(
 						"Concert not found"));
+		final NoteInConcert noteToBeDeleted = noteInConcertRepository.findNoteInConcertByConcertAndNoteId(concertId,
+				noteId).orElseThrow(()->new ConcertException("Note not found"));
 		noteInConcertRepository.deleteNoteInConcert(noteId,concertId);
+
+		// Reorder the notes
+		concert.getNoteInConcerts().forEach(note->{
+			if(note.getPlaceInConcert() > noteToBeDeleted.getPlaceInConcert()){
+				note.setPlaceInConcert(note.getPlaceInConcert()-1);
+			}
+		});
 	}
 
 	@Override
@@ -113,5 +125,21 @@ public class ConcertServiceImpl implements ConcertService {
 		noteInConcertRepository.deleteAllInBatch(concertHibernate.getNoteInConcerts());
 		// Remove concert
 		concertRepository.deleteById(concertId);
+	}
+
+	@Override
+	@Transactional
+	public void saveOrderOfNotes(final String concertId, final Map<Integer, Integer> noteOrder, final String user) {
+		final ConcertHibernateImpl concertHibernate =
+				concertRepository.findConcertByIdAndUser(concertId, user).orElseThrow(() -> new ConcertException(
+						"Concert not found"));
+
+		// Update order
+		concertHibernate.getNoteInConcerts().forEach(noteInConcert -> {
+			final int newPlaceInConcert = noteOrder.get(noteInConcert.getNoteInConcert().getId());
+			if (noteInConcert.getPlaceInConcert() != newPlaceInConcert) {
+				noteInConcert.setPlaceInConcert(newPlaceInConcert);
+			}
+		});
 	}
 }

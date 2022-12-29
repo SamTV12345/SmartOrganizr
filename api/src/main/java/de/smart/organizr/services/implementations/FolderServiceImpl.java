@@ -12,9 +12,12 @@ import de.smart.organizr.entities.interfaces.Note;
 import de.smart.organizr.entities.interfaces.User;
 import de.smart.organizr.exceptions.ElementException;
 import de.smart.organizr.exceptions.UserException;
+import de.smart.organizr.repositories.NoteInConcertRepository;
 import de.smart.organizr.services.interfaces.FolderService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
@@ -23,17 +26,15 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
+@RequiredArgsConstructor
+@Component
 public class FolderServiceImpl implements FolderService {
 	private final FolderDao folderDao;
 	private final UserDao userDao;
 	private final NoteDao noteDao;
+	private final NoteInConcertRepository noteInConcertRepository;
 
-	public FolderServiceImpl(final FolderDao folderDao, final UserDao userDao,
-	                         final NoteDao noteDao) {
-		this.folderDao = folderDao;
-		this.userDao = userDao;
-		this.noteDao = noteDao;
-	}
+
 
 	@Override
 	public List<Folder> findAllFolders(final String userId){
@@ -162,6 +163,8 @@ public class FolderServiceImpl implements FolderService {
 			folderDao.deleteFolderById(f);
 		}
 		else if (elementToDelete instanceof Note n){
+			// Delete referenced notes in concert
+			noteInConcertRepository.deleteNoteById(n.getId());
 			noteDao.deleteById(n.getId());
 		}
 	}

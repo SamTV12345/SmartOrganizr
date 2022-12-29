@@ -19,6 +19,12 @@ type DeleteProps = {
     noteId: number
 }
 
+type SwapProps  = {
+    concertId:string,
+    noteId1:number,
+    noteId2:number
+}
+
 export const concertSlice = createSlice({
     name: 'commonSlice',
     // `createSlice` will infer the state type from the `initialState` argument
@@ -41,6 +47,22 @@ export const concertSlice = createSlice({
         removeConcert(state, action:PayloadAction<string>) {
             state.concerts = state.concerts
                                   .filter(c=>c.id!=action.payload)
+        },
+        swapNotesInConcert(state, action:PayloadAction<SwapProps>){
+            const foundConcert = state.concerts.filter(c=> c.id==action.payload.concertId)[0]
+            const x = foundConcert.noteInConcerts.findIndex(a=> a.noteInConcert.id === action.payload.noteId1)
+            const y = foundConcert.noteInConcerts.findIndex(b=> b.noteInConcert.id === action.payload.noteId2)
+
+            // Swap place
+            const placeX = foundConcert.noteInConcerts[x].placeInConcert
+            const placeY = foundConcert.noteInConcerts[y].placeInConcert
+
+            foundConcert.noteInConcerts[x].placeInConcert = placeY
+            foundConcert.noteInConcerts[y].placeInConcert = placeX
+
+            const b = foundConcert.noteInConcerts[y];
+            foundConcert.noteInConcerts[y] = foundConcert.noteInConcerts[x];
+            foundConcert.noteInConcerts[x] = b;
         }
     }
 })

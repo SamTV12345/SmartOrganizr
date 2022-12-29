@@ -16,6 +16,7 @@ import de.smart.organizr.entities.interfaces.Folder;
 import de.smart.organizr.entities.interfaces.Note;
 import de.smart.organizr.entities.interfaces.User;
 import de.smart.organizr.exceptions.NoPermissionException;
+import de.smart.organizr.repositories.NoteInConcertRepository;
 import de.smart.organizr.services.interfaces.FolderService;
 import de.smart.organizr.services.interfaces.NoteService;
 import de.smart.organizr.services.interfaces.UserService;
@@ -60,7 +61,6 @@ public class ElementController {
 	private final ElementResourceAssembler elementResourceAssembler;
 	private final NoteResourceAssembler noteResourceAssembler;
 	private final FolderDtoMapper folderDtoMapper;
-
 
 	@Operation(summary = "Returns the top level decks", description = "", tags = {"Element"})
 	@ApiResponses(value = {
