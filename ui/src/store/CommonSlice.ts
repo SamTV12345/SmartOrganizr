@@ -1,4 +1,4 @@
-import {createSlice} from '@reduxjs/toolkit'
+import {createSlice, PayloadAction} from '@reduxjs/toolkit'
 import {AuthorEmbeddedContainer} from "../models/AuthorEmbeddedContainer";
 import {Author} from "../models/Author";
 import {Page} from "../models/Page";
@@ -40,10 +40,10 @@ export const commonSlice = createSlice({
         setAuthorPage: (state, action) => {
             state.authorPage = action.payload
         },
-        setNodes: (state, action) => {
+        setNodes: (state, action:PayloadAction<TreeData[]>) => {
             state.nodes = action.payload
         },
-        setAuthorSearchText: (state, action)=>{
+        setAuthorSearchText: (state,action )=>{
             state.authorSearchText = action.payload
         },
         setLoadedFolders:(state, action)=>{

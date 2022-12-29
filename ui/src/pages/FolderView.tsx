@@ -210,7 +210,7 @@ export const FolderView = ()=>{
                cancelText={t('cancel')} onCancel={()=>{dispatch(setModalOpen(false))}} onDelete={deleteElement}/>
         <div className="border-0 w-full md:w-8/12  table-fixed md:mx-auto md:mt-4 md:mb-4 bg-gray-800 text-white p-6">
         <div className="mx-auto">
-           <TreeElement data={nodes} setData={setNodes}/>
+           <TreeElement data={nodes} setData={(d)=>setNodes(d)}/>
         </div>
     </div>
     </div>

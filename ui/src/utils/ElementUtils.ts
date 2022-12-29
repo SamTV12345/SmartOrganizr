@@ -43,8 +43,8 @@ export const mapDtoToTreeData = (element: ElementItem)=> {
 export const handleNewElements = (event: TreeData, loadedChildren: ElementItem[]) => {
     event.children = loadedChildren.map(element => {
             return mapDtoToTreeData(element);
-        }
-    )
+        })
+        .sort((a, b) => a.name.localeCompare(b.name))
 }
 
 export const traverseTree = (event: TreeData, nodes: TreeData[]): TreeData[] =>
@@ -92,16 +92,17 @@ export const addChild = (event: TreeData, nodes: TreeData[], parentId: number): 
     return nodes.map(node => {
         //if other children are in this folder
         if (node.keyNum === parentId && node.children) {
+            console.log(event)
             return {
                 ...node,
                 children: [...node.children, event].sort((c1, c2) => c1.name.localeCompare(c2.name))
-            } as TreeData
+            } satisfies TreeData
         }
         // if not other children are in this folder
         else if (node.keyNum === parentId && !node.children) {
-            return {...node, children: [event]} as TreeData
+            return {...node, children: [event]} satisfies TreeData
         } else {
-            return {...node, children: addChild(event, node.children || [], parentId)} as TreeData
+            return {...node, children: addChild(event, node.children || [], parentId)} satisfies TreeData
         }
     })
 }

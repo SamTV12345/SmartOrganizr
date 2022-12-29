@@ -1,4 +1,4 @@
-import React, {Dispatch, FC, SetStateAction, useState} from "react";
+import React, {FC, useState} from "react";
 import "./Tree.css"
 import {ElementItem} from "../models/ElementItem";
 import axios from "axios";
@@ -39,12 +39,12 @@ export interface TreeDataExpanded {
     children?: TreeData[],
     numberOfPages?:number,
     nodes: TreeData[]
-    setData: Dispatch<SetStateAction<TreeData[]>>
+    setData: (payload: TreeData[])=>{payload: TreeData[], type: "commonSlice/setNodes"}
 }
 
 interface TreeProps {
     data: TreeData[]
-    setData: Dispatch<SetStateAction<TreeData[]>>
+    setData: (payload: TreeData[])=>{payload: TreeData[], type: "commonSlice/setNodes"}
 }
 
 export const TreeElement:FC<TreeProps> = ({data})=>{
