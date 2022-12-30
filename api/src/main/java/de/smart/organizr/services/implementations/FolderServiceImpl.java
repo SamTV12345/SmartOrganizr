@@ -105,6 +105,11 @@ public class FolderServiceImpl implements FolderService {
 	}
 
 	@Override
+	public Folder findFolderByIdAndUsername(int id, String username) {
+		return folderDao.findFolderByIdAndUsername(id,username).orElseThrow(()->
+				ElementException.createElementUnknown(id));
+	}
+	@Override
 	@Transactional
 	public void moveElementToFolder(int from, int to, String username){
 		final Element element =

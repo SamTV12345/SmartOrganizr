@@ -5,21 +5,19 @@
     <title>Title</title>
     <style>
         .grid{
-            width: 10%;
+            width: 20%;
             margin: 1.66%;
             float: left;
-            padding-bottom: 10%;
+            padding-bottom: 5%;
         }
     </style>
+
 </head>
 <body>
 <h1 style="text-align: center;">Ordner <span th:text="${folder}"></span></h1>
 
-<div>
-    <div  th:each="data : ${qrcode}">
-        <img class="grid" th:src="${'data:image/png;base64,' + data}" alt=""/>
+    <div th:each="data : ${qrcode}">
+        <img  class="grid" th:src="${'data:image/png;base64,' + data}" alt=""/>
     </div>
-</div>
-
 </body>
 </html>

@@ -17,61 +17,33 @@ export const ImportExportView = () => {
             .then(resp => setLoadedFolders(resp.data))
     }, [])
 
-    const styles = StyleSheet.create({
-        page: {
-            flexDirection: 'row',
-            backgroundColor: '#E4E4E4'
-        },
-        section: {
-            margin: 10,
-            padding: 10,
-            flexGrow: 1
-        }
-    });
-    const MyDocument = () => {
-        return (
-            <Document>
-                <Page size="A4" style={styles.page}>
-                    <View style={styles.section}>
-                        {
-                            loadedFolders?._embedded.elementRepresentationModelList.map(folder=>{
-                                console.log(loadedFolders)
-                                const dataUrl = new XMLSerializer().serializeToString(document.getElementById("folder"+folder.id) as Node)
-                                return <Image src={ window.btoa(dataUrl)} />
-                            }
-                            )
-                        }
-                    </View>
-                </Page>
-            </Document>
-        )
+
+    function downloadPDF(pdf:string, selectedFolder:Folder) {
+        const linkSource = `data:application/pdf;base64,${pdf}`;
+        const downloadLink = document.createElement("a");
+        const fileName = selectedFolder.id+".pdf";
+
+        downloadLink.href = linkSource;
+        downloadLink.download = fileName;
+        downloadLink.click();
     }
 
-    return <div className="grid grid-cols-2 p-6">
-        <div>
-            <h1 className="text-2xl">Import</h1>
-            <h2 className="text-xl">Import Data as JSON</h2>
-            <h2 className="text-xl">Import Data as CSV</h2>
-        </div>
-        <div>
+    const getPDFOfFolder = ()=>{
+            axios.get(apiURL + "/v1/elements/"+selectedFolder+"/export")
+            .then(resp => downloadPDF(resp.data, loadedFolders?._embedded.elementRepresentationModelList.find(f=>f.id===selectedFolder) as Folder))
+    }
+
+    return <div className="p-6">
             <h1 className="text-2xl">Export</h1>
             <h2 className="text-xl">Export Data as QR-Code</h2>
 
-            <div className="grid grid-cols-2">
-                <Dropdown value={selectedFolder} onChange={(e) => setSelectedFolder(Number(e.target.value))}>
-                    {loadedFolders && loadedFolders._embedded &&
-                        loadedFolders?._embedded.elementRepresentationModelList.map(folder => <option value={folder.id}
-                                                                                                      key={folder.id}>{folder.name}</option>)}
-                </Dropdown>
-                <PDFDownloadLink document={<MyDocument/>} fileName="example.pdf" className="text-center p-2">
-                    {({ blob, url, loading, error }) => (loading ? 'Loading document...' : 'Download now!')}
-                </PDFDownloadLink>
+            <div className="grid grid-cols-[20%_10%_10%] gap-4">
+                    <Dropdown value={selectedFolder} onChange={(e) => setSelectedFolder(Number(e.target.value))}>
+                        {loadedFolders && loadedFolders._embedded &&
+                            loadedFolders?._embedded.elementRepresentationModelList.map(folder => <option value={folder.id}
+                                                                                                          key={folder.id}>{folder.name}</option>)}
+                    </Dropdown>
+                <button onClick={()=>getPDFOfFolder()} disabled={selectedFolder===undefined} className="bg-blue-500 disabled:bg-red-500 rounded ">Anfordern</button>
             </div>
-
-            <div>
-                {loadedFolders?._embedded.elementRepresentationModelList.map(folder=><QRCode value={folder.name} id={"folder"+folder.id}/>)}
-            </div>
-            <h2 className="text-xl">Export Data as JSON</h2>
         </div>
-    </div>
 }

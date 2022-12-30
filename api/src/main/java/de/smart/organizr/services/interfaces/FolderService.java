@@ -55,6 +55,8 @@ public interface FolderService {
 	 */
 	Optional<Folder> findFolderByUserAndName(User user, String s);
 
+	Folder findFolderByIdAndUsername(int id, String username);
+
 	void moveElementToFolder(int from, int to, String username);
 
 	/**

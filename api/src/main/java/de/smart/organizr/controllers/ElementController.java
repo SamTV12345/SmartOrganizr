@@ -182,6 +182,6 @@ public class ElementController {
 	@GetMapping("/{folderId}/export")
 	public ResponseEntity<String> createPDF(@PathVariable int folderId) {
 		return ResponseEntity.ok(pdfService.generatePDFOfElement(folderId,
-				SecurityContextHolder.getContext().getAuthentication().getName()));
+				getUser()));
 	}
 }
