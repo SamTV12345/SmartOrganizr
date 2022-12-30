@@ -5,8 +5,6 @@ import {apiURL} from "../Keycloak";
 import axios from "axios";
 import {Page as Paging} from "../models/Page";
 import {FolderEmbeddedContainer} from "../models/FolderEmbeddedContainer";
-import ReactPDF, {PDFDownloadLink, Page, View, Document, StyleSheet, Image} from '@react-pdf/renderer';
-import QRCode from 'react-qr-code'
 
 export const ImportExportView = () => {
     const [selectedFolder, setSelectedFolder] = useState<number>()
