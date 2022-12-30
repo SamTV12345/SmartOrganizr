@@ -40,9 +40,9 @@ build_image:
     - master
   when: manual
   script:
-    - docker login -u $CI_USER -p $CI_PASSWORD
-    - docker build -t $CI_IMAGE:$CI_TAG .
-    - docker push $CI_IMAGE:$CI_TAG
+    - docker login $HARBOR_BASEURL -u $HARBOR_USER -p $HARBOR_PASSWORD
+    - docker build -t $HARBOR_URL .
+    - docker push $HARBOR_URL
 
 pushToHub:
   needs:
@@ -56,6 +56,7 @@ pushToHub:
     - master
   script:
     - docker login $HARBOR_BASEURL -u $HARBOR_USER -p $HARBOR_PASSWORD
-    - docker pull  --platform linux/amd64 $CI_IMAGE:$CI_TAG
-    - docker image tag $CI_IMAGE:$CI_TAG $HARBOR_URL
-    - docker push $HARBOR_URL
+    - docker login -u $CI_USER -p $CI_PASSWORD
+    - docker pull  --platform linux/amd64 $HARBOR_BASEURL
+    - docker image tag $HARBOR_BASEURL $CI_IMAGE:$CI_TAG
+    - docker push $CI_IMAGE:$CI_TAG
