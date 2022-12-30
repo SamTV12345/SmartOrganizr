@@ -1,9 +1,6 @@
 package de.smart.organizr.services.implementations;
 
 import com.lowagie.text.DocumentException;
-import de.smart.organizr.entities.classes.NoteHibernateImpl;
-import de.smart.organizr.entities.interfaces.Element;
-import de.smart.organizr.entities.interfaces.Folder;
 import de.smart.organizr.entities.interfaces.Note;
 import de.smart.organizr.entities.interfaces.User;
 import de.smart.organizr.services.interfaces.FolderService;
@@ -60,7 +57,7 @@ public class PDFService {
 
 
 		}
-		catch (IOException|DocumentException exception){
+		catch (IOException | DocumentException exception){
 			log.error("Error while generating PDF", exception);
 			throw new RuntimeException("Error while generating your PDF. Please try again later...");
 		}
