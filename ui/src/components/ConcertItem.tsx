@@ -13,6 +13,7 @@ import {TrashIcon} from "./icons/TrashIcon";
 import {FormTextArea} from "./form/FormTextArea";
 import {NoteInConcert} from "../models/NoteInConcert";
 import {PlusIcon} from "./form/PlusIcon";
+import {useTranslation} from "react-i18next";
 
 interface ConcertItem {
     concert: ConcertDto,
@@ -22,6 +23,7 @@ interface ConcertItem {
 export const ConcertItem: FC<ConcertItem> = ({concert, keyNum}) => {
     const dispatch = useAppDispatch()
     const openModal = useAppSelector(state => state.modalReducer.openModal)
+    const {t} = useTranslation()
 
     const onNoteDragStart = (e: DragEvent<HTMLDivElement>, note: NoteInConcert)=>{
         e.dataTransfer.setData("text", JSON.stringify(note.noteInConcert.id))
@@ -44,9 +46,9 @@ export const ConcertItem: FC<ConcertItem> = ({concert, keyNum}) => {
                 noteInConcerts: concert.noteInConcerts,
                 location: concert.location,
                 hints: concert.hints
-            }))} id={"title"} label={"Konzert"}/>
+            }))} id={"title"} label={t('concert')}/>
         </div>
-        <AccordeonItem title={"Enthaltene Stücke"} first>
+        <AccordeonItem title={"containedNotes"} first>
             <PlusIcon onClick={() => {
                 dispatch(concertActions.setSelectedConcert(concert.id))
                 dispatch(setModalOpen(true))
@@ -90,7 +92,7 @@ export const ConcertItem: FC<ConcertItem> = ({concert, keyNum}) => {
                     axios.put(apiURL + "/v1/concerts/"+concert.id+"/order", mapOfConcerts)
                         .then(() => {
                         })
-                }}>Speichern</button>
+                }}>{t('save')}</button>
             </div>
         </AccordeonItem>
 
@@ -135,7 +137,7 @@ export const ConcertItem: FC<ConcertItem> = ({concert, keyNum}) => {
                             .then(() => {
 
                             })
-                    }}>Speichern</button>
+                    }}>{t('save')}</button>
                 </div>
             </div>
         </AccordeonItem>
@@ -158,7 +160,7 @@ export const ConcertItem: FC<ConcertItem> = ({concert, keyNum}) => {
                     axios.put(apiURL + "/v1/concerts/" + concert.id, concert)
                         .then(() => {
                         })
-                }}>Speichern</button>
+                }}>{t('save')}</button>
             </div>
         </AccordeonItem>
     </Accordeon>

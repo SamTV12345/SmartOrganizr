@@ -42,7 +42,7 @@ export const NoteSearchModal = () => {
                 },
                 page: notesInPage.page,
                 _links: notesInPage._links
-            } as Page<ElementEmbeddedContainer<NoteItem>>))
+            } satisfies Page<ElementEmbeddedContainer<NoteItem>>))
         }
     }
 

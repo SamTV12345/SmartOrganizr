@@ -34,6 +34,11 @@ public class FolderDaoJpaImpl implements FolderDao {
 
 	}
 
+	@Override
+	public Page<Folder> findAllFoldersOfUser(final User creator, final Pageable pageable) {
+		return folderRepository.findByCreator(creator, pageable);
+	}
+
 	/**
 	 * Saves/updates a folder
 	 * @param folderToBeSaved the folder to be saved/updated

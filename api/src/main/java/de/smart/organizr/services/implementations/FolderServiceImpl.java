@@ -140,6 +140,9 @@ public class FolderServiceImpl implements FolderService {
 
 	@Override
 	public Page<Folder> findAllFoldersWithName(final String folderName, final User user, final Pageable pageable) {
+		if(folderName==null){
+			return folderDao.findAllFoldersOfUser(user,pageable);
+		}
 		return folderDao.findAllFoldersWithName(folderName, user, pageable);
 	}
 

@@ -94,11 +94,11 @@ public class ElementController {
 
 	@GetMapping("/folders")
 	public ResponseEntity<PagedModel<ElementRepresentationModel>> searchFolders(@RequestParam final int page,
-	                                                        @RequestParam final String folderName,
-	                                                        final PagedResourcesAssembler<Folder> authorPagedResourcesAssembler){
+	                                                        @RequestParam(required = false) final String folderName,
+	                                                        final PagedResourcesAssembler<Folder> folderPagedResourcesAssembler){
 		final Pageable pageable = PageRequest.of(page,50, Sort.by("name").ascending());
 		final Page<Folder> matchingFolders =  folderService.findAllFoldersWithName(folderName, getUser(), pageable);
-		return ResponseEntity.ok(authorPagedResourcesAssembler.toModel(matchingFolders,elementResourceAssembler));
+		return ResponseEntity.ok(folderPagedResourcesAssembler.toModel(matchingFolders,elementResourceAssembler));
 	}
 
 	@GetMapping("/notes")

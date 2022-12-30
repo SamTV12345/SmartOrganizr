@@ -28,11 +28,14 @@
   "editAuthor": "Edit an author",
   "editElement": "Edit element",
   "newElement": "New element",
+  "io": "Import/Export",
   "update": "Update",
   "create": "Create",
   "notesView": "Notes View",
   "concertView": "Concert View",
+  "concert": "Concert",
   "year": "Year",
   "appearanceDate": "Appearance date",
-  "hints": "Hints"
+  "hints": "Hints",
+  "save": "Save"
 }

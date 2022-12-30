@@ -7,11 +7,14 @@ import {Header} from "./components/layout/Header";
 import {SideBar} from "./components/layout/SideBar";
 import {useAppSelector} from "./store/hooks";
 import {WelcomePage} from "./pages/WelcomePage";
-import {AuthorView} from "./pages/AuthorView";
-import {FolderView} from "./pages/FolderView";
 import {useTranslation} from "react-i18next";
-import {SearchElementView} from "./pages/SearchElementView";
-import {ConcertView} from "./pages/ConcertView";
+import React, {SuspenseProps} from 'react';
+import {
+    AuthorLazyLoad,
+    ConcertViewLazyLoad,
+    FolderViewLazyLoad, ImportExportViewLazyLoad,
+    SearchElementViewLazyLoad
+} from "./utils/LazyLoadComponents";
 
 function App() {
     const sideBarCollapsed = useAppSelector(state=>state.commonReducer.sideBarCollapsed)
@@ -22,6 +25,12 @@ function App() {
     }
 
 
+    const Suspense = (children: SuspenseProps)=>{
+        return <React.Suspense fallback={<div>{t('loading')}</div>}>
+            {children.children}
+             </React.Suspense>
+
+    }
 
   return (
       <BrowserRouter basename="/ui">
@@ -32,10 +41,32 @@ function App() {
                   <Routes>
                       <Route path="/" element={<Navigate to={"/welcome"}/>}/>
                       <Route path={"/welcome"} element={<WelcomePage/>}/>
-                      <Route path={"/authors"} element={<AuthorView/>}/>
-                      <Route path={"/folder"} element={<FolderView/>}/>
-                      <Route path={"/notes"} element={<SearchElementView/>}/>
-                      <Route path={"/concerts"} element={<ConcertView/>}/>
+                      <Route path={"/authors"} element={
+                          <Suspense>
+                              <AuthorLazyLoad/>
+                          </Suspense>
+                      }/>
+                      <Route path={"/folder"} element={
+                            <Suspense>
+                                    <FolderViewLazyLoad/>
+                            </Suspense>}
+                      />
+                      <Route path={"/notes"} element={
+                          <Suspense>
+                            <SearchElementViewLazyLoad/>
+                          </Suspense>
+                      }
+                      />
+                      <Route path={"/concerts"} element={
+                          <Suspense>
+                              <ConcertViewLazyLoad/>
+                          </Suspense>
+                      }/>
+                      <Route path={"/io"} element={
+                          <Suspense>
+                              <ImportExportViewLazyLoad/>
+                          </Suspense>
+                      }/>
                   </Routes>
               </div>
           </div>

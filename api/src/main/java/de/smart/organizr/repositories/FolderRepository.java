@@ -42,4 +42,6 @@ public interface FolderRepository extends CrudRepository<FolderHibernateImpl, In
 	@Query("SELECT f FROM FolderHibernateImpl f WHERE (f.name LIKE CONCAT('%',:folderName,'%') OR f.description LIKE " +
 			"CONCAT('%',:folderName,'%')) AND f.creator.userId=:userId")
 	Page<Folder> findFolderByNameAndUser(String folderName, String userId, Pageable pageable);
+
+	Page<Folder> findByCreator(User creator, Pageable pageable);
 }

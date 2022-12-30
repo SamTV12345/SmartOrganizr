@@ -18,6 +18,8 @@ public interface FolderDao {
 	 */
 	Set<Folder> findAllFolders(User creator);
 
+	Page<Folder> findAllFoldersOfUser(User creator, Pageable pageable);
+
 	/**
 	 * Saves/updates a folder
 	 * @param folderToBeSaved The folder to be saved
