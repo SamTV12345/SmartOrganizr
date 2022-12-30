@@ -1,7 +1,11 @@
 FROM maven:3.8-eclipse-temurin-17 as build
 
 ADD . /usr/src/myapp
-RUN mvn -f /usr/src/myapp/pom.xml package
+COPY settings.xml /.m2/settings.xml
+ENV MAVEN_SETTINGS_PATH=/.m2/settings.xml
+
+
+RUN mvn -f /usr/src/myapp/pom.xml package -Dmaven.repo.local=/.m2/repository -s /.m2/settings.xml
 
 FROM alpine:latest AS runtime
 
