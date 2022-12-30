@@ -35,6 +35,7 @@ export const ImportExportView = () => {
                     <View style={styles.section}>
                         {
                             loadedFolders?._embedded.elementRepresentationModelList.map(folder=>{
+                                console.log(loadedFolders)
                                 const dataUrl = new XMLSerializer().serializeToString(document.getElementById("folder"+folder.id) as Node)
                                 return <Image src={ window.btoa(dataUrl)} />
                             }

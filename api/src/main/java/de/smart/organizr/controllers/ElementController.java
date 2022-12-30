@@ -17,15 +17,18 @@ import de.smart.organizr.entities.interfaces.Note;
 import de.smart.organizr.entities.interfaces.User;
 import de.smart.organizr.exceptions.NoPermissionException;
 import de.smart.organizr.repositories.NoteInConcertRepository;
+import de.smart.organizr.services.implementations.PDFService;
 import de.smart.organizr.services.interfaces.FolderService;
 import de.smart.organizr.services.interfaces.NoteService;
 import de.smart.organizr.services.interfaces.UserService;
+import de.smart.organizr.utils.BarCodeUtils;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.RequiredArgsConstructor;
+import org.bouncycastle.util.encoders.Base64Encoder;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -36,6 +39,7 @@ import org.springframework.hateoas.PagedModel;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -44,7 +48,16 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.thymeleaf.TemplateEngine;
+import org.thymeleaf.context.Context;
+import org.thymeleaf.templatemode.TemplateMode;
+import org.thymeleaf.templateresolver.ClassLoaderTemplateResolver;
+import org.xhtmlrenderer.pdf.ITextRenderer;
 
+import java.io.ByteArrayOutputStream;
+import java.io.OutputStream;
+import java.util.ArrayList;
+import java.util.Base64;
 import java.util.Collection;
 import java.util.List;
 
@@ -61,6 +74,7 @@ public class ElementController {
 	private final ElementResourceAssembler elementResourceAssembler;
 	private final NoteResourceAssembler noteResourceAssembler;
 	private final FolderDtoMapper folderDtoMapper;
+	private final PDFService pdfService;
 
 	@Operation(summary = "Returns the top level decks", description = "", tags = {"Element"})
 	@ApiResponses(value = {
@@ -163,5 +177,11 @@ public class ElementController {
 	private User getUser() {
 		final String username = SecurityContextHolder.getContext().getAuthentication().getName();
 		return userService.findUserByUserName(username).orElseThrow(() -> new NoPermissionException(username));
+	}
+
+	@GetMapping("/{folderId}/export")
+	public ResponseEntity<String> createPDF(@PathVariable int folderId) {
+		return ResponseEntity.ok(pdfService.generatePDFOfElement(folderId,
+				SecurityContextHolder.getContext().getAuthentication().getName()));
 	}
 }

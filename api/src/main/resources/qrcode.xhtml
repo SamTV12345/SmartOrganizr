@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="UTF-8"/>
+    <title>Title</title>
+    <style>
+        .grid{
+            width: 10%;
+            margin: 1.66%;
+            float: left;
+            padding-bottom: 10%;
+        }
+    </style>
+</head>
+<body>
+<h1 style="text-align: center;">Ordner <span th:text="${folder}"></span></h1>
+
+<div>
+    <div  th:each="data : ${qrcode}">
+        <img class="grid" th:src="${'data:image/png;base64,' + data}" alt=""/>
+    </div>
+</div>
+
+</body>
+</html>
