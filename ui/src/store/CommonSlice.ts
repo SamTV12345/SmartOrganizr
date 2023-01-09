@@ -60,4 +60,4 @@ export const commonSlice = createSlice({
 
 export const {setSideBarCollapsed, setAuthorPage, setNodes, setAuthorSearchText, setLoadedFolders, setNotesSearched, setNotesSearchText} = commonSlice.actions
 
-export default commonSlice.reducer
+    export default commonSlice.reducer
