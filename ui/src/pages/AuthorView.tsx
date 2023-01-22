@@ -59,8 +59,7 @@ export const AuthorView = ()=> {
 
     useEffect(()=>{
         if (!authorPage && links.author.href) {
-            console.log(fixLinkProtocol(links.author.href))
-            loadAuthors(fixLinkProtocol(links.author.href))
+            loadAuthors(fixProtocol(links.author.href))
         }
     },[])
 
