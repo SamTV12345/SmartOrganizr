@@ -13,8 +13,6 @@ export const isLocalhost = Boolean(
 
 export const fixLinkProtocol = (link:string)=>{
     let replacedLink = link.substring(0,link.indexOf('{'))
-    const lastSlashPos = replacedLink.lastIndexOf("/")
-    replacedLink = replacedLink.substring(0,lastSlashPos)+replacedLink.substring(lastSlashPos+1)
     return window.location.protocol+replacedLink.substring(replacedLink.indexOf(":")+1,replacedLink.length)
 }
 
