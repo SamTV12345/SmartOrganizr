@@ -4,6 +4,8 @@ import de.smart.organizr.entities.classes.AuthorHibernateImpl;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 
+import java.sql.Blob;
+
 public interface Note extends Element{
 	/**
 	 * Gets the title of the note
@@ -34,4 +36,8 @@ public interface Note extends Element{
 
 	int getNumberOfPages();
 	void setNumberOfPages(int numberOfPages);
+
+	Blob getPdfContent();
+
+	void setPdfContent(Blob pdfContent);
 }

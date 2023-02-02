@@ -7,6 +7,7 @@ import de.smart.organizr.entities.interfaces.User;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
+import java.sql.SQLException;
 import java.util.List;
 import java.util.Optional;
 
@@ -36,4 +37,8 @@ public interface NoteService {
 	int getParentOfNote(int noteId, final String userId);
 
 	Page<Note> findAllNotesByName(String noteName, User user, Pageable pageable);
+
+	byte[] getPDFOfNote(final int noteId, final User userId) throws SQLException;
+
+	void updatePDFOfNote(final int noteId, final User userId, final byte[] pdfContent) throws SQLException;
 }

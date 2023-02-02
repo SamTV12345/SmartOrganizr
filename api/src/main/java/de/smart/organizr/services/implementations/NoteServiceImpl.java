@@ -15,14 +15,17 @@ import de.smart.organizr.entities.interfaces.User;
 import de.smart.organizr.exceptions.AuthorException;
 import de.smart.organizr.exceptions.ElementException;
 import de.smart.organizr.exceptions.UserException;
-import de.smart.organizr.repositories.NoteInConcertRepository;
 import de.smart.organizr.services.interfaces.NoteService;
+import de.smart.organizr.utils.StringUtils;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.sql.rowset.serial.SerialBlob;
+import java.sql.Blob;
+import java.sql.SQLException;
 import java.util.Calendar;
 import java.util.List;
 import java.util.Optional;
@@ -103,5 +106,23 @@ public class NoteServiceImpl implements NoteService {
 			return noteDao.findPagedNotesOfAuthorByName(user.getUserId(), pageable);
 		}
 		return noteDao.findPagedNotesOfAuthorByName(noteName, user.getUserId(), pageable);
+	}
+
+	@Override
+	@Transactional
+	public byte[] getPDFOfNote(final int noteId, final User userId) throws SQLException {
+		final Note note = noteDao.findNoteByIdAndUser(noteId, userId).orElseThrow(()->
+				ElementException.createElementUnknown(noteId));
+		return note.getPdfContent().getBytes(1, (int) note.getPdfContent().length());
+	}
+
+	@Override
+	@Transactional
+	public void updatePDFOfNote(final int noteId, final User userId, final byte[] pdfContent)
+			throws SQLException {
+		final Note note = noteDao.findNoteByIdAndUser(noteId, userId).orElseThrow(()->
+				ElementException.createElementUnknown(noteId));
+		Blob blob = new SerialBlob(pdfContent);
+		note.setPdfContent(blob);
 	}
 }

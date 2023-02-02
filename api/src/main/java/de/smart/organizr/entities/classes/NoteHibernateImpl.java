@@ -9,15 +9,21 @@ import jakarta.persistence.Column;
 import jakarta.persistence.DiscriminatorValue;
 import jakarta.persistence.Entity;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.Lob;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.OneToOne;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.Type;
+import org.springframework.context.annotation.Lazy;
 
 import java.io.Serial;
 import java.io.Serializable;
+import java.sql.Blob;
 import java.util.Calendar;
 
 @Entity
@@ -48,6 +54,11 @@ public class NoteHibernateImpl extends ElementHibernateImpl implements Note, Ser
 	public String getTitle() {
 		return title;
 	}
+
+	@Lazy
+	@Lob
+	@Column(columnDefinition="bytea")
+	private Blob pdfContent;
 
 	@Override
 	public void setTitle(final String name) {
