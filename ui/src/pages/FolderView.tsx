@@ -23,6 +23,7 @@ import {AddModal} from "../components/modals/AddModal";
 import {Modal} from "../components/modals/Modal";
 import {NoteModal} from "../components/modals/NoteModal";
 import {PlusIcon} from "../components/form/PlusIcon";
+import {FileUploadModal} from "../components/modals/FileUploadModal";
 
 export const FolderView = ()=>{
     const dispatch = useAppDispatch()
@@ -205,6 +206,7 @@ export const FolderView = ()=>{
 
     return <div>
         <PlusIcon onClick={()=>dispatch(setOpenAddModal(true))}/>
+        <FileUploadModal/>
         <AddModal headerText={t('newElement')} onAccept={()=>{createElement()}} acceptText={t('create')} children={<ElementAddModal/>}/>
         <Modal headerText={t('editElement')} onAccept={()=>updateElement()} acceptText={t('update')} children={<NoteModal/>}
                cancelText={t('cancel')} onCancel={()=>{dispatch(setModalOpen(false))}} onDelete={deleteElement}/>

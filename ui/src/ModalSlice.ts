@@ -1,4 +1,4 @@
-import {createSlice} from '@reduxjs/toolkit'
+import {createSlice, PayloadAction} from '@reduxjs/toolkit'
 import {Author} from "./models/Author";
 import {NoteItem} from "./models/NoteItem";
 import {ElementItem} from "./models/ElementItem";
@@ -11,7 +11,8 @@ interface ModalProps {
     selectedAuthor: Author| undefined,
     selectedAuthorNotes: NoteItem[]| undefined,
     selectedFolder: ElementItem|undefined,
-    createdAuthor: Author
+    createdAuthor: Author,
+    openNotePDFUpload: boolean
 }
 
 // Define the initial state using that type
@@ -21,7 +22,8 @@ const initialState: ModalProps = {
     selectedAuthor: undefined,
     selectedAuthorNotes: undefined,
     selectedFolder: undefined,
-    createdAuthor: {name:'',extraInformation:'',id:0}
+    createdAuthor: {name:'',extraInformation:'',id:0},
+    openNotePDFUpload: false
 }
 
 export const modalSlice = createSlice({
@@ -86,12 +88,15 @@ export const modalSlice = createSlice({
             if(state.selectedFolder!== undefined && state.selectedFolder.author){
                 state.selectedFolder.author = action.payload
             }
+        },
+        setNotePDFUploadOpen: (state, action:PayloadAction<boolean>)=>{
+            state.openNotePDFUpload = action.payload
         }
     }
 })
 
 export const {setModalOpen, setAuthor, setSelectedAuthorNotes, setAuthorName, setAuthorExtraInformation, setOpenAddModal,
              setCreatedAuthorExtraInformation, setCreatedAuthorName, setSelectedFolderDescription, setSelectedFolder, setSelectedFolderName,
-    setSelectedFolderPage, setSelectedAuthorName, setSelectedFolderAuthor} = modalSlice.actions
+    setSelectedFolderPage, setSelectedAuthorName, setSelectedFolderAuthor, setNotePDFUploadOpen,setCreatedAuthor} = modalSlice.actions
 
 export default modalSlice.reducer
