@@ -7,7 +7,7 @@ import {Folder} from "../models/Folder";
 import {setLoadedFolders, setNodes} from "../store/CommonSlice";
 import {useAppDispatch, useAppSelector} from "../store/hooks";
 import {apiURL} from "../Keycloak";
-import {setModalOpen, setSelectedFolder} from "../ModalSlice";
+import {setModalOpen, setNotePDFUploadOpen, setSelectedFolder} from "../ModalSlice";
 import {Author} from "../models/Author";
 import {addChild, deleteChild, handleNewElements, traverseTree} from "../utils/ElementUtils";
 import {choiceFolder} from "../utils/Constants";
@@ -141,6 +141,9 @@ const TreeNode:FC<TreeDataExpanded> = ({ keyNum,icon,children,author
                         dispatch(setSelectedFolder({id: keyNum, length,numberOfPages,author,description,name,type} as ElementItem))
                         dispatch(setModalOpen(true))
                     }}/>
+                    {type==='Note'&&<i className="fa-solid fa-upload ml-2" onClick={()=>{
+                        dispatch(setNotePDFUploadOpen(true))
+                    }}/>}
                 </div>
             </div>
 

@@ -20,7 +20,7 @@ class NoteHibernateTest extends Specification{
         given:
             final Note note;
         when:
-            note=new NoteHibernateImpl(title, "test", calender, author, user)
+            note=new NoteHibernateImpl(Calendar.getInstance(),1,null, "test", user,title, author , 2)
         then:
             title.trim() == note.getTitle()
         where:
@@ -34,7 +34,7 @@ class NoteHibernateTest extends Specification{
         given:
             final Note note;
         when:
-            note=new NoteHibernateImpl("test", "test", calender, author, user)
+            note=new NoteHibernateImpl(Calendar.getInstance(),1,null, "test", user,"title", author , 2)
         then:
             note.getAuthor() == author
     }
@@ -43,7 +43,7 @@ class NoteHibernateTest extends Specification{
         given:
             final Element element
         when:
-        element = new NoteHibernateImpl(emptyString, "test", calender, author, user)
+        element = new NoteHibernateImpl(Calendar.getInstance(),1,null, "test", user,emptyString, author , 2)
         then:
             thrown(NoteException)
         where:
@@ -58,7 +58,7 @@ class NoteHibernateTest extends Specification{
         given:
         final Element element
         when:
-            element = new NoteHibernateImpl("Test", "test", calender, null, user)
+            element = new NoteHibernateImpl(Calendar.getInstance(),1,null, "test", user,"title", null , 2)
         then:
             thrown(NoteException)
 

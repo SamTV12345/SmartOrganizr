@@ -4,10 +4,10 @@ import de.smart.organizr.dao.interfaces.AuthorDao;
 import de.smart.organizr.dao.interfaces.FolderDao;
 import de.smart.organizr.dao.interfaces.NoteDao;
 import de.smart.organizr.dao.interfaces.UserDao;
-import de.smart.organizr.services.implementations.FolderServiceImpl;
 import de.smart.organizr.services.implementations.UserServiceImpl;
-import de.smart.organizr.services.interfaces.FolderService;
 import de.smart.organizr.services.interfaces.UserService;
+import io.micrometer.observation.ObservationRegistry;
+import io.micrometer.observation.aop.ObservedAspect;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -30,5 +30,10 @@ public class ServiceConfiguration {
 	@Bean
 	public UserService userService() {
 		return new UserServiceImpl(userDao);
+	}
+
+	@Bean
+	ObservedAspect observedAspect(ObservationRegistry observationRegistry) {
+		return new ObservedAspect(observationRegistry);
 	}
 }

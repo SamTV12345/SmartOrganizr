@@ -16,7 +16,6 @@ import de.smart.organizr.entities.interfaces.Folder;
 import de.smart.organizr.entities.interfaces.Note;
 import de.smart.organizr.entities.interfaces.User;
 import de.smart.organizr.exceptions.NoPermissionException;
-import de.smart.organizr.repositories.NoteInConcertRepository;
 import de.smart.organizr.services.implementations.PDFService;
 import de.smart.organizr.services.interfaces.FolderService;
 import de.smart.organizr.services.interfaces.NoteService;
@@ -42,19 +41,12 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.thymeleaf.TemplateEngine;
-import org.thymeleaf.context.Context;
-import org.thymeleaf.templatemode.TemplateMode;
-import org.thymeleaf.templateresolver.ClassLoaderTemplateResolver;
-import org.xhtmlrenderer.pdf.ITextRenderer;
 
-import java.io.ByteArrayOutputStream;
-import java.io.OutputStream;
-import java.util.ArrayList;
-import java.util.Base64;
+import java.sql.SQLException;
 import java.util.Collection;
 import java.util.List;
 
@@ -96,6 +88,21 @@ public class ElementController {
 	@PostMapping("/notes")
 	public ResponseEntity<Note> createNote(@RequestBody final NotePostDto notePostDto){
 			return ResponseEntity.ok(noteService.saveNoteForUser(notePostDto,getUser().getUserId()));
+	}
+
+	@GetMapping("/{noteId}/pdf")
+	public ResponseEntity<byte[]> getNoteAsPDF(@PathVariable int noteId) throws SQLException {
+		final byte[] pdf = noteService.getPDFOfNote(noteId, getUser());
+		return ResponseEntity.ok(pdf);
+	}
+
+	@PutMapping("/{noteId}/pdf")
+	public ResponseEntity<Void> updatePDFOfNote(@PathVariable int noteId, @RequestBody final byte[] pdfData)
+			throws SQLException {
+		noteService.updatePDFOfNote(noteId, getUser(), pdfData);
+		return ResponseEntity
+				.ok()
+				.build();
 	}
 
 	@GetMapping("/{noteId}/parent")
