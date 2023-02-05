@@ -12,3 +12,17 @@ spring:
       resourceserver:
         jwt:
           issuer-uri: ${issuer}
+management:
+  tracing:
+    sampling:
+      probability: 1.0
+  zipkin:
+    tracing:
+      endpoint: ${zipking-url}
+
+
+
+logging:
+  pattern:
+    level: \t [${spring.application.name:},%X{traceId:-},%X{spanId:-}]
+

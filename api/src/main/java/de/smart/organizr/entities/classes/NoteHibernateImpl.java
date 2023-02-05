@@ -50,6 +50,8 @@ public class NoteHibernateImpl extends ElementHibernateImpl implements Note, Ser
 		setAuthor(author);
 	}
 
+
+
 	@Override
 	public String getTitle() {
 		return title;

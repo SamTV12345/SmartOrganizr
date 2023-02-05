@@ -7,6 +7,7 @@ import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 
@@ -17,14 +18,17 @@ import lombok.ToString;
 @ToString
 @EqualsAndHashCode
 @AllArgsConstructor
+@NoArgsConstructor
 public class UserHibernateImpl implements User {
 	private String userId;
 	private String username;
 	private String selectedTheme;
 	private boolean sideBarCollapsed;
 
-	
-	public UserHibernateImpl() {
+	public UserHibernateImpl(final String userId, final String username, final String selectedTheme) {
+		this.userId = userId;
+		this.username = username;
+		this.selectedTheme = selectedTheme;
 	}
 
 	@Override

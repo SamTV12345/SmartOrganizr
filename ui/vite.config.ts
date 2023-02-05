@@ -6,10 +6,7 @@ export default defineConfig({
   resolve: {
     alias: {
       src: path.resolve('src/'),
-    },
+    }
   },
   base:"/ui/",
-  build:{
-    outDir: '../api/target/classes/public/ui'
-  },
 })
