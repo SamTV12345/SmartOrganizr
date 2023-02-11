@@ -54,6 +54,7 @@ public class NoteHibernateImpl extends ElementHibernateImpl implements Note, Ser
 		setTitle(title);
 		setNumberOfPages(numberOfPages);
 		setAuthor(author);
+		setPdfAvailable(false);
 	}
 
 
