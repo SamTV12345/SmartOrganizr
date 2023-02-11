@@ -7,5 +7,6 @@ export interface NoteItem extends ElementItem {
     name:string,
     author: Author,
     numberOfPages: number
-    parent:Folder
+    parent:Folder,
+    pdfAvailable: boolean,
 }

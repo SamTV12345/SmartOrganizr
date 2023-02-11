@@ -6,7 +6,6 @@ import {BrowserRouter, Navigate, Route, Routes} from "react-router-dom";
 import {Header} from "./components/layout/Header";
 import {SideBar} from "./components/layout/SideBar";
 import {useAppSelector} from "./store/hooks";
-import {WelcomePage} from "./pages/WelcomePage";
 import {useTranslation} from "react-i18next";
 import React, {SuspenseProps} from 'react';
 import {
@@ -15,6 +14,7 @@ import {
     FolderViewLazyLoad, ImportExportViewLazyLoad,
     SearchElementViewLazyLoad
 } from "./utils/LazyLoadComponents";
+import WelcomePage from "./pages/WelcomePage";
 
 function App() {
     const sideBarCollapsed = useAppSelector(state=>state.commonReducer.sideBarCollapsed)

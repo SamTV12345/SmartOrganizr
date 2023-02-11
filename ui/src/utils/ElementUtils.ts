@@ -28,6 +28,7 @@ export const mapDtoToTreeData = (element: ElementItem)=> {
             numberOfPages: note.numberOfPages,
             description: note.description,
             author: note.author,
+            pdfAvailable: note.pdfAvailable,
             type: 'Note',
         } as TreeData
     } else {

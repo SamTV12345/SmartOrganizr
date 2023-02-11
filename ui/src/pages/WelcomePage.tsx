@@ -2,6 +2,8 @@ import {useTranslation} from "react-i18next";
 
 export const WelcomePage = ()=>{
     const {t} = useTranslation()
+
+
     return <div className="flex h-full">
         <div className="m-auto rounded bg-neutral-100 p-10 grid grid-cols-3 gap-5">
             <h1 className="text-2xl col-span-3 text-center">{t('slogan')}</h1>
@@ -25,3 +27,5 @@ export const WelcomePage = ()=>{
         </div>
     </div>
 }
+
+export default WelcomePage

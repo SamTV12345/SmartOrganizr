@@ -1,7 +1,7 @@
 import React, {FC, useState} from "react";
 import "./Tree.css"
 import {ElementItem} from "../models/ElementItem";
-import axios from "axios";
+import axios, {AxiosResponse} from "axios";
 import {fixProtocol} from "../utils/Utilities";
 import {Folder} from "../models/Folder";
 import {setLoadedFolders, setNodes} from "../store/CommonSlice";
@@ -18,6 +18,7 @@ export interface TreeData {
     icon:string,
     name:string,
     length:number,
+    pdfAvailable?:boolean,
     author?: Author
     type: string,
     links: string,
@@ -38,6 +39,7 @@ export interface TreeDataExpanded {
     description:string,
     children?: TreeData[],
     numberOfPages?:number,
+    pdfAvailable?:boolean,
     nodes: TreeData[]
     setData: (payload: TreeData[])=>{payload: TreeData[], type: "commonSlice/setNodes"}
 }
@@ -53,7 +55,7 @@ export const TreeElement:FC<TreeProps> = ({data})=>{
             {data && data.map(tree=>{
                 return <TreeNode name={tree.name} setData={setNodes} key={tree.keyNum+"tree"} author={tree.author}
                                  icon={tree.icon} keyNum={tree.keyNum} numberOfPages={tree.numberOfPages}
-                                 children={tree.children} length={data.length}
+                                 children={tree.children} length={data.length} pdfAvailable={tree.pdfAvailable}
                                  links={tree.links} type={tree.type} nodes={data} description={tree.description} creationDate={tree.creationDate}/>
             })}
         </ul>
@@ -62,14 +64,12 @@ export const TreeElement:FC<TreeProps> = ({data})=>{
 
 const TreeNode:FC<TreeDataExpanded> = ({ keyNum,icon,children,author
                                            ,name, length,description,numberOfPages,
-                                           setData,type,links,creationDate }) => {
+                                           setData,type,links,creationDate,pdfAvailable }) => {
     const [childVisible, setChildVisiblity] = useState(false);
     const dispatch = useAppDispatch()
     const nodes = useAppSelector(state=>state.commonReducer.nodes)
     const loadedFolders = useAppSelector(state=>state.commonReducer.loadedFolders)
     const hasChild = type===choiceFolder && length>0
-
-
 
     const onExpand = async (event: TreeData) => {
         if (!loadedFolders.includes(event.keyNum)) {
@@ -104,6 +104,12 @@ const TreeNode:FC<TreeDataExpanded> = ({ keyNum,icon,children,author
                     console.log(error)
                 })
         })
+    }
+
+    const openPDFInNewTab= (base64URL:string)=>{
+        const win = window.open()
+        if(win===undefined||win===null) return
+        win.document.write('<iframe src="' + base64URL  + '" frameborder="0" style="border:0; top:0; left:0; bottom:0; right:0; width:100%; height:100%;" allowfullscreen></iframe>');
     }
 
     return (
@@ -141,9 +147,20 @@ const TreeNode:FC<TreeDataExpanded> = ({ keyNum,icon,children,author
                         dispatch(setSelectedFolder({id: keyNum, length,numberOfPages,author,description,name,type} as ElementItem))
                         dispatch(setModalOpen(true))
                     }}/>
-                    {type==='Note'&&<i className="fa-solid fa-upload ml-2" onClick={()=>{
+                    {type==='Note' && pdfAvailable &&
+                        <><i className="fa-solid fa-upload ml-2" onClick={()=>{
+                        dispatch(setSelectedFolder({id: keyNum, length,numberOfPages,author,description,name,type} as ElementItem))
                         dispatch(setNotePDFUploadOpen(true))
-                    }}/>}
+                    }}/>
+                            <i className="fa-solid fa-eye ml-2" onClick={()=>{
+                                axios.get(apiURL+`/v1/elements/${keyNum}/pdf`)
+                                    .then((response:AxiosResponse<string>) => {
+                                        openPDFInNewTab(response.data)
+                                    }).catch((error) => {
+                                    console.log(error)
+                                })
+                            }}/>
+                        </>}
                 </div>
             </div>
 

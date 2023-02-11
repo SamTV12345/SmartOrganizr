@@ -91,15 +91,23 @@ public class ElementController {
 	}
 
 	@GetMapping("/{noteId}/pdf")
-	public ResponseEntity<byte[]> getNoteAsPDF(@PathVariable int noteId) throws SQLException {
-		final byte[] pdf = noteService.getPDFOfNote(noteId, getUser());
+	public ResponseEntity<String> getNoteAsPDF(@PathVariable int noteId) throws SQLException {
+		final String pdf = noteService.getPDFOfNote(noteId, getUser());
 		return ResponseEntity.ok(pdf);
 	}
 
-	@PutMapping("/{noteId}/pdf")
-	public ResponseEntity<Void> updatePDFOfNote(@PathVariable int noteId, @RequestBody final byte[] pdfData)
+	@PostMapping("/{noteId}/pdf")
+	public ResponseEntity<Void> updatePDFOfNote(@PathVariable int noteId, @RequestBody final String pdfData)
 			throws SQLException {
 		noteService.updatePDFOfNote(noteId, getUser(), pdfData);
+		return ResponseEntity
+				.ok()
+				.build();
+	}
+
+	@DeleteMapping("/{elementId}/pdf")
+	public ResponseEntity<Void> deletePDFOfNote(@PathVariable int elementId){
+		noteService.deletePDFOfNoteById(elementId, getUser());
 		return ResponseEntity
 				.ok()
 				.build();
