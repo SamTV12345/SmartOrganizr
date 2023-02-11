@@ -37,7 +37,11 @@ public interface Note extends Element{
 	int getNumberOfPages();
 	void setNumberOfPages(int numberOfPages);
 
-	Blob getPdfContent();
+	String getPdfContent();
 
-	void setPdfContent(Blob pdfContent);
+	void setPdfContent(String pdfContent);
+
+	void setPdfAvailable(boolean pdfAvailable);
+
+	boolean isPdfAvailable();
 }

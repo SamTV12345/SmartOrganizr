@@ -13,11 +13,14 @@ import jakarta.persistence.Lob;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
+import jakarta.persistence.PostLoad;
+import jakarta.persistence.Transient;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.Type;
 import org.springframework.context.annotation.Lazy;
 
@@ -40,6 +43,9 @@ public class NoteHibernateImpl extends ElementHibernateImpl implements Note, Ser
 	private Author author;
 	@Column(columnDefinition = "integer default 0")
 	private int numberOfPages;
+	@Column(columnDefinition="BIT DEFAULT 0",nullable = false)
+	private boolean pdfAvailable;
+
 
 	public NoteHibernateImpl(final Calendar creationDate, final int id,
 	                         final Folder parent, final String description,
@@ -59,8 +65,8 @@ public class NoteHibernateImpl extends ElementHibernateImpl implements Note, Ser
 
 	@Lazy
 	@Lob
-	@Column(columnDefinition="bytea")
-	private Blob pdfContent;
+	@Column(columnDefinition="TEXT")
+	private String pdfContent;
 
 	@Override
 	public void setTitle(final String name) {

@@ -5,7 +5,6 @@ import {SideBarItem} from "./SideBarItem";
 
 export const SideBar  = ()=>{
   const sideBarCollapsed = useAppSelector(state=>state.commonReducer.sideBarCollapsed)
-  const navigate = useNavigate()
   const {t} = useTranslation()
 
 
