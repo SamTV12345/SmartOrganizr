@@ -45,3 +45,13 @@ After installation, you can start and use SmartOrganizr like any other web based
 - For development purposes, you can also start the application with ``mvn spring-boot:run -Dspring-boot.run.profiles=dev``. This will start the application with CORS enabled. So you can start the React application with live reloading. This should only be used for development purposes as it opens your server for XSS.
 
 If you face any problem you can open an issue on [GitHub](https://github.com/SamTV12345/SmartOrganizr/issues).
+
+
+## Migration Guide
+
+### 0.1.0 -> 0.2.0
+
+- Execute the SQL command 
+```mysql
+ UPDATE elements SET pdf_available=0 WHERE type='Note';
+```

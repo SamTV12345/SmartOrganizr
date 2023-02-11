@@ -147,11 +147,12 @@ const TreeNode:FC<TreeDataExpanded> = ({ keyNum,icon,children,author
                         dispatch(setSelectedFolder({id: keyNum, length,numberOfPages,author,description,name,type} as ElementItem))
                         dispatch(setModalOpen(true))
                     }}/>
-                    {type==='Note' && pdfAvailable &&
-                        <><i className="fa-solid fa-upload ml-2" onClick={()=>{
+                    {type==='Note' &&
+                        <i className="fa-solid fa-upload ml-2" onClick={()=>{
                         dispatch(setSelectedFolder({id: keyNum, length,numberOfPages,author,description,name,type} as ElementItem))
                         dispatch(setNotePDFUploadOpen(true))
-                    }}/>
+                    }}/>}
+                    {pdfAvailable &&
                             <i className="fa-solid fa-eye ml-2" onClick={()=>{
                                 axios.get(apiURL+`/v1/elements/${keyNum}/pdf`)
                                     .then((response:AxiosResponse<string>) => {
@@ -160,7 +161,7 @@ const TreeNode:FC<TreeDataExpanded> = ({ keyNum,icon,children,author
                                     console.log(error)
                                 })
                             }}/>
-                        </>}
+                    }
                 </div>
             </div>
 
