@@ -46,7 +46,6 @@ After installation, you can start and use SmartOrganizr like any other web based
 
 If you face any problem you can open an issue on [GitHub](https://github.com/SamTV12345/SmartOrganizr/issues).
 
-
 ## Migration Guide
 
 ### 0.1.0 -> 0.2.0
