@@ -51,7 +51,6 @@ If you face any problem you can open an issue on [GitHub](https://github.com/Sam
 
 ### 0.1.0 -> 0.2.0
 
-
 - Execute the SQL command 
 ```mysql
  UPDATE elements SET pdf_available=0 WHERE type='Note';
