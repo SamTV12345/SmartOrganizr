@@ -54,3 +54,5 @@ If you face any problem you can open an issue on [GitHub](https://github.com/Sam
 ```mysql
  UPDATE elements SET pdf_available=0 WHERE type='Note';
 ```
+
+
