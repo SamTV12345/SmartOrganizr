@@ -55,4 +55,7 @@ If you face any problem you can open an issue on [GitHub](https://github.com/Sam
  UPDATE elements SET pdf_available=0 WHERE type='Note';
 ```
 
+License
+-------
 
+SmartOrganizr is licensed under the [MIT License](LICENSE).
