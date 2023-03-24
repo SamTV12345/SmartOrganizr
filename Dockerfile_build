@@ -7,12 +7,8 @@ ENV MAVEN_SETTINGS_PATH=/.m2/settings.xml
 
 RUN mvn -f /usr/src/myapp/pom.xml package -Dmaven.repo.local=/.m2/repository -s /.m2/settings.xml
 
-FROM talk.schwanzer.online/dockerhub_proxy/library/alpine:latest AS runtime
+FROM docker-registry.schwanzer.online/public/java20 AS runtime
 
-# Install java runtime as the produces image will be slightly smaller
-# than using an jdk base image.
-RUN apk --no-cache add openjdk19-jre-headless \
-	--repository=http://dl-cdn.alpinelinux.org/alpine/edge/testing
 
 # Copy the package
 COPY --from=build /usr/src/myapp/api/target/*-SNAPSHOT.jar \
