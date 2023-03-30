@@ -24,7 +24,7 @@ public class WebSecurity {
 		http.securityMatcher("/api/v1/**")
 				.authorizeHttpRequests()
 		    .requestMatchers(staticResources).permitAll()
-		    .requestMatchers("**/media/**").permitAll()
+		    .requestMatchers("/**/media/").permitAll()
 		    .requestMatchers("/api/public/**").permitAll()
 		    .requestMatchers("/login*").permitAll()
 		    .requestMatchers("/").permitAll()
