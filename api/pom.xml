@@ -17,7 +17,7 @@
 		<java.version>20</java.version>
 		<maven.build.timestamp.format>yyyyMMdd-HHmmssSSS</maven.build.timestamp.format>
 		<lombok.version>1.18.26</lombok.version>
-		<mapstruct.version>1.5.3.Final</mapstruct.version>
+		<mapstruct.version>1.5.4.Final</mapstruct.version>
 	</properties>
 
 	<name>SmartOrganizr</name>
