@@ -17,7 +17,7 @@
 		<java.version>20</java.version>
 		<maven.build.timestamp.format>yyyyMMdd-HHmmssSSS</maven.build.timestamp.format>
 		<lombok.version>1.18.26</lombok.version>
-		<mapstruct.version>1.5.3.Final</mapstruct.version>
+		<mapstruct.version>1.5.4.Final</mapstruct.version>
 	</properties>
 
 	<name>SmartOrganizr</name>
@@ -50,7 +50,7 @@
 		<dependency>
 			<groupId>org.bouncycastle</groupId>
 			<artifactId>bcprov-jdk18on</artifactId>
-			<version>1.72</version>
+			<version>1.73</version>
 		</dependency>
 
 		<dependency>
@@ -146,7 +146,7 @@
 		<dependency>
 			<groupId>org.springdoc</groupId>
 			<artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
-			<version>2.0.3</version>
+			<version>2.1.0</version>
 		</dependency>
 		<!-- https://mvnrepository.com/artifact/org.hibernate.validator/hibernate-validator -->
 		<dependency>
