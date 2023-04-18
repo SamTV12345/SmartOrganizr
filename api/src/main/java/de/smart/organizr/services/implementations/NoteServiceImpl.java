@@ -4,6 +4,7 @@ import de.smart.organizr.dao.interfaces.AuthorDao;
 import de.smart.organizr.dao.interfaces.FolderDao;
 import de.smart.organizr.dao.interfaces.NoteDao;
 import de.smart.organizr.dao.interfaces.UserDao;
+import de.smart.organizr.dto.FindNotePositionModel;
 import de.smart.organizr.dto.NotePatchDto;
 import de.smart.organizr.dto.NotePostDto;
 import de.smart.organizr.entities.classes.NoteHibernateImpl;
@@ -24,6 +25,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.SQLException;
 import java.util.Calendar;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -129,5 +131,36 @@ public class NoteServiceImpl implements NoteService {
 				ElementException.createElementUnknown(noteId));
 		note.setPdfAvailable(false);
 		note.setPdfContent(null);
+	}
+
+	@Override
+	public FindNotePositionModel findPositionOfNoteInFolder(final int noteId, final User user) {
+		final Note note = noteDao.findNoteByIdAndUser(noteId, user).orElseThrow(()->
+				ElementException.createElementUnknown(noteId));
+		final List<Note> notes = folderDao.findAllChildren(user.getUserId(),note.getParent().getId())
+				.stream().filter(element -> element instanceof Note)
+				                                .map(a->(Note)a).toList();
+		int position = 0;
+		Note prevNote;
+		Note nextNote;
+		for (final Note note1 : notes) {
+			if(note1.getId() == noteId){
+				break;
+			}
+			position++;
+		}
+
+		if(position == 0){
+			prevNote = null;
+		}else{
+			prevNote = notes.get(position-1);
+		}
+
+		if(position == notes.size()-1){
+			nextNote = null;
+		}else{
+			nextNote = notes.get(position+1);
+		}
+		return new FindNotePositionModel(prevNote, nextNote, position);
 	}
 }

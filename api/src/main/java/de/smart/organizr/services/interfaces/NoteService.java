@@ -1,5 +1,6 @@
 package de.smart.organizr.services.interfaces;
 
+import de.smart.organizr.dto.FindNotePositionModel;
 import de.smart.organizr.dto.NotePatchDto;
 import de.smart.organizr.dto.NotePostDto;
 import de.smart.organizr.entities.interfaces.Note;
@@ -44,4 +45,6 @@ public interface NoteService {
 	void updatePDFOfNote(final int noteId, final User userId, final String pdfContent) throws SQLException;
 
 	void deletePDFOfNoteById(int noteId, User userId);
+
+	FindNotePositionModel findPositionOfNoteInFolder(int noteId, User user);
 }

@@ -2,6 +2,7 @@ package de.smart.organizr.controllers;
 
 import de.smart.organizr.dto.ElementRepresentationModel;
 import de.smart.organizr.dto.ElementResourceAssembler;
+import de.smart.organizr.dto.FindNotePositionModel;
 import de.smart.organizr.dto.FolderDtoMapper;
 import de.smart.organizr.dto.FolderPatchDto;
 import de.smart.organizr.dto.FolderPostDto;
@@ -142,6 +143,12 @@ public class ElementController {
 		Collection<Element> children = folderService.findChildren(user.getUserId(), folderId);
 
 		return ResponseEntity.ok(addChildrenLinkIfFolder(children));
+	}
+
+	@GetMapping("/{noteId}/position")
+	public ResponseEntity<FindNotePositionModel> findPositionOfNoteInFolder(@PathVariable int noteId) {
+		final User user = getUser();
+		return ResponseEntity.ok(noteService.findPositionOfNoteInFolder(noteId, user));
 	}
 
 	@PatchMapping("/{from}/{to}")

@@ -11,8 +11,8 @@ FROM alpine:latest AS runtime
 
 # Install java runtime as the produces image will be slightly smaller
 # than using an jdk base image.
-RUN apk --no-cache add openjdk17-jre-headless \
-	--repository=http://dl-cdn.alpinelinux.org/alpine/edge/community
+RUN apk --no-cache add openjdk20-jre-headless \
+	--repository=http://dl-cdn.alpinelinux.org/alpine/edge/testing
 
 # Copy the package
 COPY --from=build /usr/src/myapp/api/target/*-SNAPSHOT.jar \
