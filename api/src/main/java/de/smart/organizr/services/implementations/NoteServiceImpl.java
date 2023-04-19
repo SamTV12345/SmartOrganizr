@@ -137,9 +137,7 @@ public class NoteServiceImpl implements NoteService {
 	public FindNotePositionModel findPositionOfNoteInFolder(final int noteId, final User user) {
 		final Note note = noteDao.findNoteByIdAndUser(noteId, user).orElseThrow(()->
 				ElementException.createElementUnknown(noteId));
-		final List<Note> notes = folderDao.findAllChildren(user.getUserId(),note.getParent().getId())
-				.stream().filter(element -> element instanceof Note)
-				                                .map(a->(Note)a).toList();
+		final List<Note> notes = folderDao.findAllNotesInFolder(user.getUserId(),note.getParent().getId());
 		int position = 0;
 		Note prevNote;
 		Note nextNote;

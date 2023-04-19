@@ -4,12 +4,14 @@ import de.smart.organizr.dao.interfaces.FolderDao;
 import de.smart.organizr.entities.classes.FolderHibernateImpl;
 import de.smart.organizr.entities.interfaces.Element;
 import de.smart.organizr.entities.interfaces.Folder;
+import de.smart.organizr.entities.interfaces.Note;
 import de.smart.organizr.entities.interfaces.User;
 import de.smart.organizr.repositories.FolderRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
@@ -96,6 +98,11 @@ public class FolderDaoJpaImpl implements FolderDao {
 	@Override
 	public Collection<Element> findAllChildren(final String userId, final int number) {
 		return folderRepository.findAllChildren(userId, number);
+	}
+
+	@Override
+	public List<Note> findAllNotesInFolder(final String userId, final int folderId) {
+		return folderRepository.findAllChildrenNotes(userId, folderId);
 	}
 
 	@Override

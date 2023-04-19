@@ -3,6 +3,7 @@ package de.smart.organizr.repositories;
 import de.smart.organizr.entities.classes.FolderHibernateImpl;
 import de.smart.organizr.entities.interfaces.Element;
 import de.smart.organizr.entities.interfaces.Folder;
+import de.smart.organizr.entities.interfaces.Note;
 import de.smart.organizr.entities.interfaces.User;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -12,6 +13,7 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
@@ -31,6 +33,10 @@ public interface FolderRepository extends CrudRepository<FolderHibernateImpl, In
 
 	@Query("SELECT e FROM ElementHibernateImpl as e WHERE e.creator.userId=:userId and e.parent.id=:number")
 	Collection<Element> findAllChildren(String userId, int number);
+
+	@Query("SELECT e FROM NoteHibernateImpl as e WHERE e.creator.userId=:userId and e.parent.id=:number ORDER BY e" +
+			".title ASC")
+	List<Note> findAllChildrenNotes(String userId, int number);
 
 	@Query("SELECT e FROM ElementHibernateImpl as e WHERE e.creator.userId=:username AND e.id=:elementId")
 	Optional<Element> findElementByIdAndUsername(int elementId, String username);
