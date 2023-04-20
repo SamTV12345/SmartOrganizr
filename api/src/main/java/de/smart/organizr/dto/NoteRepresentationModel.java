@@ -19,4 +19,5 @@ public class NoteRepresentationModel extends RepresentationModel<ElementRepresen
 	private Folder parent;
 	@JsonIgnoreProperties({"id", "creator"})
 	private Author author;
+	private boolean pdfAvailable;
 }
