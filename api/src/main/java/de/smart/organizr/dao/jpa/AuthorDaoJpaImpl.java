@@ -8,6 +8,7 @@ import de.smart.organizr.repositories.AuthorRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
+import java.util.Collection;
 import java.util.Optional;
 
 /**
@@ -28,6 +29,11 @@ public class AuthorDaoJpaImpl implements AuthorDao {
 	@Override
 	public Page<Author> findAllAuthorsOfUser(final User user, final Pageable pageable){
 		return authorRepository.findAllByCreator(user.getUserId(), pageable);
+	}
+
+	@Override
+	public Collection<Author> findAllAuthorsOfUser(final User user) {
+		return authorRepository.findByCreatorUserId(user.getUserId());
 	}
 
 	@Override

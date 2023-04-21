@@ -24,4 +24,6 @@ public interface NoteRepository extends CrudRepository<NoteHibernateImpl, Intege
 	@Query("SELECT note FROM NoteHibernateImpl note WHERE note.creator" +
 			".userId=:userId")
 	Page<Note> findNotesByName(String userId, Pageable pageable);
+
+	List<Note> findByCreatorUserId(String userId);
 }

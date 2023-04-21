@@ -7,12 +7,15 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 
+import java.util.List;
 import java.util.Optional;
 
 
 public interface AuthorRepository extends CrudRepository<AuthorHibernateImpl,Integer> {
 	@Query("SELECT a FROM AuthorHibernateImpl a WHERE a.creator.userId=:userId")
 	Page<Author> findAllByCreator(final String userId, final Pageable pageable);
+
+	List<Author> findByCreatorUserId(String userId);
 
 	@Query("SELECT a FROM AuthorHibernateImpl a WHERE a.creator.userId=:userId AND " +
 			"(a.name LIKE CONCAT('%',:searchText,'%') OR a.extraInformation LIKE CONCAT('%',:searchText,'%'))")

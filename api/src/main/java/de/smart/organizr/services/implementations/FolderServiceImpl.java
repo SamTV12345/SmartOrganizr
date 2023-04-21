@@ -1,11 +1,14 @@
 package de.smart.organizr.services.implementations;
 
+import de.smart.organizr.dao.interfaces.AuthorDao;
 import de.smart.organizr.dao.interfaces.FolderDao;
 import de.smart.organizr.dao.interfaces.NoteDao;
 import de.smart.organizr.dao.interfaces.UserDao;
+import de.smart.organizr.dto.DataExporter;
 import de.smart.organizr.dto.FolderPatchDto;
 import de.smart.organizr.dto.FolderPostDto;
 import de.smart.organizr.entities.classes.FolderHibernateImpl;
+import de.smart.organizr.entities.interfaces.Author;
 import de.smart.organizr.entities.interfaces.Element;
 import de.smart.organizr.entities.interfaces.Folder;
 import de.smart.organizr.entities.interfaces.Note;
@@ -20,6 +23,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collection;
@@ -33,8 +37,7 @@ public class FolderServiceImpl implements FolderService {
 	private final UserDao userDao;
 	private final NoteDao noteDao;
 	private final NoteInConcertRepository noteInConcertRepository;
-
-
+	private final AuthorDao authorDao;
 
 	@Override
 	public List<Folder> findAllFolders(final String userId){
@@ -175,5 +178,14 @@ public class FolderServiceImpl implements FolderService {
 			noteInConcertRepository.deleteNoteById(n.getId());
 			noteDao.deleteById(n.getId());
 		}
+	}
+
+	@Override
+	public DataExporter getOfflineData(final String userId) {
+		final User user = userDao.findUserByUserName(userId).orElseThrow(UserException::createUnknownUserException);
+		Collection<Folder> folders = folderDao.findAllFolders(user);
+		final Collection<Author> authors = authorDao.findAllAuthorsOfUser(user);
+		final Collection<Note> notes = noteDao.findAllNotesByUsername(user);
+		return new DataExporter(authors,folders, notes);
 	}
 }

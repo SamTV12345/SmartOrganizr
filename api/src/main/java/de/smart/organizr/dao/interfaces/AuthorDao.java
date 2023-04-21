@@ -5,6 +5,7 @@ import de.smart.organizr.entities.interfaces.User;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
+import java.util.Collection;
 import java.util.Optional;
 
 /**
@@ -17,6 +18,8 @@ public interface AuthorDao {
 	 * @return a set of authors
 	 */
 	Page<Author> findAllAuthorsOfUser(User user, Pageable pageable);
+
+	Collection<Author> findAllAuthorsOfUser(User user);
 
 	/**
 	 * Saves/updates an author

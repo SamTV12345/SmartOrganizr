@@ -1,5 +1,6 @@
 package de.smart.organizr.services.interfaces;
 
+import de.smart.organizr.dto.DataExporter;
 import de.smart.organizr.dto.FolderPatchDto;
 import de.smart.organizr.dto.FolderPostDto;
 import de.smart.organizr.entities.interfaces.Element;
@@ -8,6 +9,7 @@ import de.smart.organizr.entities.interfaces.User;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
+import java.sql.SQLException;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
@@ -70,4 +72,6 @@ public interface FolderService {
 	Page<Folder> findAllFoldersWithName(String folderName, User user, Pageable pageable);
 
 	void deleteElementByIdAndUser(int elementId, String userId);
+
+	DataExporter getOfflineData(String userId);
 }
