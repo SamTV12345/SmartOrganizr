@@ -1,17 +1,8 @@
-FROM talk.schwanzer.online/dockerhub_proxy/library/maven:3.9.3-amazoncorretto-20 as build
-
-ADD . /usr/src/myapp
-COPY settings.xml /.m2/settings.xml
-ENV MAVEN_SETTINGS_PATH=/.m2/settings.xml
-
-
-RUN mvn -f /usr/src/myapp/pom.xml package -Dmaven.repo.local=/.m2/repository -s /.m2/settings.xml
-
 FROM docker-registry.schwanzer.online/public/java20 AS runtime
 
 
 # Copy the package
-COPY --from=build /usr/src/myapp/api/target/*-SNAPSHOT.jar \
+COPY ./target/*-SNAPSHOT.jar \
 	/app/smartOrganizr.jar
 
 WORKDIR /app
