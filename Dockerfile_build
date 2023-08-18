@@ -1,5 +1,4 @@
-FROM maven@sha256:d451510cd35ed056fceae676bfd54d2bdfc783283888f5853831e3082dad38b0 AS runtime
-
+FROM amazoncorretto:20-alpine AS runtime
 
 # Copy the package
 COPY ./api/target/*-SNAPSHOT.jar \
