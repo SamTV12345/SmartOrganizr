@@ -1,4 +1,4 @@
-FROM docker-registry.schwanzer.online/public/java20 AS runtime
+FROM maven:3.9.3-amazoncorretto-20 AS runtime
 
 
 # Copy the package
