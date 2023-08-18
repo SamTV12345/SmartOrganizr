@@ -2,9 +2,9 @@ FROM maven:3.9.3-amazoncorretto-20 AS runtime
 
 
 # Copy the package
-COPY ./target/*-SNAPSHOT.jar \
+COPY ./api/target/*-SNAPSHOT.jar \
 	/app/smartOrganizr.jar
 
 WORKDIR /app
-ENTRYPOINT  ["java", "-jar","--add-opens","java.base/java.lang=ALL-UNNAMED","smartOrganizr.jar"]
+ENTRYPOINT  ["java", "-jar","smartOrganizr.jar"]
 EXPOSE 8080
