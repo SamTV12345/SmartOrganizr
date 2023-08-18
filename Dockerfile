@@ -1,4 +1,4 @@
-FROM maven:3.8-eclipse-temurin-20 as build
+FROM maven:3.9.3-amazoncorretto-20 as build
 
 ADD . /usr/src/myapp
 COPY settings.xml /.m2/settings.xml
