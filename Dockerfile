@@ -1,4 +1,4 @@
-FROM maven:3.9.3-amazoncorretto-20 as build
+FROM maven:3-amazoncorretto-21-debian as build
 
 ADD . /usr/src/myapp
 COPY settings.xml /.m2/settings.xml
@@ -11,7 +11,7 @@ FROM alpine:latest AS runtime
 
 # Install java runtime as the produces image will be slightly smaller
 # than using an jdk base image.
-RUN apk --no-cache add openjdk20-jre-headless \
+RUN apk --no-cache add openjdk21-jre-headless \
 	--repository=http://dl-cdn.alpinelinux.org/alpine/edge/testing
 
 # Copy the package
