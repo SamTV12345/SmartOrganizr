@@ -6,8 +6,8 @@ services:
     restart: unless-stopped
     ports:
       - "3306:3306"
-    volumes:
-      - ./data/data:/var/lib/mysql
+    #volumes:
+    #  - ./data/data:/var/lib/mysql
     environment:
       - MYSQL_ROOT_PASSWORD=password #SQL root Passwort eingeben
       - MYSQL_PASSWORD=smartOrganizr #SQL Benutzer Passwort eingeben
