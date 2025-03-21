@@ -38,7 +38,7 @@ CREATE TABLE `elements` (
     `parent` int(11) DEFAULT NULL,
     `author_id_fk` int(11) DEFAULT NULL,
     `pdf_content` mediumblob DEFAULT NULL,
-    `pdf_available` bit(1) DEFAULT b'0'
+    `pdf_available` BOOL DEFAULT false
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 

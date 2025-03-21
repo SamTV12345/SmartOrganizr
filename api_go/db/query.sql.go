@@ -28,6 +28,30 @@ func (q *Queries) CreateAuthor(ctx context.Context, arg CreateAuthorParams) (int
 	return result.LastInsertId()
 }
 
+const createUser = `-- name: CreateUser :execlastid
+INSERT INTO user (user_id, username, selected_theme, side_bar_collapsed) VALUES (?, ?, ?, ?)
+`
+
+type CreateUserParams struct {
+	UserID           string
+	Username         sql.NullString
+	SelectedTheme    sql.NullString
+	SideBarCollapsed interface{}
+}
+
+func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (int64, error) {
+	result, err := q.db.ExecContext(ctx, createUser,
+		arg.UserID,
+		arg.Username,
+		arg.SelectedTheme,
+		arg.SideBarCollapsed,
+	)
+	if err != nil {
+		return 0, err
+	}
+	return result.LastInsertId()
+}
+
 const deleteAuthor = `-- name: DeleteAuthor :exec
 DELETE FROM authors WHERE id = ? AND user_id_fk = ?
 `
@@ -156,8 +180,52 @@ func (q *Queries) FindAllByCreator(ctx context.Context, arg FindAllByCreatorPara
 	return items, nil
 }
 
+const findAllFoldersByCreator = `-- name: FindAllFoldersByCreator :many
+SELECT creation_date, id, name, parent, description, user_id_fk FROM elements as folders WHERE type ='folder' AND user_id_fk = ? ORDER BY title
+`
+
+type FindAllFoldersByCreatorRow struct {
+	CreationDate sql.NullTime
+	ID           int32
+	Name         sql.NullString
+	Parent       sql.NullInt32
+	Description  sql.NullString
+	UserIDFk     sql.NullString
+}
+
+// type: Folder
+func (q *Queries) FindAllFoldersByCreator(ctx context.Context, userIDFk sql.NullString) ([]FindAllFoldersByCreatorRow, error) {
+	rows, err := q.db.QueryContext(ctx, findAllFoldersByCreator, userIDFk)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []FindAllFoldersByCreatorRow
+	for rows.Next() {
+		var i FindAllFoldersByCreatorRow
+		if err := rows.Scan(
+			&i.CreationDate,
+			&i.ID,
+			&i.Name,
+			&i.Parent,
+			&i.Description,
+			&i.UserIDFk,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const findAllNotesByAuthor = `-- name: FindAllNotesByAuthor :many
-SELECT type, id, creation_date, description, name, number_of_pages, title, user_id_fk, parent, author_id_fk, pdf_content, pdf_available FROM elements WHERE type ='note' AND author_id_fk = ? AND user_id_fk = ? ORDER BY title
+SELECT creation_date, id, name, parent, description, user_id_fk, title, author_id_fk, number_of_pages, pdf_available FROM elements WHERE type ='note' AND author_id_fk = ? AND user_id_fk = ? ORDER BY title
 `
 
 type FindAllNotesByAuthorParams struct {
@@ -165,8 +233,111 @@ type FindAllNotesByAuthorParams struct {
 	UserIDFk   sql.NullString
 }
 
-func (q *Queries) FindAllNotesByAuthor(ctx context.Context, arg FindAllNotesByAuthorParams) ([]Element, error) {
+type FindAllNotesByAuthorRow struct {
+	CreationDate  sql.NullTime
+	ID            int32
+	Name          sql.NullString
+	Parent        sql.NullInt32
+	Description   sql.NullString
+	UserIDFk      sql.NullString
+	Title         sql.NullString
+	AuthorIDFk    sql.NullInt32
+	NumberOfPages sql.NullInt32
+	PdfAvailable  sql.NullBool
+}
+
+func (q *Queries) FindAllNotesByAuthor(ctx context.Context, arg FindAllNotesByAuthorParams) ([]FindAllNotesByAuthorRow, error) {
 	rows, err := q.db.QueryContext(ctx, findAllNotesByAuthor, arg.AuthorIDFk, arg.UserIDFk)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []FindAllNotesByAuthorRow
+	for rows.Next() {
+		var i FindAllNotesByAuthorRow
+		if err := rows.Scan(
+			&i.CreationDate,
+			&i.ID,
+			&i.Name,
+			&i.Parent,
+			&i.Description,
+			&i.UserIDFk,
+			&i.Title,
+			&i.AuthorIDFk,
+			&i.NumberOfPages,
+			&i.PdfAvailable,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const findAllNotesByCreator = `-- name: FindAllNotesByCreator :many
+SELECT creation_date, id, name, parent, description, user_id_fk, title, author_id_fk, number_of_pages, pdf_available FROM elements WHERE type ='note' AND user_id_fk = ? ORDER BY title
+`
+
+type FindAllNotesByCreatorRow struct {
+	CreationDate  sql.NullTime
+	ID            int32
+	Name          sql.NullString
+	Parent        sql.NullInt32
+	Description   sql.NullString
+	UserIDFk      sql.NullString
+	Title         sql.NullString
+	AuthorIDFk    sql.NullInt32
+	NumberOfPages sql.NullInt32
+	PdfAvailable  sql.NullBool
+}
+
+// type: Note
+func (q *Queries) FindAllNotesByCreator(ctx context.Context, userIDFk sql.NullString) ([]FindAllNotesByCreatorRow, error) {
+	rows, err := q.db.QueryContext(ctx, findAllNotesByCreator, userIDFk)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []FindAllNotesByCreatorRow
+	for rows.Next() {
+		var i FindAllNotesByCreatorRow
+		if err := rows.Scan(
+			&i.CreationDate,
+			&i.ID,
+			&i.Name,
+			&i.Parent,
+			&i.Description,
+			&i.UserIDFk,
+			&i.Title,
+			&i.AuthorIDFk,
+			&i.NumberOfPages,
+			&i.PdfAvailable,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const findAllSubElements = `-- name: FindAllSubElements :many
+SELECT type, id, creation_date, description, name, number_of_pages, title, user_id_fk, parent, author_id_fk, pdf_content, pdf_available FROM elements WHERE parent = ? ORDER BY title
+`
+
+func (q *Queries) FindAllSubElements(ctx context.Context, parent sql.NullInt32) ([]Element, error) {
+	rows, err := q.db.QueryContext(ctx, findAllSubElements, parent)
 	if err != nil {
 		return nil, err
 	}
@@ -296,5 +467,26 @@ type UpdateAuthorParams struct {
 
 func (q *Queries) UpdateAuthor(ctx context.Context, arg UpdateAuthorParams) error {
 	_, err := q.db.ExecContext(ctx, updateAuthor, arg.Name, arg.ExtraInformation, arg.ID)
+	return err
+}
+
+const updateUser = `-- name: UpdateUser :exec
+UPDATE user SET username = ?, selected_theme = ?, side_bar_collapsed = ? WHERE user_id = ?
+`
+
+type UpdateUserParams struct {
+	Username         sql.NullString
+	SelectedTheme    sql.NullString
+	SideBarCollapsed interface{}
+	UserID           string
+}
+
+func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) error {
+	_, err := q.db.ExecContext(ctx, updateUser,
+		arg.Username,
+		arg.SelectedTheme,
+		arg.SideBarCollapsed,
+		arg.UserID,
+	)
 	return err
 }

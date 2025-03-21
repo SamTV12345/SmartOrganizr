@@ -38,4 +38,23 @@ SELECT * FROM concert WHERE id = ?;
 
 
 -- name: FindAllNotesByAuthor :many
-SELECT * FROM elements WHERE type ='note' AND author_id_fk = ? AND user_id_fk = ? ORDER BY title;
+SELECT creation_date, id, name, parent, description, user_id_fk, title, author_id_fk, number_of_pages, pdf_available FROM elements WHERE type ='note' AND author_id_fk = ? AND user_id_fk = ? ORDER BY title;
+
+
+-- name: CreateUser :execlastid
+INSERT INTO user (user_id, username, selected_theme, side_bar_collapsed) VALUES (?, ?, ?, ?);
+
+-- name: UpdateUser :exec
+UPDATE user SET username = ?, selected_theme = ?, side_bar_collapsed = ? WHERE user_id = ?;
+
+-- name: FindAllFoldersByCreator :many
+-- type: Folder
+SELECT creation_date, id, name, parent, description, user_id_fk FROM elements as folders WHERE type ='folder' AND user_id_fk = ? ORDER BY title;
+
+
+-- name: FindAllSubElements :many
+SELECT * FROM elements WHERE parent = ? ORDER BY title;
+
+-- name: FindAllNotesByCreator :many
+-- type: Note
+SELECT creation_date, id, name, parent, description, user_id_fk, title, author_id_fk, number_of_pages, pdf_available FROM elements WHERE type ='note' AND user_id_fk = ? ORDER BY title;

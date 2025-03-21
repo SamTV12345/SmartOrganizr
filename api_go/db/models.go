@@ -41,7 +41,7 @@ type Element struct {
 	Parent        sql.NullInt32
 	AuthorIDFk    sql.NullInt32
 	PdfContent    sql.NullString
-	PdfAvailable  interface{}
+	PdfAvailable  sql.NullBool
 }
 
 type NoteInConcert struct {
