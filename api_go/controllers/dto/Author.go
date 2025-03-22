@@ -2,20 +2,19 @@ package dto
 
 import (
 	"api_go/db"
-	"database/sql"
 )
 
 type Author struct {
-	ID               int32          `json:"id"`
-	ExtraInformation sql.NullString `json:"extraInformation"`
-	Name             sql.NullString `json:"name"`
+	ID               string `json:"id"`
+	ExtraInformation string `json:"extraInformation"`
+	Name             string `json:"name"`
 }
 
 func ConvertFromEntity(entity db.Author) Author {
 	return Author{
 		ID:               entity.ID,
-		ExtraInformation: entity.ExtraInformation,
-		Name:             entity.Name,
+		ExtraInformation: entity.ExtraInformation.String,
+		Name:             entity.Name.String,
 	}
 }
 

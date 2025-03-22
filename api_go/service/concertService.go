@@ -50,9 +50,9 @@ func (c *ConcertService) LoadNotesInConcert(concertId string) ([]models.NoteInCo
 			creator = &user
 		}
 		author, _ := c.Queries.FindAuthorById(c.Ctx, db.FindAuthorByIdParams{
-			ID: noteToFind.AuthorIDFk.Int32,
+			ID: noteToFind.AuthorIDFk.String,
 			UserIDFk: sql.NullString{
-				String: creator.UserID,
+				String: creator.ID,
 				Valid:  true,
 			},
 		})
@@ -90,7 +90,7 @@ func (c *ConcertService) LoadConcert(userId string, concertId string) (*models.C
 	for _, noteInConcert := range notesInConcert {
 		note, _ := c.Queries.FindNoteById(c.Ctx, noteInConcert.NoteIDFk)
 		author, _ := c.Queries.FindAuthorById(c.Ctx, db.FindAuthorByIdParams{
-			ID: note.AuthorIDFk.Int32,
+			ID: note.AuthorIDFk.String,
 			UserIDFk: sql.NullString{
 				String: note.UserIDFk.String,
 				Valid:  true,

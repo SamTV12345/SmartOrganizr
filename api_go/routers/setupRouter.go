@@ -71,7 +71,7 @@ func SetupRouter(queries *db.Queries, config config.AppConfig) *fiber.App {
 
 	profile.Route("v1/authors", func(r fiber.Router) {
 		r.Get("/", controllers.GetAuthors)
-		r.Get("/:authorId/notes", controllers.GetNotes)
+		r.Get("/:authorId/notes", controllers.GetNotesOfAuthor)
 		r.Patch("/:authorId", controllers.UpdateAuthor)
 		r.Delete("/:authorId", controllers.DeleteAuthor)
 		r.Post("/", controllers.CreateAuthor)
@@ -86,6 +86,10 @@ func SetupRouter(queries *db.Queries, config config.AppConfig) *fiber.App {
 
 	profile.Route("v1/elements", func(r fiber.Router) {
 		r.Get("/parentDecks", controllers.GetParentDecks)
+		r.Get("/notes", controllers.GetNotes)
+		r.Post("/folders", controllers.CreateFolder)
+		r.Get("/:folderId/children", controllers.FindNextChildren)
+		r.Get("/folders", controllers.SearchFolders)
 	})
 
 	return app

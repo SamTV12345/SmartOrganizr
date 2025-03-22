@@ -34,7 +34,7 @@ func (n NoteService) LoadAllNotes(userId string) ([]models.Note, error) {
 			creator = &user
 		}
 		author, err := n.Queries.FindAuthorById(n.Ctx, db.FindAuthorByIdParams{
-			ID: noteDB.AuthorIDFk.Int32,
+			ID: noteDB.AuthorIDFk.String,
 			UserIDFk: sql.NullString{
 				String: userId,
 				Valid:  true,

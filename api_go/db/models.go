@@ -9,7 +9,7 @@ import (
 )
 
 type Author struct {
-	ID               int32
+	ID               string
 	ExtraInformation sql.NullString
 	Name             sql.NullString
 	UserIDFk         sql.NullString
@@ -31,27 +31,27 @@ type Concert struct {
 
 type Element struct {
 	Type          string
-	ID            int32
+	ID            string
 	CreationDate  sql.NullTime
 	Description   sql.NullString
 	Name          sql.NullString
 	NumberOfPages sql.NullInt32
 	Title         sql.NullString
 	UserIDFk      sql.NullString
-	Parent        sql.NullInt32
-	AuthorIDFk    sql.NullInt32
+	Parent        sql.NullString
+	AuthorIDFk    sql.NullString
 	PdfContent    sql.NullString
 	PdfAvailable  sql.NullBool
 }
 
 type NoteInConcert struct {
 	ConcertIDFk    string
-	NoteIDFk       int32
+	NoteIDFk       string
 	PlaceInConcert sql.NullInt32
 }
 
 type User struct {
-	UserID           string
+	ID               string
 	SelectedTheme    sql.NullString
 	SideBarCollapsed bool
 	Username         sql.NullString

@@ -10,7 +10,7 @@ type Note struct {
 	NumberOfPages int       `json:"numberOfPages"`
 	PdfAvailable  bool      `json:"pdfAvailable"`
 	CreationDate  time.Time `json:"creationDate"`
-	Id            int32     `json:"id"`
+	Id            string    `json:"id"`
 	Name          string    `json:"name"`
 	Parent        Folder    `json:"parent"`
 	Description   string    `json:"description"`

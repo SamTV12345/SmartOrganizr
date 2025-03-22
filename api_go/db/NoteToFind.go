@@ -6,7 +6,7 @@ func (note FindNoteByIdRow) GetCreationDate() time.Time {
 	return note.GetCreationDate()
 }
 
-func (note FindNoteByIdRow) GetId() int32 {
+func (note FindNoteByIdRow) GetId() string {
 	return note.ID
 }
 
@@ -14,7 +14,7 @@ func (note FindNoteByIdRow) GetName() string {
 	return note.Name.String
 }
 
-func (note FindNoteByIdRow) GetParent() int32 {
+func (note FindNoteByIdRow) GetParent() string {
 	return note.ID
 }
 
@@ -34,8 +34,8 @@ func (note FindNoteByIdRow) GetTitle() string {
 	return note.Title.String
 }
 
-func (note FindNoteByIdRow) GetAuthor() int32 {
-	return note.AuthorIDFk.Int32
+func (note FindNoteByIdRow) GetAuthor() string {
+	return note.AuthorIDFk.String
 }
 
 func (note FindNoteByIdRow) GetNumberOfPages() int {

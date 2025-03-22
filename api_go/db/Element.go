@@ -4,9 +4,9 @@ import "time"
 
 type IElement interface {
 	GetCreationDate() time.Time
-	GetId() int32
+	GetId() string
 	GetName() string
-	GetParent() int32
+	GetParent() string
 	GetDescription() string
 	GetCreator() string
 	GetType() string

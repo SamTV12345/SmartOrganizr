@@ -10,18 +10,73 @@ import (
 	"database/sql"
 )
 
+const countFindAllAuthorsByCreator = `-- name: CountFindAllAuthorsByCreator :one
+SELECT COUNT(*) FROM authors
+WHERE user_id_fk = ?
+`
+
+func (q *Queries) CountFindAllAuthorsByCreator(ctx context.Context, userIDFk sql.NullString) (int64, error) {
+	row := q.db.QueryRowContext(ctx, countFindAllAuthorsByCreator, userIDFk)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
+const countFindAllAuthorsByCreatorAndSearchText = `-- name: CountFindAllAuthorsByCreatorAndSearchText :one
+SELECT COUNT(*)
+FROM authors a
+WHERE a.user_id_fk = ?
+  AND (a.name LIKE CONCAT('%', ?, '%')
+    OR a.extra_information LIKE CONCAT('%', ?, '%'))
+`
+
+type CountFindAllAuthorsByCreatorAndSearchTextParams struct {
+	UserIDFk sql.NullString
+	CONCAT   interface{}
+	CONCAT_2 interface{}
+}
+
+func (q *Queries) CountFindAllAuthorsByCreatorAndSearchText(ctx context.Context, arg CountFindAllAuthorsByCreatorAndSearchTextParams) (int64, error) {
+	row := q.db.QueryRowContext(ctx, countFindAllAuthorsByCreatorAndSearchText, arg.UserIDFk, arg.CONCAT, arg.CONCAT_2)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
+const countSearchByFolderName = `-- name: CountSearchByFolderName :one
+SELECT COUNT(*) FROM elements WHERE name LIKE CONCAT('%', ?, '%') and type = 'folder' AND user_id_fk = ?
+`
+
+type CountSearchByFolderNameParams struct {
+	CONCAT   interface{}
+	UserIDFk sql.NullString
+}
+
+func (q *Queries) CountSearchByFolderName(ctx context.Context, arg CountSearchByFolderNameParams) (int64, error) {
+	row := q.db.QueryRowContext(ctx, countSearchByFolderName, arg.CONCAT, arg.UserIDFk)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
 const createAuthor = `-- name: CreateAuthor :execlastid
-INSERT INTO authors (name, extra_information, user_id_fk) VALUES (?, ?, ?)
+INSERT INTO authors (id, name, extra_information, user_id_fk) VALUES (?, ?, ?, ?)
 `
 
 type CreateAuthorParams struct {
+	ID               string
 	Name             sql.NullString
 	ExtraInformation sql.NullString
 	UserIDFk         sql.NullString
 }
 
 func (q *Queries) CreateAuthor(ctx context.Context, arg CreateAuthorParams) (int64, error) {
-	result, err := q.db.ExecContext(ctx, createAuthor, arg.Name, arg.ExtraInformation, arg.UserIDFk)
+	result, err := q.db.ExecContext(ctx, createAuthor,
+		arg.ID,
+		arg.Name,
+		arg.ExtraInformation,
+		arg.UserIDFk,
+	)
 	if err != nil {
 		return 0, err
 	}
@@ -58,12 +113,38 @@ func (q *Queries) CreateConcert(ctx context.Context, arg CreateConcertParams) (i
 	return result.LastInsertId()
 }
 
+const createFolder = `-- name: CreateFolder :execlastid
+INSERT INTO elements (id, type, name, description, user_id_fk, parent) VALUES (?,'folder', ?, ?, ?, ?)
+`
+
+type CreateFolderParams struct {
+	ID          string
+	Name        sql.NullString
+	Description sql.NullString
+	UserIDFk    sql.NullString
+	Parent      sql.NullString
+}
+
+func (q *Queries) CreateFolder(ctx context.Context, arg CreateFolderParams) (int64, error) {
+	result, err := q.db.ExecContext(ctx, createFolder,
+		arg.ID,
+		arg.Name,
+		arg.Description,
+		arg.UserIDFk,
+		arg.Parent,
+	)
+	if err != nil {
+		return 0, err
+	}
+	return result.LastInsertId()
+}
+
 const createUser = `-- name: CreateUser :execlastid
-INSERT INTO user (user_id, username, selected_theme, side_bar_collapsed) VALUES (?, ?, ?, ?)
+INSERT INTO user (id, username, selected_theme, side_bar_collapsed) VALUES (?, ?, ?, ?)
 `
 
 type CreateUserParams struct {
-	UserID           string
+	ID               string
 	Username         sql.NullString
 	SelectedTheme    sql.NullString
 	SideBarCollapsed bool
@@ -71,7 +152,7 @@ type CreateUserParams struct {
 
 func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (int64, error) {
 	result, err := q.db.ExecContext(ctx, createUser,
-		arg.UserID,
+		arg.ID,
 		arg.Username,
 		arg.SelectedTheme,
 		arg.SideBarCollapsed,
@@ -87,7 +168,7 @@ DELETE FROM authors WHERE id = ? AND user_id_fk = ?
 `
 
 type DeleteAuthorParams struct {
-	ID       int32
+	ID       string
 	UserIDFk sql.NullString
 }
 
@@ -111,7 +192,7 @@ DELETE FROM note_in_concert WHERE concert_id_fk = ? AND note_id_fk = ?
 
 type DeleteNoteInConcertParams struct {
 	ConcertIDFk string
-	NoteIDFk    int32
+	NoteIDFk    string
 }
 
 func (q *Queries) DeleteNoteInConcert(ctx context.Context, arg DeleteNoteInConcertParams) error {
@@ -128,23 +209,61 @@ func (q *Queries) DeleteNotesInConcert(ctx context.Context, concertIDFk string) 
 	return err
 }
 
+const findAllAuthorsByCreator = `-- name: FindAllAuthorsByCreator :many
+SELECT id, extra_information, name, user_id_fk FROM authors
+WHERE user_id_fk = ? ORDER BY name LIMIT ? OFFSET ?
+`
+
+type FindAllAuthorsByCreatorParams struct {
+	UserIDFk sql.NullString
+	Limit    int32
+	Offset   int32
+}
+
+func (q *Queries) FindAllAuthorsByCreator(ctx context.Context, arg FindAllAuthorsByCreatorParams) ([]Author, error) {
+	rows, err := q.db.QueryContext(ctx, findAllAuthorsByCreator, arg.UserIDFk, arg.Limit, arg.Offset)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Author
+	for rows.Next() {
+		var i Author
+		if err := rows.Scan(
+			&i.ID,
+			&i.ExtraInformation,
+			&i.Name,
+			&i.UserIDFk,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const findAllAuthorsByCreatorAndSearchText = `-- name: FindAllAuthorsByCreatorAndSearchText :many
 SELECT a.id, a.extra_information, a.name, a.user_id_fk
 FROM authors a
-         JOIN user c ON a.user_id_fk = c.user_id
-WHERE c.user_id = ?
+WHERE a.user_id_fk = ?
   AND (a.name LIKE CONCAT('%', ?, '%')
     OR a.extra_information LIKE CONCAT('%', ?, '%'))
 `
 
 type FindAllAuthorsByCreatorAndSearchTextParams struct {
-	UserID   string
+	UserIDFk sql.NullString
 	CONCAT   interface{}
 	CONCAT_2 interface{}
 }
 
 func (q *Queries) FindAllAuthorsByCreatorAndSearchText(ctx context.Context, arg FindAllAuthorsByCreatorAndSearchTextParams) ([]Author, error) {
-	rows, err := q.db.QueryContext(ctx, findAllAuthorsByCreatorAndSearchText, arg.UserID, arg.CONCAT, arg.CONCAT_2)
+	rows, err := q.db.QueryContext(ctx, findAllAuthorsByCreatorAndSearchText, arg.UserIDFk, arg.CONCAT, arg.CONCAT_2)
 	if err != nil {
 		return nil, err
 	}
@@ -203,54 +322,15 @@ func (q *Queries) FindAllAuthorsByCreatorUnpaged(ctx context.Context, userIDFk s
 	return items, nil
 }
 
-const findAllByCreator = `-- name: FindAllByCreator :many
-SELECT id, extra_information, name, user_id_fk FROM authors
-WHERE user_id_fk = ? ORDER BY name LIMIT ? OFFSET ?
-`
-
-type FindAllByCreatorParams struct {
-	UserIDFk sql.NullString
-	Limit    int32
-	Offset   int32
-}
-
-func (q *Queries) FindAllByCreator(ctx context.Context, arg FindAllByCreatorParams) ([]Author, error) {
-	rows, err := q.db.QueryContext(ctx, findAllByCreator, arg.UserIDFk, arg.Limit, arg.Offset)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	var items []Author
-	for rows.Next() {
-		var i Author
-		if err := rows.Scan(
-			&i.ID,
-			&i.ExtraInformation,
-			&i.Name,
-			&i.UserIDFk,
-		); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Close(); err != nil {
-		return nil, err
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
-}
-
 const findAllFoldersByCreator = `-- name: FindAllFoldersByCreator :many
 SELECT creation_date, id, name, parent, description, user_id_fk FROM elements as folders WHERE type ='folder' AND user_id_fk = ? ORDER BY title
 `
 
 type FindAllFoldersByCreatorRow struct {
 	CreationDate sql.NullTime
-	ID           int32
+	ID           string
 	Name         sql.NullString
-	Parent       sql.NullInt32
+	Parent       sql.NullString
 	Description  sql.NullString
 	UserIDFk     sql.NullString
 }
@@ -291,19 +371,19 @@ SELECT creation_date, id, name, parent, description, user_id_fk, title, author_i
 `
 
 type FindAllNotesByAuthorParams struct {
-	AuthorIDFk sql.NullInt32
+	AuthorIDFk sql.NullString
 	UserIDFk   sql.NullString
 }
 
 type FindAllNotesByAuthorRow struct {
 	CreationDate  sql.NullTime
-	ID            int32
+	ID            string
 	Name          sql.NullString
-	Parent        sql.NullInt32
+	Parent        sql.NullString
 	Description   sql.NullString
 	UserIDFk      sql.NullString
 	Title         sql.NullString
-	AuthorIDFk    sql.NullInt32
+	AuthorIDFk    sql.NullString
 	NumberOfPages sql.NullInt32
 	PdfAvailable  sql.NullBool
 }
@@ -348,13 +428,13 @@ SELECT creation_date, id, name, parent, description, user_id_fk, title, author_i
 
 type FindAllNotesByCreatorRow struct {
 	CreationDate  sql.NullTime
-	ID            int32
+	ID            string
 	Name          sql.NullString
-	Parent        sql.NullInt32
+	Parent        sql.NullString
 	Description   sql.NullString
 	UserIDFk      sql.NullString
 	Title         sql.NullString
-	AuthorIDFk    sql.NullInt32
+	AuthorIDFk    sql.NullString
 	NumberOfPages sql.NullInt32
 	PdfAvailable  sql.NullBool
 }
@@ -462,11 +542,16 @@ func (q *Queries) FindAllParentFolders(ctx context.Context, userIDFk sql.NullStr
 }
 
 const findAllSubElements = `-- name: FindAllSubElements :many
-SELECT type, id, creation_date, description, name, number_of_pages, title, user_id_fk, parent, author_id_fk, pdf_content, pdf_available FROM elements WHERE parent = ? ORDER BY title
+SELECT type, id, creation_date, description, name, number_of_pages, title, user_id_fk, parent, author_id_fk, pdf_content, pdf_available FROM elements WHERE parent = ? AND user_id_fk = ? ORDER BY title
 `
 
-func (q *Queries) FindAllSubElements(ctx context.Context, parent sql.NullInt32) ([]Element, error) {
-	rows, err := q.db.QueryContext(ctx, findAllSubElements, parent)
+type FindAllSubElementsParams struct {
+	Parent   sql.NullString
+	UserIDFk sql.NullString
+}
+
+func (q *Queries) FindAllSubElements(ctx context.Context, arg FindAllSubElementsParams) ([]Element, error) {
+	rows, err := q.db.QueryContext(ctx, findAllSubElements, arg.Parent, arg.UserIDFk)
 	if err != nil {
 		return nil, err
 	}
@@ -506,7 +591,7 @@ SELECT id, extra_information, name, user_id_fk FROM authors WHERE id = ? and use
 `
 
 type FindAuthorByIdParams struct {
-	ID       int32
+	ID       string
 	UserIDFk sql.NullString
 }
 
@@ -600,25 +685,57 @@ func (q *Queries) FindConcertsOfUserSortedByDate(ctx context.Context, userIDFk s
 	return items, nil
 }
 
+const findFolderById = `-- name: FindFolderById :one
+SELECT creation_date, id, name, parent, description, user_id_fk FROM elements WHERE id = ? and user_id_fk = ?
+`
+
+type FindFolderByIdParams struct {
+	ID       string
+	UserIDFk sql.NullString
+}
+
+type FindFolderByIdRow struct {
+	CreationDate sql.NullTime
+	ID           string
+	Name         sql.NullString
+	Parent       sql.NullString
+	Description  sql.NullString
+	UserIDFk     sql.NullString
+}
+
+func (q *Queries) FindFolderById(ctx context.Context, arg FindFolderByIdParams) (FindFolderByIdRow, error) {
+	row := q.db.QueryRowContext(ctx, findFolderById, arg.ID, arg.UserIDFk)
+	var i FindFolderByIdRow
+	err := row.Scan(
+		&i.CreationDate,
+		&i.ID,
+		&i.Name,
+		&i.Parent,
+		&i.Description,
+		&i.UserIDFk,
+	)
+	return i, err
+}
+
 const findNoteById = `-- name: FindNoteById :one
 SELECT creation_date, id, name, parent, description, user_id_fk, title, author_id_fk, number_of_pages, pdf_available FROM elements WHERE type ='note' AND id = ?
 `
 
 type FindNoteByIdRow struct {
 	CreationDate  sql.NullTime
-	ID            int32
+	ID            string
 	Name          sql.NullString
-	Parent        sql.NullInt32
+	Parent        sql.NullString
 	Description   sql.NullString
 	UserIDFk      sql.NullString
 	Title         sql.NullString
-	AuthorIDFk    sql.NullInt32
+	AuthorIDFk    sql.NullString
 	NumberOfPages sql.NullInt32
 	PdfAvailable  sql.NullBool
 }
 
 // type: Note
-func (q *Queries) FindNoteById(ctx context.Context, id int32) (FindNoteByIdRow, error) {
+func (q *Queries) FindNoteById(ctx context.Context, id string) (FindNoteByIdRow, error) {
 	row := q.db.QueryRowContext(ctx, findNoteById, id)
 	var i FindNoteByIdRow
 	err := row.Scan(
@@ -637,14 +754,14 @@ func (q *Queries) FindNoteById(ctx context.Context, id int32) (FindNoteByIdRow, 
 }
 
 const findUserById = `-- name: FindUserById :one
-SELECT user_id, selected_theme, side_bar_collapsed, username FROM user WHERE user_id = ?
+SELECT id, selected_theme, side_bar_collapsed, username FROM user WHERE id = ?
 `
 
-func (q *Queries) FindUserById(ctx context.Context, userID string) (User, error) {
-	row := q.db.QueryRowContext(ctx, findUserById, userID)
+func (q *Queries) FindUserById(ctx context.Context, id string) (User, error) {
+	row := q.db.QueryRowContext(ctx, findUserById, id)
 	var i User
 	err := row.Scan(
-		&i.UserID,
+		&i.ID,
 		&i.SelectedTheme,
 		&i.SideBarCollapsed,
 		&i.Username,
@@ -690,6 +807,58 @@ func (q *Queries) HealthCheck(ctx context.Context) (int32, error) {
 	return column_1, err
 }
 
+const searchByFolderName = `-- name: SearchByFolderName :many
+SELECT type, id, creation_date, description, name, number_of_pages, title, user_id_fk, parent, author_id_fk, pdf_content, pdf_available FROM elements WHERE name LIKE CONCAT('%', ?, '%') and type = 'folder' AND user_id_fk = ? ORDER BY title LIMIT ? OFFSET ?
+`
+
+type SearchByFolderNameParams struct {
+	CONCAT   interface{}
+	UserIDFk sql.NullString
+	Limit    int32
+	Offset   int32
+}
+
+func (q *Queries) SearchByFolderName(ctx context.Context, arg SearchByFolderNameParams) ([]Element, error) {
+	rows, err := q.db.QueryContext(ctx, searchByFolderName,
+		arg.CONCAT,
+		arg.UserIDFk,
+		arg.Limit,
+		arg.Offset,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Element
+	for rows.Next() {
+		var i Element
+		if err := rows.Scan(
+			&i.Type,
+			&i.ID,
+			&i.CreationDate,
+			&i.Description,
+			&i.Name,
+			&i.NumberOfPages,
+			&i.Title,
+			&i.UserIDFk,
+			&i.Parent,
+			&i.AuthorIDFk,
+			&i.PdfContent,
+			&i.PdfAvailable,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const updateAuthor = `-- name: UpdateAuthor :exec
 UPDATE authors SET name = ?, extra_information = ? WHERE id = ?
 `
@@ -697,7 +866,7 @@ UPDATE authors SET name = ?, extra_information = ? WHERE id = ?
 type UpdateAuthorParams struct {
 	Name             sql.NullString
 	ExtraInformation sql.NullString
-	ID               int32
+	ID               string
 }
 
 func (q *Queries) UpdateAuthor(ctx context.Context, arg UpdateAuthorParams) error {
@@ -706,14 +875,14 @@ func (q *Queries) UpdateAuthor(ctx context.Context, arg UpdateAuthorParams) erro
 }
 
 const updateUser = `-- name: UpdateUser :exec
-UPDATE user SET username = ?, selected_theme = ?, side_bar_collapsed = ? WHERE user_id = ?
+UPDATE user SET username = ?, selected_theme = ?, side_bar_collapsed = ? WHERE id = ?
 `
 
 type UpdateUserParams struct {
 	Username         sql.NullString
 	SelectedTheme    sql.NullString
 	SideBarCollapsed bool
-	UserID           string
+	ID               string
 }
 
 func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) error {
@@ -721,7 +890,7 @@ func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) error {
 		arg.Username,
 		arg.SelectedTheme,
 		arg.SideBarCollapsed,
-		arg.UserID,
+		arg.ID,
 	)
 	return err
 }

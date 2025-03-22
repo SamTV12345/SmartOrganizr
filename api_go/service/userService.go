@@ -21,13 +21,13 @@ func (u *UserService) LoadUser(userId string) (*models.User, error) {
 		SideBarCollapsed: user.SideBarCollapsed,
 		SelectedTheme:    user.SelectedTheme.String,
 		Username:         user.Username.String,
-		UserId:           user.UserID,
+		UserId:           user.ID,
 	}, nil
 }
 
 func (u *UserService) SaveUser(user *models.User) error {
 	_, err := u.Queries.CreateUser(u.Ctx, db.CreateUserParams{
-		UserID: user.UserId,
+		ID: user.UserId,
 		Username: sql.NullString{
 			String: user.Username,
 			Valid:  true,
@@ -43,7 +43,7 @@ func (u *UserService) SaveUser(user *models.User) error {
 
 func (u *UserService) UpdateUser(user *models.User) error {
 	err := u.Queries.UpdateUser(u.Ctx, db.UpdateUserParams{
-		UserID: user.UserId,
+		ID: user.UserId,
 		Username: sql.NullString{
 			String: user.Username,
 			Valid:  true,

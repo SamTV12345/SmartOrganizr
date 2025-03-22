@@ -1,6 +1,10 @@
--- name: FindAllByCreator :many
+-- name: FindAllAuthorsByCreator :many
 SELECT * FROM authors
 WHERE user_id_fk = ? ORDER BY name LIMIT ? OFFSET ?;
+
+-- name: CountFindAllAuthorsByCreator :one
+SELECT COUNT(*) FROM authors
+WHERE user_id_fk = ?;
 
 -- name: FindAllAuthorsByCreatorUnpaged :many
 SELECT * FROM authors WHERE user_id_fk = ? ORDER BY name;
@@ -9,8 +13,14 @@ SELECT * FROM authors WHERE user_id_fk = ? ORDER BY name;
 -- name: FindAllAuthorsByCreatorAndSearchText :many
 SELECT a.*
 FROM authors a
-         JOIN user c ON a.user_id_fk = c.user_id
-WHERE c.user_id = ?
+WHERE a.user_id_fk = ?
+  AND (a.name LIKE CONCAT('%', ?, '%')
+    OR a.extra_information LIKE CONCAT('%', ?, '%'));
+
+-- name: CountFindAllAuthorsByCreatorAndSearchText :one
+SELECT COUNT(*)
+FROM authors a
+WHERE a.user_id_fk = ?
   AND (a.name LIKE CONCAT('%', ?, '%')
     OR a.extra_information LIKE CONCAT('%', ?, '%'));
 
@@ -27,11 +37,11 @@ UPDATE authors SET name = ?, extra_information = ? WHERE id = ?;
 DELETE FROM authors WHERE id = ? AND user_id_fk = ?;
 
 -- name: CreateAuthor :execlastid
-INSERT INTO authors (name, extra_information, user_id_fk) VALUES (?, ?, ?);
+INSERT INTO authors (id, name, extra_information, user_id_fk) VALUES (?, ?, ?, ?);
 
 
 -- name: FindUserById :one
-SELECT * FROM user WHERE user_id = ?;
+SELECT * FROM user WHERE id = ?;
 
 
 
@@ -41,10 +51,10 @@ SELECT creation_date, id, name, parent, description, user_id_fk, title, author_i
 
 
 -- name: CreateUser :execlastid
-INSERT INTO user (user_id, username, selected_theme, side_bar_collapsed) VALUES (?, ?, ?, ?);
+INSERT INTO user (id, username, selected_theme, side_bar_collapsed) VALUES (?, ?, ?, ?);
 
 -- name: UpdateUser :exec
-UPDATE user SET username = ?, selected_theme = ?, side_bar_collapsed = ? WHERE user_id = ?;
+UPDATE user SET username = ?, selected_theme = ?, side_bar_collapsed = ? WHERE id = ?;
 
 -- name: FindAllFoldersByCreator :many
 -- type: Folder
@@ -52,7 +62,7 @@ SELECT creation_date, id, name, parent, description, user_id_fk FROM elements as
 
 
 -- name: FindAllSubElements :many
-SELECT * FROM elements WHERE parent = ? ORDER BY title;
+SELECT * FROM elements WHERE parent = ? AND user_id_fk = ? ORDER BY title;
 
 -- name: FindAllNotesByCreator :many
 -- type: Note
@@ -93,3 +103,15 @@ SELECT 1;
 -- name: FindAllParentFolders :many
 SELECT * FROM elements WHERE parent IS NULL AND user_id_fk = ? ORDER BY title;
 
+
+-- name: CreateFolder :execlastid
+INSERT INTO elements (id, type, name, description, user_id_fk, parent) VALUES (?,'folder', ?, ?, ?, ?);
+
+-- name: FindFolderById :one
+SELECT creation_date, id, name, parent, description, user_id_fk FROM elements WHERE id = ? and user_id_fk = ?;
+
+-- name: SearchByFolderName :many
+SELECT * FROM elements WHERE name LIKE CONCAT('%', ?, '%') and type = 'folder' AND user_id_fk = ? ORDER BY title LIMIT ? OFFSET ?;
+
+-- name: CountSearchByFolderName :one
+SELECT COUNT(*) FROM elements WHERE name LIKE CONCAT('%', ?, '%') and type = 'folder' AND user_id_fk = ?;

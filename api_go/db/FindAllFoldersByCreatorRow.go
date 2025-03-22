@@ -6,7 +6,7 @@ func (folder FindAllFoldersByCreatorRow) GetCreationDate() time.Time {
 	return folder.GetCreationDate()
 }
 
-func (folder FindAllFoldersByCreatorRow) GetId() int32 {
+func (folder FindAllFoldersByCreatorRow) GetId() string {
 	return folder.GetId()
 }
 
@@ -14,7 +14,7 @@ func (folder FindAllFoldersByCreatorRow) GetName() string {
 	return folder.GetName()
 }
 
-func (folder FindAllFoldersByCreatorRow) GetParent() int32 {
+func (folder FindAllFoldersByCreatorRow) GetParent() string {
 	return folder.GetParent()
 }
 

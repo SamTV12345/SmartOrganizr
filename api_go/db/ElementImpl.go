@@ -6,7 +6,7 @@ func (e Element) GetCreationDate() time.Time {
 	return e.CreationDate.Time
 }
 
-func (e Element) GetId() int32 {
+func (e Element) GetId() string {
 	return e.ID
 }
 
@@ -14,8 +14,8 @@ func (e Element) GetName() string {
 	return e.Name.String
 }
 
-func (e Element) GetParent() int32 {
-	return e.Parent.Int32
+func (e Element) GetParent() string {
+	return e.Parent.String
 }
 
 func (e Element) GetDescription() string {

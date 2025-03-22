@@ -7,7 +7,7 @@ import (
 
 func ConvertUserFromEntity(entity db.User) models.User {
 	return models.User{
-		UserId:           entity.UserID,
+		UserId:           entity.ID,
 		Username:         entity.Username.String,
 		SelectedTheme:    entity.SelectedTheme.String,
 		SideBarCollapsed: entity.SideBarCollapsed,

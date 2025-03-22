@@ -1,8 +1,11 @@
 package controllers
 
 import (
+	"api_go/constants"
 	"api_go/controllers/dto"
 	"api_go/db"
+	"api_go/mappers"
+	"api_go/service"
 	"context"
 	"database/sql"
 	"github.com/gofiber/fiber/v2"
@@ -24,48 +27,66 @@ func GetAuthors(c *fiber.Ctx) error {
 			"error": "Invalid page number",
 		})
 	}
-	var query = GetLocal[*db.Queries](c, "db")
+	var authorService = GetLocal[service.AuthorService](c, "authorService")
 	var userId = GetLocal[string](c, "userId")
 
-	var user, _ = query.FindUserById(context.Background(), userId)
-	var authors []db.Author
+	var authorPage dto.PagedAuthorRepresentationModelList
+	var count *int
 
 	if nameStr != "" {
-		authors, _ = query.FindAllAuthorsByCreatorAndSearchText(context.Background(), db.FindAllAuthorsByCreatorAndSearchTextParams{
-			UserID:   userId,
-			CONCAT:   nameStr,
-			CONCAT_2: nameStr,
-		})
+		authors, _ := authorService.FindByCreatorAndSearchText(userId, nameStr)
+		count, _ = authorService.CountFindByCreatorAndSearchText(userId, nameStr)
+		authorDto := make([]dto.Author, 0)
+
+		for _, author := range authors {
+			authorDto = append(authorDto, mappers.ConvertAuthorDtoFromModel(author))
+		}
+
+		authorPage = dto.PagedAuthorRepresentationModelList{
+			Page: struct {
+				Size int `json:"size"`
+			}{Size: constants.CurrentPageSize},
+			Embedded: struct {
+				AuthorRepresentationModelList []dto.Author `json:"authorRepresentationModelList"`
+			}{AuthorRepresentationModelList: authorDto},
+		}
 	} else {
-		authors, _ = query.FindAllByCreator(context.Background(), db.FindAllByCreatorParams{
-			Limit:  50,
-			Offset: int32(50 * (page - 1)),
-			UserIDFk: sql.NullString{
-				String: user.UserID,
-			},
-		})
+		authors, _ := authorService.FindAllByCreator(userId, page)
+		authorDto := make([]dto.Author, 0)
+		for _, author := range authors {
+			authorDto = append(authorDto, mappers.ConvertAuthorDtoFromModel(author))
+		}
+		count, _ = authorService.CountFindAllByCreator(userId)
+		authorPage = dto.PagedAuthorRepresentationModelList{
+			Page: struct {
+				Size int `json:"size"`
+			}{Size: constants.CurrentPageSize},
+			Embedded: struct {
+				AuthorRepresentationModelList []dto.Author `json:"authorRepresentationModelList"`
+			}{AuthorRepresentationModelList: authorDto},
+		}
 	}
 
-	var authorDtos = dto.ConvertListOFEntities(authors)
+	if *count > (page+1)*constants.CurrentPageSize {
+		authorPage.Links = make(map[string]dto.Link)
+		authorPage.Links["next"] = dto.Link{
+			Href: mappers.CreateHyperlink(c, "/api/v1/authors?page="+strconv.Itoa(page+1)+"&name="+nameStr),
+		}
+	}
 
-	return c.JSON(authorDtos)
+	return c.JSON(authorPage)
 }
 
 func UpdateAuthor(c *fiber.Ctx) error {
-	var authorId, err = strconv.Atoi(c.Params("authorId"))
-	if err != nil {
-		return c.Status(400).JSON(fiber.Map{
-			"error": "Invalid authorId",
-		})
-	}
+	var authorId = c.Params("authorId")
 	var query = GetLocal[*db.Queries](c, "db")
 	var userId = GetLocal[string](c, "userId")
 	var user, _ = query.FindUserById(context.Background(), userId)
 	var author, errorFromFindById = query.FindAuthorById(context.Background(), db.FindAuthorByIdParams{
 		UserIDFk: sql.NullString{
-			String: user.UserID,
+			String: user.ID,
 		},
-		ID: int32(authorId),
+		ID: authorId,
 	})
 	if errorFromFindById != nil {
 		return c.Status(404).JSON(fiber.Map{
@@ -78,10 +99,16 @@ func UpdateAuthor(c *fiber.Ctx) error {
 		return err
 	}
 
-	err = query.UpdateAuthor(context.Background(), db.UpdateAuthorParams{
-		ID:               authorPatchDto.ID,
-		ExtraInformation: authorPatchDto.ExtraInformation,
-		Name:             authorPatchDto.Name,
+	err := query.UpdateAuthor(context.Background(), db.UpdateAuthorParams{
+		ID: authorPatchDto.ID,
+		ExtraInformation: sql.NullString{
+			String: authorPatchDto.ExtraInformation,
+			Valid:  true,
+		},
+		Name: sql.NullString{
+			String: authorPatchDto.Name,
+			Valid:  true,
+		},
 	})
 	if err != nil {
 		log.Error(err)
@@ -93,30 +120,26 @@ func UpdateAuthor(c *fiber.Ctx) error {
 }
 
 func DeleteAuthor(c *fiber.Ctx) error {
-	var authorId, err = strconv.Atoi(c.Params("authorId"))
-	if err != nil {
-		return c.Status(400).JSON(fiber.Map{
-			"error": "Invalid authorId",
-		})
-	}
+	var authorId = c.Params("authorId")
 	var query = GetLocal[*db.Queries](c, "db")
 	var userId = GetLocal[string](c, "userId")
 	var user, _ = query.FindUserById(context.Background(), userId)
 	var author, errorFromFindById = query.FindAuthorById(context.Background(), db.FindAuthorByIdParams{
 		UserIDFk: sql.NullString{
-			String: user.UserID,
+			String: user.ID,
 		},
-		ID: int32(authorId),
+		ID: authorId,
 	})
 	if errorFromFindById != nil {
 		return c.Status(404).JSON(fiber.Map{
 			"error": "Author not found",
 		})
 	}
-	err = query.DeleteAuthor(context.Background(), db.DeleteAuthorParams{
+	err := query.DeleteAuthor(context.Background(), db.DeleteAuthorParams{
 		ID: author.ID,
 		UserIDFk: sql.NullString{
-			String: user.UserID,
+			String: user.ID,
+			Valid:  true,
 		},
 	})
 	if err != nil {
@@ -131,45 +154,27 @@ func CreateAuthor(c *fiber.Ctx) error {
 	if err := c.BodyParser(&authorDto); err != nil {
 		return err
 	}
-	var query = GetLocal[*db.Queries](c, "db")
+	var authorService = GetLocal[service.AuthorService](c, "db")
 	var userId = GetLocal[string](c, "userId")
-	var user, _ = query.FindUserById(context.Background(), userId)
-	var result, err = query.CreateAuthor(context.Background(), db.CreateAuthorParams{
-		Name:             authorDto.Name,
-		ExtraInformation: authorDto.ExtraInformation,
-		UserIDFk: sql.NullString{
-			String: user.UserID,
-		},
-	})
-
+	var createdAuthor, err = authorService.CreateAuthor(authorDto, userId)
 	if err != nil {
-		log.Error(err)
-		return err
-	}
-	var author, _ = query.FindAuthorById(context.Background(), db.FindAuthorByIdParams{
-		UserIDFk: sql.NullString{
-			String: user.UserID,
-		},
-		ID: int32(result),
-	})
-	return c.Status(201).JSON(dto.ConvertFromEntity(author))
-}
-
-func GetNotes(c *fiber.Ctx) error {
-	var authorId, err = strconv.Atoi(c.Params("authorId"))
-	if err != nil {
-		return c.Status(400).JSON(fiber.Map{
-			"error": "Invalid authorId",
+		return c.JSON(fiber.Map{
+			"error": err.Error(),
 		})
 	}
+	return c.Status(201).JSON(mappers.ConvertAuthorDtoFromModel(createdAuthor))
+}
+
+func GetNotesOfAuthor(c *fiber.Ctx) error {
+	var authorId = c.Params("authorId")
 	var query = GetLocal[*db.Queries](c, "db")
 	var userId = GetLocal[string](c, "userId")
 	var authors, _ = query.FindAllNotesByAuthor(context.Background(), db.FindAllNotesByAuthorParams{
 		UserIDFk: sql.NullString{
 			String: userId,
 		},
-		AuthorIDFk: sql.NullInt32{
-			Int32: int32(authorId),
+		AuthorIDFk: sql.NullString{
+			String: authorId,
 		},
 	})
 	return c.JSON(authors)
