@@ -25,8 +25,22 @@ func (u *UserService) LoadUser(userId string) (*models.User, error) {
 	}, nil
 }
 
-func (u *UserService) saveUser(user *models.User) error {
+func (u *UserService) SaveUser(user *models.User) error {
 	_, err := u.Queries.CreateUser(u.Ctx, db.CreateUserParams{
+		UserID: user.UserId,
+		Username: sql.NullString{
+			String: user.Username,
+		},
+		SelectedTheme: sql.NullString{
+			String: user.SelectedTheme,
+		},
+		SideBarCollapsed: user.SideBarCollapsed,
+	})
+	return err
+}
+
+func (u *UserService) UpdateUser(user *models.User) error {
+	err := u.Queries.UpdateUser(u.Ctx, db.UpdateUserParams{
 		UserID: user.UserId,
 		Username: sql.NullString{
 			String: user.Username,

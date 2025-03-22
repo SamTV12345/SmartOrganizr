@@ -37,3 +37,29 @@ func CreateConcert(c *fiber.Ctx) error {
 
 	return c.JSON(concert)
 }
+
+func GetConcert(c *fiber.Ctx) error {
+	userId := GetLocal[string](c, "userId")
+	concertId := c.Params("concertId")
+	concertService := GetLocal[service.ConcertService](c, "concertService")
+	concert, err := concertService.LoadConcert(userId, concertId)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": err.Error(),
+		})
+	}
+	return c.JSON(concert)
+}
+
+func DeleteConcert(c *fiber.Ctx) error {
+	userId := GetLocal[string](c, "userId")
+	concertId := c.Params("concertId")
+	concertService := GetLocal[service.ConcertService](c, "concertService")
+	err := concertService.DeleteConcert(userId, concertId)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": err.Error(),
+		})
+	}
+	return c.SendStatus(fiber.StatusNoContent)
+}

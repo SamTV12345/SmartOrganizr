@@ -96,6 +96,38 @@ func (q *Queries) DeleteAuthor(ctx context.Context, arg DeleteAuthorParams) erro
 	return err
 }
 
+const deleteConcert = `-- name: DeleteConcert :exec
+DELETE FROM concert WHERE id = ?
+`
+
+func (q *Queries) DeleteConcert(ctx context.Context, id string) error {
+	_, err := q.db.ExecContext(ctx, deleteConcert, id)
+	return err
+}
+
+const deleteNoteInConcert = `-- name: DeleteNoteInConcert :exec
+DELETE FROM note_in_concert WHERE concert_id_fk = ? AND note_id_fk = ?
+`
+
+type DeleteNoteInConcertParams struct {
+	ConcertIDFk string
+	NoteIDFk    int32
+}
+
+func (q *Queries) DeleteNoteInConcert(ctx context.Context, arg DeleteNoteInConcertParams) error {
+	_, err := q.db.ExecContext(ctx, deleteNoteInConcert, arg.ConcertIDFk, arg.NoteIDFk)
+	return err
+}
+
+const deleteNotesInConcert = `-- name: DeleteNotesInConcert :exec
+DELETE FROM note_in_concert WHERE concert_id_fk = ?
+`
+
+func (q *Queries) DeleteNotesInConcert(ctx context.Context, concertIDFk string) error {
+	_, err := q.db.ExecContext(ctx, deleteNotesInConcert, concertIDFk)
+	return err
+}
+
 const findAllAuthorsByCreatorAndSearchText = `-- name: FindAllAuthorsByCreatorAndSearchText :many
 SELECT a.id, a.extra_information, a.name, a.user_id_fk
 FROM authors a
@@ -469,6 +501,30 @@ func (q *Queries) FindConcertById(ctx context.Context, id string) (Concert, erro
 	return i, err
 }
 
+const findConcertByIdAndUser = `-- name: FindConcertByIdAndUser :one
+SELECT id, description, due_date, hints, location, title, user_id_fk FROM concert WHERE id = ? AND user_id_fk = ?
+`
+
+type FindConcertByIdAndUserParams struct {
+	ID       string
+	UserIDFk sql.NullString
+}
+
+func (q *Queries) FindConcertByIdAndUser(ctx context.Context, arg FindConcertByIdAndUserParams) (Concert, error) {
+	row := q.db.QueryRowContext(ctx, findConcertByIdAndUser, arg.ID, arg.UserIDFk)
+	var i Concert
+	err := row.Scan(
+		&i.ID,
+		&i.Description,
+		&i.DueDate,
+		&i.Hints,
+		&i.Location,
+		&i.Title,
+		&i.UserIDFk,
+	)
+	return i, err
+}
+
 const findConcertsOfUserSortedByDate = `-- name: FindConcertsOfUserSortedByDate :many
 SELECT id, description, due_date, hints, location, title, user_id_fk FROM concert WHERE user_id_fk = ? ORDER BY due_date DESC
 `
@@ -581,6 +637,17 @@ func (q *Queries) GetIndexAuthorsOnPage(ctx context.Context, name sql.NullString
 		return nil, err
 	}
 	return items, nil
+}
+
+const healthCheck = `-- name: HealthCheck :one
+SELECT 1
+`
+
+func (q *Queries) HealthCheck(ctx context.Context) (int32, error) {
+	row := q.db.QueryRowContext(ctx, healthCheck)
+	var column_1 int32
+	err := row.Scan(&column_1)
+	return column_1, err
 }
 
 const updateAuthor = `-- name: UpdateAuthor :exec

@@ -2,38 +2,32 @@ package controllers
 
 import (
 	"api_go/auth"
-	"api_go/db"
 	"api_go/models"
 	"api_go/service"
-	"database/sql"
 	"github.com/gofiber/fiber/v2"
 )
 
 func SyncUser(c *fiber.Ctx) error {
-	var queries = GetLocal[*db.Queries](c, "db")
+	var userService = GetLocal[service.UserService](c, "userService")
 	var userId = GetLocal[string](c, "userId")
 	var claims = GetLocal[*auth.Claims](c, "claims")
-	var _, err = queries.FindUserById(c.Context(), userId)
+	var _, err = userService.LoadUser(userId)
 	if err != nil {
-		_, err := queries.CreateUser(c.Context(), db.CreateUserParams{
-			UserID: userId,
-			Username: sql.NullString{
-				String: claims.Username,
-			},
-			SelectedTheme: sql.NullString{
-				String: "saga",
-			},
+		err = userService.SaveUser(&models.User{
+			UserId:           userId,
+			Username:         claims.Username,
+			SelectedTheme:    "saga",
 			SideBarCollapsed: false,
 		})
 		if err != nil {
 			return err
 		}
 	} else {
-		err := queries.UpdateUser(c.Context(), db.UpdateUserParams{
-			UserID: userId,
-			Username: sql.NullString{
-				String: claims.Username,
-			},
+		err := userService.UpdateUser(&models.User{
+			UserId:           userId,
+			Username:         claims.Username,
+			SelectedTheme:    "saga",
+			SideBarCollapsed: false,
 		})
 		if err != nil {
 			return err

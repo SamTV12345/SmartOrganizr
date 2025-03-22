@@ -62,7 +62,7 @@ func (c *ConcertService) LoadNotesInConcert(concertId string) ([]models.NoteInCo
 	return notesModel, nil
 }
 
-func (c *ConcertService) LoadConcert(concertId string) (models.Concert, error) {
+func (c *ConcertService) loadConcert(concertId string) (models.Concert, error) {
 	concertDB, err := c.Queries.FindConcertById(c.Ctx, concertId)
 	if err != nil {
 		return models.Concert{}, err
@@ -70,6 +70,36 @@ func (c *ConcertService) LoadConcert(concertId string) (models.Concert, error) {
 
 	var concertModel = mappers.ConvertConcertFromEntity(concertDB, make([]models.NoteInConcert, 0))
 	return concertModel, nil
+}
+
+func (c *ConcertService) LoadConcert(userId string, concertId string) (*models.Concert, error) {
+	concertDB, err := c.Queries.FindConcertByIdAndUser(c.Ctx, db.FindConcertByIdAndUserParams{
+		ID: concertId,
+		UserIDFk: sql.NullString{
+			String: userId,
+		},
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	var notesInConcert, _ = c.Queries.FindAllNotesInConcertByPlace(c.Ctx, concertId)
+	var noteInConcertModels = make([]models.NoteInConcert, 0)
+	for _, noteInConcert := range notesInConcert {
+		note, _ := c.Queries.FindNoteById(c.Ctx, noteInConcert.NoteIDFk)
+		author, _ := c.Queries.FindAuthorById(c.Ctx, db.FindAuthorByIdParams{
+			ID: note.AuthorIDFk.Int32,
+			UserIDFk: sql.NullString{
+				String: note.UserIDFk.String,
+			},
+		})
+		user, _ := c.Queries.FindUserById(c.Ctx, note.UserIDFk.String)
+		var noteInConcertModel = mappers.ConvertNoteInConcertFromEntity(noteInConcert, user, author, note)
+		noteInConcertModels = append(noteInConcertModels, noteInConcertModel)
+	}
+
+	var concertModel = mappers.ConvertConcertFromEntity(concertDB, noteInConcertModels)
+	return &concertModel, nil
 }
 
 func (c *ConcertService) CreateConcert(userId string, dto dto.ConcertPostDto) (*models.Concert, error) {
@@ -103,4 +133,28 @@ func (c *ConcertService) CreateConcert(userId string, dto dto.ConcertPostDto) (*
 
 	var concertModel = mappers.ConvertConcertFromEntity(concert, make([]models.NoteInConcert, 0))
 	return &concertModel, nil
+}
+
+func (c *ConcertService) DeleteConcert(userId string, concertId string) error {
+	var _, err = c.Queries.FindConcertByIdAndUser(c.Ctx, db.FindConcertByIdAndUserParams{
+		ID: concertId,
+		UserIDFk: sql.NullString{
+			String: userId,
+		},
+	})
+
+	if err != nil {
+		return err
+	}
+
+	err = c.Queries.DeleteNotesInConcert(c.Ctx, concertId)
+	if err != nil {
+		return err
+	}
+
+	err = c.Queries.DeleteConcert(c.Ctx, concertId)
+	if err != nil {
+		return err
+	}
+	return nil
 }

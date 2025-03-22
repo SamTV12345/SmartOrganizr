@@ -65,6 +65,9 @@ SELECT creation_date, id, name, parent, description, user_id_fk, title, author_i
 -- name: FindConcertById :one
 SELECT * FROM concert WHERE id = ?;
 
+-- name: FindConcertByIdAndUser :one
+SELECT * FROM concert WHERE id = ? AND user_id_fk = ?;
+
 -- name: FindConcertsOfUserSortedByDate :many
 SELECT * FROM concert WHERE user_id_fk = ? ORDER BY due_date DESC;
 
@@ -72,7 +75,18 @@ SELECT * FROM concert WHERE user_id_fk = ? ORDER BY due_date DESC;
 -- name: FindAllNotesInConcertByPlace :many
 SELECT * FROM note_in_concert WHERE concert_id_fk = ? ORDER BY place_in_concert;
 
+-- name: DeleteNoteInConcert :exec
+DELETE FROM note_in_concert WHERE concert_id_fk = ? AND note_id_fk = ?;
+
+-- name: DeleteNotesInConcert :exec
+DELETE FROM note_in_concert WHERE concert_id_fk = ?;
+
+-- name: DeleteConcert :exec
+DELETE FROM concert WHERE id = ?;
 
 -- name: CreateConcert :execlastid
 INSERT INTO concert (id, title, description, location, due_date, hints, user_id_fk) VALUES (?, ?, ?, ?, ?, ?, ?);
+
+-- name: HealthCheck :one
+SELECT 1;
 

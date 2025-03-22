@@ -11,12 +11,15 @@ type AppConfigDatabase struct {
 	Port     int
 	User     string
 	Password string
+	Database string
 }
 
 type AppConfigSSO struct {
-	ClientID string
-	Issuer   string
-	Url      string
+	ClientID         string
+	FrontendClientID string
+	Issuer           string
+	Url              string
+	Realm            string
 }
 
 func (c AppConfigDatabase) GetDSN() string {
@@ -45,12 +48,15 @@ func ReadConfig() (AppConfig, error) {
 
 	viper.SetDefault(DatabaseHost, "localhost")
 	viper.SetDefault(DatabasePort, 3306)
-	viper.SetDefault(AppPort, 3000)
+	viper.SetDefault(AppPort, 8080)
 	viper.SetDefault(DatabaseUser, "root")
 	viper.SetDefault(DatabasePassword, "root")
+	viper.SetDefault(DatabaseDatabase, "smartorganizr")
 	viper.SetDefault(SSOIssuer, "http://localhost/realms/smartOrganizr")
 	viper.SetDefault(SSOUrl, "http://localhost/")
 	viper.SetDefault(SSOClientID, "account")
+	viper.SetDefault(SSOFrontendClientID, "smartorganizr-frontend")
+	viper.SetDefault(SSORealm, "smartOrganizr")
 
 	var config = AppConfig{
 		Database: struct {
@@ -58,13 +64,21 @@ func ReadConfig() (AppConfig, error) {
 			Port     int
 			User     string
 			Password string
-		}{Host: viper.GetString(DatabaseHost), Port: viper.GetInt(DatabasePort), User: viper.GetString(DatabaseUser), Password: viper.GetString(DatabasePassword)},
+			Database string
+		}{Host: viper.GetString(DatabaseHost), Port: viper.GetInt(DatabasePort), User: viper.GetString(DatabaseUser), Password: viper.GetString(DatabasePassword), Database: viper.GetString(DatabaseDatabase)},
 		Port: viper.GetInt(AppPort),
 		SSO: struct {
-			ClientID string
-			Issuer   string
-			Url      string
-		}{ClientID: viper.GetString(SSOClientID), Issuer: viper.GetString(SSOIssuer), Url: viper.GetString(SSOUrl)},
+			ClientID         string
+			FrontendClientID string
+			Issuer           string
+			Url              string
+			Realm            string
+		}{ClientID: viper.GetString(SSOClientID),
+			Issuer:           viper.GetString(SSOIssuer),
+			Url:              viper.GetString(SSOUrl),
+			FrontendClientID: viper.GetString(SSOFrontendClientID),
+			Realm:            viper.GetString(SSORealm),
+		},
 	}
 	return config, nil
 }

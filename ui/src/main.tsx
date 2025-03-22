@@ -16,7 +16,7 @@ export let accountURL = ''
 
 const initKeycloak = (keycloak: Keycloak) => {
     return new Promise((resolve) => {
-        keycloak.init({onLoad: 'login-required'})
+        keycloak.init({onLoad: 'check-sso'})
             .then((res) => {
                 setLoadedKeycloak(keycloak)
                 axios.defaults.headers["Authorization"] = `Bearer ${keycloak.token}`
@@ -30,13 +30,15 @@ const initKeycloak = (keycloak: Keycloak) => {
                             if(refreshed){
                                 axios.defaults.headers["Authorization"] = `Bearer ${keycloak.token}`
                             }
-                        })
+                        }).catch((reason)=>{
+                            console.log("Reason is", reason)
+                    })
                 }, 30000)
                 updateToken()
                 }
             )
             .catch((error) => {
-                console.log(error)
+                console.log("Error is", error)
             })
     })
 }
