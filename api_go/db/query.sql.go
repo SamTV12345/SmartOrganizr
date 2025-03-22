@@ -66,7 +66,7 @@ type CreateUserParams struct {
 	UserID           string
 	Username         sql.NullString
 	SelectedTheme    sql.NullString
-	SideBarCollapsed interface{}
+	SideBarCollapsed bool
 }
 
 func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (int64, error) {
@@ -421,6 +421,46 @@ func (q *Queries) FindAllNotesInConcertByPlace(ctx context.Context, concertIDFk 
 	return items, nil
 }
 
+const findAllParentFolders = `-- name: FindAllParentFolders :many
+SELECT type, id, creation_date, description, name, number_of_pages, title, user_id_fk, parent, author_id_fk, pdf_content, pdf_available FROM elements WHERE parent IS NULL AND user_id_fk = ? ORDER BY title
+`
+
+func (q *Queries) FindAllParentFolders(ctx context.Context, userIDFk sql.NullString) ([]Element, error) {
+	rows, err := q.db.QueryContext(ctx, findAllParentFolders, userIDFk)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Element
+	for rows.Next() {
+		var i Element
+		if err := rows.Scan(
+			&i.Type,
+			&i.ID,
+			&i.CreationDate,
+			&i.Description,
+			&i.Name,
+			&i.NumberOfPages,
+			&i.Title,
+			&i.UserIDFk,
+			&i.Parent,
+			&i.AuthorIDFk,
+			&i.PdfContent,
+			&i.PdfAvailable,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const findAllSubElements = `-- name: FindAllSubElements :many
 SELECT type, id, creation_date, description, name, number_of_pages, title, user_id_fk, parent, author_id_fk, pdf_content, pdf_available FROM elements WHERE parent = ? ORDER BY title
 `
@@ -672,7 +712,7 @@ UPDATE user SET username = ?, selected_theme = ?, side_bar_collapsed = ? WHERE u
 type UpdateUserParams struct {
 	Username         sql.NullString
 	SelectedTheme    sql.NullString
-	SideBarCollapsed interface{}
+	SideBarCollapsed bool
 	UserID           string
 }
 

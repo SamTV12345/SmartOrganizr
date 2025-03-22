@@ -41,9 +41,14 @@ func Setup(config config.AppConfigDatabase) *Queries {
 		log.Fatalf("Error creating goose provider: %s", err)
 	}
 
-	if _, err := p.Up(context.Background()); err != nil {
-		return nil
+	pending, _ := p.HasPending(context.Background())
+
+	if pending {
+		if _, err := p.Up(context.Background()); err != nil {
+			return nil
+		}
 	}
+
 	version, err := p.GetDBVersion(context.Background())
 	log.Printf("\nDB version after applying all up migrations: %d\n", version)
 

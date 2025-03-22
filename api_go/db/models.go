@@ -53,6 +53,6 @@ type NoteInConcert struct {
 type User struct {
 	UserID           string
 	SelectedTheme    sql.NullString
-	SideBarCollapsed interface{}
+	SideBarCollapsed bool
 	Username         sql.NullString
 }

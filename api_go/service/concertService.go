@@ -53,6 +53,7 @@ func (c *ConcertService) LoadNotesInConcert(concertId string) ([]models.NoteInCo
 			ID: noteToFind.AuthorIDFk.Int32,
 			UserIDFk: sql.NullString{
 				String: creator.UserID,
+				Valid:  true,
 			},
 		})
 		var noteInConcert = mappers.ConvertNoteInConcertFromEntity(note, *creator, author, noteToFind)
@@ -77,6 +78,7 @@ func (c *ConcertService) LoadConcert(userId string, concertId string) (*models.C
 		ID: concertId,
 		UserIDFk: sql.NullString{
 			String: userId,
+			Valid:  true,
 		},
 	})
 	if err != nil {
@@ -91,6 +93,7 @@ func (c *ConcertService) LoadConcert(userId string, concertId string) (*models.C
 			ID: note.AuthorIDFk.Int32,
 			UserIDFk: sql.NullString{
 				String: note.UserIDFk.String,
+				Valid:  true,
 			},
 		})
 		user, _ := c.Queries.FindUserById(c.Ctx, note.UserIDFk.String)
@@ -107,22 +110,28 @@ func (c *ConcertService) CreateConcert(userId string, dto dto.ConcertPostDto) (*
 	_, err := c.Queries.CreateConcert(c.Ctx, db.CreateConcertParams{
 		UserIDFk: sql.NullString{
 			String: userId,
+			Valid:  true,
 		},
 		DueDate: sql.NullTime{
-			Time: dto.DueDate,
+			Time:  dto.DueDate,
+			Valid: true,
 		},
 		Title: sql.NullString{
 			String: dto.Title,
+			Valid:  true,
 		},
 		Description: sql.NullString{
 			String: dto.Description,
+			Valid:  true,
 		},
 		ID: uuidForConcert.String(),
 		Hints: sql.NullString{
 			String: dto.Hints,
+			Valid:  true,
 		},
 		Location: sql.NullString{
 			String: dto.Location,
+			Valid:  true,
 		},
 	})
 

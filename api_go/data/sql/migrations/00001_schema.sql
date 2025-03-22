@@ -53,7 +53,7 @@ CREATE TABLE `note_in_concert` (
 CREATE TABLE `user` (
                         `user_id` varchar(255) NOT NULL,
     `selected_theme` varchar(255) DEFAULT NULL,
-    `side_bar_collapsed` bit(1) NOT NULL,
+    `side_bar_collapsed` boolean NOT NULL,
     `username` varchar(255) DEFAULT NULL
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 

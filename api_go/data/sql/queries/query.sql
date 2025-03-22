@@ -90,3 +90,6 @@ INSERT INTO concert (id, title, description, location, due_date, hints, user_id_
 -- name: HealthCheck :one
 SELECT 1;
 
+-- name: FindAllParentFolders :many
+SELECT * FROM elements WHERE parent IS NULL AND user_id_fk = ? ORDER BY title;
+

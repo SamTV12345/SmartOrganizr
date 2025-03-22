@@ -32,10 +32,12 @@ func SetupRouter(queries *db.Queries, config config.AppConfig) *fiber.App {
 
 	var folderService = service.FolderService{
 		Queries: queries,
+		Ctx:     context.Background(),
 	}
 
 	var noteService = service.NoteService{
 		Queries: queries,
+		Ctx:     context.Background(),
 	}
 
 	app.Use(func(c *fiber.Ctx) error {
@@ -80,6 +82,10 @@ func SetupRouter(queries *db.Queries, config config.AppConfig) *fiber.App {
 		r.Post("/", controllers.CreateConcert)
 		r.Get("/:concertId", controllers.GetConcert)
 		r.Delete("/:concertId", controllers.DeleteConcert)
+	})
+
+	profile.Route("v1/elements", func(r fiber.Router) {
+		r.Get("/parentDecks", controllers.GetParentDecks)
 	})
 
 	return app

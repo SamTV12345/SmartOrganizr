@@ -18,7 +18,7 @@ func (u *UserService) LoadUser(userId string) (*models.User, error) {
 		return nil, err
 	}
 	return &models.User{
-		SideBarCollapsed: user.SideBarCollapsed.(bool),
+		SideBarCollapsed: user.SideBarCollapsed,
 		SelectedTheme:    user.SelectedTheme.String,
 		Username:         user.Username.String,
 		UserId:           user.UserID,
@@ -30,9 +30,11 @@ func (u *UserService) SaveUser(user *models.User) error {
 		UserID: user.UserId,
 		Username: sql.NullString{
 			String: user.Username,
+			Valid:  true,
 		},
 		SelectedTheme: sql.NullString{
 			String: user.SelectedTheme,
+			Valid:  true,
 		},
 		SideBarCollapsed: user.SideBarCollapsed,
 	})
@@ -44,9 +46,11 @@ func (u *UserService) UpdateUser(user *models.User) error {
 		UserID: user.UserId,
 		Username: sql.NullString{
 			String: user.Username,
+			Valid:  true,
 		},
 		SelectedTheme: sql.NullString{
 			String: user.SelectedTheme,
+			Valid:  true,
 		},
 		SideBarCollapsed: user.SideBarCollapsed,
 	})

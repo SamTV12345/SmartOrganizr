@@ -37,6 +37,7 @@ func (n NoteService) LoadAllNotes(userId string) ([]models.Note, error) {
 			ID: noteDB.AuthorIDFk.Int32,
 			UserIDFk: sql.NullString{
 				String: userId,
+				Valid:  true,
 			},
 		})
 		if err != nil {

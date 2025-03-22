@@ -16,9 +16,10 @@ export let accountURL = ''
 
 const initKeycloak = (keycloak: Keycloak) => {
     return new Promise((resolve) => {
-        keycloak.init({onLoad: 'check-sso'})
+        keycloak.init({onLoad: 'login-required'})
             .then((res) => {
                 setLoadedKeycloak(keycloak)
+                console.log("Token is", keycloak.token)
                 axios.defaults.headers["Authorization"] = `Bearer ${keycloak.token}`
                 axios.defaults.headers['Content-Type']  = 'application/json'
                 syncUser()

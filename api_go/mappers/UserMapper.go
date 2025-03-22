@@ -10,6 +10,6 @@ func ConvertUserFromEntity(entity db.User) models.User {
 		UserId:           entity.UserID,
 		Username:         entity.Username.String,
 		SelectedTheme:    entity.SelectedTheme.String,
-		SideBarCollapsed: entity.SideBarCollapsed.(bool),
+		SideBarCollapsed: entity.SideBarCollapsed,
 	}
 }
