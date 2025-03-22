@@ -11,7 +11,7 @@ type Element interface {
 	GetType() ElementName
 }
 
-func (n Note) GetType() ElementName {
+func (note Note) GetType() ElementName {
 	return NOTE
 }
 

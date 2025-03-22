@@ -28,6 +28,36 @@ func (q *Queries) CreateAuthor(ctx context.Context, arg CreateAuthorParams) (int
 	return result.LastInsertId()
 }
 
+const createConcert = `-- name: CreateConcert :execlastid
+INSERT INTO concert (id, title, description, location, due_date, hints, user_id_fk) VALUES (?, ?, ?, ?, ?, ?, ?)
+`
+
+type CreateConcertParams struct {
+	ID          string
+	Title       sql.NullString
+	Description sql.NullString
+	Location    sql.NullString
+	DueDate     sql.NullTime
+	Hints       sql.NullString
+	UserIDFk    sql.NullString
+}
+
+func (q *Queries) CreateConcert(ctx context.Context, arg CreateConcertParams) (int64, error) {
+	result, err := q.db.ExecContext(ctx, createConcert,
+		arg.ID,
+		arg.Title,
+		arg.Description,
+		arg.Location,
+		arg.DueDate,
+		arg.Hints,
+		arg.UserIDFk,
+	)
+	if err != nil {
+		return 0, err
+	}
+	return result.LastInsertId()
+}
+
 const createUser = `-- name: CreateUser :execlastid
 INSERT INTO user (user_id, username, selected_theme, side_bar_collapsed) VALUES (?, ?, ?, ?)
 `
@@ -332,6 +362,33 @@ func (q *Queries) FindAllNotesByCreator(ctx context.Context, userIDFk sql.NullSt
 	return items, nil
 }
 
+const findAllNotesInConcertByPlace = `-- name: FindAllNotesInConcertByPlace :many
+SELECT concert_id_fk, note_id_fk, place_in_concert FROM note_in_concert WHERE concert_id_fk = ? ORDER BY place_in_concert
+`
+
+func (q *Queries) FindAllNotesInConcertByPlace(ctx context.Context, concertIDFk string) ([]NoteInConcert, error) {
+	rows, err := q.db.QueryContext(ctx, findAllNotesInConcertByPlace, concertIDFk)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []NoteInConcert
+	for rows.Next() {
+		var i NoteInConcert
+		if err := rows.Scan(&i.ConcertIDFk, &i.NoteIDFk, &i.PlaceInConcert); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const findAllSubElements = `-- name: FindAllSubElements :many
 SELECT type, id, creation_date, description, name, number_of_pages, title, user_id_fk, parent, author_id_fk, pdf_content, pdf_available FROM elements WHERE parent = ? ORDER BY title
 `
@@ -408,6 +465,77 @@ func (q *Queries) FindConcertById(ctx context.Context, id string) (Concert, erro
 		&i.Location,
 		&i.Title,
 		&i.UserIDFk,
+	)
+	return i, err
+}
+
+const findConcertsOfUserSortedByDate = `-- name: FindConcertsOfUserSortedByDate :many
+SELECT id, description, due_date, hints, location, title, user_id_fk FROM concert WHERE user_id_fk = ? ORDER BY due_date DESC
+`
+
+func (q *Queries) FindConcertsOfUserSortedByDate(ctx context.Context, userIDFk sql.NullString) ([]Concert, error) {
+	rows, err := q.db.QueryContext(ctx, findConcertsOfUserSortedByDate, userIDFk)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Concert
+	for rows.Next() {
+		var i Concert
+		if err := rows.Scan(
+			&i.ID,
+			&i.Description,
+			&i.DueDate,
+			&i.Hints,
+			&i.Location,
+			&i.Title,
+			&i.UserIDFk,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const findNoteById = `-- name: FindNoteById :one
+SELECT creation_date, id, name, parent, description, user_id_fk, title, author_id_fk, number_of_pages, pdf_available FROM elements WHERE type ='note' AND id = ?
+`
+
+type FindNoteByIdRow struct {
+	CreationDate  sql.NullTime
+	ID            int32
+	Name          sql.NullString
+	Parent        sql.NullInt32
+	Description   sql.NullString
+	UserIDFk      sql.NullString
+	Title         sql.NullString
+	AuthorIDFk    sql.NullInt32
+	NumberOfPages sql.NullInt32
+	PdfAvailable  sql.NullBool
+}
+
+// type: Note
+func (q *Queries) FindNoteById(ctx context.Context, id int32) (FindNoteByIdRow, error) {
+	row := q.db.QueryRowContext(ctx, findNoteById, id)
+	var i FindNoteByIdRow
+	err := row.Scan(
+		&i.CreationDate,
+		&i.ID,
+		&i.Name,
+		&i.Parent,
+		&i.Description,
+		&i.UserIDFk,
+		&i.Title,
+		&i.AuthorIDFk,
+		&i.NumberOfPages,
+		&i.PdfAvailable,
 	)
 	return i, err
 }

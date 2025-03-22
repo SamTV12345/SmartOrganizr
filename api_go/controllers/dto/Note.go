@@ -1,8 +1,6 @@
-package models
+package dto
 
-import (
-	"time"
-)
+import "time"
 
 type Note struct {
 	Title         string    `json:"title"`
@@ -15,8 +13,4 @@ type Note struct {
 	Parent        Folder    `json:"parent"`
 	Description   string    `json:"description"`
 	Creator       User      `json:"creator"`
-}
-
-func (note Note) Compare(other Note) bool {
-	return other.Id == note.Id
 }

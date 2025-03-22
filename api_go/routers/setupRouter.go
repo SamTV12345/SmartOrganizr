@@ -37,6 +37,12 @@ func SetupRouter(queries *db.Queries, config config.AppConfig) *fiber.App {
 		r.Delete("/:authorId", controllers.DeleteAuthor)
 		r.Post("/", controllers.CreateAuthor)
 	})
+
+	profile.Route("v1/concerts", func(r fiber.Router) {
+		r.Get("/", controllers.GetConcertsOfUser)
+		r.Post("/", controllers.CreateConcert)
+	})
+
 	var keycloakModel = controllers.KeycloakModel{
 		ClientId: config.SSO.ClientID,
 		Url:      config.SSO.Url,

@@ -33,8 +33,7 @@ INSERT INTO authors (name, extra_information, user_id_fk) VALUES (?, ?, ?);
 -- name: FindUserById :one
 SELECT * FROM user WHERE user_id = ?;
 
--- name: FindConcertById :one
-SELECT * FROM concert WHERE id = ?;
+
 
 
 -- name: FindAllNotesByAuthor :many
@@ -58,3 +57,22 @@ SELECT * FROM elements WHERE parent = ? ORDER BY title;
 -- name: FindAllNotesByCreator :many
 -- type: Note
 SELECT creation_date, id, name, parent, description, user_id_fk, title, author_id_fk, number_of_pages, pdf_available FROM elements WHERE type ='note' AND user_id_fk = ? ORDER BY title;
+
+-- name: FindNoteById :one
+-- type: Note
+SELECT creation_date, id, name, parent, description, user_id_fk, title, author_id_fk, number_of_pages, pdf_available FROM elements WHERE type ='note' AND id = ?;
+
+-- name: FindConcertById :one
+SELECT * FROM concert WHERE id = ?;
+
+-- name: FindConcertsOfUserSortedByDate :many
+SELECT * FROM concert WHERE user_id_fk = ? ORDER BY due_date DESC;
+
+
+-- name: FindAllNotesInConcertByPlace :many
+SELECT * FROM note_in_concert WHERE concert_id_fk = ? ORDER BY place_in_concert;
+
+
+-- name: CreateConcert :execlastid
+INSERT INTO concert (id, title, description, location, due_date, hints, user_id_fk) VALUES (?, ?, ?, ?, ?, ?, ?);
+
