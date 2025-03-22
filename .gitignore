@@ -54,5 +54,3 @@ config.yml
 
 rsa.private.key
 rsa.public.key
-
-data

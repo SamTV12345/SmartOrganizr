@@ -1,8 +1,8 @@
 version: "2"
 sql:
   - engine: "mysql"
-    queries: "query.sql"
-    schema: "schema.sql"
+    queries: "data/sql/queries"
+    schema: "data/sql/migrations"
     gen:
       go:
         package: "db"

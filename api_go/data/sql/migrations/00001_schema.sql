@@ -1,3 +1,4 @@
+-- +goose Up
 CREATE TABLE `authors` (
                            `id` int(11) NOT NULL,
     `extra_information` varchar(255) DEFAULT NULL,
