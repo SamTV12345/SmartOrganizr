@@ -17,5 +17,6 @@ func ConvertNoteFromEntity(entity db.Note, user models.User, author models.Autho
 		Author:        author,
 		NumberOfPages: int(entity.NumberOfPages.Int32),
 		PdfAvailable:  entity.PdfAvailable,
+		PDFContent:    entity.PdfContent,
 	}
 }

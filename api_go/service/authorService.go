@@ -167,14 +167,8 @@ func (a *AuthorService) DeleteAuthor(authorId string, userId string) error {
 
 func (a *AuthorService) FindAllNotesByAuthor(userId string, authorId string) (*[]models.Note, error) {
 	var notes, err = a.Queries.FindAllNotesByAuthor(context.Background(), db.FindAllNotesByAuthorParams{
-		UserIDFk: sql.NullString{
-			String: userId,
-			Valid:  true,
-		},
-		AuthorIDFk: sql.NullString{
-			String: authorId,
-			Valid:  true,
-		},
+		UserIDFk:   NewSQLNullString(userId),
+		AuthorIDFk: NewSQLNullString(authorId),
 	})
 
 	if err != nil {
@@ -186,7 +180,7 @@ func (a *AuthorService) FindAllNotesByAuthor(userId string, authorId string) (*[
 		return nil, err
 	}
 
-	var author, errAuthorSearch = a.FindAuthorByIdAndUser(userId, authorId)
+	var author, errAuthorSearch = a.FindAuthorByIdAndUser(authorId, userId)
 
 	if errAuthorSearch != nil {
 		return nil, err

@@ -61,13 +61,17 @@ func FindNextChildren(c *fiber.Ctx) error {
 	var userId = GetLocal[string](c, "userId")
 	var folderService = GetLocal[service.FolderService](c, "folderService")
 	var folderId = c.Params("folderId")
-	var folders, err = folderService.FindNextChildren(folderId, userId)
+	var elementsModel, err = folderService.FindNextChildren(folderId, userId)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": err,
 		})
 	}
-	return c.JSON(folders)
+	var elementDto = make([]interface{}, 0)
+	for _, element := range elementsModel {
+		elementDto = append(elementDto, mappers.ConvertElementDtoFromModel(element, c))
+	}
+	return c.JSON(elementDto)
 }
 
 func SearchFolders(c *fiber.Ctx) error {
