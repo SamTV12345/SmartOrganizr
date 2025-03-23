@@ -20,7 +20,7 @@ services:
   smartOrganizr:
     depends_on:
       - smartOrganizrdb
-    image: samuel19982/smartorganizr
+    image: samuel19982/smartorganizr:latest
     container_name: smartOrganizr
     restart: unless-stopped
     ports:

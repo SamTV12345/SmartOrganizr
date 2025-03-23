@@ -8,5 +8,9 @@ export default defineConfig({
       src: path.resolve('src/'),
     }
   },
+  build: {
+    outDir: path.resolve(__dirname, '../api_go/ui/dist'),
+    emptyOutDir: true
+  },
   base:"/ui/",
 })

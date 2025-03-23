@@ -8,10 +8,13 @@ import (
 	"api_go/controllers/dto"
 	"api_go/db"
 	"api_go/service"
+	"api_go/ui"
 	"context"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
+	"github.com/gofiber/fiber/v2/middleware/filesystem"
 	"github.com/gofiber/fiber/v2/middleware/keyauth"
+	"net/http"
 )
 
 func SetupRouter(queries *db.Queries, config config.AppConfig) *fiber.App {
@@ -85,6 +88,13 @@ func SetupRouter(queries *db.Queries, config config.AppConfig) *fiber.App {
 
 	profile := app.Group("api", keyauth.New(keyauth.Config{
 		Validator: validator,
+	}))
+
+	// Serve the React ui
+	app.Use("/ui", filesystem.New(filesystem.Config{
+		Root:       http.FS(ui.Web),
+		PathPrefix: "dist",
+		Browse:     false,
 	}))
 
 	profile.Route("v1/users", func(r fiber.Router) {
