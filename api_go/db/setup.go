@@ -2,13 +2,12 @@ package db
 
 import (
 	"api_go/config"
-	"api_go/data/sql/migrations"
+	sql2 "api_go/data/sql"
 	"context"
 	"database/sql"
 	"github.com/go-sql-driver/mysql"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/pressly/goose/v3"
-	"github.com/pressly/goose/v3/database"
 	"log"
 	"strconv"
 )
@@ -23,35 +22,27 @@ func Setup(config config.AppConfigDatabase) *Queries {
 		AllowNativePasswords: true,
 		ParseTime:            true,
 	}
+	println(configMysql.FormatDSN())
 	open, err := sql.Open("mysql", configMysql.FormatDSN())
 	if err != nil {
 		return nil
 	}
 	var queries = New(open)
-
+	err = goose.SetDialect("mysql")
+	if err != nil {
+		log.Fatalf("goose.SetDialect(\"mysql\"): %v", err)
+	}
+	goose.SetBaseFS(sql2.EmbedMigrations) //
 	if _, err := queries.HealthCheck(context.Background()); err != nil {
 		log.Fatalf("Error connecting to database: %s", err)
 	}
 
-	p, err := goose.NewProvider(
-		database.DialectMySQL,
-		open,
-		migrations.Embed)
-
-	if err != nil {
-		log.Fatalf("Error creating goose provider: %s", err)
+	if err := goose.Up(open, "migrations"); err != nil { //
+		panic(err)
 	}
-
-	pending, _ := p.HasPending(context.Background())
-
-	if pending {
-		if _, err := p.Up(context.Background()); err != nil {
-			return nil
-		}
+	if err := goose.Version(open, "migrations"); err != nil {
+		log.Fatal(err)
 	}
-
-	version, err := p.GetDBVersion(context.Background())
-	log.Printf("\nDB version after applying all up migrations: %d\n", version)
 
 	return queries
 }
