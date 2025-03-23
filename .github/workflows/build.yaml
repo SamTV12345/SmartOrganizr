@@ -25,7 +25,7 @@ jobs:
           cache: 'pnpm'
           cache-dependency-path: ./ui/pnpm-lock.yaml
       - name: Build frontend
-        run: pnpm run build
+        run: pnpm install && pnpm run build
         working-directory: ./ui
       - name: Set up Go
         uses: actions/setup-go@v2
