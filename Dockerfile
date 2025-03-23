@@ -1,3 +1,6 @@
+FROM alpine AS cache
+RUN apk add -U --no-cache ca-certificates
+
 FROM node:latest
 
 WORKDIR /app
@@ -32,5 +35,6 @@ RUN go build -o app .
 
 FROM scratch as runtime
 COPY --from=1 /app/app /app
+COPY --from=cache /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 
 ENTRYPOINT ["/app"]
