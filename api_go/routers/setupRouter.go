@@ -98,6 +98,17 @@ func SetupRouter(queries *db.Queries, config config.AppConfig) *fiber.App {
 		Browse:     false,
 	}))
 
+	// Fallback to index.html
+	app.Use("/ui", func(c *fiber.Ctx) error {
+		file, err := ui.Web.Open("dist/index.html")
+		if err != nil {
+			return c.Status(fiber.StatusNotFound).SendString("404 Not Found")
+		}
+		defer file.Close()
+		c.Set("Content-Type", "text/html")
+		return c.SendStream(file)
+	})
+
 	profile.Route("v1/users", func(r fiber.Router) {
 		r.Put("/", controllers.SyncUser)
 		r.Get("/offline", controllers.GetOfflineData)
