@@ -30,6 +30,9 @@ type AppConfig struct {
 	Database AppConfigDatabase
 	Port     int
 	SSO      AppConfigSSO
+	App      struct {
+		URL string
+	}
 }
 
 func ReadConfig() (AppConfig, error) {
@@ -48,6 +51,7 @@ func ReadConfig() (AppConfig, error) {
 
 	viper.SetDefault(DatabaseHost, "localhost")
 	viper.SetDefault(DatabasePort, 3306)
+	viper.SetDefault(AppURL, "http://localhost:8080")
 	viper.SetDefault(AppPort, 8080)
 	viper.SetDefault(DatabaseUser, "root")
 	viper.SetDefault(DatabasePassword, "root")
@@ -79,6 +83,7 @@ func ReadConfig() (AppConfig, error) {
 			FrontendClientID: viper.GetString(SSOFrontendClientID),
 			Realm:            viper.GetString(SSORealm),
 		},
+		App: struct{ URL string }{URL: viper.GetString(AppURL)},
 	}
 	return config, nil
 }

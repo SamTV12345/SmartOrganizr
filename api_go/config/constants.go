@@ -1,6 +1,7 @@
 package config
 
 const DatabaseHost = "database.host"
+const AppURL = "app.url"
 const DatabasePort = "database.port"
 const DatabaseUser = "database.user"
 const DatabaseDatabase = "database.database"

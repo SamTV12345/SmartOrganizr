@@ -68,6 +68,7 @@ func SetupRouter(queries *db.Queries, config config.AppConfig) *fiber.App {
 		SetLocal[service.UserService](c, constants.UserService, userService)
 		SetLocal[service.FolderService](c, constants.FolderService, folderService)
 		SetLocal[service.NoteService](c, constants.NoteService, noteService)
+		SetLocal[string](c, constants.BaseURL, config.App.URL)
 		SetLocal[service.AuthorService](c, constants.AuthorService, authorService)
 		SetLocal[service.ConcertService](c, constants.ConcertService, concertService)
 		// Go to next middleware:
