@@ -21,6 +21,7 @@ func Setup(config config.AppConfigDatabase) *Queries {
 		Addr:                 config.Host + ":" + strconv.Itoa(config.Port),
 		DBName:               config.Database,
 		AllowNativePasswords: true,
+		ParseTime:            true,
 	}
 	open, err := sql.Open("mysql", configMysql.FormatDSN())
 	if err != nil {
