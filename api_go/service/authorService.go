@@ -12,8 +12,10 @@ import (
 )
 
 type AuthorService struct {
-	Queries *db.Queries
-	Ctx     context.Context
+	Queries     *db.Queries
+	Ctx         context.Context
+	NoteService NoteService
+	UserService UserService
 }
 
 func (a *AuthorService) LoadAllAuthors(userId string) ([]models.Author, error) {
@@ -34,10 +36,8 @@ func (a *AuthorService) LoadAllAuthors(userId string) ([]models.Author, error) {
 
 func (a *AuthorService) LoadAuthorById(authorId string, userId string) (models.Author, error) {
 	authorDB, err := a.Queries.FindAuthorById(a.Ctx, db.FindAuthorByIdParams{
-		ID: authorId,
-		UserIDFk: sql.NullString{
-			String: userId,
-		},
+		ID:       authorId,
+		UserIDFk: NewSQLNullString(userId),
 	})
 	if err != nil {
 		return models.Author{}, err
@@ -48,9 +48,7 @@ func (a *AuthorService) LoadAuthorById(authorId string, userId string) (models.A
 
 func (a *AuthorService) FindByCreatorAndSearchText(userId string, nameStr string) ([]models.Author, error) {
 	var authorsDb, err = a.Queries.FindAllAuthorsByCreatorAndSearchText(context.Background(), db.FindAllAuthorsByCreatorAndSearchTextParams{
-		UserIDFk: sql.NullString{
-			String: userId,
-		},
+		UserIDFk: NewSQLNullString(userId),
 		CONCAT:   nameStr,
 		CONCAT_2: nameStr,
 	})
@@ -84,11 +82,9 @@ func (a *AuthorService) CountFindByCreatorAndSearchText(userId string, nameStr s
 
 func (a *AuthorService) FindAllByCreator(userId string, page int) ([]models.Author, error) {
 	var authorsDb, err = a.Queries.FindAllAuthorsByCreator(a.Ctx, db.FindAllAuthorsByCreatorParams{
-		Limit:  constants.CurrentPageSize,
-		Offset: int32(constants.CurrentPageSize * page),
-		UserIDFk: sql.NullString{
-			String: userId,
-		},
+		Limit:    constants.CurrentPageSize,
+		Offset:   int32(constants.CurrentPageSize * page),
+		UserIDFk: NewSQLNullString(userId),
 	})
 	if err != nil {
 		return nil, err
@@ -138,9 +134,106 @@ func (a *AuthorService) CreateAuthor(author dto.Author, userId string) (models.A
 	var authorSaved, _ = a.Queries.FindAuthorById(context.Background(), db.FindAuthorByIdParams{
 		UserIDFk: sql.NullString{
 			String: userId,
+			Valid:  true,
 		},
 		ID: authorId.String(),
 	})
 	var authorModel = mappers.ConvertAuthorFromEntity(authorSaved)
+	return authorModel, nil
+}
+
+func (a *AuthorService) DeleteAuthor(authorId string, userId string) error {
+	var notes, err = a.FindAllNotesByAuthor(userId, authorId)
+	if err != nil {
+		return nil
+	}
+
+	for _, note := range *notes {
+		var err = a.NoteService.DeleteNote(userId, note.Id)
+		if err != nil {
+			return err
+		}
+	}
+
+	err = a.Queries.DeleteAuthor(context.Background(), db.DeleteAuthorParams{
+		ID: authorId,
+		UserIDFk: sql.NullString{
+			String: userId,
+			Valid:  true,
+		},
+	})
+	return err
+}
+
+func (a *AuthorService) FindAllNotesByAuthor(userId string, authorId string) (*[]models.Note, error) {
+	var notes, err = a.Queries.FindAllNotesByAuthor(context.Background(), db.FindAllNotesByAuthorParams{
+		UserIDFk: sql.NullString{
+			String: userId,
+			Valid:  true,
+		},
+		AuthorIDFk: sql.NullString{
+			String: authorId,
+			Valid:  true,
+		},
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	var user, errUserSearch = a.UserService.LoadUser(userId)
+	if errUserSearch != nil {
+		return nil, err
+	}
+
+	var author, errAuthorSearch = a.FindAuthorByIdAndUser(userId, authorId)
+
+	if errAuthorSearch != nil {
+		return nil, err
+	}
+
+	var modelAuthors = make([]models.Note, 0)
+	for _, note := range notes {
+		var convertedNote = db.ConvertNoteEntityToDBVersion(note)
+		var noteModel = mappers.ConvertNoteFromEntity(convertedNote, *user, author)
+		modelAuthors = append(modelAuthors, noteModel)
+	}
+	return &modelAuthors, nil
+}
+
+func (a *AuthorService) FindAuthorByIdAndUser(authorId string, userId string) (models.Author, error) {
+	var author, err = a.Queries.FindAuthorById(context.Background(), db.FindAuthorByIdParams{
+		ID: authorId,
+		UserIDFk: sql.NullString{
+			String: userId,
+			Valid:  true,
+		},
+	})
+	if err != nil {
+		return models.Author{}, err
+	}
+	var authorModel = mappers.ConvertAuthorFromEntity(author)
+	return authorModel, nil
+}
+
+func (a *AuthorService) UpdateAuthor(authorPatchDto dto.Author, userId string) (models.Author, error) {
+	err := a.Queries.UpdateAuthor(context.Background(), db.UpdateAuthorParams{
+		ID: authorPatchDto.ID,
+		ExtraInformation: sql.NullString{
+			String: authorPatchDto.ExtraInformation,
+			Valid:  true,
+		},
+		Name: sql.NullString{
+			String: authorPatchDto.Name,
+			Valid:  true,
+		},
+	})
+	if err != nil {
+		return models.Author{}, err
+	}
+	var author, _ = a.Queries.FindAuthorById(context.Background(), db.FindAuthorByIdParams{
+		ID: authorPatchDto.ID,
+	})
+	var authorModel = mappers.ConvertAuthorFromEntity(author)
 	return authorModel, nil
 }

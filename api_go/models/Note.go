@@ -9,6 +9,7 @@ type Note struct {
 	Author        Author    `json:"author"`
 	NumberOfPages int       `json:"numberOfPages"`
 	PdfAvailable  bool      `json:"pdfAvailable"`
+	PDFContent    []byte    `json:"pdfContent"`
 	CreationDate  time.Time `json:"creationDate"`
 	Id            string    `json:"id"`
 	Name          string    `json:"name"`

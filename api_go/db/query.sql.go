@@ -139,6 +139,36 @@ func (q *Queries) CreateFolder(ctx context.Context, arg CreateFolderParams) (int
 	return result.LastInsertId()
 }
 
+const createNote = `-- name: CreateNote :execlastid
+INSERT INTO elements (id, type, name, description, user_id_fk, parent, title, author_id_fk, number_of_pages) VALUES (?,'note', 'Note', ?, ?, ?, ?, ?, ?)
+`
+
+type CreateNoteParams struct {
+	ID            string
+	Description   sql.NullString
+	UserIDFk      sql.NullString
+	Parent        sql.NullString
+	Title         sql.NullString
+	AuthorIDFk    sql.NullString
+	NumberOfPages sql.NullInt32
+}
+
+func (q *Queries) CreateNote(ctx context.Context, arg CreateNoteParams) (int64, error) {
+	result, err := q.db.ExecContext(ctx, createNote,
+		arg.ID,
+		arg.Description,
+		arg.UserIDFk,
+		arg.Parent,
+		arg.Title,
+		arg.AuthorIDFk,
+		arg.NumberOfPages,
+	)
+	if err != nil {
+		return 0, err
+	}
+	return result.LastInsertId()
+}
+
 const createUser = `-- name: CreateUser :execlastid
 INSERT INTO user (id, username, selected_theme, side_bar_collapsed) VALUES (?, ?, ?, ?)
 `
@@ -186,6 +216,20 @@ func (q *Queries) DeleteConcert(ctx context.Context, id string) error {
 	return err
 }
 
+const deleteNote = `-- name: DeleteNote :exec
+DELETE FROM elements WHERE id = ? AND user_id_fk = ?
+`
+
+type DeleteNoteParams struct {
+	ID       string
+	UserIDFk sql.NullString
+}
+
+func (q *Queries) DeleteNote(ctx context.Context, arg DeleteNoteParams) error {
+	_, err := q.db.ExecContext(ctx, deleteNote, arg.ID, arg.UserIDFk)
+	return err
+}
+
 const deleteNoteInConcert = `-- name: DeleteNoteInConcert :exec
 DELETE FROM note_in_concert WHERE concert_id_fk = ? AND note_id_fk = ?
 `
@@ -206,6 +250,15 @@ DELETE FROM note_in_concert WHERE concert_id_fk = ?
 
 func (q *Queries) DeleteNotesInConcert(ctx context.Context, concertIDFk string) error {
 	_, err := q.db.ExecContext(ctx, deleteNotesInConcert, concertIDFk)
+	return err
+}
+
+const deleteNotesInConcertByNoteId = `-- name: DeleteNotesInConcertByNoteId :exec
+DELETE FROM note_in_concert WHERE note_id_fk = ?
+`
+
+func (q *Queries) DeleteNotesInConcertByNoteId(ctx context.Context, noteIDFk string) error {
+	_, err := q.db.ExecContext(ctx, deleteNotesInConcertByNoteId, noteIDFk)
 	return err
 }
 
@@ -323,35 +376,31 @@ func (q *Queries) FindAllAuthorsByCreatorUnpaged(ctx context.Context, userIDFk s
 }
 
 const findAllFoldersByCreator = `-- name: FindAllFoldersByCreator :many
-SELECT creation_date, id, name, parent, description, user_id_fk FROM elements as folders WHERE type ='folder' AND user_id_fk = ? ORDER BY title
+SELECT type, id, creation_date, description, name, number_of_pages, title, user_id_fk, parent, author_id_fk, pdf_content FROM elements as folders WHERE type ='folder' AND user_id_fk = ? ORDER BY title
 `
 
-type FindAllFoldersByCreatorRow struct {
-	CreationDate sql.NullTime
-	ID           string
-	Name         sql.NullString
-	Parent       sql.NullString
-	Description  sql.NullString
-	UserIDFk     sql.NullString
-}
-
 // type: Folder
-func (q *Queries) FindAllFoldersByCreator(ctx context.Context, userIDFk sql.NullString) ([]FindAllFoldersByCreatorRow, error) {
+func (q *Queries) FindAllFoldersByCreator(ctx context.Context, userIDFk sql.NullString) ([]Element, error) {
 	rows, err := q.db.QueryContext(ctx, findAllFoldersByCreator, userIDFk)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []FindAllFoldersByCreatorRow
+	var items []Element
 	for rows.Next() {
-		var i FindAllFoldersByCreatorRow
+		var i Element
 		if err := rows.Scan(
-			&i.CreationDate,
+			&i.Type,
 			&i.ID,
-			&i.Name,
-			&i.Parent,
+			&i.CreationDate,
 			&i.Description,
+			&i.Name,
+			&i.NumberOfPages,
+			&i.Title,
 			&i.UserIDFk,
+			&i.Parent,
+			&i.AuthorIDFk,
+			&i.PdfContent,
 		); err != nil {
 			return nil, err
 		}
@@ -367,7 +416,7 @@ func (q *Queries) FindAllFoldersByCreator(ctx context.Context, userIDFk sql.Null
 }
 
 const findAllNotesByAuthor = `-- name: FindAllNotesByAuthor :many
-SELECT creation_date, id, name, parent, description, user_id_fk, title, author_id_fk, number_of_pages, pdf_available FROM elements WHERE type ='note' AND author_id_fk = ? AND user_id_fk = ? ORDER BY title
+SELECT type, id, creation_date, description, name, number_of_pages, title, user_id_fk, parent, author_id_fk, pdf_content FROM elements WHERE type ='note' AND author_id_fk = ? AND user_id_fk = ? ORDER BY title
 `
 
 type FindAllNotesByAuthorParams struct {
@@ -375,39 +424,27 @@ type FindAllNotesByAuthorParams struct {
 	UserIDFk   sql.NullString
 }
 
-type FindAllNotesByAuthorRow struct {
-	CreationDate  sql.NullTime
-	ID            string
-	Name          sql.NullString
-	Parent        sql.NullString
-	Description   sql.NullString
-	UserIDFk      sql.NullString
-	Title         sql.NullString
-	AuthorIDFk    sql.NullString
-	NumberOfPages sql.NullInt32
-	PdfAvailable  sql.NullBool
-}
-
-func (q *Queries) FindAllNotesByAuthor(ctx context.Context, arg FindAllNotesByAuthorParams) ([]FindAllNotesByAuthorRow, error) {
+func (q *Queries) FindAllNotesByAuthor(ctx context.Context, arg FindAllNotesByAuthorParams) ([]Element, error) {
 	rows, err := q.db.QueryContext(ctx, findAllNotesByAuthor, arg.AuthorIDFk, arg.UserIDFk)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []FindAllNotesByAuthorRow
+	var items []Element
 	for rows.Next() {
-		var i FindAllNotesByAuthorRow
+		var i Element
 		if err := rows.Scan(
-			&i.CreationDate,
+			&i.Type,
 			&i.ID,
-			&i.Name,
-			&i.Parent,
+			&i.CreationDate,
 			&i.Description,
-			&i.UserIDFk,
-			&i.Title,
-			&i.AuthorIDFk,
+			&i.Name,
 			&i.NumberOfPages,
-			&i.PdfAvailable,
+			&i.Title,
+			&i.UserIDFk,
+			&i.Parent,
+			&i.AuthorIDFk,
+			&i.PdfContent,
 		); err != nil {
 			return nil, err
 		}
@@ -423,43 +460,30 @@ func (q *Queries) FindAllNotesByAuthor(ctx context.Context, arg FindAllNotesByAu
 }
 
 const findAllNotesByCreator = `-- name: FindAllNotesByCreator :many
-SELECT creation_date, id, name, parent, description, user_id_fk, title, author_id_fk, number_of_pages, pdf_available FROM elements WHERE type ='note' AND user_id_fk = ? ORDER BY title
+SELECT type, id, creation_date, description, name, number_of_pages, title, user_id_fk, parent, author_id_fk, pdf_content FROM elements WHERE type ='note' AND user_id_fk = ? ORDER BY title
 `
 
-type FindAllNotesByCreatorRow struct {
-	CreationDate  sql.NullTime
-	ID            string
-	Name          sql.NullString
-	Parent        sql.NullString
-	Description   sql.NullString
-	UserIDFk      sql.NullString
-	Title         sql.NullString
-	AuthorIDFk    sql.NullString
-	NumberOfPages sql.NullInt32
-	PdfAvailable  sql.NullBool
-}
-
-// type: Note
-func (q *Queries) FindAllNotesByCreator(ctx context.Context, userIDFk sql.NullString) ([]FindAllNotesByCreatorRow, error) {
+func (q *Queries) FindAllNotesByCreator(ctx context.Context, userIDFk sql.NullString) ([]Element, error) {
 	rows, err := q.db.QueryContext(ctx, findAllNotesByCreator, userIDFk)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []FindAllNotesByCreatorRow
+	var items []Element
 	for rows.Next() {
-		var i FindAllNotesByCreatorRow
+		var i Element
 		if err := rows.Scan(
-			&i.CreationDate,
+			&i.Type,
 			&i.ID,
-			&i.Name,
-			&i.Parent,
+			&i.CreationDate,
 			&i.Description,
-			&i.UserIDFk,
-			&i.Title,
-			&i.AuthorIDFk,
+			&i.Name,
 			&i.NumberOfPages,
-			&i.PdfAvailable,
+			&i.Title,
+			&i.UserIDFk,
+			&i.Parent,
+			&i.AuthorIDFk,
+			&i.PdfContent,
 		); err != nil {
 			return nil, err
 		}
@@ -502,7 +526,7 @@ func (q *Queries) FindAllNotesInConcertByPlace(ctx context.Context, concertIDFk 
 }
 
 const findAllParentFolders = `-- name: FindAllParentFolders :many
-SELECT type, id, creation_date, description, name, number_of_pages, title, user_id_fk, parent, author_id_fk, pdf_content, pdf_available FROM elements WHERE parent IS NULL AND user_id_fk = ? ORDER BY title
+SELECT type, id, creation_date, description, name, number_of_pages, title, user_id_fk, parent, author_id_fk, pdf_content FROM elements WHERE parent IS NULL AND type = 'folder' AND user_id_fk = ? ORDER BY title
 `
 
 func (q *Queries) FindAllParentFolders(ctx context.Context, userIDFk sql.NullString) ([]Element, error) {
@@ -526,7 +550,6 @@ func (q *Queries) FindAllParentFolders(ctx context.Context, userIDFk sql.NullStr
 			&i.Parent,
 			&i.AuthorIDFk,
 			&i.PdfContent,
-			&i.PdfAvailable,
 		); err != nil {
 			return nil, err
 		}
@@ -542,7 +565,7 @@ func (q *Queries) FindAllParentFolders(ctx context.Context, userIDFk sql.NullStr
 }
 
 const findAllSubElements = `-- name: FindAllSubElements :many
-SELECT type, id, creation_date, description, name, number_of_pages, title, user_id_fk, parent, author_id_fk, pdf_content, pdf_available FROM elements WHERE parent = ? AND user_id_fk = ? ORDER BY title
+SELECT type, id, creation_date, description, name, number_of_pages, title, user_id_fk, parent, author_id_fk, pdf_content FROM elements WHERE parent = ? AND user_id_fk = ? ORDER BY title
 `
 
 type FindAllSubElementsParams struct {
@@ -571,7 +594,6 @@ func (q *Queries) FindAllSubElements(ctx context.Context, arg FindAllSubElements
 			&i.Parent,
 			&i.AuthorIDFk,
 			&i.PdfContent,
-			&i.PdfAvailable,
 		); err != nil {
 			return nil, err
 		}
@@ -686,7 +708,7 @@ func (q *Queries) FindConcertsOfUserSortedByDate(ctx context.Context, userIDFk s
 }
 
 const findFolderById = `-- name: FindFolderById :one
-SELECT creation_date, id, name, parent, description, user_id_fk FROM elements WHERE id = ? and user_id_fk = ?
+SELECT type, id, creation_date, description, name, number_of_pages, title, user_id_fk, parent, author_id_fk, pdf_content FROM elements WHERE id = ? and user_id_fk = ?
 `
 
 type FindFolderByIdParams struct {
@@ -694,61 +716,45 @@ type FindFolderByIdParams struct {
 	UserIDFk sql.NullString
 }
 
-type FindFolderByIdRow struct {
-	CreationDate sql.NullTime
-	ID           string
-	Name         sql.NullString
-	Parent       sql.NullString
-	Description  sql.NullString
-	UserIDFk     sql.NullString
-}
-
-func (q *Queries) FindFolderById(ctx context.Context, arg FindFolderByIdParams) (FindFolderByIdRow, error) {
+func (q *Queries) FindFolderById(ctx context.Context, arg FindFolderByIdParams) (Element, error) {
 	row := q.db.QueryRowContext(ctx, findFolderById, arg.ID, arg.UserIDFk)
-	var i FindFolderByIdRow
+	var i Element
 	err := row.Scan(
-		&i.CreationDate,
+		&i.Type,
 		&i.ID,
-		&i.Name,
-		&i.Parent,
+		&i.CreationDate,
 		&i.Description,
+		&i.Name,
+		&i.NumberOfPages,
+		&i.Title,
 		&i.UserIDFk,
+		&i.Parent,
+		&i.AuthorIDFk,
+		&i.PdfContent,
 	)
 	return i, err
 }
 
 const findNoteById = `-- name: FindNoteById :one
-SELECT creation_date, id, name, parent, description, user_id_fk, title, author_id_fk, number_of_pages, pdf_available FROM elements WHERE type ='note' AND id = ?
+SELECT type, id, creation_date, description, name, number_of_pages, title, user_id_fk, parent, author_id_fk, pdf_content FROM elements WHERE type ='note' AND id = ?
 `
 
-type FindNoteByIdRow struct {
-	CreationDate  sql.NullTime
-	ID            string
-	Name          sql.NullString
-	Parent        sql.NullString
-	Description   sql.NullString
-	UserIDFk      sql.NullString
-	Title         sql.NullString
-	AuthorIDFk    sql.NullString
-	NumberOfPages sql.NullInt32
-	PdfAvailable  sql.NullBool
-}
-
 // type: Note
-func (q *Queries) FindNoteById(ctx context.Context, id string) (FindNoteByIdRow, error) {
+func (q *Queries) FindNoteById(ctx context.Context, id string) (Element, error) {
 	row := q.db.QueryRowContext(ctx, findNoteById, id)
-	var i FindNoteByIdRow
+	var i Element
 	err := row.Scan(
-		&i.CreationDate,
+		&i.Type,
 		&i.ID,
-		&i.Name,
-		&i.Parent,
+		&i.CreationDate,
 		&i.Description,
-		&i.UserIDFk,
-		&i.Title,
-		&i.AuthorIDFk,
+		&i.Name,
 		&i.NumberOfPages,
-		&i.PdfAvailable,
+		&i.Title,
+		&i.UserIDFk,
+		&i.Parent,
+		&i.AuthorIDFk,
+		&i.PdfContent,
 	)
 	return i, err
 }
@@ -808,7 +814,7 @@ func (q *Queries) HealthCheck(ctx context.Context) (int32, error) {
 }
 
 const searchByFolderName = `-- name: SearchByFolderName :many
-SELECT type, id, creation_date, description, name, number_of_pages, title, user_id_fk, parent, author_id_fk, pdf_content, pdf_available FROM elements WHERE name LIKE CONCAT('%', ?, '%') and type = 'folder' AND user_id_fk = ? ORDER BY title LIMIT ? OFFSET ?
+SELECT type, id, creation_date, description, name, number_of_pages, title, user_id_fk, parent, author_id_fk, pdf_content FROM elements WHERE name LIKE CONCAT('%', ?, '%') and type = 'folder' AND user_id_fk = ? ORDER BY title LIMIT ? OFFSET ?
 `
 
 type SearchByFolderNameParams struct {
@@ -844,7 +850,6 @@ func (q *Queries) SearchByFolderName(ctx context.Context, arg SearchByFolderName
 			&i.Parent,
 			&i.AuthorIDFk,
 			&i.PdfContent,
-			&i.PdfAvailable,
 		); err != nil {
 			return nil, err
 		}
@@ -871,6 +876,33 @@ type UpdateAuthorParams struct {
 
 func (q *Queries) UpdateAuthor(ctx context.Context, arg UpdateAuthorParams) error {
 	_, err := q.db.ExecContext(ctx, updateAuthor, arg.Name, arg.ExtraInformation, arg.ID)
+	return err
+}
+
+const updateNote = `-- name: UpdateNote :exec
+UPDATE elements SET name = ?, description = ?, title = ?, author_id_fk = ?, number_of_pages = ?, pdf_content = ? WHERE id = ?
+`
+
+type UpdateNoteParams struct {
+	Name          sql.NullString
+	Description   sql.NullString
+	Title         sql.NullString
+	AuthorIDFk    sql.NullString
+	NumberOfPages sql.NullInt32
+	PdfContent    sql.NullString
+	ID            string
+}
+
+func (q *Queries) UpdateNote(ctx context.Context, arg UpdateNoteParams) error {
+	_, err := q.db.ExecContext(ctx, updateNote,
+		arg.Name,
+		arg.Description,
+		arg.Title,
+		arg.AuthorIDFk,
+		arg.NumberOfPages,
+		arg.PdfContent,
+		arg.ID,
+	)
 	return err
 }
 

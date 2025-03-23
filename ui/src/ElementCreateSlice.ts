@@ -42,7 +42,7 @@ export const elementSlice = createSlice({
             state.author = action.payload
         },
         setElementNumberOfPages:(state, action)=>{
-            state.numberOfPages = action.payload
+            state.numberOfPages = Number(action.payload)
         },
         setElementSelectedAuthorName:(state, action)=>{
             state.authorName = action.payload

@@ -12,14 +12,17 @@ import (
 )
 
 type FolderService struct {
-	Queries *db.Queries
-	Ctx     context.Context
+	Queries       *db.Queries
+	Ctx           context.Context
+	NoteService   NoteService
+	AuthorService AuthorService
+	UserService   UserService
 }
 
-func (f *FolderService) loadSubElements(folder *models.Folder, user db.User) {
+func (f *FolderService) loadSubElements(folder *models.Folder, user models.User) {
 	var subElements, _ = f.Queries.FindAllSubElements(f.Ctx, db.FindAllSubElementsParams{
 		UserIDFk: sql.NullString{
-			String: user.ID,
+			String: user.UserId,
 			Valid:  true,
 		},
 		Parent: sql.NullString{
@@ -28,8 +31,14 @@ func (f *FolderService) loadSubElements(folder *models.Folder, user db.User) {
 		},
 	})
 	for _, element := range subElements {
-		mappers.ConvertFromEntity(element, user, nil)
-		folder.Elements = append(folder.Elements)
+		var ielement = db.ConvertElementEntityToDBVersion(element)
+		var author *models.Author = nil
+		if note, ok := ielement.(db.Note); ok {
+			authorFound, _ := f.AuthorService.FindAuthorByIdAndUser(note.AuthorIDFk.String, user.UserId)
+			author = &authorFound
+		}
+		var elementToAppend = mappers.ConvertFromEntity(ielement, user, author)
+		folder.Elements = append(folder.Elements, elementToAppend)
 	}
 
 }
@@ -43,17 +52,17 @@ func (f *FolderService) FindAllParentDeckFolders(userId string) ([]models.Folder
 	if err != nil {
 		return nil, err
 	}
-	var creator *db.User
+	var creator *models.User
 	for _, folder := range foldersDB {
 		if creator == nil {
-			user, err := f.Queries.FindUserById(f.Ctx, userId)
+			user, err := f.UserService.LoadUser(userId)
 			if err != nil {
 				return nil, err
 			}
-			creator = &user
+			creator = user
 		}
-
-		var folderModel = mappers.ConvertFolderFromEntity(folder, *creator)
+		var folderDb = db.ConvertFolderEntityToDBVersion(folder)
+		var folderModel = mappers.ConvertFolderFromEntity(folderDb, *creator)
 		f.loadSubElements(&folderModel, *creator)
 		modelFolders = append(modelFolders, folderModel)
 	}
@@ -69,17 +78,17 @@ func (f *FolderService) LoadAllFolders(userId string) ([]models.Folder, error) {
 	if err != nil {
 		return nil, err
 	}
-	var creator *db.User
+	var creator *models.User
 	for _, folder := range foldersDB {
 		if creator == nil {
-			user, err := f.Queries.FindUserById(f.Ctx, folder.UserIDFk.String)
+			user, err := f.UserService.LoadUser(userId)
 			if err != nil {
 				return nil, err
 			}
-			creator = &user
+			creator = user
 		}
-
-		var folderModel = mappers.ConvertFolderFromEntity(folder, *creator)
+		var folderDb = db.ConvertFolderEntityToDBVersion(folder)
+		var folderModel = mappers.ConvertFolderFromEntity(folderDb, *creator)
 		f.loadSubElements(&folderModel, *creator)
 		modelFolders = append(modelFolders, folderModel)
 	}
@@ -88,7 +97,7 @@ func (f *FolderService) LoadAllFolders(userId string) ([]models.Folder, error) {
 }
 
 func (f *FolderService) FindFolderByIdAndUser(folderId string, userId string) (*models.Folder, error) {
-	folderDB, err := f.Queries.FindFolderById(f.Ctx, db.FindFolderByIdParams{
+	folder, err := f.Queries.FindFolderById(f.Ctx, db.FindFolderByIdParams{
 		ID: folderId,
 		UserIDFk: sql.NullString{
 			String: userId,
@@ -98,9 +107,13 @@ func (f *FolderService) FindFolderByIdAndUser(folderId string, userId string) (*
 	if err != nil {
 		return nil, err
 	}
-	var creator, _ = f.Queries.FindUserById(f.Ctx, userId)
-	var folderModel = mappers.ConvertFolderFromEntity(folderDB, creator)
-	f.loadSubElements(&folderModel, creator)
+	var creator, errWhenLoading = f.UserService.LoadUser(userId)
+	if errWhenLoading != nil {
+		return nil, err
+	}
+	var folderDb = db.ConvertFolderEntityToDBVersion(folder)
+	var folderModel = mappers.ConvertFolderFromEntity(folderDb, *creator)
+	f.loadSubElements(&folderModel, *creator)
 	return &folderModel, nil
 }
 
@@ -143,19 +156,22 @@ func (f *FolderService) CreateFolder(dto dto.FolderPostDto, userId string) (*mod
 
 func (f *FolderService) FindNextChildren(folderId string, userId string) ([]models.Element, error) {
 	var elements, _ = f.Queries.FindAllSubElements(f.Ctx, db.FindAllSubElementsParams{
-		UserIDFk: sql.NullString{
-			String: userId,
-			Valid:  true,
-		},
-		Parent: sql.NullString{
-			String: folderId,
-			Valid:  true,
-		},
+		UserIDFk: NewSQLNullString(userId),
+		Parent:   NewSQLNullString(folderId),
 	})
 	var modelElements = make([]models.Element, 0)
-	var creator, _ = f.Queries.FindUserById(f.Ctx, userId)
+	var creator, err = f.UserService.LoadUser(userId)
+	if err != nil {
+		return nil, err
+	}
 	for _, element := range elements {
-		var modelElement = mappers.ConvertFromEntity(element, creator, nil)
+		var convertedElement = db.ConvertElementEntityToDBVersion(element)
+		var author *models.Author
+		if note, ok := convertedElement.(db.Note); ok {
+			authorLoaded, _ := f.AuthorService.FindAuthorByIdAndUser(note.AuthorIDFk.String, userId)
+			author = &authorLoaded
+		}
+		var modelElement = mappers.ConvertFromEntity(convertedElement, *creator, author)
 		modelElements = append(modelElements, modelElement)
 	}
 	return modelElements, nil
@@ -175,17 +191,17 @@ func (f *FolderService) SearchFolders(userId string, page int, folderName string
 		Limit:  constants.CurrentPageSize,
 	})
 	var modelFolders = make([]models.Folder, 0)
-	var creator *db.User
+	var creator *models.User
 	for _, folder := range foldersDB {
 		if creator == nil {
-			user, err := f.Queries.FindUserById(f.Ctx, userId)
+			user, err := f.UserService.LoadUser(userId)
 			if err != nil {
 				return nil, err
 			}
-			creator = &user
+			creator = user
 		}
-
-		var folderModel = mappers.ConvertFolderFromEntity(folder, *creator)
+		var convertedModel = db.ConvertFolderEntityToDBVersion(folder)
+		var folderModel = mappers.ConvertFolderFromEntity(convertedModel, *creator)
 		f.loadSubElements(&folderModel, *creator)
 		modelFolders = append(modelFolders, folderModel)
 	}

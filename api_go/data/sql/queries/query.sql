@@ -47,7 +47,7 @@ SELECT * FROM user WHERE id = ?;
 
 
 -- name: FindAllNotesByAuthor :many
-SELECT creation_date, id, name, parent, description, user_id_fk, title, author_id_fk, number_of_pages, pdf_available FROM elements WHERE type ='note' AND author_id_fk = ? AND user_id_fk = ? ORDER BY title;
+SELECT * FROM elements WHERE type ='note' AND author_id_fk = ? AND user_id_fk = ? ORDER BY title;
 
 
 -- name: CreateUser :execlastid
@@ -58,19 +58,18 @@ UPDATE user SET username = ?, selected_theme = ?, side_bar_collapsed = ? WHERE i
 
 -- name: FindAllFoldersByCreator :many
 -- type: Folder
-SELECT creation_date, id, name, parent, description, user_id_fk FROM elements as folders WHERE type ='folder' AND user_id_fk = ? ORDER BY title;
+SELECT * FROM elements as folders WHERE type ='folder' AND user_id_fk = ? ORDER BY title;
 
 
 -- name: FindAllSubElements :many
 SELECT * FROM elements WHERE parent = ? AND user_id_fk = ? ORDER BY title;
 
 -- name: FindAllNotesByCreator :many
--- type: Note
-SELECT creation_date, id, name, parent, description, user_id_fk, title, author_id_fk, number_of_pages, pdf_available FROM elements WHERE type ='note' AND user_id_fk = ? ORDER BY title;
+SELECT * FROM elements WHERE type ='note' AND user_id_fk = ? ORDER BY title;
 
 -- name: FindNoteById :one
 -- type: Note
-SELECT creation_date, id, name, parent, description, user_id_fk, title, author_id_fk, number_of_pages, pdf_available FROM elements WHERE type ='note' AND id = ?;
+SELECT * FROM elements WHERE type ='note' AND id = ?;
 
 -- name: FindConcertById :one
 SELECT * FROM concert WHERE id = ?;
@@ -91,6 +90,9 @@ DELETE FROM note_in_concert WHERE concert_id_fk = ? AND note_id_fk = ?;
 -- name: DeleteNotesInConcert :exec
 DELETE FROM note_in_concert WHERE concert_id_fk = ?;
 
+-- name: DeleteNotesInConcertByNoteId :exec
+DELETE FROM note_in_concert WHERE note_id_fk = ?;
+
 -- name: DeleteConcert :exec
 DELETE FROM concert WHERE id = ?;
 
@@ -101,17 +103,27 @@ INSERT INTO concert (id, title, description, location, due_date, hints, user_id_
 SELECT 1;
 
 -- name: FindAllParentFolders :many
-SELECT * FROM elements WHERE parent IS NULL AND user_id_fk = ? ORDER BY title;
+SELECT * FROM elements WHERE parent IS NULL AND type = 'folder' AND user_id_fk = ? ORDER BY title;
 
 
 -- name: CreateFolder :execlastid
 INSERT INTO elements (id, type, name, description, user_id_fk, parent) VALUES (?,'folder', ?, ?, ?, ?);
 
+-- name: CreateNote :execlastid
+INSERT INTO elements (id, type, name, description, user_id_fk, parent, title, author_id_fk, number_of_pages) VALUES (?,'note', 'Note', ?, ?, ?, ?, ?, ?);
+
 -- name: FindFolderById :one
-SELECT creation_date, id, name, parent, description, user_id_fk FROM elements WHERE id = ? and user_id_fk = ?;
+SELECT * FROM elements WHERE id = ? and user_id_fk = ?;
 
 -- name: SearchByFolderName :many
 SELECT * FROM elements WHERE name LIKE CONCAT('%', ?, '%') and type = 'folder' AND user_id_fk = ? ORDER BY title LIMIT ? OFFSET ?;
 
 -- name: CountSearchByFolderName :one
 SELECT COUNT(*) FROM elements WHERE name LIKE CONCAT('%', ?, '%') and type = 'folder' AND user_id_fk = ?;
+
+
+-- name: DeleteNote :exec
+DELETE FROM elements WHERE id = ? AND user_id_fk = ?;
+
+-- name: UpdateNote :exec
+UPDATE elements SET name = ?, description = ?, title = ?, author_id_fk = ?, number_of_pages = ?, pdf_content = ? WHERE id = ?;

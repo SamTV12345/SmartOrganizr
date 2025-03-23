@@ -11,8 +11,9 @@ import (
 )
 
 type ConcertService struct {
-	Queries *db.Queries
-	Ctx     context.Context
+	Queries     *db.Queries
+	Ctx         context.Context
+	NoteService NoteService
 }
 
 func (c *ConcertService) LoadAllConcerts(userId string) ([]models.Concert, error) {
@@ -30,33 +31,19 @@ func (c *ConcertService) LoadAllConcerts(userId string) ([]models.Concert, error
 	return concertModel, nil
 }
 
-func (c *ConcertService) LoadNotesInConcert(concertId string) ([]models.NoteInConcert, error) {
+func (c *ConcertService) LoadNotesInConcert(concertId string, userId string) ([]models.NoteInConcert, error) {
 	notesDB, err := c.Queries.FindAllNotesInConcertByPlace(c.Ctx, concertId)
 	if err != nil {
 		return nil, err
 	}
 	var notesModel = make([]models.NoteInConcert, 0)
-	var creator *db.User
 	for _, note := range notesDB {
-		noteToFind, err := c.Queries.FindNoteById(c.Ctx, note.NoteIDFk)
+		noteToFind, err := c.NoteService.LoadNote(note.NoteIDFk, userId)
 		if err != nil {
-			continue
+			return nil, err
 		}
-		if creator == nil {
-			user, err := c.Queries.FindUserById(c.Ctx, noteToFind.UserIDFk.String)
-			if err != nil {
-				return nil, err
-			}
-			creator = &user
-		}
-		author, _ := c.Queries.FindAuthorById(c.Ctx, db.FindAuthorByIdParams{
-			ID: noteToFind.AuthorIDFk.String,
-			UserIDFk: sql.NullString{
-				String: creator.ID,
-				Valid:  true,
-			},
-		})
-		var noteInConcert = mappers.ConvertNoteInConcertFromEntity(note, *creator, author, noteToFind)
+
+		var noteInConcert = mappers.ConvertNoteInConcertFromEntity(note, noteToFind)
 		notesModel = append(notesModel, noteInConcert)
 	}
 
@@ -88,16 +75,9 @@ func (c *ConcertService) LoadConcert(userId string, concertId string) (*models.C
 	var notesInConcert, _ = c.Queries.FindAllNotesInConcertByPlace(c.Ctx, concertId)
 	var noteInConcertModels = make([]models.NoteInConcert, 0)
 	for _, noteInConcert := range notesInConcert {
-		note, _ := c.Queries.FindNoteById(c.Ctx, noteInConcert.NoteIDFk)
-		author, _ := c.Queries.FindAuthorById(c.Ctx, db.FindAuthorByIdParams{
-			ID: note.AuthorIDFk.String,
-			UserIDFk: sql.NullString{
-				String: note.UserIDFk.String,
-				Valid:  true,
-			},
-		})
-		user, _ := c.Queries.FindUserById(c.Ctx, note.UserIDFk.String)
-		var noteInConcertModel = mappers.ConvertNoteInConcertFromEntity(noteInConcert, user, author, note)
+		note, _ := c.NoteService.LoadNote(noteInConcert.NoteIDFk, userId)
+
+		var noteInConcertModel = mappers.ConvertNoteInConcertFromEntity(noteInConcert, note)
 		noteInConcertModels = append(noteInConcertModels, noteInConcertModel)
 	}
 

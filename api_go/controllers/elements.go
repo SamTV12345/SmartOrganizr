@@ -61,7 +61,7 @@ func FindNextChildren(c *fiber.Ctx) error {
 	var userId = GetLocal[string](c, "userId")
 	var folderService = GetLocal[service.FolderService](c, "folderService")
 	var folderId = c.Params("folderId")
-	var folders, err = folderService.FindNextChildren(userId, folderId)
+	var folders, err = folderService.FindNextChildren(folderId, userId)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": err,
@@ -114,4 +114,72 @@ func SearchFolders(c *fiber.Ctx) error {
 	}
 
 	return c.JSON(paged)
+}
+
+func CreateNote(c *fiber.Ctx) error {
+	var notePostDto dto.NotePostDto
+	if err := c.BodyParser(&notePostDto); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": err.Error(),
+		})
+	}
+
+	var userId = GetLocal[string](c, "userId")
+	var noteService = GetLocal[service.NoteService](c, "noteService")
+	var note, err = noteService.CreateNote(userId, notePostDto)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": err.Error(),
+		})
+	}
+	return c.JSON(note)
+}
+
+func GetParentOfNote(c *fiber.Ctx) error {
+	var userId = GetLocal[string](c, "userId")
+	var noteId = c.Params("noteId")
+	var folderService = GetLocal[service.FolderService](c, "noteService")
+	var element, err = folderService.FindFolderByIdAndUser(noteId, userId)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": err.Error(),
+		})
+	}
+
+	return c.SendString(element.Id)
+}
+
+func GetNoteasPDF(c *fiber.Ctx) error {
+	var userId = GetLocal[string](c, "userId")
+	var noteId = c.Params("noteId")
+	var noteService = GetLocal[service.NoteService](c, "noteService")
+	var note, err = noteService.LoadNote(noteId, userId)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": err.Error(),
+		})
+	}
+	return c.Send(note.PDFContent)
+}
+
+func UpdatePDFOfNote(c *fiber.Ctx) error {
+	var userId = GetLocal[string](c, "userId")
+	var noteId = c.Params("noteId")
+	var noteService = GetLocal[service.NoteService](c, "noteService")
+	var note, err = noteService.LoadNote(noteId, userId)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": err.Error(),
+		})
+	}
+	var pdfContent = c.Body()
+	note.PDFContent = pdfContent
+	updatedNote, err := noteService.UpdateNote(userId, note)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": err.Error(),
+		})
+	}
+	var noteDto = mappers.ConvertNoteDtoFromModel(updatedNote)
+	return c.JSON(noteDto)
 }

@@ -5,14 +5,13 @@ import (
 	"api_go/models"
 )
 
-func ConvertFolderFromEntity(entity db.Folder, user db.User) models.Folder {
-	var creator = ConvertUserFromEntity(user)
+func ConvertFolderFromEntity(entity db.Folder, user models.User) models.Folder {
 
 	return models.Folder{
 		Name:         entity.GetName(),
 		Id:           entity.GetId(),
 		CreationDate: entity.GetCreationDate(),
-		Creator:      creator,
+		Creator:      user,
 		Description:  entity.GetDescription(),
 		Elements:     make([]models.Element, 0),
 	}

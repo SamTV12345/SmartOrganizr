@@ -7,6 +7,8 @@ import (
 
 func ConvertAuthorFromEntity(entity db.Author) models.Author {
 	return models.Author{
-		ID: entity.ID,
+		ID:               entity.ID,
+		ExtraInformation: entity.ExtraInformation.String,
+		Name:             entity.Name.String,
 	}
 }

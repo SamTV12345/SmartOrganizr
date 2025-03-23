@@ -8,7 +8,6 @@ import {apiURL, links} from "../Keycloak";
 import {setAuthorPage} from "../store/CommonSlice";
 import {Waypoint} from "react-waypoint";
 import {useTranslation} from "react-i18next";
-import {fixLinkProtocol, fixProtocol} from "../utils/Utilities";
 import {Modal} from "../components/modals/Modal";
 import {setAuthor, setModalOpen, setOpenAddModal} from "../ModalSlice";
 import {AuthorModal} from "../components/modals/AuthorModal";
@@ -59,7 +58,7 @@ export const AuthorView = ()=> {
 
     useEffect(()=>{
         if (!authorPage && links.author.href) {
-            loadAuthors(fixLinkProtocol(links.author.href))
+            loadAuthors(links.author.href)
         }
     },[])
 
@@ -153,7 +152,7 @@ export const AuthorView = ()=> {
                                     authorPage._links && authorPage._links.next
                                     && authorPage._links.next.href
                                     && <Waypoint onEnter={()=>{
-                                        loadAuthors(fixProtocol(authorPage._links.next.href))
+                                        loadAuthors(authorPage._links.next.href)
                                     }}/>}
                             </>
                             }/>

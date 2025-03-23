@@ -3,11 +3,8 @@ package controllers
 import (
 	"api_go/constants"
 	"api_go/controllers/dto"
-	"api_go/db"
 	"api_go/mappers"
 	"api_go/service"
-	"context"
-	"database/sql"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/log"
 	"strconv"
@@ -78,70 +75,41 @@ func GetAuthors(c *fiber.Ctx) error {
 }
 
 func UpdateAuthor(c *fiber.Ctx) error {
-	var authorId = c.Params("authorId")
-	var query = GetLocal[*db.Queries](c, "db")
+	var authorService = GetLocal[service.AuthorService](c, constants.AuthorService)
 	var userId = GetLocal[string](c, "userId")
-	var user, _ = query.FindUserById(context.Background(), userId)
-	var author, errorFromFindById = query.FindAuthorById(context.Background(), db.FindAuthorByIdParams{
-		UserIDFk: sql.NullString{
-			String: user.ID,
-		},
-		ID: authorId,
-	})
-	if errorFromFindById != nil {
-		return c.Status(404).JSON(fiber.Map{
-			"error": "Author not found",
-		})
-	}
 	var authorPatchDto dto.Author
 
 	if err := c.BodyParser(&authorPatchDto); err != nil {
 		return err
 	}
+	author, err := authorService.UpdateAuthor(authorPatchDto, userId)
 
-	err := query.UpdateAuthor(context.Background(), db.UpdateAuthorParams{
-		ID: authorPatchDto.ID,
-		ExtraInformation: sql.NullString{
-			String: authorPatchDto.ExtraInformation,
-			Valid:  true,
-		},
-		Name: sql.NullString{
-			String: authorPatchDto.Name,
-			Valid:  true,
-		},
-	})
 	if err != nil {
 		log.Error(err)
 		return err
 	}
-
-	var authorDto = dto.ConvertFromEntity(author)
+	var authorDto = mappers.ConvertAuthorDtoFromModel(author)
 	return c.JSON(authorDto)
 }
 
 func DeleteAuthor(c *fiber.Ctx) error {
 	var authorId = c.Params("authorId")
-	var query = GetLocal[*db.Queries](c, "db")
+	var authorService = GetLocal[service.AuthorService](c, constants.AuthorService)
+	var userService = GetLocal[service.UserService](c, constants.UserService)
 	var userId = GetLocal[string](c, "userId")
-	var user, _ = query.FindUserById(context.Background(), userId)
-	var author, errorFromFindById = query.FindAuthorById(context.Background(), db.FindAuthorByIdParams{
-		UserIDFk: sql.NullString{
-			String: user.ID,
-		},
-		ID: authorId,
-	})
+	var _, err = userService.LoadUser(userId)
+	if err != nil {
+		return c.Status(404).JSON(fiber.Map{
+			"error": "User not found",
+		})
+	}
+	var _, errorFromFindById = authorService.LoadAuthorById(authorId, userId)
 	if errorFromFindById != nil {
 		return c.Status(404).JSON(fiber.Map{
 			"error": "Author not found",
 		})
 	}
-	err := query.DeleteAuthor(context.Background(), db.DeleteAuthorParams{
-		ID: author.ID,
-		UserIDFk: sql.NullString{
-			String: user.ID,
-			Valid:  true,
-		},
-	})
+	err = authorService.DeleteAuthor(authorId, userId)
 	if err != nil {
 		log.Error(err)
 		return err
@@ -154,8 +122,8 @@ func CreateAuthor(c *fiber.Ctx) error {
 	if err := c.BodyParser(&authorDto); err != nil {
 		return err
 	}
-	var authorService = GetLocal[service.AuthorService](c, "db")
-	var userId = GetLocal[string](c, "userId")
+	var authorService = GetLocal[service.AuthorService](c, constants.AuthorService)
+	var userId = GetLocal[string](c, constants.UserId)
 	var createdAuthor, err = authorService.CreateAuthor(authorDto, userId)
 	if err != nil {
 		return c.JSON(fiber.Map{
@@ -167,15 +135,8 @@ func CreateAuthor(c *fiber.Ctx) error {
 
 func GetNotesOfAuthor(c *fiber.Ctx) error {
 	var authorId = c.Params("authorId")
-	var query = GetLocal[*db.Queries](c, "db")
-	var userId = GetLocal[string](c, "userId")
-	var authors, _ = query.FindAllNotesByAuthor(context.Background(), db.FindAllNotesByAuthorParams{
-		UserIDFk: sql.NullString{
-			String: userId,
-		},
-		AuthorIDFk: sql.NullString{
-			String: authorId,
-		},
-	})
+	var authorService = GetLocal[service.AuthorService](c, constants.AuthorService)
+	var userId = GetLocal[string](c, constants.UserId)
+	var authors, _ = authorService.FindAllNotesByAuthor(userId, authorId)
 	return c.JSON(authors)
 }

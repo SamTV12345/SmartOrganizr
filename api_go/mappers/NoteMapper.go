@@ -5,17 +5,17 @@ import (
 	"api_go/models"
 )
 
-func ConvertNoteFromEntity(entity db.Note, user db.User, author db.Author) models.Note {
-	var creator = ConvertUserFromEntity(user)
-	var authorModel = ConvertAuthorFromEntity(author)
+func ConvertNoteFromEntity(entity db.Note, user models.User, author models.Author) models.Note {
 
 	return models.Note{
-		Title:        entity.GetTitle(),
-		Id:           entity.GetId(),
-		CreationDate: entity.GetCreationDate(),
-		Creator:      creator,
-		Description:  entity.GetDescription(),
-		Name:         entity.GetName(),
-		Author:       authorModel,
+		Title:         entity.Title.String,
+		Id:            entity.GetId(),
+		CreationDate:  entity.GetCreationDate(),
+		Creator:       user,
+		Description:   entity.GetDescription(),
+		Name:          entity.GetName(),
+		Author:        author,
+		NumberOfPages: int(entity.NumberOfPages.Int32),
+		PdfAvailable:  entity.PdfAvailable,
 	}
 }

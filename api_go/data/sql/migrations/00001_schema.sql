@@ -38,8 +38,7 @@ CREATE TABLE `elements` (
     `user_id_fk` varchar(255) DEFAULT NULL,
     `parent` varchar(255) DEFAULT NULL,
     `author_id_fk` varchar(255) DEFAULT NULL,
-    `pdf_content` mediumblob DEFAULT NULL,
-    `pdf_available` BOOL DEFAULT false
+    `pdf_content` longblob DEFAULT NULL
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 
