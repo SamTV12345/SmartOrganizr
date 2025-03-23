@@ -1,7 +1,7 @@
 FROM alpine AS cache
 RUN apk add -U --no-cache ca-certificates
 
-FROM node:latest
+FROM node:latest as frontend
 
 WORKDIR /app
 RUN npm install -g pnpm@latest
@@ -18,7 +18,7 @@ COPY ./ui .
 RUN pnpm run build
 
 
-FROM golang:alpine
+FROM golang:alpine as backend
 
 WORKDIR /app
 # Copy the binary from the build stage
@@ -29,12 +29,12 @@ RUN go mod download
 COPY ./api_go .
 
 # Copy frontend build
-COPY --from=0 /app/dist ./ui/dist
+COPY --from=frontend /app/dist ./ui/dist
 
 RUN go build -o app .
 
 FROM scratch as runtime
-COPY --from=1 /app/app /app
+COPY --from=backend /app/app /app
 COPY --from=cache /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 
 ENTRYPOINT ["/app"]
