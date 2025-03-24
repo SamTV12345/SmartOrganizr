@@ -25,23 +25,6 @@ for (let dataInternal of data) {
     }
     if (dataInternal.author_id_fk != null) {
         dataInternal.author_id_fk = authorMap.get(dataInternal.author_id_fk)
-    } else {
-        delete dataInternal.author_id_fk
-    }
-
-    if (dataInternal.title == null) {
-        delete dataInternal.title
-    }
-
-    if (dataInternal.description == null) {
-        delete dataInternal.description
-    }
-
-    if (dataInternal.pdf_available == null) {
-        delete dataInternal.pdf_available
-    }
-    if (dataInternal.parent == null) {
-        delete dataInternal.parent
     }
 }
 
@@ -63,6 +46,30 @@ data.sort((a,b)=>{
     }
 })
 
+const header = json[0]
+const headerAuthor = authorData[0]
+let csvAuthor = Object.keys(headerAuthor).join(";") +"\n"
 
-fs.writeFileSync('./elementsRes.json', JSON.stringify(data, null, 2))
-fs.writeFileSync('./authorRes.json', JSON.stringify(authorData, null, 2))
+for (let author of authorData) {
+    csvAuthor += Object.keys(author).map(key => author[key]).join(";") + "\n"
+}
+
+let headers = {};
+for (let elements of data) {
+    console.log(elements.type == "Note")
+    if (elements.type == "Note") {
+        Object.keys(elements).forEach(note=>{
+            headers[note] = true
+        })
+    }
+}
+
+console.log("Headers are", headers)
+let csvElements = Object.keys(headers).join(";") +"\n"
+
+for (let elements of data) {
+    csvElements += Object.keys(elements).map(key => elements[key]).join(";") + "\n"
+}
+
+fs.writeFileSync("./authors.csv", csvAuthor)
+fs.writeFileSync("./elements.csv", csvElements)
