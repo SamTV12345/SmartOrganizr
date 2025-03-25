@@ -12,9 +12,7 @@ jobs:
     steps:
       - name: Install pnpm
         run: |
-          curl -fsSL https://get.pnpm.io/install.sh | sh
-          echo 'export PATH=$HOME/.pnpm-global/bin:$PATH' >> $GITHUB_ENV
-          source $GITHUB_ENV
+          npm install -g pnpm
       - name: Install dependencies
         run: pnpm install
         working-directory: ui
