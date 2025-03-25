@@ -1,9 +1,14 @@
-import {cn} from "../lib/utils";
+import {ClassValue, clsx} from "clsx";
+import {twMerge} from "tailwind-merge";
 
 interface NavigationButtonProps {
     children: React.ReactNode;
     onClick: () => void;
     className?: string;
+}
+
+export function cn(...inputs: ClassValue[]) {
+    return twMerge(clsx(inputs))
 }
 
 export const NavigationButton: React.FC<NavigationButtonProps> = ({ children, onClick, className }) => {

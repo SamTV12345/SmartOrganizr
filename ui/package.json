@@ -16,6 +16,7 @@
     "@rsbuild/plugin-react": "^1.1.1",
     "axios": "^1.8.4",
     "babel-plugin-react-compiler": "19.0.0-beta-aeaed83-20250323",
+    "clsx": "^2.1.1",
     "events": "^3.3.0",
     "i18next": "^22.5.1",
     "i18next-browser-languagedetector": "^7.2.2",
@@ -27,17 +28,16 @@
     "react-router-dom": "^7.4.0",
     "react-waypoint": "^10.3.0",
     "redux": "^5.0.1",
-    "tailwind-merge": "^3.0.2",
-    "clsx": "^2.1.1"
+    "tailwind-merge": "^3.0.2"
   },
   "devDependencies": {
-    "@types/node": "^18.19.81",
+    "@types/node": "^18.19.83",
     "@types/react": "^19.0.12",
     "@types/react-dom": "^19.0.4",
     "autoprefixer": "^10.4.21",
     "postcss": "^8.5.3",
     "tailwindcss": "^3.4.17",
     "typescript": "^5.8.2",
-    "vite": "^6.2.2"
+    "vite": "^6.2.3"
   }
 }
