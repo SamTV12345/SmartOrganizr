@@ -1,16 +1,16 @@
 import mysql from 'mysql2';
 import fs from 'fs';
 const connection = mysql.createConnection({
-    host: '192.168.1.21',
+    host: 'localhost',
     user: 'root',
-    password: 'i9cBp39pthrMqKGpaJch2MWrcUSMX6',
-    database: 'smartorganizr'
+    password: 'password',
+    database: 'smartOrganizr'
 });
 
 
 connection.connect()
 
-/*const contentOfAuthors = fs.readFileSync('../authorRes.json', 'utf-8')
+const contentOfAuthors = fs.readFileSync('../authorRes.json', 'utf-8')
 const authors = JSON.parse(contentOfAuthors)
 
 for (const author of authors) {
@@ -19,7 +19,7 @@ for (const author of authors) {
             console.error(error)
         }
     })
-}*/
+}
 
 
 
