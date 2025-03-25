@@ -10,6 +10,17 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Install pnpm
+        run: |
+          curl -fsSL https://get.pnpm.io/install.sh | sh
+          echo 'export PATH=$HOME/.pnpm-global/bin:$PATH' >> $GITHUB_ENV
+          source $GITHUB_ENV
+      - name: Install dependencies
+        run: pnpm install
+        working-directory: ui
+      - name: Build UI
+        run: pnpm build
+        working-directory: ui
       - name: Log in to Docker Hub
         uses: docker/login-action@v2
         with:
