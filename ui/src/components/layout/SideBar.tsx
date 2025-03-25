@@ -12,7 +12,7 @@ export const SideBar  = ()=>{
   <div className="py-4 px-3 bg-gray-800 h-full w-full">
   <ul className="space-y-2">
 
-    <SideBarItem highlightPath={'/myManagement'} translationkey={t('myManagement')} icon={<i className="fa-solid fa-bars-progress fa-xl"></i>}/>
+    <SideBarItem highlightPath={'/noteManagement'} translationkey={t('noteManagement')} icon={<i className="fa-solid fa-bars-progress fa-xl"></i>}/>
   </ul>
   </div>
   </aside>
