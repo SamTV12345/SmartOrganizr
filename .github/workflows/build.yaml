@@ -8,11 +8,12 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-
     steps:
       - uses: pnpm/action-setup@v4
         with:
             version: 10
+      - name: "List directory"
+        run: ls -la
       - name: Install dependencies
         run: pnpm install
         working-directory: ./ui
