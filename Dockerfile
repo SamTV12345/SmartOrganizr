@@ -1,6 +1,21 @@
 FROM alpine AS cache
 RUN apk add -U --no-cache ca-certificates
 
+FROM node:latest as frontend
+
+WORKDIR /app
+RUN npm install -g pnpm@latest
+
+# Copy the package.json and install the dependencies
+COPY ./ui/package.json .
+COPY ./ui/pnpm-lock.yaml .
+RUN pnpm install
+
+# Copy the rest of the files
+COPY ./ui .
+
+# Build the app
+RUN pnpm run build
 
 FROM golang:alpine as backend
 
@@ -12,9 +27,9 @@ RUN go mod download
 # Copy the rest of the files
 COPY ./api_go .
 
-RUN mkdir -p /app/ui/dist
 # Copy frontend build
-COPY ./ui/dist/ ./ui/dist/
+COPY --from=frontend /app/dist ./ui/dist
+
 
 RUN go build -o app .
 
