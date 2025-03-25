@@ -43,6 +43,33 @@ func (q *Queries) CountFindAllAuthorsByCreatorAndSearchText(ctx context.Context,
 	return count, err
 }
 
+const countFindAllNotesByCreator = `-- name: CountFindAllNotesByCreator :one
+SELECT COUNT(*) FROM elements as note WHERE note.type ='note' AND note.user_id_fk = ?
+`
+
+func (q *Queries) CountFindAllNotesByCreator(ctx context.Context, userIDFk sql.NullString) (int64, error) {
+	row := q.db.QueryRowContext(ctx, countFindAllNotesByCreator, userIDFk)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
+const countFindAllNotesByCreatorWithSearch = `-- name: CountFindAllNotesByCreatorWithSearch :one
+SELECT COUNT(*) FROM elements as note WHERE note.type ='note' and note.title LIKE CONCAT('%',?,'%') AND note.user_id_fk = ?
+`
+
+type CountFindAllNotesByCreatorWithSearchParams struct {
+	CONCAT   interface{}
+	UserIDFk sql.NullString
+}
+
+func (q *Queries) CountFindAllNotesByCreatorWithSearch(ctx context.Context, arg CountFindAllNotesByCreatorWithSearchParams) (int64, error) {
+	row := q.db.QueryRowContext(ctx, countFindAllNotesByCreatorWithSearch, arg.CONCAT, arg.UserIDFk)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
 const countSearchByFolderName = `-- name: CountSearchByFolderName :one
 SELECT COUNT(*) FROM elements WHERE name LIKE CONCAT('%', ?, '%') and type = 'folder' AND user_id_fk = ?
 `
@@ -460,30 +487,254 @@ func (q *Queries) FindAllNotesByAuthor(ctx context.Context, arg FindAllNotesByAu
 }
 
 const findAllNotesByCreator = `-- name: FindAllNotesByCreator :many
-SELECT type, id, creation_date, description, name, number_of_pages, title, user_id_fk, parent, author_id_fk, pdf_content FROM elements WHERE type ='note' AND user_id_fk = ? ORDER BY title
+SELECT note.type, note.id, note.creation_date, note.description, note.name, note.number_of_pages, note.title, note.user_id_fk, note.parent, note.author_id_fk, note.pdf_content, a.id, a.extra_information, a.name, a.user_id_fk, p.type, p.id, p.creation_date, p.description, p.name, p.number_of_pages, p.title, p.user_id_fk, p.parent, p.author_id_fk, p.pdf_content FROM elements as note JOIN authors a on a.id = elements.author_id_fk JOIN elements p ON p.id = elements.parent  WHERE elements.type ='note' AND a.user_id_fk = ? ORDER BY note.title
 `
 
-func (q *Queries) FindAllNotesByCreator(ctx context.Context, userIDFk sql.NullString) ([]Element, error) {
+type FindAllNotesByCreatorRow struct {
+	Element   Element
+	Author    Author
+	Element_2 Element
+}
+
+func (q *Queries) FindAllNotesByCreator(ctx context.Context, userIDFk sql.NullString) ([]FindAllNotesByCreatorRow, error) {
 	rows, err := q.db.QueryContext(ctx, findAllNotesByCreator, userIDFk)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []Element
+	var items []FindAllNotesByCreatorRow
 	for rows.Next() {
-		var i Element
+		var i FindAllNotesByCreatorRow
 		if err := rows.Scan(
-			&i.Type,
-			&i.ID,
-			&i.CreationDate,
-			&i.Description,
-			&i.Name,
-			&i.NumberOfPages,
-			&i.Title,
-			&i.UserIDFk,
-			&i.Parent,
-			&i.AuthorIDFk,
-			&i.PdfContent,
+			&i.Element.Type,
+			&i.Element.ID,
+			&i.Element.CreationDate,
+			&i.Element.Description,
+			&i.Element.Name,
+			&i.Element.NumberOfPages,
+			&i.Element.Title,
+			&i.Element.UserIDFk,
+			&i.Element.Parent,
+			&i.Element.AuthorIDFk,
+			&i.Element.PdfContent,
+			&i.Author.ID,
+			&i.Author.ExtraInformation,
+			&i.Author.Name,
+			&i.Author.UserIDFk,
+			&i.Element_2.Type,
+			&i.Element_2.ID,
+			&i.Element_2.CreationDate,
+			&i.Element_2.Description,
+			&i.Element_2.Name,
+			&i.Element_2.NumberOfPages,
+			&i.Element_2.Title,
+			&i.Element_2.UserIDFk,
+			&i.Element_2.Parent,
+			&i.Element_2.AuthorIDFk,
+			&i.Element_2.PdfContent,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const findAllNotesByCreatorPaged = `-- name: FindAllNotesByCreatorPaged :many
+SELECT note.type, note.id, note.creation_date, note.description, note.name, note.number_of_pages, note.title, note.user_id_fk, note.parent, note.author_id_fk, note.pdf_content, a.id, a.extra_information, a.name, a.user_id_fk, p.type, p.id, p.creation_date, p.description, p.name, p.number_of_pages, p.title, p.user_id_fk, p.parent, p.author_id_fk, p.pdf_content FROM elements as note JOIN authors a on a.id = note.author_id_fk JOIN elements p ON p.id = note.parent WHERE note.type ='note' AND a.user_id_fk = ? ORDER BY note.title LIMIT ? OFFSET ?
+`
+
+type FindAllNotesByCreatorPagedParams struct {
+	UserIDFk sql.NullString
+	Limit    int32
+	Offset   int32
+}
+
+type FindAllNotesByCreatorPagedRow struct {
+	Element   Element
+	Author    Author
+	Element_2 Element
+}
+
+func (q *Queries) FindAllNotesByCreatorPaged(ctx context.Context, arg FindAllNotesByCreatorPagedParams) ([]FindAllNotesByCreatorPagedRow, error) {
+	rows, err := q.db.QueryContext(ctx, findAllNotesByCreatorPaged, arg.UserIDFk, arg.Limit, arg.Offset)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []FindAllNotesByCreatorPagedRow
+	for rows.Next() {
+		var i FindAllNotesByCreatorPagedRow
+		if err := rows.Scan(
+			&i.Element.Type,
+			&i.Element.ID,
+			&i.Element.CreationDate,
+			&i.Element.Description,
+			&i.Element.Name,
+			&i.Element.NumberOfPages,
+			&i.Element.Title,
+			&i.Element.UserIDFk,
+			&i.Element.Parent,
+			&i.Element.AuthorIDFk,
+			&i.Element.PdfContent,
+			&i.Author.ID,
+			&i.Author.ExtraInformation,
+			&i.Author.Name,
+			&i.Author.UserIDFk,
+			&i.Element_2.Type,
+			&i.Element_2.ID,
+			&i.Element_2.CreationDate,
+			&i.Element_2.Description,
+			&i.Element_2.Name,
+			&i.Element_2.NumberOfPages,
+			&i.Element_2.Title,
+			&i.Element_2.UserIDFk,
+			&i.Element_2.Parent,
+			&i.Element_2.AuthorIDFk,
+			&i.Element_2.PdfContent,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const findAllNotesByCreatorPagedWithSearch = `-- name: FindAllNotesByCreatorPagedWithSearch :many
+SELECT note.type, note.id, note.creation_date, note.description, note.name, note.number_of_pages, note.title, note.user_id_fk, note.parent, note.author_id_fk, note.pdf_content, a.id, a.extra_information, a.name, a.user_id_fk, p.type, p.id, p.creation_date, p.description, p.name, p.number_of_pages, p.title, p.user_id_fk, p.parent, p.author_id_fk, p.pdf_content FROM elements as note JOIN authors a on a.id = note.author_id_fk JOIN elements p ON p.id = note.parent WHERE note.type ='note' and note.title LIKE CONCAT('%',?,'%') AND a.user_id_fk = ? ORDER BY note.title LIMIT ? OFFSET ?
+`
+
+type FindAllNotesByCreatorPagedWithSearchParams struct {
+	CONCAT   interface{}
+	UserIDFk sql.NullString
+	Limit    int32
+	Offset   int32
+}
+
+type FindAllNotesByCreatorPagedWithSearchRow struct {
+	Element   Element
+	Author    Author
+	Element_2 Element
+}
+
+func (q *Queries) FindAllNotesByCreatorPagedWithSearch(ctx context.Context, arg FindAllNotesByCreatorPagedWithSearchParams) ([]FindAllNotesByCreatorPagedWithSearchRow, error) {
+	rows, err := q.db.QueryContext(ctx, findAllNotesByCreatorPagedWithSearch,
+		arg.CONCAT,
+		arg.UserIDFk,
+		arg.Limit,
+		arg.Offset,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []FindAllNotesByCreatorPagedWithSearchRow
+	for rows.Next() {
+		var i FindAllNotesByCreatorPagedWithSearchRow
+		if err := rows.Scan(
+			&i.Element.Type,
+			&i.Element.ID,
+			&i.Element.CreationDate,
+			&i.Element.Description,
+			&i.Element.Name,
+			&i.Element.NumberOfPages,
+			&i.Element.Title,
+			&i.Element.UserIDFk,
+			&i.Element.Parent,
+			&i.Element.AuthorIDFk,
+			&i.Element.PdfContent,
+			&i.Author.ID,
+			&i.Author.ExtraInformation,
+			&i.Author.Name,
+			&i.Author.UserIDFk,
+			&i.Element_2.Type,
+			&i.Element_2.ID,
+			&i.Element_2.CreationDate,
+			&i.Element_2.Description,
+			&i.Element_2.Name,
+			&i.Element_2.NumberOfPages,
+			&i.Element_2.Title,
+			&i.Element_2.UserIDFk,
+			&i.Element_2.Parent,
+			&i.Element_2.AuthorIDFk,
+			&i.Element_2.PdfContent,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const findAllNotesByCreatorWithSearch = `-- name: FindAllNotesByCreatorWithSearch :many
+SELECT note.type, note.id, note.creation_date, note.description, note.name, note.number_of_pages, note.title, note.user_id_fk, note.parent, note.author_id_fk, note.pdf_content, a.id, a.extra_information, a.name, a.user_id_fk, p.type, p.id, p.creation_date, p.description, p.name, p.number_of_pages, p.title, p.user_id_fk, p.parent, p.author_id_fk, p.pdf_content FROM elements as note JOIN authors a on a.id = elements.author_id_fk JOIN elements p ON p.id = elements.parent  WHERE elements.type ='note' and note.title LIKE CONCAT('%',?,'%') AND a.user_id_fk = ? ORDER BY note.title
+`
+
+type FindAllNotesByCreatorWithSearchParams struct {
+	CONCAT   interface{}
+	UserIDFk sql.NullString
+}
+
+type FindAllNotesByCreatorWithSearchRow struct {
+	Element   Element
+	Author    Author
+	Element_2 Element
+}
+
+func (q *Queries) FindAllNotesByCreatorWithSearch(ctx context.Context, arg FindAllNotesByCreatorWithSearchParams) ([]FindAllNotesByCreatorWithSearchRow, error) {
+	rows, err := q.db.QueryContext(ctx, findAllNotesByCreatorWithSearch, arg.CONCAT, arg.UserIDFk)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []FindAllNotesByCreatorWithSearchRow
+	for rows.Next() {
+		var i FindAllNotesByCreatorWithSearchRow
+		if err := rows.Scan(
+			&i.Element.Type,
+			&i.Element.ID,
+			&i.Element.CreationDate,
+			&i.Element.Description,
+			&i.Element.Name,
+			&i.Element.NumberOfPages,
+			&i.Element.Title,
+			&i.Element.UserIDFk,
+			&i.Element.Parent,
+			&i.Element.AuthorIDFk,
+			&i.Element.PdfContent,
+			&i.Author.ID,
+			&i.Author.ExtraInformation,
+			&i.Author.Name,
+			&i.Author.UserIDFk,
+			&i.Element_2.Type,
+			&i.Element_2.ID,
+			&i.Element_2.CreationDate,
+			&i.Element_2.Description,
+			&i.Element_2.Name,
+			&i.Element_2.NumberOfPages,
+			&i.Element_2.Title,
+			&i.Element_2.UserIDFk,
+			&i.Element_2.Parent,
+			&i.Element_2.AuthorIDFk,
+			&i.Element_2.PdfContent,
 		); err != nil {
 			return nil, err
 		}
@@ -565,7 +816,7 @@ func (q *Queries) FindAllParentFolders(ctx context.Context, userIDFk sql.NullStr
 }
 
 const findAllSubElements = `-- name: FindAllSubElements :many
-SELECT type, elements.id, creation_date, description, elements.name, number_of_pages, title, elements.user_id_fk, parent, author_id_fk, pdf_content, authors.id, extra_information, authors.name, authors.user_id_fk FROM elements LEFT JOIN authors ON elements.author_id_fk = authors.id WHERE parent = ? AND elements.user_id_fk = ? ORDER BY title
+SELECT elements.type, elements.id, elements.creation_date, elements.description, elements.name, elements.number_of_pages, elements.title, elements.user_id_fk, elements.parent, elements.author_id_fk, elements.pdf_content, authors.id, authors.extra_information, authors.name, authors.user_id_fk FROM elements LEFT JOIN authors ON elements.author_id_fk = authors.id WHERE parent = ? AND elements.user_id_fk = ? ORDER BY title
 `
 
 type FindAllSubElementsParams struct {
@@ -574,21 +825,11 @@ type FindAllSubElementsParams struct {
 }
 
 type FindAllSubElementsRow struct {
-	Type             string
-	ID               string
-	CreationDate     sql.NullTime
-	Description      sql.NullString
-	Name             sql.NullString
-	NumberOfPages    sql.NullInt32
-	Title            sql.NullString
-	UserIDFk         sql.NullString
-	Parent           sql.NullString
-	AuthorIDFk       sql.NullString
-	PdfContent       sql.NullString
-	ID_2             sql.NullString
+	Element          Element
+	ID               sql.NullString
 	ExtraInformation sql.NullString
-	Name_2           sql.NullString
-	UserIDFk_2       sql.NullString
+	Name             sql.NullString
+	UserIDFk         sql.NullString
 }
 
 func (q *Queries) FindAllSubElements(ctx context.Context, arg FindAllSubElementsParams) ([]FindAllSubElementsRow, error) {
@@ -601,21 +842,21 @@ func (q *Queries) FindAllSubElements(ctx context.Context, arg FindAllSubElements
 	for rows.Next() {
 		var i FindAllSubElementsRow
 		if err := rows.Scan(
-			&i.Type,
+			&i.Element.Type,
+			&i.Element.ID,
+			&i.Element.CreationDate,
+			&i.Element.Description,
+			&i.Element.Name,
+			&i.Element.NumberOfPages,
+			&i.Element.Title,
+			&i.Element.UserIDFk,
+			&i.Element.Parent,
+			&i.Element.AuthorIDFk,
+			&i.Element.PdfContent,
 			&i.ID,
-			&i.CreationDate,
-			&i.Description,
-			&i.Name,
-			&i.NumberOfPages,
-			&i.Title,
-			&i.UserIDFk,
-			&i.Parent,
-			&i.AuthorIDFk,
-			&i.PdfContent,
-			&i.ID_2,
 			&i.ExtraInformation,
-			&i.Name_2,
-			&i.UserIDFk_2,
+			&i.Name,
+			&i.UserIDFk,
 		); err != nil {
 			return nil, err
 		}

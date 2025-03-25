@@ -189,7 +189,7 @@ func (a *AuthorService) FindAllNotesByAuthor(userId string, authorId string) (*[
 	var modelAuthors = make([]models.Note, 0)
 	for _, note := range notes {
 		var convertedNote = db.ConvertNoteEntityToDBVersion(note)
-		var noteModel = mappers.ConvertNoteFromEntity(convertedNote, *user, author)
+		var noteModel = mappers.ConvertNoteFromEntity(convertedNote, *user, author, nil)
 		modelAuthors = append(modelAuthors, noteModel)
 	}
 	return &modelAuthors, nil

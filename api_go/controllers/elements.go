@@ -26,15 +26,54 @@ func GetParentDecks(c *fiber.Ctx) error {
 }
 
 func GetNotes(c *fiber.Ctx) error {
+	var pageArg *int
+	var page, errConv = strconv.Atoi(c.Query("page"))
+	var nameStr *string
+	if errConv != nil {
+		pageArg = nil
+	} else {
+		pageArg = &page
+	}
+
+	var name = c.Query("noteName")
+	if name != "" {
+		nameStr = &name
+	} else {
+		nameStr = nil
+	}
+
 	var userId = GetLocal[string](c, "userId")
 	var noteService = GetLocal[service.NoteService](c, "noteService")
-	var notes, err = noteService.LoadAllNotes(userId)
+	var notes, totalCount, err = noteService.LoadAllNotes(userId, pageArg, nameStr)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": err.Error(),
 		})
 	}
-	return c.JSON(notes)
+
+	var notesDto = make([]dto.Note, 0)
+	for _, note := range notes {
+		notesDto = append(notesDto, mappers.ConvertNoteDtoFromModel(note))
+	}
+
+	var links = make(map[string]dto.Link)
+	if totalCount > (page+1)*constants.CurrentPageSize {
+		links["next"] = dto.Link{
+			Href: mappers.CreateHyperlink(c, "/api/v1/elements/notes?page="+strconv.Itoa(page+1)),
+		}
+	}
+
+	var pagedNotes = dto.PagedNoteRepresentationModelList{
+		Embedded: struct {
+			NoteRepresentationModelList []dto.Note `json:"noteRepresentationModelList"`
+		}{NoteRepresentationModelList: notesDto},
+		Page: struct {
+			Size int `json:"size"`
+		}{Size: constants.CurrentPageSize},
+		Links: links,
+	}
+
+	return c.JSON(pagedNotes)
 }
 
 func CreateFolder(c *fiber.Ctx) error {

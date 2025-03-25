@@ -1,6 +1,7 @@
 package service
 
 import (
+	"api_go/constants"
 	"api_go/controllers/dto"
 	"api_go/db"
 	"api_go/mappers"
@@ -18,13 +19,102 @@ type NoteService struct {
 	AuthorService *AuthorService
 }
 
-func (n NoteService) LoadAllNotes(userId string) ([]models.Note, error) {
-	notes, err := n.Queries.FindAllNotesByCreator(n.Ctx, sql.NullString{
-		String: userId,
-	})
+type NoteWithAuthor struct {
+	Note   db.Element
+	Author db.Author
+	Folder db.Element
+}
 
-	if err != nil {
-		return nil, err
+func (n NoteService) LoadAllNotes(userId string, page *int, nameStr *string) ([]models.Note, int, error) {
+
+	var notes []NoteWithAuthor
+	var numberOfElements int64
+	if page == nil {
+		if nameStr == nil {
+			notesRetrieved, err := n.Queries.FindAllNotesByCreator(n.Ctx, NewSQLNullString(userId))
+			if err != nil {
+				return nil, 0, err
+			}
+			for _, note := range notesRetrieved {
+				notes = append(notes, NoteWithAuthor{
+					Note:   note.Element,
+					Author: note.Author,
+					Folder: note.Element_2,
+				})
+			}
+			numberOfElements, err = n.Queries.CountFindAllNotesByCreator(n.Ctx, NewSQLNullString(userId))
+			if err != nil {
+				return nil, 0, err
+			}
+		} else {
+			notesRetrieved, err := n.Queries.FindAllNotesByCreatorWithSearch(n.Ctx, db.FindAllNotesByCreatorWithSearchParams{
+				UserIDFk: NewSQLNullString(userId),
+				CONCAT:   NewSQLNullString(*nameStr),
+			})
+			if err != nil {
+				return nil, 0, err
+			}
+			for _, note := range notesRetrieved {
+				notes = append(notes, NoteWithAuthor{
+					Note:   note.Element,
+					Author: note.Author,
+					Folder: note.Element_2,
+				})
+			}
+			numberOfElements, err = n.Queries.CountFindAllNotesByCreatorWithSearch(n.Ctx, db.CountFindAllNotesByCreatorWithSearchParams{
+				CONCAT:   NewSQLNullString(*nameStr),
+				UserIDFk: NewSQLNullString(userId),
+			})
+			if err != nil {
+				return nil, 0, err
+			}
+		}
+	} else {
+		if nameStr == nil {
+			notesRetrieved, err := n.Queries.FindAllNotesByCreatorPaged(n.Ctx, db.FindAllNotesByCreatorPagedParams{
+				UserIDFk: NewSQLNullString(userId),
+				Limit:    constants.CurrentPageSize,
+				Offset:   int32(*page * constants.CurrentPageSize),
+			})
+			if err != nil {
+				return nil, 0, err
+			}
+			for _, note := range notesRetrieved {
+				notes = append(notes, NoteWithAuthor{
+					Note:   note.Element,
+					Author: note.Author,
+					Folder: note.Element_2,
+				})
+			}
+			numberOfElements, err = n.Queries.CountFindAllNotesByCreator(n.Ctx, NewSQLNullString(userId))
+			if err != nil {
+				return nil, 0, err
+			}
+		} else {
+			notesRetrieved, err := n.Queries.FindAllNotesByCreatorPagedWithSearch(n.Ctx, db.FindAllNotesByCreatorPagedWithSearchParams{
+				UserIDFk: NewSQLNullString(userId),
+				Limit:    constants.CurrentPageSize,
+				Offset:   int32(*page * constants.CurrentPageSize),
+				CONCAT:   nameStr,
+			})
+			if err != nil {
+				return nil, 0, err
+			}
+			for _, note := range notesRetrieved {
+				notes = append(notes, NoteWithAuthor{
+					Note:   note.Element,
+					Author: note.Author,
+					Folder: note.Element_2,
+				})
+			}
+			numberOfElements, err = n.Queries.CountFindAllNotesByCreatorWithSearch(n.Ctx, db.CountFindAllNotesByCreatorWithSearchParams{
+				CONCAT:   NewSQLNullString(*nameStr),
+				UserIDFk: NewSQLNullString(userId),
+			})
+			if err != nil {
+				return nil, 0, err
+			}
+		}
 	}
 
 	var creator *models.User
@@ -34,19 +124,17 @@ func (n NoteService) LoadAllNotes(userId string) ([]models.Note, error) {
 		if creator == nil {
 			user, err := n.UserService.LoadUser(userId)
 			if err != nil {
-				return nil, err
+				return nil, 0, err
 			}
 			creator = user
 		}
-		author, err := n.AuthorService.LoadAuthorById(noteDB.AuthorIDFk.String, userId)
-		if err != nil {
-			return nil, err
-		}
-		var note = db.ConvertNoteEntityToDBVersion(noteDB)
-		modelNotes = append(modelNotes, mappers.ConvertNoteFromEntity(note, *creator, author))
+		var note = db.ConvertNoteEntityToDBVersion(noteDB.Note)
+		var folder = db.ConvertFolderEntityToDBVersion(noteDB.Folder)
+		var author = mappers.ConvertAuthorFromEntity(noteDB.Author)
+		modelNotes = append(modelNotes, mappers.ConvertNoteFromEntity(note, *creator, author, &folder))
 	}
 
-	return modelNotes, nil
+	return modelNotes, int(numberOfElements), nil
 }
 
 func (n NoteService) LoadNote(noteId string, userId string) (models.Note, error) {
@@ -70,7 +158,7 @@ func (n NoteService) LoadNote(noteId string, userId string) (models.Note, error)
 		return models.Note{}, err
 	}
 	var note = db.ConvertNoteEntityToDBVersion(noteDB)
-	return mappers.ConvertNoteFromEntity(note, *creator, author), nil
+	return mappers.ConvertNoteFromEntity(note, *creator, author, nil), nil
 }
 
 func (n NoteService) DeleteNote(userId string, noteId string) error {

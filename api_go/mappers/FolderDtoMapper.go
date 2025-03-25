@@ -8,9 +8,11 @@ import (
 
 func ConvertFolderDtoFromModel(model models.Folder, c *fiber.Ctx) dto.Folder {
 	var links = make([]dto.Link, 0)
-	links = append(links, dto.Link{
-		Href: CreateHyperlink(c, "/api/v1/elements/"+model.Id+"/children"),
-	})
+	if c != nil {
+		links = append(links, dto.Link{
+			Href: CreateHyperlink(c, "/api/v1/elements/"+model.Id+"/children"),
+		})
+	}
 
 	return dto.Folder{
 		Name:         model.Name,

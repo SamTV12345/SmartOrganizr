@@ -7,6 +7,10 @@ export default defineConfig({
     base: '/ui/',
     port: 5173
   },
+  html: {
+    template: './index.html',
+
+  },
   plugins: [
     pluginReact(),
     pluginBabel({

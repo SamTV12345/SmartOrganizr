@@ -44,7 +44,7 @@ func GetOfflineData(c *fiber.Ctx) error {
 	var userId = GetLocal[string](c, "userId")
 	var folders, _ = folderService.LoadAllFolders(userId)
 	var authors, _ = authorService.LoadAllAuthors(userId)
-	var notes, _ = noteService.LoadAllNotes(userId)
+	var notes, _, _ = noteService.LoadAllNotes(userId, nil, nil)
 	type DataExporter struct {
 		Authors []models.Author `json:"authors"`
 		Folders []models.Folder `json:"folders"`

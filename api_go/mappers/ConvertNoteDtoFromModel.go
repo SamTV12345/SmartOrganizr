@@ -8,6 +8,11 @@ import (
 func ConvertNoteDtoFromModel(model models.Note) dto.Note {
 	var user = ConvertUserDtoFromModel(model.Creator)
 	var author = ConvertAuthorDtoFromModel(model.Author)
+	var parent *dto.Folder
+	if model.Parent != nil {
+		parentDto := ConvertFolderDtoFromModel(*model.Parent, nil)
+		parent = &parentDto
+	}
 	return dto.Note{
 		Title:         model.Title,
 		Id:            model.Id,
@@ -19,5 +24,6 @@ func ConvertNoteDtoFromModel(model models.Note) dto.Note {
 		PdfAvailable:  model.PdfAvailable,
 		NumberOfPages: model.NumberOfPages,
 		Type:          "note",
+		Parent:        parent,
 	}
 }

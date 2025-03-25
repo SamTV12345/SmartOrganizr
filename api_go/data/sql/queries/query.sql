@@ -62,10 +62,25 @@ SELECT * FROM elements as folders WHERE type ='folder' AND user_id_fk = ? ORDER 
 
 
 -- name: FindAllSubElements :many
-SELECT * FROM elements LEFT JOIN authors ON elements.author_id_fk = authors.id WHERE parent = ? AND elements.user_id_fk = ? ORDER BY title;
+SELECT sqlc.embed(elements), authors.* FROM elements LEFT JOIN authors ON elements.author_id_fk = authors.id WHERE parent = ? AND elements.user_id_fk = ? ORDER BY title;
+
+-- name: FindAllNotesByCreatorPaged :many
+SELECT sqlc.embed(note), sqlc.embed(a), sqlc.embed(p) FROM elements as note JOIN authors a on a.id = note.author_id_fk JOIN elements p ON p.id = note.parent WHERE note.type ='note' AND a.user_id_fk = ? ORDER BY note.title LIMIT ? OFFSET ?;
 
 -- name: FindAllNotesByCreator :many
-SELECT * FROM elements WHERE type ='note' AND user_id_fk = ? ORDER BY title;
+SELECT sqlc.embed(note), sqlc.embed(a), sqlc.embed(p) FROM elements as note JOIN authors a on a.id = elements.author_id_fk JOIN elements p ON p.id = elements.parent  WHERE elements.type ='note' AND a.user_id_fk = ? ORDER BY note.title;
+
+-- name: CountFindAllNotesByCreator :one
+SELECT COUNT(*) FROM elements as note WHERE note.type ='note' AND note.user_id_fk = ?;
+
+-- name: FindAllNotesByCreatorPagedWithSearch :many
+SELECT sqlc.embed(note), sqlc.embed(a), sqlc.embed(p) FROM elements as note JOIN authors a on a.id = note.author_id_fk JOIN elements p ON p.id = note.parent WHERE note.type ='note' and note.title LIKE CONCAT('%',?,'%') AND a.user_id_fk = ? ORDER BY note.title LIMIT ? OFFSET ?;
+
+-- name: FindAllNotesByCreatorWithSearch :many
+SELECT sqlc.embed(note), sqlc.embed(a), sqlc.embed(p) FROM elements as note JOIN authors a on a.id = elements.author_id_fk JOIN elements p ON p.id = elements.parent  WHERE elements.type ='note' and note.title LIKE CONCAT('%',?,'%') AND a.user_id_fk = ? ORDER BY note.title;
+
+-- name: CountFindAllNotesByCreatorWithSearch :one
+SELECT COUNT(*) FROM elements as note WHERE note.type ='note' and note.title LIKE CONCAT('%',?,'%') AND note.user_id_fk = ?;
 
 -- name: FindNoteById :one
 -- type: Note

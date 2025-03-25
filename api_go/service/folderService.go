@@ -31,11 +31,15 @@ func (f *FolderService) loadSubElements(folder *models.Folder, user models.User)
 		},
 	})
 	for _, element := range subElements {
-		var dbElement = mappers.ConvertFromFindAllSubElementsRow(element)
-		var ielement = db.ConvertElementEntityToDBVersion(dbElement)
+		var ielement = db.ConvertElementEntityToDBVersion(element.Element)
 		var author *models.Author = nil
 		if _, ok := ielement.(db.Note); ok {
-			var dbAuthor = mappers.ConvertAuthorFromEntity(mappers.ConvertAuthorFromFindAllSubElementsRow(element))
+			var dbAuthor = mappers.ConvertAuthorFromEntity(db.Author{
+				UserIDFk:         NewSQLNullString(element.UserIDFk.String),
+				Name:             NewSQLNullString(element.Name.String),
+				ID:               element.ID.String,
+				ExtraInformation: NewSQLNullString(element.ExtraInformation.String),
+			})
 			author = &dbAuthor
 		}
 		var elementToAppend = mappers.ConvertFromEntity(ielement, user, author)
@@ -156,21 +160,30 @@ func (f *FolderService) CreateFolder(dto dto.FolderPostDto, userId string) (*mod
 }
 
 func (f *FolderService) FindNextChildren(folderId string, userId string) ([]models.Element, error) {
-	var elements, _ = f.Queries.FindAllSubElements(f.Ctx, db.FindAllSubElementsParams{
+	var elements, errFromSub = f.Queries.FindAllSubElements(f.Ctx, db.FindAllSubElementsParams{
 		UserIDFk: NewSQLNullString(userId),
 		Parent:   NewSQLNullString(folderId),
 	})
+
+	if errFromSub != nil {
+		return nil, errFromSub
+	}
+
 	var modelElements = make([]models.Element, 0)
 	var creator, err = f.UserService.LoadUser(userId)
 	if err != nil {
 		return nil, err
 	}
 	for _, element := range elements {
-		var elementDB = mappers.ConvertFromFindAllSubElementsRow(element)
-		var convertedElement = db.ConvertElementEntityToDBVersion(elementDB)
+		var convertedElement = db.ConvertElementEntityToDBVersion(element.Element)
 		var author *models.Author
 		if _, ok := convertedElement.(db.Note); ok {
-			var authorMapped = mappers.ConvertAuthorFromEntity(mappers.ConvertAuthorFromFindAllSubElementsRow(element))
+			var authorMapped = mappers.ConvertAuthorFromEntity(db.Author{
+				UserIDFk:         NewSQLNullString(element.UserIDFk.String),
+				Name:             NewSQLNullString(element.Name.String),
+				ID:               element.ID.String,
+				ExtraInformation: NewSQLNullString(element.ExtraInformation.String),
+			})
 			author = &authorMapped
 		}
 		var modelElement = mappers.ConvertFromEntity(convertedElement, *creator, author)
