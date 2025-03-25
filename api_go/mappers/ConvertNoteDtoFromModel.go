@@ -18,5 +18,6 @@ func ConvertNoteDtoFromModel(model models.Note) dto.Note {
 		Author:        author,
 		PdfAvailable:  model.PdfAvailable,
 		NumberOfPages: model.NumberOfPages,
+		Type:          "note",
 	}
 }

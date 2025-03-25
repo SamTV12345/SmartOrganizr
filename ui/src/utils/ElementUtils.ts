@@ -5,7 +5,7 @@ import {TreeData} from "../components/Tree";
 import {folderIcon, noteIcon} from "./Constants";
 
 export const mapDtoToTreeData = (element: ElementItem)=> {
-    if ('length' in element) {
+    if (element.type === 'folder') {
         const folder = element as Folder
         return {
             keyNum: element.id,

@@ -20,5 +20,6 @@ func ConvertFolderDtoFromModel(model models.Folder, c *fiber.Ctx) dto.Folder {
 		Description:  model.Description,
 		Elements:     make([]models.Element, 0),
 		Links:        links,
+		Type:         "folder",
 	}
 }

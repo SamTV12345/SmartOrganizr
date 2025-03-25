@@ -62,7 +62,7 @@ SELECT * FROM elements as folders WHERE type ='folder' AND user_id_fk = ? ORDER 
 
 
 -- name: FindAllSubElements :many
-SELECT * FROM elements WHERE parent = ? AND user_id_fk = ? ORDER BY title;
+SELECT * FROM elements LEFT JOIN authors ON elements.author_id_fk = authors.id WHERE parent = ? AND elements.user_id_fk = ? ORDER BY title;
 
 -- name: FindAllNotesByCreator :many
 SELECT * FROM elements WHERE type ='note' AND user_id_fk = ? ORDER BY title;

@@ -15,3 +15,28 @@ func ConvertFromEntity(entity db.IElement, user models.User, author *models.Auth
 	}
 	return nil
 }
+
+func ConvertFromFindAllSubElementsRow(element db.FindAllSubElementsRow) db.Element {
+	return db.Element{
+		Type:          element.Type,
+		NumberOfPages: element.NumberOfPages,
+		Parent:        element.Parent,
+		Name:          element.Name,
+		ID:            element.ID,
+		AuthorIDFk:    element.AuthorIDFk,
+		Title:         element.Title,
+		CreationDate:  element.CreationDate,
+		Description:   element.Description,
+		PdfContent:    element.PdfContent,
+		UserIDFk:      element.UserIDFk,
+	}
+}
+
+func ConvertAuthorFromFindAllSubElementsRow(element db.FindAllSubElementsRow) db.Author {
+	return db.Author{
+		ID:               element.ID_2.String,
+		ExtraInformation: element.ExtraInformation,
+		Name:             element.Name_2,
+		UserIDFk:         element.UserIDFk,
+	}
+}

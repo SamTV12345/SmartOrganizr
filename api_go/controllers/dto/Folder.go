@@ -14,4 +14,5 @@ type Folder struct {
 	Creator      User             `json:"creator"`
 	Elements     []models.Element `json:"elements"`
 	Links        []Link           `json:"links"`
+	Type         string           `json:"type"`
 }

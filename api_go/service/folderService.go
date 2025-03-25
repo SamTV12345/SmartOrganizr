@@ -31,11 +31,12 @@ func (f *FolderService) loadSubElements(folder *models.Folder, user models.User)
 		},
 	})
 	for _, element := range subElements {
-		var ielement = db.ConvertElementEntityToDBVersion(element)
+		var dbElement = mappers.ConvertFromFindAllSubElementsRow(element)
+		var ielement = db.ConvertElementEntityToDBVersion(dbElement)
 		var author *models.Author = nil
-		if note, ok := ielement.(db.Note); ok {
-			authorFound, _ := f.AuthorService.FindAuthorByIdAndUser(note.AuthorIDFk.String, user.UserId)
-			author = &authorFound
+		if _, ok := ielement.(db.Note); ok {
+			var dbAuthor = mappers.ConvertAuthorFromEntity(mappers.ConvertAuthorFromFindAllSubElementsRow(element))
+			author = &dbAuthor
 		}
 		var elementToAppend = mappers.ConvertFromEntity(ielement, user, author)
 		folder.Elements = append(folder.Elements, elementToAppend)
@@ -165,11 +166,12 @@ func (f *FolderService) FindNextChildren(folderId string, userId string) ([]mode
 		return nil, err
 	}
 	for _, element := range elements {
-		var convertedElement = db.ConvertElementEntityToDBVersion(element)
+		var elementDB = mappers.ConvertFromFindAllSubElementsRow(element)
+		var convertedElement = db.ConvertElementEntityToDBVersion(elementDB)
 		var author *models.Author
-		if note, ok := convertedElement.(db.Note); ok {
-			authorLoaded, _ := f.AuthorService.FindAuthorByIdAndUser(note.AuthorIDFk.String, userId)
-			author = &authorLoaded
+		if _, ok := convertedElement.(db.Note); ok {
+			var authorMapped = mappers.ConvertAuthorFromEntity(mappers.ConvertAuthorFromFindAllSubElementsRow(element))
+			author = &authorMapped
 		}
 		var modelElement = mappers.ConvertFromEntity(convertedElement, *creator, author)
 		modelElements = append(modelElements, modelElement)

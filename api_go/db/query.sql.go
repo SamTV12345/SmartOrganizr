@@ -565,7 +565,7 @@ func (q *Queries) FindAllParentFolders(ctx context.Context, userIDFk sql.NullStr
 }
 
 const findAllSubElements = `-- name: FindAllSubElements :many
-SELECT type, id, creation_date, description, name, number_of_pages, title, user_id_fk, parent, author_id_fk, pdf_content FROM elements WHERE parent = ? AND user_id_fk = ? ORDER BY title
+SELECT type, elements.id, creation_date, description, elements.name, number_of_pages, title, elements.user_id_fk, parent, author_id_fk, pdf_content, authors.id, extra_information, authors.name, authors.user_id_fk FROM elements LEFT JOIN authors ON elements.author_id_fk = authors.id WHERE parent = ? AND elements.user_id_fk = ? ORDER BY title
 `
 
 type FindAllSubElementsParams struct {
@@ -573,15 +573,33 @@ type FindAllSubElementsParams struct {
 	UserIDFk sql.NullString
 }
 
-func (q *Queries) FindAllSubElements(ctx context.Context, arg FindAllSubElementsParams) ([]Element, error) {
+type FindAllSubElementsRow struct {
+	Type             string
+	ID               string
+	CreationDate     sql.NullTime
+	Description      sql.NullString
+	Name             sql.NullString
+	NumberOfPages    sql.NullInt32
+	Title            sql.NullString
+	UserIDFk         sql.NullString
+	Parent           sql.NullString
+	AuthorIDFk       sql.NullString
+	PdfContent       sql.NullString
+	ID_2             sql.NullString
+	ExtraInformation sql.NullString
+	Name_2           sql.NullString
+	UserIDFk_2       sql.NullString
+}
+
+func (q *Queries) FindAllSubElements(ctx context.Context, arg FindAllSubElementsParams) ([]FindAllSubElementsRow, error) {
 	rows, err := q.db.QueryContext(ctx, findAllSubElements, arg.Parent, arg.UserIDFk)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []Element
+	var items []FindAllSubElementsRow
 	for rows.Next() {
-		var i Element
+		var i FindAllSubElementsRow
 		if err := rows.Scan(
 			&i.Type,
 			&i.ID,
@@ -594,6 +612,10 @@ func (q *Queries) FindAllSubElements(ctx context.Context, arg FindAllSubElements
 			&i.Parent,
 			&i.AuthorIDFk,
 			&i.PdfContent,
+			&i.ID_2,
+			&i.ExtraInformation,
+			&i.Name_2,
+			&i.UserIDFk_2,
 		); err != nil {
 			return nil, err
 		}

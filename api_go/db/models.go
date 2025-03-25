@@ -15,10 +15,6 @@ type Author struct {
 	UserIDFk         sql.NullString
 }
 
-type AuthorsSeq struct {
-	NextVal sql.NullInt64
-}
-
 type Concert struct {
 	ID          string
 	Description sql.NullString

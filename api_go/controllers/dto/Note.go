@@ -13,4 +13,5 @@ type Note struct {
 	Parent        Folder    `json:"parent"`
 	Description   string    `json:"description"`
 	Creator       User      `json:"creator"`
+	Type          string    `json:"type"`
 }
