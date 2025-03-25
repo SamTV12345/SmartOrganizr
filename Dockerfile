@@ -12,8 +12,9 @@ RUN go mod download
 # Copy the rest of the files
 COPY ./api_go .
 
+RUN mkdir -p /app/ui/dist
 # Copy frontend build
-COPY ./ui/dist ./ui/dist
+COPY ./ui/dist/ ./ui/dist/
 
 RUN go build -o app .
 
