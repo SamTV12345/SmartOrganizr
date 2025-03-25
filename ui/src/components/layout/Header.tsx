@@ -4,7 +4,7 @@ import mainlogo from '../../SmartOrganizrIcon.svg'
 import {useState} from "react";
 import {keycloak, uiURL} from "../../Keycloak";
 import {useTranslation} from "react-i18next";
-import {accountURL} from "../../main";
+import {accountURL} from "../../index";
 
 
 export const Header = ()=>{

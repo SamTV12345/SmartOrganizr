@@ -7,7 +7,7 @@
   "id": "ID",
   "name": "Name",
   "extraInformation": "Weitere Informationen",
-  "folderView": "Ordneransicht",
+  "folders": "Ordner",
   "cancel": "Abbrechen",
   "send": "Absenden",
   "upload-pdf": "PDF hochladen",
@@ -35,12 +35,13 @@
   "newElement": "Neues Element",
   "update": "Updaten",
   "create": "Erstellen",
-  "notesView": "Notenansicht",
-  "concertView": "Konzertansicht",
+  "search": "Suchen",
+  "concerts": "Konzerte",
   "concert": "Konzert",
   "performanceNotes": "Aufführungsnoten",
   "year": "Jahr",
   "appearanceDate": "Aufführungstermin",
   "hints": "Hinweise",
-  "location": "Aufführungsort"
+  "location": "Aufführungsort",
+  "noteManagement": "Notenmanagement"
 }

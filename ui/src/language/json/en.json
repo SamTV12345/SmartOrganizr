@@ -7,7 +7,7 @@
   "id": "Id",
   "name": "Name",
   "extraInformation": "Further information",
-  "folderView": "Folder view",
+  "folders": "Ordner",
   "cancel": "Cancel",
   "closeModal": "Close modal",
   "containedNotes": "Contained notes",
@@ -34,11 +34,12 @@
   "io": "Import/Export",
   "update": "Update",
   "create": "Create",
-  "notesView": "Notes View",
-  "concertView": "Concert View",
+  "search": "Search",
+  "concerts": "Konzerte",
   "concert": "Concert",
   "year": "Year",
   "appearanceDate": "Appearance date",
   "hints": "Hints",
-  "save": "Save"
+  "save": "Save",
+  "noteManagement": "Note management"
 }

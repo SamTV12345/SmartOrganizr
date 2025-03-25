@@ -4,39 +4,40 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite --config vite-dev.config.ts",
-    "build": "tsc && vite build",
-    "preview": "vite preview"
+    "dev": "rsbuild dev",
+    "build": "rsbuild build",
+    "preview": "rsbuild preview"
   },
   "dependencies": {
     "@fortawesome/fontawesome-free": "^6.7.2",
-    "@reduxjs/toolkit": "^1.9.7",
+    "@reduxjs/toolkit": "^2.6.1",
+    "@rsbuild/core": "^1.2.19",
+    "@rsbuild/plugin-babel": "^1.0.4",
+    "@rsbuild/plugin-react": "^1.1.1",
     "axios": "^1.8.4",
+    "babel-plugin-react-compiler": "19.0.0-beta-aeaed83-20250323",
     "events": "^3.3.0",
     "i18next": "^22.5.1",
     "i18next-browser-languagedetector": "^7.2.2",
     "keycloak-js": "^26.1.4",
-    "react": "^18.3.1",
-    "react-dom": "^18.3.1",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
     "react-i18next": "^12.3.1",
-    "react-redux": "^8.1.3",
-    "react-router-dom": "^6.30.0",
+    "react-redux": "^9.2.0",
+    "react-router-dom": "^7.4.0",
     "react-waypoint": "^10.3.0",
-    "redux": "^4.2.1"
+    "redux": "^5.0.1",
+    "tailwind-merge": "^3.0.2",
+    "clsx": "^2.1.1"
   },
   "devDependencies": {
     "@types/node": "^18.19.81",
-    "@types/react": "^18.3.19",
-    "@types/react-dom": "^18.3.5",
+    "@types/react": "^19.0.12",
+    "@types/react-dom": "^19.0.4",
     "autoprefixer": "^10.4.21",
     "postcss": "^8.5.3",
     "tailwindcss": "^3.4.17",
     "typescript": "^5.8.2",
     "vite": "^6.2.2"
-  },
-  "pnpm": {
-    "overrides": {
-      "vite": "npm:rolldown-vite@latest"
-    }
   }
 }

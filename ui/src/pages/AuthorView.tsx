@@ -95,20 +95,10 @@ export const AuthorView = ()=> {
         <Modal headerText={t('editAuthor')} children={<AuthorModal/>} onAccept={()=>{
             selectedAuthor&&updateAuthor(selectedAuthor)}} onCancel={()=>{}} acceptText={t('update')} cancelText={t('cancel')}
             onDelete={()=>selectedAuthor&&authorPage&&deleteAuthor(authorPage,selectedAuthor)}/>
-        <table className="w-full md:w-8/12  divide-y table-fixed divide-gray-700 md:mx-auto md:mt-4 md:mb-4 border-collapse" id="authorTable">
+        <table className="divide-y table-fixed divide-gray-700 md:mx-auto md:mt-4 md:mb-4 border-collapse" id="authorTable">
             <thead className="bg-gray-700">
             <tr className="">
                 <th className="py-3 px-6 text-xs font-medium tracking-wider text-left uppercase text-gray-400 md:rounded-tl-2xl">
-                    <div className="flex items-center justify-center">
-                        {t('id')}
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none"
-                             viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"
-                                  d="M8 9l4-4 4 4m0 6l-4 4-4-4"/>
-                        </svg>
-                    </div>
-                </th>
-                <th className="py-3 px-6 text-xs font-medium tracking-wider text-left uppercase text-gray-400">
                     <div className="flex items-center justify-center">
                         {t('name')}
                         <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none"
@@ -132,7 +122,7 @@ export const AuthorView = ()=> {
             </thead>
             <tbody className="divide-y bg-gray-800 divide-gray-700">
             <tr>
-                <td className="col-span-3 bg-gray-800" colSpan={3}>
+                <td className="col-span-3 bg-gray-800 w-8/12" colSpan={3}>
                     <div className="flex justify-center">
                         <AuthorSearchBar/>
                     </div>
@@ -144,8 +134,7 @@ export const AuthorView = ()=> {
                             dispatch(setAuthor(author))
                             dispatch(setModalOpen(true))
                         }}>
-                            <TableData content={author.id}/>
-                            <TableData content={author.name}/>
+                            <TableData content={author.name} classname=""/>
                             <TableData content={<>
                                 {author.extraInformation}
                                 {authorPage.page.size-index<10 &&

@@ -15,6 +15,7 @@ import {
     SearchElementViewLazyLoad
 } from "./utils/LazyLoadComponents";
 import WelcomePage from "./pages/WelcomePage";
+import {MyManagement} from "./pages/MyManagement";
 
 function App() {
     const sideBarCollapsed = useAppSelector(state=>state.commonReducer.sideBarCollapsed)
@@ -41,28 +42,29 @@ function App() {
                   <Routes>
                       <Route path="/" element={<Navigate to={"/welcome"}/>}/>
                       <Route path={"/welcome"} element={<WelcomePage/>}/>
-                      <Route path={"/authors"} element={
+                      <Route path={"/noteManagement"} element={<MyManagement/>}/>
+                      <Route path={"/noteManagement/authors"} element={
                           <Suspense>
                               <AuthorLazyLoad/>
                           </Suspense>
                       }/>
-                      <Route path={"/folder"} element={
+                      <Route path={"/noteManagement/folders"} element={
                             <Suspense>
                                     <FolderViewLazyLoad/>
                             </Suspense>}
                       />
-                      <Route path={"/notes"} element={
+                      <Route path={"/noteManagement/notes"} element={
                           <Suspense>
                             <SearchElementViewLazyLoad/>
                           </Suspense>
                       }
                       />
-                      <Route path={"/concerts"} element={
+                      <Route path={"/noteManagement/concerts"} element={
                           <Suspense>
                               <ConcertViewLazyLoad/>
                           </Suspense>
                       }/>
-                      <Route path={"/io"} element={
+                      <Route path={"/noteManagement/io"} element={
                           <Suspense>
                               <ImportExportViewLazyLoad/>
                           </Suspense>

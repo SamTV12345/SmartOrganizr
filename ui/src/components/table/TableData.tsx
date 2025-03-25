@@ -2,6 +2,7 @@ import {FC} from "react";
 
 type TableDataProps = {
     content:any
+    classname?:string
 }
 
 export const TableData:FC<TableDataProps> = ({content})=>{
