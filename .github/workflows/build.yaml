@@ -15,10 +15,10 @@ jobs:
           npm install -g pnpm
       - name: Install dependencies
         run: pnpm install
-        working-directory: ui
+        working-directory: ./ui
       - name: Build UI
         run: pnpm build
-        working-directory: ui
+        working-directory: ./ui
       - name: Log in to Docker Hub
         uses: docker/login-action@v2
         with:
