@@ -226,3 +226,19 @@ func UpdatePDFOfNote(c *fiber.Ctx) error {
 	var noteDto = mappers.ConvertNoteDtoFromModel(updatedNote)
 	return c.JSON(noteDto)
 }
+
+func ExportPDFFromNotes(c *fiber.Ctx) error {
+	userId := GetLocal[string](c, "userId")
+	folderservice := GetLocal[service.FolderService](c, constants.FolderService)
+	userservice := GetLocal[service.UserService](c, constants.UserService)
+
+	var folderId = c.Params("folderId")
+	pdfContent, err := service.GeneratePDFForFolder(folderId, folderservice, userId, userservice)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": err.Error(),
+		})
+	}
+	c.Set("Content-Type", "application/pdf")
+	return c.Send(pdfContent)
+}

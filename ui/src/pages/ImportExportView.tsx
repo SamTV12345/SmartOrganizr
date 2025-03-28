@@ -7,7 +7,7 @@ import {Page as Paging} from "../models/Page";
 import {FolderEmbeddedContainer} from "../models/FolderEmbeddedContainer";
 
 export const ImportExportView = () => {
-    const [selectedFolder, setSelectedFolder] = useState<number>()
+    const [selectedFolder, setSelectedFolder] = useState<string>()
     const [loadedFolders, setLoadedFolders] = useState<Paging<FolderEmbeddedContainer<Folder>>>()
 
     useEffect(() => {
@@ -36,7 +36,10 @@ export const ImportExportView = () => {
             <h2 className="text-xl">Export Data as QR-Code</h2>
 
             <div className="grid grid-cols-[20%_10%_10%] gap-4">
-                    <Dropdown value={selectedFolder} onChange={(e) => setSelectedFolder(Number(e.target.value))}>
+                    <Dropdown value={selectedFolder} onChange={(e) => {
+                        console.log(e)
+                        setSelectedFolder(e.target.value)
+                    }}>
                         {loadedFolders && loadedFolders._embedded &&
                             loadedFolders?._embedded.elementRepresentationModelList.map(folder => <option value={folder.id}
                                                                                                           key={folder.id}>{folder.name}</option>)}

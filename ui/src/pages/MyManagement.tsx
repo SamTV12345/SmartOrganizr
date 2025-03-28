@@ -6,11 +6,11 @@ export const MyManagement = ()=>{
     const navigate = useNavigate()
     const {t} = useTranslation()
 
-    return <div className="flex  items-center h-80">
+    return <div className="flex  items-center">
         <div className="w-full">
-            <h2 className="text-2xl text-center">Mein Notenmanagement</h2>
-            <div className="p-10 grid grid-cols-3 gap-5">
-                <NavigationButton className="" onClick={() => {
+            <h2 className="text-2xl text-center md:mt-32">Mein Notenmanagement</h2>
+            <div className="p-10 grid md:grid-cols-3 grid-cols-2 gap-5">
+                <NavigationButton className="h-64" onClick={() => {
                    navigate("/noteManagement/authors")
                 }}>
                     <i className="fa-solid fa-user-tie fa-xl"></i>
@@ -18,7 +18,7 @@ export const MyManagement = ()=>{
                         {t('authors')}
                     </div>
                 </NavigationButton>
-                <NavigationButton className="" onClick={() => {
+                <NavigationButton className="h-64" onClick={() => {
                     navigate("/noteManagement/concerts")
                 }}>
 
@@ -27,7 +27,7 @@ export const MyManagement = ()=>{
                         {t('concerts')}
                     </div>
                 </NavigationButton>
-                <NavigationButton className="" onClick={() => {
+                <NavigationButton className="h-64" onClick={() => {
                     navigate("/noteManagement/folders")
                 }}>
                     <i className="fa-solid fa-folder-open fa-xl"></i>
@@ -35,7 +35,7 @@ export const MyManagement = ()=>{
                     {t('folders')}
                     </div>
                 </NavigationButton>
-                <NavigationButton className="" onClick={() => {
+                <NavigationButton className="h-64" onClick={() => {
                     navigate("/noteManagement/io")
                 }}>
                     <i className="fa-solid fa-file-export fa-xl"></i>
@@ -43,7 +43,7 @@ export const MyManagement = ()=>{
                         {t('io')}
                     </div>
                 </NavigationButton>
-                <NavigationButton className="" onClick={() => {
+                <NavigationButton className="h-64" onClick={() => {
                     navigate("/noteManagement/notes")
                 }}>
                     <i className="fa-solid fa-magnifying-glass fa-xl"></i>

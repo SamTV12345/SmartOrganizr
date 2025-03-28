@@ -103,11 +103,8 @@ func (f *FolderService) LoadAllFolders(userId string) ([]models.Folder, error) {
 
 func (f *FolderService) FindFolderByIdAndUser(folderId string, userId string) (*models.Folder, error) {
 	folder, err := f.Queries.FindFolderById(f.Ctx, db.FindFolderByIdParams{
-		ID: folderId,
-		UserIDFk: sql.NullString{
-			String: userId,
-			Valid:  true,
-		},
+		ID:       folderId,
+		UserIDFk: NewSQLNullString(userId),
 	})
 	if err != nil {
 		return nil, err
@@ -135,7 +132,10 @@ func (f *FolderService) CreateFolder(dto dto.FolderPostDto, userId string) (*mod
 			Valid: false,
 		}
 	}
-	var folderId, _ = uuid.NewRandom()
+	var folderId, errRandom = uuid.NewRandom()
+	if errRandom != nil {
+		return nil, errRandom
+	}
 	f.Queries.CreateFolder(context.Background(), db.CreateFolderParams{
 		Name: sql.NullString{
 			String: dto.Name,

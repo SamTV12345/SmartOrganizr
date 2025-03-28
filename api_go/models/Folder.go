@@ -11,3 +11,18 @@ type Folder struct {
 	Creator      User      `json:"creator"`
 	Elements     []Element `json:"elements"`
 }
+
+func (folder Folder) String() string {
+	return "\nName:\t" +
+		folder.Name +
+		"\n" + "Beschreibung:\t" +
+		folder.Description +
+		"\n" + "Erstellungsdatum:\t" +
+		folder.CreationDate.String()
+}
+
+func (folder Folder) Type() ElementName {
+	return FOLDER
+}
+
+var _ Element = Folder{}

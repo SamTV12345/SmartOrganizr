@@ -8,13 +8,6 @@ const (
 )
 
 type Element interface {
-	GetType() ElementName
-}
-
-func (note Note) GetType() ElementName {
-	return NOTE
-}
-
-func (f Folder) GetType() ElementName {
-	return FOLDER
+	Type() ElementName
+	String() string
 }

@@ -18,6 +18,23 @@ type Note struct {
 	Creator       User      `json:"creator"`
 }
 
+func (note Note) Type() ElementName {
+	return NOTE
+}
+
 func (note Note) Compare(other Note) bool {
 	return other.Id == note.Id
 }
+
+func (note Note) String() string {
+	return "\nTitel:\t" +
+		note.Title +
+		"\n" + "Beschreibung\t" +
+		note.Description +
+		"\n" + "Enthaltende Ordner:\t" +
+		note.Parent.Name +
+		"\n" + "Autor:\t" +
+		note.Author.Name
+}
+
+var _ Element = Note{}

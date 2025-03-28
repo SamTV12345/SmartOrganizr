@@ -139,6 +139,7 @@ func SetupRouter(queries *db.Queries, config config.AppConfig) *fiber.App {
 		r.Get("/:noteId/parent", controllers.GetParentOfNote)
 		r.Get("/:noteId/pdf", controllers.GetNoteasPDF)
 		r.Post("/:noteId/pdf", controllers.UpdatePDFOfNote)
+		r.Get("/:folderId/export", controllers.ExportPDFFromNotes)
 	})
 
 	return app
