@@ -29,7 +29,6 @@ COPY ./api_go .
 
 # Copy frontend build
 COPY --from=frontend /app/dist ./ui/dist
-COPY ./api_go/docs ./docs
 
 RUN go build -o app .
 
