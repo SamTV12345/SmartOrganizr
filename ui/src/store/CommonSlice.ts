@@ -13,7 +13,7 @@ interface CommonProps {
     authorPage: Page<AuthorEmbeddedContainer<Author>> | undefined,
     nodes: TreeData[],
     authorSearchText: string
-    loadedFolders: number[],
+    loadedFolders: string[],
     noteSearchText: string,
     elementsSearched: Page<ElementEmbeddedContainer<NoteItem>>| undefined
 }

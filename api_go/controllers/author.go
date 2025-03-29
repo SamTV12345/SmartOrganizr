@@ -10,6 +10,20 @@ import (
 	"strconv"
 )
 
+// GetAuthors Gets the list of authors
+// @Summary      Gets the list of authors
+// @Description  Gets authors by page and name
+// @Tags         authors
+// @Accept       json
+// @Produce      json
+// @Param        page   query      int  true  "Page number"
+// @Param        name   query      string  false  "Name of the author"
+// @Success      200  {object}   dto.PagedAuthorRepresentationModelList
+// @Failure      400  {object}  dto.Error
+// @Failure      404  {object}  dto.Error
+// @Failure      500  {object}  dto.Error
+// @Security     OAuth2Application
+// @Router       /accounts [get]
 func GetAuthors(c *fiber.Ctx) error {
 	var pageStr = c.Query("page")
 	var nameStr = c.Query("name")
@@ -74,15 +88,29 @@ func GetAuthors(c *fiber.Ctx) error {
 	return c.JSON(authorPage)
 }
 
+// UpdateAuthor Updates an author
+// @Summary      Updates an author
+// @Tags         authors
+// @Accept       json
+// @Produce      json
+// @Param        authorId   path      string  true  "Author ID"
+// @RequestBody  {object}   dto.Author
+// @Success      200  {object}   dto.Author
+// @Failure      400  {object}  dto.Error
+// @Failure      404  {object}  dto.Error
+// @Failure      500  {object}  dto.Error
+// @Security     OAuth2Application
+// @Router       /{authorId} [patch]
 func UpdateAuthor(c *fiber.Ctx) error {
 	var authorService = GetLocal[service.AuthorService](c, constants.AuthorService)
 	var userId = GetLocal[string](c, "userId")
-	var authorPatchDto dto.Author
+	var authorId = c.Params("authorId")
+	var authorPatchDto dto.AuthorPatchDto
 
 	if err := c.BodyParser(&authorPatchDto); err != nil {
 		return err
 	}
-	author, err := authorService.UpdateAuthor(authorPatchDto, userId)
+	author, err := authorService.UpdateAuthor(authorPatchDto, userId, authorId)
 
 	if err != nil {
 		log.Error(err)
@@ -92,6 +120,20 @@ func UpdateAuthor(c *fiber.Ctx) error {
 	return c.JSON(authorDto)
 }
 
+// DeleteAuthor  Deletes an author
+// @Summary      Deletes an author
+// @Description  Deletes an author by ID
+// @Tags         authors
+// @Accept       json
+// @Produce      json
+// @Param        page   query      int  true  "Page number"
+// @Param        name   query      string  false  "Name of the author"
+// @Success      200  {object}   dto.PagedAuthorRepresentationModelList
+// @Failure      400  {object}  dto.Error
+// @Failure      404  {object}  dto.Error
+// @Failure      500  {object}  dto.Error
+// @Security     OAuth2Application
+// @Router       /accounts [get]
 func DeleteAuthor(c *fiber.Ctx) error {
 	var authorId = c.Params("authorId")
 	var authorService = GetLocal[service.AuthorService](c, constants.AuthorService)

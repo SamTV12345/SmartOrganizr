@@ -1128,17 +1128,23 @@ func (q *Queries) SearchByFolderName(ctx context.Context, arg SearchByFolderName
 }
 
 const updateAuthor = `-- name: UpdateAuthor :exec
-UPDATE authors SET name = ?, extra_information = ? WHERE id = ?
+UPDATE authors SET name = ?, extra_information = ? WHERE id = ? AND user_id_fk = ?
 `
 
 type UpdateAuthorParams struct {
 	Name             sql.NullString
 	ExtraInformation sql.NullString
 	ID               string
+	UserIDFk         sql.NullString
 }
 
 func (q *Queries) UpdateAuthor(ctx context.Context, arg UpdateAuthorParams) error {
-	_, err := q.db.ExecContext(ctx, updateAuthor, arg.Name, arg.ExtraInformation, arg.ID)
+	_, err := q.db.ExecContext(ctx, updateAuthor,
+		arg.Name,
+		arg.ExtraInformation,
+		arg.ID,
+		arg.UserIDFk,
+	)
 	return err
 }
 

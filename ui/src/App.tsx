@@ -16,13 +16,14 @@ import {
 } from "./utils/LazyLoadComponents";
 import WelcomePage from "./pages/WelcomePage";
 import {MyManagement} from "./pages/MyManagement";
+import {Loader2} from "lucide-react";
 
 function App() {
     const sideBarCollapsed = useAppSelector(state=>state.commonReducer.sideBarCollapsed)
     const {t} = useTranslation()
     const keycloak = useKeycloak()
     if(keycloak.tokenParsed === undefined){
-        return <div>{t('loading')}</div>
+        return <Loader2/>
     }
 
 

@@ -7,9 +7,11 @@ import (
 	"api_go/controllers"
 	"api_go/controllers/dto"
 	"api_go/db"
+	_ "api_go/docs"
 	"api_go/service"
 	"api_go/ui"
 	"context"
+	"github.com/gofiber/contrib/swagger"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/fiber/v2/middleware/filesystem"
@@ -63,6 +65,15 @@ func SetupRouter(queries *db.Queries, config config.AppConfig) *fiber.App {
 		Ctx:         context.Background(),
 		NoteService: noteService,
 	}
+
+	cfg := swagger.Config{
+		BasePath: "/api/v1/",
+		FilePath: "./docs/swagger.json",
+		Path:     "docs",
+		Title:    "SmartOrganizr API",
+	}
+
+	app.Use(swagger.New(cfg))
 
 	app.Use(func(c *fiber.Ctx) error {
 		SetLocal[service.UserService](c, constants.UserService, userService)

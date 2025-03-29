@@ -10,6 +10,7 @@ import {Provider} from "react-redux";
 import {I18nextProvider} from "react-i18next";
 import i18n from "./language/i18n";
 import axios from "axios";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 
 export let accountURL = ''
@@ -52,17 +53,21 @@ const syncUser = ()=>{
 
 const root = ReactDOM.createRoot(document.getElementById('root') as HTMLElement)
 
+const queryClient = new QueryClient();
+
 const renderApp= (keycloak: Keycloak)=>
 {
     root.render(
         <React.StrictMode>
-            <I18nextProvider i18n={i18n}>
-            <Provider store={store}>
-            <KeycloakContext.Provider value={keycloak as Keycloak}>
-            <App/>
-            </KeycloakContext.Provider>
-            </Provider>
-            </I18nextProvider>
+            <QueryClientProvider client={queryClient}>
+                <I18nextProvider i18n={i18n}>
+                <Provider store={store}>
+                <KeycloakContext.Provider value={keycloak as Keycloak}>
+                <App/>
+                </KeycloakContext.Provider>
+                </Provider>
+                </I18nextProvider>
+            </QueryClientProvider>
         </React.StrictMode>
     )
 }

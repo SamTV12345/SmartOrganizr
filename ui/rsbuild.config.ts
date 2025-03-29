@@ -11,6 +11,11 @@ export default defineConfig({
     template: './index.html',
 
   },
+  resolve: {
+    alias: {
+      '@': './src',
+    },
+  },
   plugins: [
     pluginReact(),
     pluginBabel({

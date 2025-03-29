@@ -1,0 +1,137 @@
+basePath: /api/v1/
+definitions:
+  dto.Author:
+    properties:
+      extraInformation:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+    type: object
+  dto.Error:
+    properties:
+      code:
+        type: integer
+      message:
+        type: string
+    type: object
+  dto.Link:
+    properties:
+      href:
+        type: string
+    type: object
+  dto.Page:
+    properties:
+      size:
+        type: integer
+    type: object
+  dto.PagedAuthorRepresentationModelList:
+    properties:
+      _embedded:
+        properties:
+          authorRepresentationModelList:
+            items:
+              $ref: '#/definitions/dto.Author'
+            type: array
+        type: object
+      _links:
+        additionalProperties:
+          $ref: '#/definitions/dto.Link'
+        type: object
+      page:
+        $ref: '#/definitions/dto.Page'
+    type: object
+host: localhost:8080
+info:
+  contact: {}
+  description: Swagger api for SmartOrganizr
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  title: SmartOrganizr API
+  version: "0.1"
+paths:
+  /{authorId}:
+    patch:
+      consumes:
+      - application/json
+      parameters:
+      - description: Author ID
+        in: path
+        name: authorId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.Author'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.Error'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/dto.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.Error'
+      security:
+      - OAuth2Application: []
+      summary: Updates an author
+      tags:
+      - authors
+  /accounts:
+    get:
+      consumes:
+      - application/json
+      description: Deletes an author by ID
+      parameters:
+      - description: Page number
+        in: query
+        name: page
+        required: true
+        type: integer
+      - description: Name of the author
+        in: query
+        name: name
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.PagedAuthorRepresentationModelList'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.Error'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/dto.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.Error'
+      security:
+      - OAuth2Application: []
+      summary: Deletes an author
+      tags:
+      - authors
+securityDefinitions:
+  OAuth2Implicit:
+    flow: application
+    scopes:
+      email: Grants write access
+      openid: Grants read access
+      profile: Grants access to admin operations
+    tokenUrl: http://localhost/realms/smartOrganizr/protocol/openid-connect/token
+    type: oauth2
+swagger: "2.0"

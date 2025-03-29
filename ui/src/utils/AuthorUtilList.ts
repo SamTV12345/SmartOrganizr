@@ -57,13 +57,13 @@ export const mergeNewAuthorInList = (authorList: Page<AuthorEmbeddedContainer<Au
     return authorList
 }
 
-export const removeAuthor = (authorList: Page<AuthorEmbeddedContainer<Author>>, deletedAuthor: number)=>{
+export const removeAuthor = (authorList: Page<AuthorEmbeddedContainer<Author>>, deletedAuthor: string)=>{
         const newAuthorList = authorList._embedded.authorRepresentationModelList.filter(author=>author.id!==deletedAuthor)
         return {
-            page:authorList.page,
+            page: authorList.page,
             _embedded:{
                 authorRepresentationModelList: newAuthorList
             } ,
-            _links:authorList._links
-        } as Page<AuthorEmbeddedContainer<Author>>
+            _links: authorList._links
+        } satisfies Page<AuthorEmbeddedContainer<Author>>
     }

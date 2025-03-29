@@ -31,7 +31,7 @@ SELECT COUNT(*) FROM authors a WHERE a.name<? ORDER BY a.name,a.id;
 SELECT * FROM authors WHERE id = ? and user_id_fk = ?;
 
 -- name: UpdateAuthor :exec
-UPDATE authors SET name = ?, extra_information = ? WHERE id = ?;
+UPDATE authors SET name = ?, extra_information = ? WHERE id = ? AND user_id_fk = ?;
 
 -- name: DeleteAuthor :exec
 DELETE FROM authors WHERE id = ? AND user_id_fk = ?;

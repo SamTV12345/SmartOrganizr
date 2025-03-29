@@ -4,6 +4,8 @@
   "modern": "Modern",
   "selfHosted": "Selbst gehostet",
   "authors": "Komponist*innen",
+  "add-authors": "Komponist*innen hinzufügen",
+  "add-authors-description": "Fügen Sie Komponist*innen hinzu, um Ihre Noten zu organisieren.",
   "id": "ID",
   "name": "Name",
   "extraInformation": "Weitere Informationen",
@@ -43,5 +45,9 @@
   "appearanceDate": "Aufführungstermin",
   "hints": "Hinweise",
   "location": "Aufführungsort",
-  "noteManagement": "Notenmanagement"
+  "noteManagement": "Notenmanagement",
+  "fieldRequired": "Dieses Feld ist erforderlich.",
+  "continue": "Fortfahren",
+  "are-you-sure": "Sind Sie sicher?",
+  "are-you-sure-author-description": "Möchten Sie diese angekreuzten Autoren wirklich löschen? Dies kann nicht rückgängig gemacht werden."
 }

@@ -1,7 +1,6 @@
 import {useTranslation} from "react-i18next";
 import {ElementSearchBar} from "../components/searchBars/ElementSearchBar";
 import {useAppDispatch, useAppSelector} from "../store/hooks";
-import {Waypoint} from "react-waypoint";
 import {fixProtocol} from "../utils/Utilities";
 import {Page} from "../models/Page";
 import {ElementEmbeddedContainer} from "../models/ElementEmbeddedContainer";
@@ -9,6 +8,7 @@ import {NoteItem} from "../models/NoteItem";
 import axios from "axios";
 import {setNotesSearched} from "../store/CommonSlice";
 import {TableData} from "../components/table/TableData";
+import {Waypoint} from "react-waypoint";
 
 export const SearchElementView = ()=>{
     const {t} = useTranslation()

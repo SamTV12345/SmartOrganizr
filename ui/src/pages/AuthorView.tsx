@@ -1,154 +1,218 @@
-import {useEffect} from "react";
-import {useAppDispatch, useAppSelector} from "../store/hooks";
+import React, {useCallback, useEffect, useMemo, useRef} from "react";
 import {AuthorEmbeddedContainer} from "../models/AuthorEmbeddedContainer";
 import {Author} from "../models/Author";
 import {Page} from "../models/Page";
 import axios from "axios";
 import {apiURL, links} from "../Keycloak";
-import {setAuthorPage} from "../store/CommonSlice";
-import {Waypoint} from "react-waypoint";
 import {useTranslation} from "react-i18next";
-import {Modal} from "../components/modals/Modal";
-import {setAuthor, setModalOpen, setOpenAddModal} from "../ModalSlice";
-import {AuthorModal} from "../components/modals/AuthorModal";
-import {AuthorPatchDto} from "../models/AuthorPatchDto";
-import {AddModal} from "../components/modals/AddModal";
-import {AuthorAddModal} from "../components/modals/AuthorAddModal";
-import {mergeAuthorInList, mergeAuthors, mergeNewAuthorInList, removeAuthor} from "../utils/AuthorUtilList";
-import {AuthorSearchBar} from "../components/searchBars/AuthorSearchBar";
-import {AuthorWithIndex} from "../models/AuthorWithIndex";
-import {TableData} from "../components/table/TableData";
-import {PlusIcon} from "../components/form/PlusIcon";
+import {CreateAuthorDialog} from "@/src/components/CreateAuthorDialog";
+import {InfiniteData, useInfiniteQuery, useMutation, useQueryClient} from "@tanstack/react-query";
+import {Loader, Loader2, Trash} from "lucide-react";
+import {Checkbox} from "@/components/ui/checkbox";
+import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow,} from "@/components/ui/table"
+import {Input} from "@/components/ui/input";
+import {Button} from "@/components/ui/button";
+import {
+    AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+    AlertDialogTrigger
+} from "@/components/ui/alert-dialog";
+import {useSearchParams} from "react-router-dom";
+import {UpdateAuthorDialog} from "@/src/components/UpdateAuthorDialog";
+import {useDebounce} from "@/src/utils/DebounceHook";
+import {useAPIStore} from "@/src/store/zustand";
+
+
+const createNextLink = ({pageParam}: {pageParam: number}, link: string, searchParams:  URLSearchParams) => {
+    const url = new URL(link)
+    if (pageParam) {
+        url.searchParams.set('page', pageParam.toString())
+    }
+    if (searchParams.get('name')) {
+        url.searchParams.set('name', searchParams.get('name')!)
+    }
+
+    return url.toString()
+}
 
 export const AuthorView = ()=> {
-    const dispatch = useAppDispatch()
-    const authorPage = useAppSelector(state=>state.commonReducer.authorPage)
     const {t} = useTranslation()
-    const selectedAuthor = useAppSelector(state=>state.modalReducer.selectedAuthor)
-    const createdAuthor = useAppSelector(state=>state.modalReducer.createdAuthor)
-
-    const deleteAuthor = async (authorPageInParam: Page<AuthorEmbeddedContainer<Author>>,author:Author)=>{
-        await new Promise<Author>(()=>{
-            axios.delete(`${apiURL}/v1/authors/${author.id}`)
-                .then(()=>{
-                    dispatch(setAuthorPage(removeAuthor(authorPageInParam,author.id)))
-                    dispatch(setAuthor(undefined))
-                    dispatch(setModalOpen(false))
-                })
-                .catch((err)=>console.log(err))
-        })
-    }
-
-    const loadAuthors = async (link:string)=>{
-        const authorsInResponse: Page<AuthorEmbeddedContainer<Author>> = await new Promise<Page<AuthorEmbeddedContainer<Author>>>(resolve=>{
-            axios.get(link)
-                .then(resp=>resolve(resp.data))
-                .catch((error)=>{
-                    console.log(error)
-                })})
-        if(authorsInResponse !== undefined){
-            if(authorPage !== undefined){
-                dispatch(setAuthorPage(mergeAuthors(authorPage, authorsInResponse)))
+    const [selected, setSelected] = React.useState<{ [key: string]: boolean }>({})
+    const queryClient = useQueryClient()
+    const allChecked = Object.keys(selected).map(key => selected[key]).every(value => value)
+    const atLeastOneChecked = Object.keys(selected).map(key => selected[key]).some(value => value)
+    const {data,  isLoading, fetchNextPage, isFetching, hasNextPage, refetch } = useInfiniteQuery<Page<AuthorEmbeddedContainer<Author>>>({
+        queryKey: ['authors'],
+        initialPageParam: 0,
+        queryFn: async ({pageParam}) => {
+            // @ts-ignore
+            const response = await axios.get(createNextLink({pageParam}, links.author.href, searchParams))
+            return response.data
+        },
+        getNextPageParam: (lastPage) => {
+            if (lastPage._links && lastPage._links.next) {
+                return new URL(lastPage._links.next.href).searchParams.get("page")
             }
-            else {
-                dispatch(setAuthorPage(authorsInResponse))
-            }
+            return undefined
+        },
+        enabled: true
+    })
+    const removeAuthorQuery = useMutation({
+        mutationFn: (author: Author) => {
+            queryClient.setQueryData(['authors'], (oldData: InfiniteData<Page<AuthorEmbeddedContainer<Author>>, unknown>) => {
+                return {
+                    ...oldData,
+                    pages: oldData.pages.map((page) => {
+                        return {
+                            ...page,
+                            _embedded: {
+                                ...page._embedded,
+                                authorRepresentationModelList: page._embedded.authorRepresentationModelList.filter((a) => a.id !== author.id)
+                            }
+                        }
+                    })
+                }
+            })
+            return axios.delete(`${apiURL}/v1/authors/${author.id}`)
+        },
+    })
+
+    const [searchParams, setSearchParams] = useSearchParams();
+
+    const authorName = searchParams.get('name')
+
+    useDebounce(()=>{
+        searchParams.get("name")
+        refetch()
+    }, 1000, [searchParams])
+
+
+    const observer = useRef<IntersectionObserver>(null);
+
+
+    const authors = useMemo(() => {
+        if (data === undefined) {
+            return []
         }
+        return data?.pages.reduce((acc, page) => {
+            return [...acc, ...page._embedded.authorRepresentationModelList];
+        }, [] as Author[]);
+    }, [data]);
+
+
+    const lastElementRef = useCallback(
+        (node: HTMLTableRowElement) => {
+            if (isLoading) return;
+
+            if (observer.current) observer.current.disconnect();
+
+            observer.current = new IntersectionObserver((entries) => {
+                if (entries[0].isIntersecting && hasNextPage && !isFetching) {
+                    fetchNextPage();
+                }
+            });
+
+            if (node) observer.current.observe(node);
+        },
+        [fetchNextPage, hasNextPage, isFetching, isLoading]
+    );
+
+
+
+    useEffect(() => {
+        if (isLoading) {
+            return
+        }
+
+        if (data) {
+            const map: { [key: string]: boolean } = {}
+            authors!.forEach((author) => {
+                map[author.id] = false
+            });
+            setSelected(map)
+        }
+
+    }, [data, isLoading]);
+
+
+    if (isLoading) {
+        return <div className="flex justify-center items-center h-screen">
+            <Loader className="animate-spin"/>
+        </div>
     }
 
-    useEffect(()=>{
-        if (!authorPage && links.author.href) {
-            loadAuthors(links.author.href)
-        }
-    },[])
-
-
-
-    const updateAuthor = async(author:Author)=>{
-        const authorInResponse: Author = await new Promise<Author>(resolve=>{
-            axios.patch(apiURL+`/v1/authors/${author.id}`,{name: author.name,extraInformation:author.extraInformation} as AuthorPatchDto)
-                .then(resp=>resolve(resp.data))
-                .catch((error)=>{
-                    console.log(error)
-                })})
-        if(authorInResponse !== undefined && authorPage){
-            dispatch(setAuthorPage(mergeAuthorInList(authorPage,author)))
-        }
-    }
-
-
-    const createAuthor = async(author:Author)=>{
-        const authorInResponse: AuthorWithIndex = await new Promise<AuthorWithIndex>(resolve=>{
-            axios.post(apiURL+`/v1/authors`,{name: author.name,extraInformation:author.extraInformation} as AuthorPatchDto)
-                .then(resp=>resolve(resp.data))
-                .catch((error)=>{
-                    console.log(error)
-                })})
-        if(authorInResponse !== undefined && authorPage){
-            dispatch(setAuthorPage(mergeNewAuthorInList(authorPage,authorInResponse)))
-        }
-    }
 
     return <div>
-        <PlusIcon onClick={()=>dispatch(setOpenAddModal(true))}/>
-        <AddModal acceptText={t('create')} children={<AuthorAddModal/>} headerText={t('createAuthor')} onAccept={()=>{createAuthor(createdAuthor)}}/>
-        <Modal headerText={t('editAuthor')} children={<AuthorModal/>} onAccept={()=>{
-            selectedAuthor&&updateAuthor(selectedAuthor)}} onCancel={()=>{}} acceptText={t('update')} cancelText={t('cancel')}
-            onDelete={()=>selectedAuthor&&authorPage&&deleteAuthor(authorPage,selectedAuthor)}/>
-        <table className="divide-y table-fixed divide-gray-700 md:mx-auto md:mt-4 md:mb-4 border-collapse" id="authorTable">
-            <thead className="bg-gray-700">
-            <tr className="">
-                <th className="py-3 px-6 text-xs font-medium tracking-wider text-left uppercase text-gray-400 md:rounded-tl-2xl">
-                    <div className="flex items-center justify-center">
-                        {t('name')}
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none"
-                             viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"
-                                  d="M8 9l4-4 4 4m0 6l-4 4-4-4"/>
-                        </svg>
-                    </div>
-                </th>
-                <th className="py-3 px-6 text-xs font-medium tracking-wider text-left uppercase text-gray-400 md:rounded-tr-2xl">
-                    <div className="flex items-center justify-center">
-                        {t('extraInformation')}
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none"
-                             viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"
-                                  d="M8 9l4-4 4 4m0 6l-4 4-4-4"/>
-                        </svg>
-                    </div>
-                </th>
-            </tr>
-            </thead>
-            <tbody className="divide-y bg-gray-800 divide-gray-700">
-            <tr>
-                <td className="col-span-3 bg-gray-800 w-8/12" colSpan={3}>
-                    <div className="flex justify-center">
-                        <AuthorSearchBar/>
-                    </div>
-                </td>
-            </tr>
-            {
-                authorPage && authorPage._embedded && authorPage._embedded.authorRepresentationModelList.map((author,index)=>
-                        <tr className="hover:bg-gray-700" key={author.id.toString()} onClick={()=>{
-                            dispatch(setAuthor(author))
-                            dispatch(setModalOpen(true))
+        <CreateAuthorDialog/>
+        <UpdateAuthorDialog/>
+        <div className="w-4/6 mx-auto">
+            <div className="flex justify-between">
+                <Input placeholder="Name eines Komponisten eingeben" className="mt-5 w-2/6" value={authorName?? undefined} onChange={(e)=>{
+                    setSearchParams({name: e.target.value})
+                }}/>
+                <AlertDialog>
+                    <AlertDialogTrigger   className="mt-auto" disabled={!atLeastOneChecked}><Button disabled={!atLeastOneChecked} variant="destructive"><Trash/></Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                        <AlertDialogHeader>
+                            <AlertDialogTitle>{t('are-you-sure')}</AlertDialogTitle>
+                            <AlertDialogDescription>
+                                {t('are-you-sure-author-description')}
+                            </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                            <AlertDialogCancel>{t('cancel')}</AlertDialogCancel>
+                            <AlertDialogAction className="bg-red-600 hover:bg-red-900" onClick={()=>{
+                                Object.keys(selected).forEach(key => {
+                                    if (selected[key]) {
+                                        removeAuthorQuery.mutate(authors!.find(author => author.id === key) as Author)
+                                    }
+                                })
+                            }}>{t('continue')}</AlertDialogAction>
+                        </AlertDialogFooter>
+                    </AlertDialogContent>
+                </AlertDialog>
+            </div>
+            <div className="rounded-md border mt-5">
+                <Table>
+                    <TableHeader>
+                        <TableRow>
+                            <TableHead className="w-20"><Checkbox checked={allChecked} onCheckedChange={() => {
+                                const newSelected = {...selected}
+                                Object.keys(newSelected).forEach(key => {
+                                    newSelected[key] = !allChecked
+                                })
+                                setSelected(newSelected)
+                            }}/></TableHead>
+                            <TableHead className="w-36">Name</TableHead>
+                            <TableHead className="w-36">Extra Information</TableHead>
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                        {authors!.map((author) => <TableRow ref={lastElementRef} key={author.id} onClick={()=>{
+                            useAPIStore.setState({selectedAuthor: author})
                         }}>
-                            <TableData content={author.name} classname=""/>
-                            <TableData content={<>
-                                {author.extraInformation}
-                                {authorPage.page.size-index<10 &&
-                                    authorPage._links && authorPage._links.next
-                                    && authorPage._links.next.href
-                                    && <Waypoint onEnter={()=>{
-                                        loadAuthors(authorPage._links.next.href)
-                                    }}/>}
-                            </>
-                            }/>
-                </tr>
-                )
-            }
-            </tbody>
-        </table>
+                            <TableCell className="font-medium"><Checkbox checked={selected[author.id]}
+                                                                         onCheckedChange={() => {
+                                                                             setSelected((prevState) => ({
+                                                                                 ...prevState,
+                                                                                 [author.id]: !prevState[author.id],
+                                                                             }))
+                                                                         }}/></TableCell>
+                            <TableCell>{author.name}</TableCell>
+                            <TableCell>{author.extraInformation}</TableCell>
+                        </TableRow>)
+                        }
+                        {
+                            isLoading && <Loader2 className="animate-spin"/>
+                        }
+                    </TableBody>
+                </Table>
+            </div>
+
+        </div>
     </div>
 }

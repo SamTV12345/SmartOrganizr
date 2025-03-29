@@ -14,7 +14,7 @@ import {choiceFolder} from "../utils/Constants";
 
 export interface TreeData {
     creationDate: Date,
-    keyNum:number,
+    keyNum: string,
     icon:string,
     name:string,
     length:number,
@@ -29,7 +29,7 @@ export interface TreeData {
 
 export interface TreeDataExpanded {
     creationDate: Date,
-    keyNum:number,
+    keyNum:string,
     icon:string,
     name:string,
     length:number,
@@ -94,7 +94,7 @@ const TreeNode:FC<TreeDataExpanded> = ({ keyNum,icon,children,author
         ev.dataTransfer.setData("id",JSON.stringify(id))
     }
 
-    const moveToFolder = async (element: TreeData, nodes: TreeData[], keyNum:number)=>{
+    const moveToFolder = async (element: TreeData, nodes: TreeData[], keyNum:string)=>{
         await new Promise<ElementItem[]>(() => {
             axios.patch(apiURL+`/v1/elements/${element.keyNum}/${keyNum}`)
                 .then(() => {

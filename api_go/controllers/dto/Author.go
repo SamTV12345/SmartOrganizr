@@ -10,6 +10,11 @@ type Author struct {
 	Name             string `json:"name"`
 }
 
+type AuthorPatchDto struct {
+	ExtraInformation string `json:"extraInformation"`
+	Name             string `json:"name"`
+}
+
 func ConvertFromEntity(entity db.Author) Author {
 	return Author{
 		ID:               entity.ID,

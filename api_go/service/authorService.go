@@ -210,24 +210,23 @@ func (a *AuthorService) FindAuthorByIdAndUser(authorId string, userId string) (m
 	return authorModel, nil
 }
 
-func (a *AuthorService) UpdateAuthor(authorPatchDto dto.Author, userId string) (models.Author, error) {
+func (a *AuthorService) UpdateAuthor(authorPatchDto dto.AuthorPatchDto, userId string, authorId string) (models.Author, error) {
 	err := a.Queries.UpdateAuthor(context.Background(), db.UpdateAuthorParams{
-		ID: authorPatchDto.ID,
-		ExtraInformation: sql.NullString{
-			String: authorPatchDto.ExtraInformation,
-			Valid:  true,
-		},
-		Name: sql.NullString{
-			String: authorPatchDto.Name,
-			Valid:  true,
-		},
+		ID:               authorId,
+		ExtraInformation: NewSQLNullString(authorPatchDto.ExtraInformation),
+		Name:             NewSQLNullString(authorPatchDto.Name),
+		UserIDFk:         NewSQLNullString(userId),
 	})
 	if err != nil {
 		return models.Author{}, err
 	}
-	var author, _ = a.Queries.FindAuthorById(context.Background(), db.FindAuthorByIdParams{
-		ID: authorPatchDto.ID,
+	var author, errFetching = a.Queries.FindAuthorById(context.Background(), db.FindAuthorByIdParams{
+		ID:       authorId,
+		UserIDFk: NewSQLNullString(userId),
 	})
+	if errFetching != nil {
+		return models.Author{}, errFetching
+	}
 	var authorModel = mappers.ConvertAuthorFromEntity(author)
 	return authorModel, nil
 }

@@ -4,7 +4,7 @@ import {Author} from "./Author";
 
 export interface ElementItem {
     creationDate: Date,
-    id: number,
+    id: string,
     name: string,
     parent: Folder,
     author?:Author,

@@ -33,7 +33,7 @@ export const mapDtoToTreeData = (element: ElementItem)=> {
         } as TreeData
     } else {
         return {
-            keyNum: 123,
+            keyNum: "123",
             name: "??",
             length: 0,
             type: "??",
@@ -89,7 +89,7 @@ export const replaceFolder = (event: TreeData, nodes: TreeData[]): TreeData[] =>
 
 
 //add child
-export const addChild = (event: TreeData, nodes: TreeData[], parentId: number): TreeData[] => {
+export const addChild = (event: TreeData, nodes: TreeData[], parentId: string): TreeData[] => {
     return nodes.map(node => {
         //if other children are in this folder
         if (node.keyNum === parentId && node.children) {
@@ -109,11 +109,11 @@ export const addChild = (event: TreeData, nodes: TreeData[], parentId: number): 
 }
 
 
-export const deleteTopElements = (keyNum: number, nodes:TreeData[]):TreeData[]=>{
+export const deleteTopElements = (keyNum: string, nodes:TreeData[]):TreeData[]=>{
     return nodes.filter(node => node.keyNum !== keyNum)
 }
 
-export const deleteChild = (keyNum: number, nodes: TreeData[]): TreeData[] => {
+export const deleteChild = (keyNum: string, nodes: TreeData[]): TreeData[] => {
     return nodes.map(node => {
         const children = node.children?.map(c => c.keyNum)
         if (children && children.includes(keyNum)) {

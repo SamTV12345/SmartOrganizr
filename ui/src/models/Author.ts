@@ -1,5 +1,8 @@
 export interface Author {
-    id: number,
+    id: string,
     name: string,
-    extraInformation: string
+    extraInformation?: string | undefined,
 }
+
+
+export type AuthorPostDto =  Omit<Author, "id">;
