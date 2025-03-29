@@ -1,7 +1,6 @@
 module api_go
 
 go 1.24.0
-
 require (
 	codeberg.org/go-pdf/fpdf v0.10.0
 	github.com/coreos/go-oidc/v3 v3.13.0
@@ -10,7 +9,7 @@ require (
 	github.com/golang-jwt/jwt/v4 v4.5.1
 	github.com/google/uuid v1.6.0
 	github.com/pressly/goose/v3 v3.24.1
-	github.com/spf13/viper v1.20.0
+	github.com/spf13/viper v1.20.1
 	github.com/yeqown/go-qrcode/v2 v2.2.5
 	github.com/yeqown/go-qrcode/writer/standard v1.2.5
 )
