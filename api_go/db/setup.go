@@ -10,6 +10,7 @@ import (
 	"github.com/pressly/goose/v3"
 	"log"
 	"strconv"
+	"time"
 )
 
 func Setup(config config.AppConfigDatabase) *Queries {
@@ -27,6 +28,11 @@ func Setup(config config.AppConfigDatabase) *Queries {
 	if err != nil {
 		return nil
 	}
+
+	// See "Important settings" section.
+	open.SetConnMaxLifetime(time.Minute * 3)
+	open.SetMaxOpenConns(10)
+	open.SetMaxIdleConns(10)
 	var queries = New(open)
 	err = goose.SetDialect("mysql")
 	if err != nil {

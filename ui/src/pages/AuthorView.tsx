@@ -192,11 +192,16 @@ export const AuthorView = ()=> {
                         </TableRow>
                     </TableHeader>
                     <TableBody>
-                        {authors!.map((author) => <TableRow ref={lastElementRef} key={author.id} onClick={()=>{
-                            useAPIStore.setState({selectedAuthor: author})
+                        {authors!.map((author) => <TableRow ref={lastElementRef} key={author.id} onClick={(e)=>{
+                            if ("role" in e.target) {
+                                if (e.target.role === "checkbox") {
+                                    return
+                                }
+                            }
+                                useAPIStore.setState({selectedAuthor: author})
                         }}>
                             <TableCell className="font-medium"><Checkbox checked={selected[author.id]}
-                                                                         onCheckedChange={() => {
+                                                                         onCheckedChange={(e) => {
                                                                              setSelected((prevState) => ({
                                                                                  ...prevState,
                                                                                  [author.id]: !prevState[author.id],
