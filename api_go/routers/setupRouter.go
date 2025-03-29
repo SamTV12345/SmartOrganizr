@@ -7,7 +7,6 @@ import (
 	"api_go/controllers"
 	"api_go/controllers/dto"
 	"api_go/db"
-	_ "api_go/docs"
 	"api_go/service"
 	"api_go/ui"
 	"context"
