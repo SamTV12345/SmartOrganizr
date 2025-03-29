@@ -1,13 +1,12 @@
 module api_go
 
 go 1.24.0
-
 require (
 	codeberg.org/go-pdf/fpdf v0.10.0
 	github.com/coreos/go-oidc/v3 v3.13.0
 	github.com/go-sql-driver/mysql v1.9.1
 	github.com/gofiber/fiber/v2 v2.52.6
-	github.com/golang-jwt/jwt/v4 v4.5.1
+	github.com/golang-jwt/jwt/v4 v4.5.2
 	github.com/google/uuid v1.6.0
 	github.com/pressly/goose/v3 v3.24.1
 	github.com/spf13/viper v1.20.0
