@@ -13,12 +13,11 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        platform:
-          - linux/amd64
-          - linux/arm64
-        runs-on:
-          - ubuntu-24.04
-          - ubuntu-24.04-arm
+        include:
+          - platform: linux/amd64
+            runs-on: ubuntu-latest
+          - platform: linux/arm64
+            runs-on: ubuntu-24.04-arm
     runs-on: ${{ matrix.runs-on }}
     steps:
       - name: Prepare
