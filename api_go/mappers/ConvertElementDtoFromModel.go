@@ -8,7 +8,7 @@ import (
 func ConvertElementDtoFromModel(model models.Element, c *fiber.Ctx) interface{} {
 	switch model.Type() {
 	case "NOTE":
-		return ConvertNoteDtoFromModel(model.(models.Note))
+		return ConvertNoteDtoFromModel(model.(models.Note), c)
 	case "FOLDER":
 		return ConvertFolderDtoFromModel(model.(models.Folder), c)
 	}

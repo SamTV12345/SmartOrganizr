@@ -18,7 +18,7 @@ func ConvertFolderDtoFromModel(model models.Folder, c *fiber.Ctx) dto.Folder {
 		Name:         model.Name,
 		Id:           model.Id,
 		CreationDate: model.CreationDate,
-		Creator:      ConvertUserDtoFromModel(model.Creator),
+		Creator:      ConvertUserDtoFromModel(model.Creator, c),
 		Description:  model.Description,
 		Elements:     make([]models.Element, 0),
 		Links:        links,

@@ -15,11 +15,14 @@ type AppConfigDatabase struct {
 }
 
 type AppConfigSSO struct {
-	ClientID         string
-	FrontendClientID string
-	Issuer           string
-	Url              string
-	Realm            string
+	ClientID           string
+	FrontendClientID   string
+	Issuer             string
+	Url                string
+	Realm              string
+	AdminUser          string
+	AdminPassword      string
+	SSORefreshInternal int
 }
 
 func (c AppConfigDatabase) GetDSN() string {
@@ -61,6 +64,9 @@ func ReadConfig() (AppConfig, error) {
 	viper.SetDefault(SSOClientID, "account")
 	viper.SetDefault(SSOFrontendClientID, "smartorganizr-frontend")
 	viper.SetDefault(SSORealm, "smartOrganizr")
+	viper.SetDefault(SSOAdminUser, "admin")
+	viper.SetDefault(SSOAdminPassword, "admin")
+	viper.SetDefault(SSORefreshInternal, 250) // in seconds
 
 	var config = AppConfig{
 		Database: struct {
@@ -72,16 +78,21 @@ func ReadConfig() (AppConfig, error) {
 		}{Host: viper.GetString(DatabaseHost), Port: viper.GetInt(DatabasePort), User: viper.GetString(DatabaseUser), Password: viper.GetString(DatabasePassword), Database: viper.GetString(DatabaseDatabase)},
 		Port: viper.GetInt(AppPort),
 		SSO: struct {
-			ClientID         string
-			FrontendClientID string
-			Issuer           string
-			Url              string
-			Realm            string
+			ClientID           string
+			FrontendClientID   string
+			Issuer             string
+			Url                string
+			Realm              string
+			AdminUser          string
+			AdminPassword      string
+			SSORefreshInternal int
 		}{ClientID: viper.GetString(SSOClientID),
 			Issuer:           viper.GetString(SSOIssuer),
 			Url:              viper.GetString(SSOUrl),
 			FrontendClientID: viper.GetString(SSOFrontendClientID),
 			Realm:            viper.GetString(SSORealm),
+			AdminUser:        viper.GetString(SSOAdminUser),
+			AdminPassword:    viper.GetString(SSOAdminPassword),
 		},
 		App: struct{ URL string }{URL: viper.GetString(AppURL)},
 	}

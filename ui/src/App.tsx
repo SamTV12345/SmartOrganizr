@@ -17,6 +17,7 @@ import {
 import WelcomePage from "./pages/WelcomePage";
 import {MyManagement} from "./pages/MyManagement";
 import {Loader2} from "lucide-react";
+import {ProfileEdit} from "@/src/pages/ProfileEdit";
 
 function App() {
     const sideBarCollapsed = useAppSelector(state=>state.commonReducer.sideBarCollapsed)
@@ -36,7 +37,7 @@ function App() {
 
   return (
       <BrowserRouter basename="/ui">
-          <div className="grid  grid-rows-[auto_1fr] h-full md:grid-cols-[300px_1fr]">
+          <div className="grid  grid-rows-[auto_1fr] h-full md:grid-cols-[250px_1fr]">
               <Header/>
               <SideBar/>
               <div className={`col-span-6 md:col-span-5 ${sideBarCollapsed?'xs:col-span-5':'hidden'} md:block w-full overflow-x-auto`}>
@@ -44,6 +45,7 @@ function App() {
                       <Route path="/" element={<Navigate to={"/welcome"}/>}/>
                       <Route path={"/welcome"} element={<WelcomePage/>}/>
                       <Route path={"/noteManagement"} element={<MyManagement/>}/>
+                      <Route path="/profile/edit" element={<ProfileEdit/>}/>
                       <Route path={"/noteManagement/authors"} element={
                           <Suspense>
                               <AuthorLazyLoad/>

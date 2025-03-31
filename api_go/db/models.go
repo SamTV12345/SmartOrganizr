@@ -47,7 +47,11 @@ type NoteInConcert struct {
 
 type User struct {
 	ID               string
-	SelectedTheme    sql.NullString
 	SideBarCollapsed bool
 	Username         sql.NullString
+	ProfilePicture   sql.NullString
+	Email            sql.NullString
+	Firstname        sql.NullString
+	Lastname         sql.NullString
+	Telephonenumber  sql.NullString
 }

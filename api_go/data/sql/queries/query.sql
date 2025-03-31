@@ -51,10 +51,16 @@ SELECT * FROM elements WHERE type ='note' AND author_id_fk = ? AND user_id_fk = 
 
 
 -- name: CreateUser :execlastid
-INSERT INTO user (id, username, selected_theme, side_bar_collapsed) VALUES (?, ?, ?, ?);
+INSERT INTO user (id, username, side_bar_collapsed, firstname, lastname ) VALUES (?, ?, ?, ?, ?);
 
 -- name: UpdateUser :exec
-UPDATE user SET username = ?, selected_theme = ?, side_bar_collapsed = ? WHERE id = ?;
+UPDATE user SET username = ?, side_bar_collapsed = ?, email = ?, firstname = ?, lastname = ?, telephoneNumber = ?  WHERE id = ?;
+
+-- name: UpdateUserProfilePicture :exec
+UPDATE user SET profile_picture = ? WHERE id = ?;
+
+-- name: DeleteProfilePicture :exec
+UPDATE user SET profile_picture = NULL WHERE id = ?;
 
 -- name: FindAllFoldersByCreator :many
 -- type: Folder

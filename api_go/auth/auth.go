@@ -15,6 +15,7 @@ type Claims struct {
 	Name       string `json:"name"`
 	GivenName  string `json:"given_name"`
 	FamilyName string `json:"family_name"`
+	Email      string `json:"email"`
 }
 
 func NewKeycloakJWTValidator(issuerUrl, clientId string) (func(*fiber.Ctx, string) (bool, error), error) {

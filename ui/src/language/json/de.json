@@ -49,5 +49,21 @@
   "fieldRequired": "Dieses Feld ist erforderlich.",
   "continue": "Fortfahren",
   "are-you-sure": "Sind Sie sicher?",
-  "are-you-sure-author-description": "Möchten Sie diese angekreuzten Autoren wirklich löschen? Dies kann nicht rückgängig gemacht werden."
+  "are-you-sure-author-description": "Möchten Sie diese angekreuzten Autoren wirklich löschen? Dies kann nicht rückgängig gemacht werden.",
+  "dashboard": "Dashboard",
+  "my-dates": "Meine Termine",
+  "my-messages": "Meine Nachrichten",
+  "my-polls": "Meine Umfragen",
+  "club-overview": "Vereinsübersicht",
+  "my-rooms": "Meine Räume",
+  "create-new": "Neu erstellen",
+  "create-club": "Verein erstellen",
+  "my-clubs": "Meine Vereine",
+  "my-smartorganizr": "Mein SmartOrganizr",
+  "my-profile": "Mein Profil",
+  "firstname": "Vorname",
+  "lastname": "Nachname",
+  "email": "E-Mail",
+  "telephonenumber": "Telefonnummer",
+  "username": "Benutzername"
 }

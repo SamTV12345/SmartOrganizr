@@ -53,7 +53,7 @@ func GetNotes(c *fiber.Ctx) error {
 
 	var notesDto = make([]dto.Note, 0)
 	for _, note := range notes {
-		notesDto = append(notesDto, mappers.ConvertNoteDtoFromModel(note))
+		notesDto = append(notesDto, mappers.ConvertNoteDtoFromModel(note, c))
 	}
 
 	var links = make(map[string]dto.Link)
@@ -223,7 +223,7 @@ func UpdatePDFOfNote(c *fiber.Ctx) error {
 			"error": err.Error(),
 		})
 	}
-	var noteDto = mappers.ConvertNoteDtoFromModel(updatedNote)
+	var noteDto = mappers.ConvertNoteDtoFromModel(updatedNote, c)
 	return c.JSON(noteDto)
 }
 

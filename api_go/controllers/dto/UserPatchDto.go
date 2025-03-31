@@ -1,12 +1,10 @@
-package models
+package dto
 
-type User struct {
-	UserId           string `json:"userId"`
+type UserPatchDto struct {
 	Username         string `json:"username"`
 	SideBarCollapsed bool   `json:"sideBarCollapsed"`
-	ProfilePic       []byte `json:"profilePicUrl"`
-	Email            string `json:"email"`
 	Firstname        string `json:"firstname"`
 	Lastname         string `json:"lastname"`
+	Email            string `json:"email"`
 	TelephoneNumber  string `json:"telephoneNumber"`
 }

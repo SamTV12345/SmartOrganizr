@@ -19,9 +19,9 @@ import {Author, AuthorPostDto} from "@/src/models/Author";
 import axios from "axios";
 import {apiURL} from "@/src/Keycloak";
 import {setAuthorPage} from "@/src/store/CommonSlice";
-import {mergeAuthorInList, mergeAuthors, mergeNewAuthorInList} from "@/src/utils/AuthorUtilList";
+import {mergeAuthorInList} from "@/src/utils/AuthorUtilList";
 import {useAppDispatch, useAppSelector} from "@/src/store/hooks";
-import {useMutation, UseMutationResult} from "@tanstack/react-query";
+import {useMutation} from "@tanstack/react-query";
 
 
 export function CreateAuthorDialog() {

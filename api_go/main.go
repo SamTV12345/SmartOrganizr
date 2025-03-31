@@ -22,6 +22,7 @@ func main() {
 	var app = routers.SetupRouter(db, appConfig)
 	err = app.Listen("0.0.0.0:" + strconv.Itoa(appConfig.Port))
 	if err != nil {
+		log.Fatalf("Error starting server, %s", err)
 		return
 	}
 }

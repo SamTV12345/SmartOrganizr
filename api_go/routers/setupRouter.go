@@ -7,14 +7,19 @@ import (
 	"api_go/controllers"
 	"api_go/controllers/dto"
 	"api_go/db"
+	"api_go/models"
 	"api_go/service"
 	"api_go/ui"
 	"context"
+	"github.com/Nerzal/gocloak/v13"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/fiber/v2/middleware/filesystem"
 	"github.com/gofiber/fiber/v2/middleware/keyauth"
+	"go.uber.org/zap"
 	"net/http"
+	"sync"
+	"time"
 )
 
 func SetupRouter(queries *db.Queries, config config.AppConfig) *fiber.App {
@@ -29,6 +34,36 @@ func SetupRouter(queries *db.Queries, config config.AppConfig) *fiber.App {
 		AllowOrigins: "*",
 		AllowHeaders: "*",
 	}))
+
+	var token = &models.MutexedKeycloakToken{
+		Jwt: nil,
+		Mu:  sync.Mutex{},
+	}
+	var client = gocloak.NewClient(config.SSO.Url)
+	logger, _ := zap.NewProduction()
+	defer logger.Sync() // flushes buffer, if any
+	sugar := logger.Sugar()
+
+	go func() {
+		for {
+			if token.Jwt == nil {
+				tokenJwt, err := client.LoginAdmin(context.Background(), config.SSO.AdminUser, config.SSO.AdminPassword, config.SSO.Realm)
+				if err != nil {
+					sugar.Info("Error renewing keycloak token %s", err.Error())
+				}
+				sugar.Info("Renewing keycloak token")
+				token.Mu.Lock()
+				token.Jwt = tokenJwt
+				token.Mu.Unlock()
+			}
+			time.Sleep(time.Second * time.Duration(config.SSO.SSORefreshInternal))
+		}
+	}()
+
+	var keycloakService = service.NewKeycloakService(
+		config.SSO.Realm,
+		token,
+		client)
 
 	var userService = service.UserService{
 		Queries: queries,
@@ -68,6 +103,7 @@ func SetupRouter(queries *db.Queries, config config.AppConfig) *fiber.App {
 		SetLocal[service.UserService](c, constants.UserService, userService)
 		SetLocal[service.FolderService](c, constants.FolderService, folderService)
 		SetLocal[service.NoteService](c, constants.NoteService, noteService)
+		SetLocal[service.KeycloakService](c, constants.KeycloakService, keycloakService)
 		SetLocal[string](c, constants.BaseURL, config.App.URL)
 		SetLocal[service.AuthorService](c, constants.AuthorService, authorService)
 		SetLocal[service.ConcertService](c, constants.ConcertService, concertService)
@@ -76,7 +112,7 @@ func SetupRouter(queries *db.Queries, config config.AppConfig) *fiber.App {
 	})
 
 	app.Use(func(c *fiber.Ctx) error {
-		SetLocal[controllers.KeycloakModel](c, "keycloak", controllers.KeycloakModel{
+		SetLocal[dto.KeycloakModel](c, "keycloak", dto.KeycloakModel{
 			ClientId: config.SSO.FrontendClientID,
 			Url:      config.SSO.Url,
 			Realm:    config.SSO.Realm,
@@ -86,6 +122,8 @@ func SetupRouter(queries *db.Queries, config config.AppConfig) *fiber.App {
 	})
 
 	app.Get("/api/public", controllers.GetIndex)
+
+	app.Get("/public/users/:userId/:image.png", controllers.GetUserImage)
 
 	profile := app.Group("api", keyauth.New(keyauth.Config{
 		Validator: validator,
@@ -111,7 +149,12 @@ func SetupRouter(queries *db.Queries, config config.AppConfig) *fiber.App {
 
 	profile.Route("v1/users", func(r fiber.Router) {
 		r.Put("/", controllers.SyncUser)
+		r.Get("/token", controllers.GetUser)
+		r.Patch("/:userId", controllers.UpdateUser)
+		r.Post("/:userId/profile", controllers.UploadProfile)
+		r.Get("/me", controllers.GetUserProfile)
 		r.Get("/offline", controllers.GetOfflineData)
+		r.Delete("/:userId/profile", controllers.DeleteProfilePic)
 	})
 
 	profile.Route("v1/authors", func(r fiber.Router) {

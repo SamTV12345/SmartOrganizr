@@ -197,22 +197,24 @@ func (q *Queries) CreateNote(ctx context.Context, arg CreateNoteParams) (int64, 
 }
 
 const createUser = `-- name: CreateUser :execlastid
-INSERT INTO user (id, username, selected_theme, side_bar_collapsed) VALUES (?, ?, ?, ?)
+INSERT INTO user (id, username, side_bar_collapsed, firstname, lastname ) VALUES (?, ?, ?, ?, ?)
 `
 
 type CreateUserParams struct {
 	ID               string
 	Username         sql.NullString
-	SelectedTheme    sql.NullString
 	SideBarCollapsed bool
+	Firstname        sql.NullString
+	Lastname         sql.NullString
 }
 
 func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (int64, error) {
 	result, err := q.db.ExecContext(ctx, createUser,
 		arg.ID,
 		arg.Username,
-		arg.SelectedTheme,
 		arg.SideBarCollapsed,
+		arg.Firstname,
+		arg.Lastname,
 	)
 	if err != nil {
 		return 0, err
@@ -286,6 +288,15 @@ DELETE FROM note_in_concert WHERE note_id_fk = ?
 
 func (q *Queries) DeleteNotesInConcertByNoteId(ctx context.Context, noteIDFk string) error {
 	_, err := q.db.ExecContext(ctx, deleteNotesInConcertByNoteId, noteIDFk)
+	return err
+}
+
+const deleteProfilePicture = `-- name: DeleteProfilePicture :exec
+UPDATE user SET profile_picture = NULL WHERE id = ?
+`
+
+func (q *Queries) DeleteProfilePicture(ctx context.Context, id string) error {
+	_, err := q.db.ExecContext(ctx, deleteProfilePicture, id)
 	return err
 }
 
@@ -1023,7 +1034,7 @@ func (q *Queries) FindNoteById(ctx context.Context, id string) (Element, error) 
 }
 
 const findUserById = `-- name: FindUserById :one
-SELECT id, selected_theme, side_bar_collapsed, username FROM user WHERE id = ?
+SELECT id, side_bar_collapsed, username, profile_picture, email, firstname, lastname, telephonenumber FROM user WHERE id = ?
 `
 
 func (q *Queries) FindUserById(ctx context.Context, id string) (User, error) {
@@ -1031,9 +1042,13 @@ func (q *Queries) FindUserById(ctx context.Context, id string) (User, error) {
 	var i User
 	err := row.Scan(
 		&i.ID,
-		&i.SelectedTheme,
 		&i.SideBarCollapsed,
 		&i.Username,
+		&i.ProfilePicture,
+		&i.Email,
+		&i.Firstname,
+		&i.Lastname,
+		&i.Telephonenumber,
 	)
 	return i, err
 }
@@ -1176,22 +1191,42 @@ func (q *Queries) UpdateNote(ctx context.Context, arg UpdateNoteParams) error {
 }
 
 const updateUser = `-- name: UpdateUser :exec
-UPDATE user SET username = ?, selected_theme = ?, side_bar_collapsed = ? WHERE id = ?
+UPDATE user SET username = ?, side_bar_collapsed = ?, email = ?, firstname = ?, lastname = ?, telephoneNumber = ?  WHERE id = ?
 `
 
 type UpdateUserParams struct {
 	Username         sql.NullString
-	SelectedTheme    sql.NullString
 	SideBarCollapsed bool
+	Email            sql.NullString
+	Firstname        sql.NullString
+	Lastname         sql.NullString
+	Telephonenumber  sql.NullString
 	ID               string
 }
 
 func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) error {
 	_, err := q.db.ExecContext(ctx, updateUser,
 		arg.Username,
-		arg.SelectedTheme,
 		arg.SideBarCollapsed,
+		arg.Email,
+		arg.Firstname,
+		arg.Lastname,
+		arg.Telephonenumber,
 		arg.ID,
 	)
+	return err
+}
+
+const updateUserProfilePicture = `-- name: UpdateUserProfilePicture :exec
+UPDATE user SET profile_picture = ? WHERE id = ?
+`
+
+type UpdateUserProfilePictureParams struct {
+	ProfilePicture sql.NullString
+	ID             string
+}
+
+func (q *Queries) UpdateUserProfilePicture(ctx context.Context, arg UpdateUserProfilePictureParams) error {
+	_, err := q.db.ExecContext(ctx, updateUserProfilePicture, arg.ProfilePicture, arg.ID)
 	return err
 }
