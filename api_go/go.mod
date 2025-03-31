@@ -1,6 +1,7 @@
 module api_go
 
 go 1.24.0
+
 require (
 	codeberg.org/go-pdf/fpdf v0.10.0
 	github.com/Nerzal/gocloak/v13 v13.9.0
@@ -13,6 +14,7 @@ require (
 	github.com/spf13/viper v1.20.1
 	github.com/yeqown/go-qrcode/v2 v2.2.5
 	github.com/yeqown/go-qrcode/writer/standard v1.2.5
+	go.uber.org/zap v1.27.0
 )
 
 require (
@@ -47,7 +49,6 @@ require (
 	github.com/valyala/fasthttp v1.59.0 // indirect
 	github.com/yeqown/reedsolomon v1.0.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
-	go.uber.org/zap v1.27.0 // indirect
 	golang.org/x/crypto v0.36.0 // indirect
 	golang.org/x/image v0.15.0 // indirect
 	golang.org/x/net v0.37.0 // indirect
