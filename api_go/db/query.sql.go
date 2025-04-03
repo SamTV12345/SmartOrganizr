@@ -1034,7 +1034,7 @@ func (q *Queries) FindNoteById(ctx context.Context, id string) (Element, error) 
 }
 
 const findUserById = `-- name: FindUserById :one
-SELECT id, side_bar_collapsed, username, profile_picture, email, firstname, lastname, telephonenumber FROM user WHERE id = ?
+SELECT id, side_bar_collapsed, username, profile_picture, email, firstname, lastname, telephonenumber, birthday, country, postalcode, city, street FROM user WHERE id = ?
 `
 
 func (q *Queries) FindUserById(ctx context.Context, id string) (User, error) {
@@ -1049,6 +1049,11 @@ func (q *Queries) FindUserById(ctx context.Context, id string) (User, error) {
 		&i.Firstname,
 		&i.Lastname,
 		&i.Telephonenumber,
+		&i.Birthday,
+		&i.Country,
+		&i.Postalcode,
+		&i.City,
+		&i.Street,
 	)
 	return i, err
 }

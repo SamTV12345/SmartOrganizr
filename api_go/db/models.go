@@ -54,4 +54,9 @@ type User struct {
 	Firstname        sql.NullString
 	Lastname         sql.NullString
 	Telephonenumber  sql.NullString
+	Birthday         sql.NullTime
+	Country          sql.NullString
+	Postalcode       sql.NullString
+	City             sql.NullString
+	Street           sql.NullString
 }
