@@ -10,3 +10,12 @@ export interface NoteItem extends ElementItem {
     parent:Folder,
     pdfAvailable: boolean,
 }
+
+
+export type NotePostDto = {
+    authorId: string
+    description?: string
+    numberOfPages: number
+    parentId: string
+    title: string
+}

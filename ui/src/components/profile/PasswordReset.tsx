@@ -8,7 +8,7 @@ export const PasswordReset = ()=>{
             <CardTitle>Passwort ändern</CardTitle>
         </CardHeader>
         <CardContent>
-            <p className="leading-7 [&:not(:first-child)]:mt-6  text-muted-foreground">
+            <p className="leading-7 [&:not(:first-child)]:mt-6  text-muted-foreground ui">
                 Das Passwort kann aus Sicherheitsgründen nicht in SmartOrganizr geändert werden.
                 Bitte ändern Sie Ihr Passwort über den folgenden Link.
                 <Button variant="default" className="float-right mt-5 bg-accentDark hover:bg-accentDarkHover cursor-pointer">{t('reset-password')}</Button>

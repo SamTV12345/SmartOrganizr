@@ -24,6 +24,7 @@ import {Modal} from "../components/modals/Modal";
 import {NoteModal} from "../components/modals/NoteModal";
 import {PlusIcon} from "../components/form/PlusIcon";
 import {FileUploadModal} from "../components/modals/FileUploadModal";
+import {CreateFolderOrNote} from "@/src/components/CreateFolderOrNote";
 
 export const FolderView = ()=>{
     const dispatch = useAppDispatch()
@@ -205,12 +206,10 @@ export const FolderView = ()=>{
     }
 
     return <div>
-        <PlusIcon onClick={()=>dispatch(setOpenAddModal(true))}/>
+        <CreateFolderOrNote/>
         <FileUploadModal/>
-        <AddModal headerText={t('newElement')} onAccept={()=>{createElement()}} acceptText={t('create')} children={<ElementAddModal/>}/>
-        <Modal headerText={t('editElement')} onAccept={()=>updateElement()} acceptText={t('update')} children={<NoteModal/>}
-               cancelText={t('cancel')} onCancel={()=>{dispatch(setModalOpen(false))}} onDelete={deleteElement}/>
-        <div className="border-0 w-full md:w-8/12  table-fixed md:mx-auto md:mt-4 md:mb-4 bg-gray-800 text-white p-6">
+        <div className="h-12"></div>
+        <div className="border-0 w-full md:w-8/12  table-fixed md:mx-auto md:mt-8 md:mb-4 bg-gray-800 text-white p-6">
         <div className="mx-auto">
            <TreeElement data={nodes} setData={(d)=>setNodes(d)}/>
         </div>

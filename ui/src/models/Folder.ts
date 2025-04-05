@@ -5,3 +5,10 @@ export interface Folder extends ElementItem {
     links: ApiLink[],
     length: number
 }
+
+
+export type FolderPostDto = {
+    name: string
+    description?: string
+    parentId: string
+}

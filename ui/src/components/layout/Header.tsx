@@ -57,10 +57,10 @@ export const Header = ()=>{
                         </div>
                         <div onBlur={()=>setAvatarDropdownClicked(!avatarDrodownClicked)}
                             className={cn("absolute bg-gray-700 z-40 right-0 z-10 top-9 mt-2 w-56 origin-top-right shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none",
-                                avatarDrodownClicked? "transition-opacity duration-100 ease-out opacity-100" : "transition-opacity duration-100 ease-in opacity-0"
+                                avatarDrodownClicked? "transition-opacity duration-100 ease-out opacity-100" : "transition-opacity duration-100 ease-in opacity-0 pointer-events-none"
                             )}
                             role="menu" aria-orientation="vertical" aria-labelledby="menu-button" >
-                            <div className="py-1" role="none">
+                            <div className={cn("py-1")} role="none">
                                 <a target="_blank" href={accountURL} className="text-white block px-4 py-2 text-sm hover:bg-gray-500" role="menuitem"
                                     id="menu-item-0">{t('accountSettings')}</a>
                                 <button onClick={()=>{
