@@ -10,5 +10,5 @@ export interface Folder extends ElementItem {
 export type FolderPostDto = {
     name: string
     description?: string
-    parentId: string
+    parentId?: string
 }

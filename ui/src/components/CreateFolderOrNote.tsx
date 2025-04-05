@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button"
 import {
     Dialog, DialogClose,
-    DialogContent, DialogFooter,
+    DialogContent, DialogFooter, DialogTitle,
     DialogTrigger,
 } from "@/components/ui/dialog"
 import {Check, ChevronsUpDown, Loader, PlusIcon} from "lucide-react";
@@ -9,17 +9,15 @@ import {useTranslation} from "react-i18next";
 import {z} from "zod";
 import {FormProvider, useForm} from "react-hook-form";
 import {zodResolver} from "@hookform/resolvers/zod";
-import {Author, AuthorPostDto} from "@/src/models/Author";
 import axios from "axios";
 import {apiURL} from "@/src/Keycloak";
-import {setAuthorPage, setNodes} from "@/src/store/CommonSlice";
-import {mergeAuthorInList} from "@/src/utils/AuthorUtilList";
+import {setNodes} from "@/src/store/CommonSlice";
 import {useAppDispatch, useAppSelector} from "@/src/store/hooks";
 import {useMutation} from "@tanstack/react-query";
 import {RadioGroup, RadioGroupItem} from "@/components/ui/radio-group";
 import {Label} from "@/components/ui/label";
 import {useState} from "react";
-import {FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage} from "@/components/ui/form";
+import {FormControl, FormField, FormItem, FormLabel, FormMessage} from "@/components/ui/form";
 import {Input} from "@/components/ui/input";
 import {
     Command,
@@ -36,13 +34,14 @@ import {FolderEmbeddedContainer} from "@/src/models/FolderEmbeddedContainer";
 import {Folder, FolderPostDto} from "@/src/models/Folder";
 import {addAsParent, addChild, mapDtoToTreeData} from "@/src/utils/ElementUtils";
 import {NoteItem, NotePostDto} from "@/src/models/NoteItem";
+import {AuthorEmbeddedContainer} from "@/src/models/AuthorEmbeddedContainer";
+import {Author} from "@/src/models/Author";
 
 export function CreateFolderOrNote() {
     const {t} = useTranslation()
     const dispatch = useAppDispatch()
     const nodes = useAppSelector(state=>state.commonReducer.nodes)
     const [folderSelected, setFolderSelected] = useState(true)
-    const [folderSearch, setFolderSearch] = useState<Page<FolderEmbeddedContainer<Folder>>>()
 
     const createFolder = async(folder: FolderPostDto)=>{
         const response = await axios.post(apiURL+`/v1/elements/folders`, folder)
@@ -58,6 +57,16 @@ export function CreateFolderOrNote() {
         const response = await axios.get(apiURL+`/v1/elements/folders`, {
             params: {
                 folderName,
+                page: 0
+            }
+        })
+        return response.data
+    }
+
+    const searchAuthor = async(folderName: string)=>{
+        const response = await axios.get(apiURL+`/v1/authors`, {
+            params: {
+                name: folderName,
                 page: 0
             }
         })
@@ -86,26 +95,27 @@ export function CreateFolderOrNote() {
         }
     })
 
+    const searchAuthorsByName = useMutation<Page<AuthorEmbeddedContainer<Author>>, Error, string>({
+        mutationFn: searchAuthor,
+    })
+
     const searchFoldersByName = useMutation<Page<FolderEmbeddedContainer<Folder>>, Error, string>({
         mutationFn: searchFolder,
-        onSuccess:(data)=>{
-            setFolderSearch(data)
-        }
     })
 
     const folderSchema = z.object({
         name: z.string({required_error: t('fieldRequired')!}).min(1, {message: t('fieldRequired')!}),
         description: z.string().optional(),
-        parentId: z.string()
+        parentId: z.string().optional()
     })
 
     const noteSchema = z.object({
         title: z.string({required_error: t('fieldRequired')!}).min(1, {message: t('fieldRequired')!}),
-        description: z.string().optional(),
-        numberOfPages: z.number(),
-        authorId: z.string(),
-        parentId: z.string(),
-        extraInformation: z.string().optional(),
+        description: z.string({required_error: t('fieldRequired')!}).optional(),
+        numberOfPages: z.number({required_error: t('fieldRequired')!}),
+        authorId: z.string({required_error: t('fieldRequired')!}),
+        parentId: z.string({required_error: t('fieldRequired')!}),
+        extraInformation: z.string({required_error: t('fieldRequired')!}).optional(),
     })
 
     const schema = z.union([folderSchema, noteSchema]);
@@ -119,6 +129,7 @@ export function CreateFolderOrNote() {
     })
 
     function onSubmit(values: z.infer<typeof schema>) {
+        console.log("On submit", values)
         if ("name" in values) {
             createFolderMutation.mutate(values)
         } else {
@@ -127,16 +138,15 @@ export function CreateFolderOrNote() {
     }
 
     return (
-
         <Dialog>
             <DialogTrigger asChild>
                 <Button variant="outline" className="float-right mr-5 mt-5"><PlusIcon/></Button>
             </DialogTrigger>
 
             <DialogContent className="">
-                <h2 className="scroll-m-20 border-b pb-2 text-3xl font-semibold tracking-tight first:mt-0">
+                <DialogTitle className="scroll-m-20 border-b pb-2 text-3xl font-semibold tracking-tight first:mt-0">
                     Add folder or note
-                </h2>
+                </DialogTitle>
                 <RadioGroup defaultValue="folder" className="flex">
                     <div className="flex items-center space-x-2">
                         <RadioGroupItem value="folder" id="folder" onClick={()=>{
@@ -193,6 +203,102 @@ export function CreateFolderOrNote() {
                                 </FormItem>
                             )}
                         />
+                        {
+                            !folderSelected &&                         <FormField
+                                control={form.control}
+                                name="numberOfPages"
+                                render={({ field }) => (
+                                    <FormItem className="grid-cols-2">
+                                        <FormLabel>{t('numberOfPages')}</FormLabel>
+                                        <FormControl>
+                                            <Input type="number" min="0" {...field} />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                        }
+
+                        {
+                            !folderSelected &&                         <FormField
+                                control={form.control}
+                                name="extraInformation"
+                                render={({ field }) => (
+                                    <FormItem className="grid-cols-2">
+                                        <FormLabel>{t('extraInformation')}</FormLabel>
+                                        <FormControl>
+                                            <Input {...field} />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                        }
+
+                        {!folderSelected && <FormField
+                            control={form.control}
+                            name="authorId"
+                            render={({ field }) => (
+                                <FormItem className="grid-cols-2">
+                                    <FormLabel>Author</FormLabel>
+                                    <Popover>
+                                        <PopoverTrigger asChild>
+                                            <FormControl>
+                                                <Button
+                                                    variant="outline"
+                                                    role="combobox"
+                                                    className={cn(
+                                                        "justify-between",
+                                                        !field.value && "text-muted-foreground"
+                                                    )}
+                                                >
+                                                    {field.value
+                                                        ? searchAuthorsByName.data?._embedded.authorRepresentationModelList.find(
+                                                            (language) => language.id === field.value
+                                                        )?.name
+                                                        : "Ordner auswählen"}
+                                                    <ChevronsUpDown className="opacity-50" />
+                                                </Button>
+                                            </FormControl>
+                                        </PopoverTrigger>
+                                        <PopoverContent className="w-[220px] p-0">
+                                            <Command>
+                                                <CommandInput
+                                                    placeholder="Author suchen..."
+                                                    className="h-9"
+                                                    onValueChange={(e)=>{
+                                                        searchAuthorsByName.mutate(e)
+                                                    }}
+                                                />
+                                                <CommandList>
+                                                    <CommandEmpty>No framework found.</CommandEmpty>
+                                                    <CommandGroup>
+                                                        {searchAuthorsByName.data?._embedded.authorRepresentationModelList.map((language) => (
+                                                            <CommandItem
+                                                                value={language.name}
+                                                                key={language.id}
+                                                                onSelect={() => {
+                                                                    form.setValue("authorId", language.id)
+                                                                }}
+                                                            >
+                                                                {language.name}
+                                                                <Check
+                                                                    className={cn(
+                                                                        "ml-auto",
+                                                                        language.id === field.value
+                                                                            ? "opacity-100"
+                                                                            : "opacity-0"
+                                                                    )}
+                                                                />
+                                                            </CommandItem>
+                                                        ))}
+                                                    </CommandGroup>
+                                                </CommandList>
+                                            </Command>
+                                        </PopoverContent>
+                                    </Popover>
+                                    <FormMessage />
+                                </FormItem>)}/>}
 
                         <FormField
                             control={form.control}
@@ -263,7 +369,7 @@ export function CreateFolderOrNote() {
                                 <Button type="button" variant="secondary" >{t('cancel')}</Button>
                             </DialogClose>
                             <Button type="submit" >{
-                                createFolderMutation.isPending? <Loader className="animate-spin"/>:
+                                (createFolderMutation.isPending || createNoteMutation.isPending) ? <Loader className="animate-spin"/>:
                                     t('save')
                             }</Button>
                         </DialogFooter>

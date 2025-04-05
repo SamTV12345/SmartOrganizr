@@ -13,6 +13,11 @@ func ConvertFolderDtoFromModel(model models.Folder, c *fiber.Ctx) dto.Folder {
 			Href: CreateHyperlink(c, "/api/v1/elements/"+model.Id+"/children"),
 		})
 	}
+	var parentFolder *dto.Folder
+	if model.Parent != nil {
+		parentFolderAct := ConvertFolderDtoFromModel(*model.Parent, c)
+		parentFolder = &parentFolderAct
+	}
 
 	return dto.Folder{
 		Name:         model.Name,
@@ -23,5 +28,6 @@ func ConvertFolderDtoFromModel(model models.Folder, c *fiber.Ctx) dto.Folder {
 		Elements:     make([]models.Element, 0),
 		Links:        links,
 		Type:         "folder",
+		Parent:       parentFolder,
 	}
 }
