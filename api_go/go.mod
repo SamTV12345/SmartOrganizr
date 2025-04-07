@@ -3,7 +3,7 @@ module api_go
 go 1.24.0
 
 require (
-	codeberg.org/go-pdf/fpdf v0.10.0
+	codeberg.org/go-pdf/fpdf v0.11.0
 	github.com/Nerzal/gocloak/v13 v13.9.0
 	github.com/coreos/go-oidc/v3 v3.13.0
 	github.com/go-sql-driver/mysql v1.9.1
