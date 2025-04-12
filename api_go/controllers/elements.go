@@ -53,7 +53,7 @@ func GetNotes(c *fiber.Ctx) error {
 
 	var notesDto = make([]dto.Note, 0)
 	for _, note := range notes {
-		notesDto = append(notesDto, mappers.ConvertNoteDtoFromModel(note, c))
+		notesDto = append(notesDto, *mappers.ConvertNoteDtoFromModel(&note, c))
 	}
 
 	var links = make(map[string]dto.Link)
@@ -223,7 +223,7 @@ func UpdatePDFOfNote(c *fiber.Ctx) error {
 			"error": err.Error(),
 		})
 	}
-	var noteDto = mappers.ConvertNoteDtoFromModel(updatedNote, c)
+	var noteDto = mappers.ConvertNoteDtoFromModel(&updatedNote, c)
 	return c.JSON(noteDto)
 }
 
@@ -241,4 +241,26 @@ func ExportPDFFromNotes(c *fiber.Ctx) error {
 	}
 	c.Set("Content-Type", "application/pdf")
 	return c.Send(pdfContent)
+}
+
+func GetNodeByID(c *fiber.Ctx) error {
+	var userId = GetLocal[string](c, "userId")
+	var noteService = GetLocal[service.NoteService](c, "noteService")
+	var noteId = c.Params("noteId")
+	var foundNote, previousNote, nextNote, index, err = noteService.LoadNoteByParent(noteId, userId)
+
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": err.Error(),
+		})
+	}
+
+	var noteDetailDto = dto.NoteDetailResponse{
+		Index:        index,
+		CurrentNote:  mappers.ConvertNoteDtoFromModel(foundNote, c),
+		NextNote:     mappers.ConvertNoteDtoFromModel(nextNote, c),
+		PreviousNote: mappers.ConvertNoteDtoFromModel(previousNote, c),
+	}
+
+	return c.JSON(noteDetailDto)
 }

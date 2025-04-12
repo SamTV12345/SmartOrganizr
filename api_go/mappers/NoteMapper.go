@@ -11,6 +11,10 @@ func ConvertNoteFromEntity(entity db.Note, user models.User, author models.Autho
 		parentFolderDto := ConvertFolderFromEntity(*parent, user)
 		parentFolder = &parentFolderDto
 	}
+	return convertNote(entity, user, author, parentFolder)
+}
+
+func convertNote(entity db.Note, user models.User, author models.Author, parentFolder *models.Folder) models.Note {
 	return models.Note{
 		Title:         entity.Title.String,
 		Id:            entity.GetId(),
@@ -24,4 +28,8 @@ func ConvertNoteFromEntity(entity db.Note, user models.User, author models.Autho
 		PDFContent:    entity.PdfContent,
 		Parent:        parentFolder,
 	}
+}
+
+func ConvertNoteFromEntityWithFolderModel(entity db.Note, user models.User, author models.Author, parent *models.Folder) models.Note {
+	return convertNote(entity, user, author, parent)
 }

@@ -12,6 +12,10 @@ export const SearchElementViewLazyLoad = lazy(()=>import('../pages/SearchElement
     return{default:module["SearchElementView"]}
 }))
 
+export const NoteElementDetailView = lazy(()=>import('../pages/NoteDetailView').then(module=> {
+    return{default:module["NoteDetailView"]}
+}))
+
 export const ConcertViewLazyLoad = lazy(()=>import('../pages/ConcertView').then(module=> {
     return{default:module["ConcertView"]}
 }))

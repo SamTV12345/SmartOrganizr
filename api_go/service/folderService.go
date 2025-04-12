@@ -19,8 +19,8 @@ type FolderService struct {
 	UserService   UserService
 }
 
-func (f *FolderService) loadSubElements(folder *models.Folder, user models.User) {
-	var subElements, _ = f.Queries.FindAllSubElements(f.Ctx, db.FindAllSubElementsParams{
+func (f *FolderService) loadSubElements(folder *models.Folder, user models.User) error {
+	var subElements, err = f.Queries.FindAllSubElements(f.Ctx, db.FindAllSubElementsParams{
 		UserIDFk: sql.NullString{
 			String: user.UserId,
 			Valid:  true,
@@ -30,6 +30,11 @@ func (f *FolderService) loadSubElements(folder *models.Folder, user models.User)
 			Valid:  true,
 		},
 	})
+
+	if err != nil {
+		return err
+	}
+
 	for _, element := range subElements {
 		var ielement = db.ConvertElementEntityToDBVersion(element.Element)
 		var author *models.Author = nil
@@ -46,6 +51,7 @@ func (f *FolderService) loadSubElements(folder *models.Folder, user models.User)
 		folder.Elements = append(folder.Elements, elementToAppend)
 	}
 
+	return nil
 }
 
 func (f *FolderService) FindAllParentDeckFolders(userId string) ([]models.Folder, error) {
@@ -122,7 +128,7 @@ func (f *FolderService) FindFolderByIdAndUser(folderId string, userId string) (*
 func (f *FolderService) CreateFolder(dto dto.FolderPostDto, userId string) (*models.Folder, error) {
 	var parent sql.NullString
 
-	if dto.ParentId != nil {
+	if dto.ParentId != nil && *dto.ParentId != "" {
 		parent = sql.NullString{
 			String: *dto.ParentId,
 			Valid:  true,
@@ -136,7 +142,7 @@ func (f *FolderService) CreateFolder(dto dto.FolderPostDto, userId string) (*mod
 	if errRandom != nil {
 		return nil, errRandom
 	}
-	f.Queries.CreateFolder(context.Background(), db.CreateFolderParams{
+	_, err := f.Queries.CreateFolder(context.Background(), db.CreateFolderParams{
 		Name: sql.NullString{
 			String: dto.Name,
 			Valid:  true,
@@ -152,7 +158,12 @@ func (f *FolderService) CreateFolder(dto dto.FolderPostDto, userId string) (*mod
 		Parent: parent,
 		ID:     folderId.String(),
 	})
-	var createdFolder, err = f.FindFolderByIdAndUser(folderId.String(), userId)
+
+	if err != nil {
+		return nil, err
+	}
+
+	createdFolder, err := f.FindFolderByIdAndUser(folderId.String(), userId)
 	if dto.ParentId != nil {
 		var parentFolder, errParent = f.FindFolderByIdAndUser(*dto.ParentId, userId)
 		if errParent != nil {

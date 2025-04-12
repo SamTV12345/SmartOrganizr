@@ -17,6 +17,7 @@ type NoteService struct {
 	Ctx           context.Context
 	UserService   *UserService
 	AuthorService *AuthorService
+	FolderService *FolderService
 }
 
 type NoteWithAuthor struct {
@@ -143,7 +144,7 @@ func (n NoteService) LoadNote(noteId string, userId string) (models.Note, error)
 		return models.Note{}, err
 	}
 
-	if noteDB.UserIDFk.String != userId {
+	if noteDB.Element.UserIDFk.String != userId {
 		return models.Note{}, errors.New("not author of note")
 	}
 
@@ -152,13 +153,62 @@ func (n NoteService) LoadNote(noteId string, userId string) (models.Note, error)
 		return models.Note{}, err
 	}
 
-	author, err := n.AuthorService.LoadAuthorById(noteDB.AuthorIDFk.String, userId)
+	author, err := n.AuthorService.LoadAuthorById(noteDB.Element.AuthorIDFk.String, userId)
 
 	if err != nil {
 		return models.Note{}, err
 	}
-	var note = db.ConvertNoteEntityToDBVersion(noteDB)
-	return mappers.ConvertNoteFromEntity(note, *creator, author, nil), nil
+	var note = db.ConvertNoteEntityToDBVersion(noteDB.Element)
+	var folder = db.ConvertFolderEntityToDBVersion(noteDB.Element_2)
+	var parent = mappers.ConvertFolderFromEntity(folder, *creator)
+	return mappers.ConvertNoteFromEntityWithFolderModel(note, *creator, author, &parent), nil
+}
+
+func (n NoteService) LoadNoteByParent(noteId string, userId string) (searchedNote *models.Note, previousNote *models.Note, nextNote *models.Note, index int, err error) {
+	foundNote, err := n.LoadNote(noteId, userId)
+
+	if err != nil {
+		return nil, nil, nil, -1, err
+	}
+
+	if err = n.FolderService.loadSubElements(foundNote.Parent, foundNote.Creator); err != nil {
+		return nil, nil, nil, -1, err
+	}
+
+	var subElements = foundNote.Parent.Elements
+
+	previousNote, nextNote, index, err = findPreviousAndNextNote(noteId, subElements)
+	if err != nil {
+		return nil, nil, nil, -1, err
+	}
+
+	return &foundNote, previousNote, nextNote, index, nil
+}
+
+func findPreviousAndNextNote(noteId string, elements []models.Element) (previous *models.Note, next *models.Note, index int, err error) {
+	for indexInIter, element := range elements {
+		if element.Type() == "FOLDER" {
+			continue
+		}
+
+		var note = element.(models.Note)
+		if note.Id == noteId {
+			var previousNote *models.Note
+			var nextNote *models.Note
+			if indexInIter > 0 {
+				previousNoteMod := elements[indexInIter-1].(models.Note)
+				previousNote = &previousNoteMod
+			}
+
+			if indexInIter < len(elements)-1 {
+				nextNoteMod := elements[indexInIter+1].(models.Note)
+				nextNote = &nextNoteMod
+			}
+
+			return previousNote, nextNote, indexInIter, nil
+		}
+	}
+	return nil, nil, -1, errors.New("note not found")
 }
 
 func (n NoteService) DeleteNote(userId string, noteId string) error {
@@ -166,7 +216,7 @@ func (n NoteService) DeleteNote(userId string, noteId string) error {
 	if err != nil {
 		return err
 	}
-	if noteToDelete.UserIDFk.String != userId {
+	if noteToDelete.Element.UserIDFk.String != userId {
 		return errors.New("not author of note")
 	}
 

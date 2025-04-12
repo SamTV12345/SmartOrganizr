@@ -18,6 +18,7 @@ import WelcomePage from "./pages/WelcomePage";
 import {MyManagement} from "./pages/MyManagement";
 import {Loader2} from "lucide-react";
 import {ProfileEdit} from "@/src/pages/ProfileEdit";
+import {NoteDetailView} from "@/src/pages/NoteDetailView";
 
 function App() {
     const sideBarCollapsed = useAppSelector(state=>state.commonReducer.sideBarCollapsed)
@@ -72,6 +73,11 @@ function App() {
                               <ImportExportViewLazyLoad/>
                           </Suspense>
                       }/>
+                      <Route path={"/noteManagement/notes/:id"} element={
+                            <Suspense>
+                                <NoteDetailView/>
+                            </Suspense>
+                        }/>
                   </Routes>
               </div>
           </div>

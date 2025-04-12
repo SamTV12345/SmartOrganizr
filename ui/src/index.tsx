@@ -16,11 +16,11 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 export let accountURL = ''
 
 const initKeycloak = (keycloak: Keycloak) => {
+    console.log("Called initKeycloak")
     return new Promise((resolve) => {
-        keycloak.init({onLoad: 'login-required'})
+        keycloak.init({onLoad: 'login-required', silentCheckSsoFallback: true, checkLoginIframe: false })
             .then((res) => {
                 setLoadedKeycloak(keycloak)
-                console.log("Token is", keycloak.token)
                 axios.defaults.headers["Authorization"] = `Bearer ${keycloak.token}`
                 axios.defaults.headers['Content-Type']  = 'application/json'
                 syncUser()

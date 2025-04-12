@@ -93,6 +93,8 @@ func SetupRouter(queries *db.Queries, config config.AppConfig) *fiber.App {
 		AuthorService: authorService,
 	}
 
+	noteService.FolderService = &folderService
+
 	var concertService = service.ConcertService{
 		Queries:     queries,
 		Ctx:         context.Background(),
@@ -175,6 +177,7 @@ func SetupRouter(queries *db.Queries, config config.AppConfig) *fiber.App {
 	profile.Route("v1/elements", func(r fiber.Router) {
 		r.Get("/parentDecks", controllers.GetParentDecks)
 		r.Get("/notes", controllers.GetNotes)
+		r.Get("/notes/:noteId", controllers.GetNodeByID)
 		r.Post("/folders", controllers.CreateFolder)
 		r.Get("/:folderId/children", controllers.FindNextChildren)
 		r.Get("/folders", controllers.SearchFolders)

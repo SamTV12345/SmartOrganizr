@@ -162,6 +162,13 @@ const TreeNode:FC<TreeDataExpanded> = ({ keyNum,icon,children,author
                                 })
                             }}/>
                     }
+                    {
+                        type === 'Note' &&
+                        <i className="fa-solid fa-copy ml-2" onClick={()=>{
+                            const link = window.location.protocol + "//" + window.location.host + "/ui/noteManagement/notes/" + keyNum
+                            navigator.clipboard.writeText(link)
+                        }}/>
+                    }
                 </div>
             </div>
 

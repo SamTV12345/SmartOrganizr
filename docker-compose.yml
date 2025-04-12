@@ -29,7 +29,7 @@ services:
       - smartOrganizr
     environment:
       - SPRING_DATASOURCE_URL=jdbc:mysql://smartOrganizrdb:3306/smartOrganizr
-      - SPRING_DATASOURCE_USERNAME=smartOrganizrUser
+      - SPRING_DATASOURCE_USERNAME=smartOrganizr
       - SPRING_DATASOURCE_PASSWORD=smartOrganizr
       - ISSUER=<issuer-in- well-known/openid-configuration>
       - AUTH_URL=<url where your auth is done>

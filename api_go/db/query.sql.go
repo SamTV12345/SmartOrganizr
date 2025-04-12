@@ -1010,25 +1010,41 @@ func (q *Queries) FindFolderById(ctx context.Context, arg FindFolderByIdParams) 
 }
 
 const findNoteById = `-- name: FindNoteById :one
-SELECT type, id, creation_date, description, name, number_of_pages, title, user_id_fk, parent, author_id_fk, pdf_content FROM elements WHERE type ='note' AND id = ?
+SELECT note.type, note.id, note.creation_date, note.description, note.name, note.number_of_pages, note.title, note.user_id_fk, note.parent, note.author_id_fk, note.pdf_content,folder.type, folder.id, folder.creation_date, folder.description, folder.name, folder.number_of_pages, folder.title, folder.user_id_fk, folder.parent, folder.author_id_fk, folder.pdf_content FROM elements note join elements folder ON note.parent = folder.id  WHERE note.type ='note' AND note.id = ?
 `
 
+type FindNoteByIdRow struct {
+	Element   Element
+	Element_2 Element
+}
+
 // type: Note
-func (q *Queries) FindNoteById(ctx context.Context, id string) (Element, error) {
+func (q *Queries) FindNoteById(ctx context.Context, id string) (FindNoteByIdRow, error) {
 	row := q.db.QueryRowContext(ctx, findNoteById, id)
-	var i Element
+	var i FindNoteByIdRow
 	err := row.Scan(
-		&i.Type,
-		&i.ID,
-		&i.CreationDate,
-		&i.Description,
-		&i.Name,
-		&i.NumberOfPages,
-		&i.Title,
-		&i.UserIDFk,
-		&i.Parent,
-		&i.AuthorIDFk,
-		&i.PdfContent,
+		&i.Element.Type,
+		&i.Element.ID,
+		&i.Element.CreationDate,
+		&i.Element.Description,
+		&i.Element.Name,
+		&i.Element.NumberOfPages,
+		&i.Element.Title,
+		&i.Element.UserIDFk,
+		&i.Element.Parent,
+		&i.Element.AuthorIDFk,
+		&i.Element.PdfContent,
+		&i.Element_2.Type,
+		&i.Element_2.ID,
+		&i.Element_2.CreationDate,
+		&i.Element_2.Description,
+		&i.Element_2.Name,
+		&i.Element_2.NumberOfPages,
+		&i.Element_2.Title,
+		&i.Element_2.UserIDFk,
+		&i.Element_2.Parent,
+		&i.Element_2.AuthorIDFk,
+		&i.Element_2.PdfContent,
 	)
 	return i, err
 }

@@ -56,9 +56,9 @@ func ReadConfig() (AppConfig, error) {
 	viper.SetDefault(DatabasePort, 3306)
 	viper.SetDefault(AppURL, "http://localhost:8080")
 	viper.SetDefault(AppPort, 8080)
-	viper.SetDefault(DatabaseUser, "root")
-	viper.SetDefault(DatabasePassword, "root")
-	viper.SetDefault(DatabaseDatabase, "smartorganizr")
+	viper.SetDefault(DatabaseUser, "smartOrganizr")
+	viper.SetDefault(DatabasePassword, "smartOrganizr")
+	viper.SetDefault(DatabaseDatabase, "smartOrganizr")
 	viper.SetDefault(SSOIssuer, "http://localhost/realms/smartOrganizr")
 	viper.SetDefault(SSOUrl, "http://localhost/")
 	viper.SetDefault(SSOClientID, "account")
@@ -96,5 +96,6 @@ func ReadConfig() (AppConfig, error) {
 		},
 		App: struct{ URL string }{URL: viper.GetString(AppURL)},
 	}
+
 	return config, nil
 }

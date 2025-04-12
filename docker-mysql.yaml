@@ -9,8 +9,8 @@ services:
     #volumes:
     #  - ./data/data:/var/lib/mysql
     environment:
-      - MYSQL_ROOT_PASSWORD=password #SQL root Passwort eingeben
+      - MYSQL_ROOT_PASSWORD=smartOrganizr #SQL root Passwort eingeben
       - MYSQL_PASSWORD=smartOrganizr #SQL Benutzer Passwort eingeben
       - MYSQL_DATABASE=smartOrganizr #Datenbank Name
-      - MYSQL_USER=smartOrganizrUser #SQL Nutzername
+      - MYSQL_USER=smartOrganizr #SQL Nutzername
       - MYSQL_INITDB_SKIP_TZINFO=1

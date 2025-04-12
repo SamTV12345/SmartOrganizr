@@ -7,7 +7,7 @@ import {
 import {Check, ChevronsUpDown, Loader, PlusIcon} from "lucide-react";
 import {useTranslation} from "react-i18next";
 import {z} from "zod";
-import {FormProvider, useForm} from "react-hook-form";
+import {FormProvider, useForm, useWatch} from "react-hook-form";
 import {zodResolver} from "@hookform/resolvers/zod";
 import axios from "axios";
 import {apiURL} from "@/src/Keycloak";
@@ -16,7 +16,7 @@ import {useAppDispatch, useAppSelector} from "@/src/store/hooks";
 import {useMutation} from "@tanstack/react-query";
 import {RadioGroup, RadioGroupItem} from "@/components/ui/radio-group";
 import {Label} from "@/components/ui/label";
-import {useState} from "react";
+import {useEffect, useState} from "react";
 import {FormControl, FormField, FormItem, FormLabel, FormMessage} from "@/components/ui/form";
 import {Input} from "@/components/ui/input";
 import {
@@ -41,7 +41,6 @@ export function CreateFolderOrNote() {
     const {t} = useTranslation()
     const dispatch = useAppDispatch()
     const nodes = useAppSelector(state=>state.commonReducer.nodes)
-    const [folderSelected, setFolderSelected] = useState(true)
 
     const createFolder = async(folder: FolderPostDto)=>{
         const response = await axios.post(apiURL+`/v1/elements/folders`, folder)
@@ -49,7 +48,7 @@ export function CreateFolderOrNote() {
     }
 
     const createNote = async(note: NotePostDto)=>{
-        const response = await axios.post(apiURL+`/v1/elements/folders`, note)
+        const response = await axios.post(apiURL+`/v1/elements/notes`, note)
         return response.data
     }
 
@@ -106,13 +105,15 @@ export function CreateFolderOrNote() {
     const folderSchema = z.object({
         name: z.string({required_error: t('fieldRequired')!}).min(1, {message: t('fieldRequired')!}),
         description: z.string().optional(),
+        type: z.literal("folder"),
         parentId: z.string().optional()
     })
 
     const noteSchema = z.object({
+        type: z.literal("note"),
         title: z.string({required_error: t('fieldRequired')!}).min(1, {message: t('fieldRequired')!}),
         description: z.string({required_error: t('fieldRequired')!}).optional(),
-        numberOfPages: z.number({required_error: t('fieldRequired')!}),
+        numberOfPages: z.coerce.number({required_error: t('fieldRequired')!}),
         authorId: z.string({required_error: t('fieldRequired')!}),
         parentId: z.string({required_error: t('fieldRequired')!}),
         extraInformation: z.string({required_error: t('fieldRequired')!}).optional(),
@@ -124,18 +125,22 @@ export function CreateFolderOrNote() {
         resolver: zodResolver(schema),
         defaultValues: {
             name: "",
-            extraInformation: ""
+            description: "",
+            parentId: "",
+            type: 'folder'
         },
     })
 
+    const watchType = useWatch({name: 'type', control: form.control})
+
     function onSubmit(values: z.infer<typeof schema>) {
-        console.log("On submit", values)
-        if ("name" in values) {
+        if ("type" in values && values.type === "folder") {
             createFolderMutation.mutate(values)
         } else {
             createNoteMutation.mutate(values)
         }
     }
+
 
     return (
         <Dialog>
@@ -145,26 +150,46 @@ export function CreateFolderOrNote() {
 
             <DialogContent className="">
                 <DialogTitle className="scroll-m-20 border-b pb-2 text-3xl font-semibold tracking-tight first:mt-0">
-                    Add folder or note
+                    Ordner oder Musiknote erstellen
                 </DialogTitle>
-                <RadioGroup defaultValue="folder" className="flex">
-                    <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="folder" id="folder" onClick={()=>{
-                            setFolderSelected(true)
-                        }} />
-                        <Label htmlFor="folder">Ordner</Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="note" id="note"  onClick={()=>{
-                            setFolderSelected(false)
-                        }} />
-                        <Label htmlFor="note">Note</Label>
-                    </div>
-                </RadioGroup>
+
 
                 <FormProvider {...form}>
                     <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-                        {folderSelected &&<FormField
+                        <FormField
+                            control={form.control}
+                            name="type"
+                            render={({ field }) => (
+                                <FormItem className="space-y-3">
+                                    <FormControl>
+                                        <RadioGroup
+                                            onValueChange={field.onChange}
+                                            defaultValue={field.value}
+                                            className="grid grid-cols-2"
+                                        >
+                                            <FormItem className="flex items-center space-x-3 space-y-0">
+                                                <FormControl>
+                                                    <RadioGroupItem value="folder" />
+                                                </FormControl>
+                                                <FormLabel className="font-normal">
+                                                    Ordner
+                                                </FormLabel>
+                                            </FormItem>
+                                            <FormItem className="flex items-center space-x-3 space-y-0">
+                                                <FormControl>
+                                                    <RadioGroupItem value="note" />
+                                                </FormControl>
+                                                <FormLabel className="font-normal">
+                                                    Musiknote
+                                                </FormLabel>
+                                            </FormItem>
+                                        </RadioGroup>
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                        {watchType === 'note' &&<FormField
                             control={form.control}
                             name="name"
                             render={({ field }) => (
@@ -177,7 +202,7 @@ export function CreateFolderOrNote() {
                                 </FormItem>
                             )}
                         />}
-                        {!folderSelected &&<FormField
+                        {watchType === 'note' &&<FormField
                             control={form.control}
                             name="title"
                             render={({ field }) => (
@@ -204,14 +229,14 @@ export function CreateFolderOrNote() {
                             )}
                         />
                         {
-                            !folderSelected &&                         <FormField
+                            watchType === 'note' &&                         <FormField
                                 control={form.control}
                                 name="numberOfPages"
                                 render={({ field }) => (
                                     <FormItem className="grid-cols-2">
                                         <FormLabel>{t('numberOfPages')}</FormLabel>
                                         <FormControl>
-                                            <Input type="number" min="0" {...field} />
+                                            <Input type="number" min={0} {...field} />
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>
@@ -220,7 +245,7 @@ export function CreateFolderOrNote() {
                         }
 
                         {
-                            !folderSelected &&                         <FormField
+                            watchType === 'note' &&                         <FormField
                                 control={form.control}
                                 name="extraInformation"
                                 render={({ field }) => (
@@ -235,7 +260,7 @@ export function CreateFolderOrNote() {
                             />
                         }
 
-                        {!folderSelected && <FormField
+                        {watchType === 'note' && <FormField
                             control={form.control}
                             name="authorId"
                             render={({ field }) => (

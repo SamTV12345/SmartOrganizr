@@ -6,7 +6,11 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
-func ConvertNoteDtoFromModel(model models.Note, c *fiber.Ctx) dto.Note {
+func ConvertNoteDtoFromModel(model *models.Note, c *fiber.Ctx) *dto.Note {
+	if model == nil {
+		return nil
+	}
+
 	var user = ConvertUserDtoFromModel(model.Creator, c)
 	var author = ConvertAuthorDtoFromModel(model.Author)
 	var parent *dto.Folder
@@ -14,7 +18,7 @@ func ConvertNoteDtoFromModel(model models.Note, c *fiber.Ctx) dto.Note {
 		parentDto := ConvertFolderDtoFromModel(*model.Parent, nil)
 		parent = &parentDto
 	}
-	return dto.Note{
+	return &dto.Note{
 		Title:         model.Title,
 		Id:            model.Id,
 		CreationDate:  model.CreationDate,

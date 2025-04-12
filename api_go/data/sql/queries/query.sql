@@ -90,7 +90,7 @@ SELECT COUNT(*) FROM elements as note WHERE note.type ='note' and note.title LIK
 
 -- name: FindNoteById :one
 -- type: Note
-SELECT * FROM elements WHERE type ='note' AND id = ?;
+SELECT sqlc.embed(note),sqlc.embed(folder) FROM elements note join elements folder ON note.parent = folder.id  WHERE note.type ='note' AND note.id = ?;
 
 -- name: FindConcertById :one
 SELECT * FROM concert WHERE id = ?;
