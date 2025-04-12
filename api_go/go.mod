@@ -1,6 +1,7 @@
 module api_go
 
 go 1.24.0
+
 require (
 	codeberg.org/go-pdf/fpdf v0.11.0
 	github.com/Nerzal/gocloak/v13 v13.9.0
@@ -49,7 +50,7 @@ require (
 	go.uber.org/multierr v1.11.0 // indirect
 	golang.org/x/crypto v0.36.0 // indirect
 	golang.org/x/image v0.15.0 // indirect
-	golang.org/x/net v0.37.0 // indirect
+	golang.org/x/net v0.38.0 // indirect
 	golang.org/x/oauth2 v0.28.0 // indirect
 	golang.org/x/sync v0.12.0 // indirect
 	golang.org/x/sys v0.31.0 // indirect
