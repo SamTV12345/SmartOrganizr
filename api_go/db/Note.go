@@ -12,7 +12,6 @@ type Note struct {
 	Parent        sql.NullString
 	Description   sql.NullString
 	UserIDFk      sql.NullString
-	Title         sql.NullString
 	AuthorIDFk    sql.NullString
 	NumberOfPages sql.NullInt32
 	PdfContent    sql.RawBytes

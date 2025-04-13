@@ -8,9 +8,9 @@ import {useDebounce} from "../../utils/DebounceHook";
 import {apiURL} from "../../Keycloak";
 import axios from "axios";
 import {setElementAuthor} from "../../ElementCreateSlice";
-import {choiceFolder} from "../../utils/Constants";
 import {useTranslation} from "react-i18next";
 import {FormInput} from "../form/FormInput";
+import {isNote} from "@/src/models/ElementItem";
 
 export const NoteAuthorSearchBar = ()=> {
     const dispatch = useAppDispatch()
@@ -35,11 +35,11 @@ export const NoteAuthorSearchBar = ()=> {
     }
 
     useDebounce(() => {
-        if (selectedFolder && selectedFolder.author && selectedFolder.author.name.length > 0)
+        if (selectedFolder && isNote(selectedFolder))
             loadAuthors(apiURL + `/v1/authors?page=0&name=${selectedFolder?.author?.name}`)
-    }, 1000, [selectedFolder?.author?.name])
+    }, 1000, [selectedFolder])
 
-    return selectedFolder?.type !== choiceFolder?
+    return selectedFolder?.type !== 'folder'?
         <>
             <FormInput id={'author'} label={t('author')} value={selectedFolder?.author?.name as string} onChange={(v) => {
                 !typed && setTyped(true)
@@ -47,7 +47,7 @@ export const NoteAuthorSearchBar = ()=> {
             }}/>
         <div>
             <i className="fa fa-check" onClick={() => {
-                if (selectedAuthorId !== -100) {
+                if (selectedAuthorId !== "") {
                     dispatch(setSelectedFolderAuthor(currentSearchAuthors?._embedded.authorRepresentationModelList.find(a => a.id === selectedAuthorId)))
                 }
             }}/>

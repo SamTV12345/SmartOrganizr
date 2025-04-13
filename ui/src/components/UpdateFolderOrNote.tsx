@@ -4,9 +4,9 @@ import {
     DialogContent, DialogFooter, DialogTitle,
     DialogTrigger,
 } from "@/components/ui/dialog"
-import {Check, ChevronsUpDown, Loader, PlusIcon} from "lucide-react";
+import {Check, ChevronsUpDown, Loader, Pencil, PlusIcon} from "lucide-react";
 import {useTranslation} from "react-i18next";
-import {z} from "zod";
+import {undefined, z} from "zod";
 import {FormProvider, useForm, useWatch} from "react-hook-form";
 import {zodResolver} from "@hookform/resolvers/zod";
 import axios from "axios";
@@ -15,8 +15,6 @@ import {setNodes} from "@/src/store/CommonSlice";
 import {useAppDispatch, useAppSelector} from "@/src/store/hooks";
 import {useMutation} from "@tanstack/react-query";
 import {RadioGroup, RadioGroupItem} from "@/components/ui/radio-group";
-import {Label} from "@/components/ui/label";
-import {useEffect, useState} from "react";
 import {FormControl, FormField, FormItem, FormLabel, FormMessage} from "@/components/ui/form";
 import {Input} from "@/components/ui/input";
 import {
@@ -32,22 +30,30 @@ import { cn } from "./NavigationButton";
 import {Page} from "@/src/models/Page";
 import {FolderEmbeddedContainer} from "@/src/models/FolderEmbeddedContainer";
 import {FolderItem, FolderPostDto} from "@/src/models/Folder";
-import {addAsParent, addChild} from "@/src/utils/ElementUtils";
+import {replaceFolder, replaceNote} from "@/src/utils/ElementUtils";
 import {NoteItem, NotePostDto} from "@/src/models/NoteItem";
 import {AuthorEmbeddedContainer} from "@/src/models/AuthorEmbeddedContainer";
 import {Author} from "@/src/models/Author";
+import React, {useEffect} from "react";
+import {ElementItem, isNote} from "@/src/models/ElementItem";
 
-export function CreateFolderOrNote() {
+
+export type UpdateFolderOrNoteProps = {
+    element: ElementItem,
+    trigger: React.ReactNode
+}
+
+export function UpdateFolderOrNote(props: UpdateFolderOrNoteProps) {
     const {t} = useTranslation()
     const dispatch = useAppDispatch()
     const nodes = useAppSelector(state=>state.commonReducer.nodes)
 
-    const createFolder = async(folder: FolderPostDto)=>{
+    const updateFolder = async(folder: FolderPostDto)=>{
         const response = await axios.post(apiURL+`/v1/elements/folders`, folder)
         return response.data
     }
 
-    const createNote = async(note: NotePostDto)=>{
+    const updateNote = async(note: NotePostDto)=>{
         const response = await axios.post(apiURL+`/v1/elements/notes`, note)
         return response.data
     }
@@ -73,23 +79,23 @@ export function CreateFolderOrNote() {
     }
 
     const createFolderMutation = useMutation<FolderItem, Error, FolderPostDto>({
-        mutationFn: createFolder,
+        mutationFn: updateFolder,
         onSuccess:(data)=>{
-            if (data.parent != undefined || data.parent != null) {
-                dispatch(setNodes(addChild(data, nodes, data.parent.id)))
+            if (data.parent) {
+                dispatch(setNodes(replaceFolder(data, nodes)))
             } else {
-                dispatch(setNodes(addAsParent(data, nodes)))
+                dispatch(setNodes(replaceFolder(data, nodes)))
             }
         }
     })
 
     const createNoteMutation = useMutation<NoteItem, Error, NotePostDto>({
-        mutationFn: createNote,
+        mutationFn: updateNote,
         onSuccess:(data)=>{
-            if (data.parent != undefined || data.parent != null) {
-                dispatch(setNodes(addChild(data, nodes, data.parent.id)))
+            if (data.parent) {
+                dispatch(setNodes(replaceNote(data, nodes)))
             } else {
-                dispatch(setNodes(addAsParent(data, nodes)))
+                dispatch(setNodes(replaceNote(data, nodes)))
             }
         }
     })
@@ -106,17 +112,17 @@ export function CreateFolderOrNote() {
         name: z.string({required_error: t('fieldRequired')!}).min(1, {message: t('fieldRequired')!}),
         description: z.string().optional(),
         type: z.literal("folder"),
-        parentId: z.string().optional()
+        parentId: z.string().optional(),
     })
 
     const noteSchema = z.object({
         type: z.literal("note"),
-        name: z.string({required_error: t('fieldRequired')!}).min(1, {message: t('fieldRequired')!}),
+        name: z.string(),
         description: z.string({required_error: t('fieldRequired')!}).optional(),
         numberOfPages: z.coerce.number({required_error: t('fieldRequired')!}),
         authorId: z.string({required_error: t('fieldRequired')!}),
         parentId: z.string({required_error: t('fieldRequired')!}),
-        extraInformation: z.string({required_error: t('fieldRequired')!}).optional(),
+        extraInformation: z.string().optional(),
     })
 
     const schema = z.union([folderSchema, noteSchema]);
@@ -134,7 +140,7 @@ export function CreateFolderOrNote() {
     const watchType = useWatch({name: 'type', control: form.control})
 
     function onSubmit(values: z.infer<typeof schema>) {
-        if (values.type === "folder") {
+        if ("type" in values && values.type === "folder") {
             createFolderMutation.mutate(values)
         } else {
             createNoteMutation.mutate(values)
@@ -142,10 +148,39 @@ export function CreateFolderOrNote() {
     }
 
 
+    useEffect(() => {
+        const type = "numberOfPages" in parent ? "note" : "folder"
+
+
+        if (isNote(props.element)) {
+            form.reset({
+                authorId: props.element.author!.id,
+                description: props.element.description,
+                name: props.element.name!,
+                numberOfPages: props.element.numberOfPages!,
+                parentId: props.element.parent.id!,
+                type: type
+            })
+        } else {
+            form.reset({
+                description: props.element.description,
+                name: props.element.name!,
+                parentId: props.element.parent?.id!,
+                type: type,
+                authorId: "",
+                extraInformation: "",
+                numberOfPages: 0
+            })
+        }
+
+
+    }, [parent]);
+
+
     return (
         <Dialog>
             <DialogTrigger asChild>
-                <Button variant="outline" className="float-right mr-5 mt-5"><PlusIcon/></Button>
+                {props.trigger}
             </DialogTrigger>
 
             <DialogContent className="">

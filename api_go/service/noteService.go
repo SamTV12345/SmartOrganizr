@@ -239,7 +239,7 @@ func (n NoteService) CreateNote(userId string, note dto.NotePostDto) (*models.No
 	var noteId, _ = uuid.NewRandom()
 	var _, err = n.Queries.CreateNote(n.Ctx, db.CreateNoteParams{
 		ID:            noteId.String(),
-		Title:         NewSQLNullString(note.Title),
+		Name:          NewSQLNullString(note.Name),
 		Description:   NewSQLNullString(note.Description),
 		UserIDFk:      NewSQLNullString(userId),
 		AuthorIDFk:    NewSQLNullString(note.AuthorId),
@@ -268,7 +268,6 @@ func (n NoteService) UpdateNote(userId string, note models.Note) (models.Note, e
 
 	err = n.Queries.UpdateNote(n.Ctx, db.UpdateNoteParams{
 		ID:            note.Id,
-		Title:         NewSQLNullString(note.Title),
 		Description:   NewSQLNullString(note.Description),
 		NumberOfPages: NewSQLNullInt(note.NumberOfPages),
 		PdfContent:    NewSQLNullString(string(note.PDFContent)),

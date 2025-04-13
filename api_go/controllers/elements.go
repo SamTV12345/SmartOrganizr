@@ -178,6 +178,37 @@ func CreateNote(c *fiber.Ctx) error {
 	return c.JSON(note)
 }
 
+func UpdateNote(c *fiber.Ctx) error {
+	var noteId = c.Params("noteId")
+	var userId = GetLocal[string](c, "userId")
+	var noteService = GetLocal[service.NoteService](c, "noteService")
+	var note, err = noteService.LoadNote(noteId, userId)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": err.Error(),
+		})
+	}
+	var notePostDto dto.NotePostDto
+	err = c.BodyParser(&notePostDto)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": err.Error(),
+		})
+	}
+	note.Description = notePostDto.Description
+	note.NumberOfPages = notePostDto.NumberOfPages
+	note.Name = notePostDto.Name
+
+	var updatedNote, errUpdate = noteService.UpdateNote(userId, note)
+	if errUpdate != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": errUpdate.Error(),
+		})
+	}
+	var noteDto = mappers.ConvertNoteDtoFromModel(&updatedNote, c)
+	return c.JSON(noteDto)
+}
+
 func GetParentOfNote(c *fiber.Ctx) error {
 	var userId = GetLocal[string](c, "userId")
 	var noteId = c.Params("noteId")

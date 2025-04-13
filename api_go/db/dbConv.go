@@ -31,7 +31,6 @@ func ConvertNoteEntityToDBVersion(element Element) Note {
 		Name:          element.Name,
 		ID:            element.ID,
 		AuthorIDFk:    element.AuthorIDFk,
-		Title:         element.Title,
 		NumberOfPages: element.NumberOfPages,
 		PdfAvailable:  element.PdfContent.Valid,
 		CreationDate:  element.CreationDate,

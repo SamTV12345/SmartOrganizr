@@ -3,7 +3,6 @@ package dto
 import "time"
 
 type Note struct {
-	Title         string    `json:"title"`
 	Author        Author    `json:"author"`
 	NumberOfPages int       `json:"numberOfPages"`
 	PdfAvailable  bool      `json:"pdfAvailable"`

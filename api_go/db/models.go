@@ -32,7 +32,6 @@ type Element struct {
 	Description   sql.NullString
 	Name          sql.NullString
 	NumberOfPages sql.NullInt32
-	Title         sql.NullString
 	UserIDFk      sql.NullString
 	Parent        sql.NullString
 	AuthorIDFk    sql.NullString

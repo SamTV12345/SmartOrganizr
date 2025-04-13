@@ -14,7 +14,7 @@ export const AuthorModal = ()=>{
     const dispatch = useAppDispatch()
     const {t} = useTranslation()
 
-    const loadAuthorNotes = async (selectedAuthorId:number)=> {
+    const loadAuthorNotes = async (selectedAuthorId:string)=> {
         if(selectedAuthorId=== undefined){
             return
         }
@@ -44,7 +44,7 @@ export const AuthorModal = ()=>{
     {
         selectedAuthorsNotes&&selectedAuthorsNotes.map((note, index)=> <React.Fragment key={index+"Index"}>
             <div key={index}>#{index+1}</div>
-            <div key={index+"title"}>{note.title}</div>
+            <div key={index+"title"}>{note.name}</div>
         </React.Fragment>)
     }
     </div>

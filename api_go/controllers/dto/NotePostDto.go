@@ -5,5 +5,5 @@ type NotePostDto struct {
 	Description   string `json:"description"`
 	NumberOfPages int    `json:"numberOfPages"`
 	ParentId      string `json:"parentId"`
-	Title         string `json:"title"`
+	Name          string `json:"name"`
 }

@@ -1,9 +1,17 @@
 import {ApiLink} from "./ApiLink";
 import {ElementItem} from "./ElementItem";
+import {User} from "@/src/models/User";
 
-export interface Folder extends ElementItem {
-    links: ApiLink[],
-    length: number
+export type FolderItem = {
+    creationDate: Date,
+    id: string,
+    name: string,
+    parent?: FolderItem,
+    description: string,
+    creator: User,
+    elements: ElementItem[]
+    links: ApiLink[]
+    type: 'folder'
 }
 
 

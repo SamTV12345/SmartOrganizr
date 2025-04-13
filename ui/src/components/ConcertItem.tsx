@@ -75,7 +75,7 @@ export const ConcertItem: FC<ConcertItem> = ({concert, keyNum}) => {
                                                                  console.log(concert.noteInConcerts)
                                                              }
                                                          }}
-                                                        key={note.noteInConcert.id+"inplace"}>{note.noteInConcert.title}
+                                                        key={note.noteInConcert.id+"inplace"}>{note.noteInConcert.name}
                 <TrashIcon onClick={()=>{
                     axios.delete(apiURL + "/v1/concerts/" + concert.id + "/" + note.noteInConcert.id)
                         .then(()=>{

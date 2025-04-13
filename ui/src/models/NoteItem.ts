@@ -1,14 +1,16 @@
 import {Author} from "./Author";
-import {ElementItem} from "./ElementItem";
-import {Folder} from "./Folder";
+import {FolderItem} from "@/src/models/Folder";
 
-export interface NoteItem extends ElementItem {
-    title: string,
-    name:string,
+export interface NoteItem {
+    type: 'note',
+    name: string,
     author: Author,
     numberOfPages: number
-    parent:Folder,
+    parent:FolderItem,
+    description: string,
     pdfAvailable: boolean,
+    id: string
+    creationDate: Date,
 }
 
 
@@ -17,5 +19,5 @@ export type NotePostDto = {
     description?: string
     numberOfPages: number
     parentId: string
-    title: string
+    name: string
 }

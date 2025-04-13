@@ -5,7 +5,6 @@ import (
 )
 
 type Note struct {
-	Title         string    `json:"title"`
 	Author        Author    `json:"author"`
 	NumberOfPages int       `json:"numberOfPages"`
 	PdfAvailable  bool      `json:"pdfAvailable"`
@@ -28,7 +27,7 @@ func (note Note) Compare(other Note) bool {
 
 func (note Note) String() string {
 	return "\nTitel:\t" +
-		note.Title +
+		note.Name +
 		"\n" + "Beschreibung\t" +
 		note.Description +
 		"\n" + "Enthaltende Ordner:\t" +

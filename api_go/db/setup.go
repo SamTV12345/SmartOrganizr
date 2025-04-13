@@ -29,7 +29,6 @@ func Setup(config config.AppConfigDatabase) *Queries {
 		return nil
 	}
 
-	// See "Important settings" section.
 	open.SetConnMaxLifetime(time.Minute * 3)
 	open.SetMaxOpenConns(10)
 	open.SetMaxIdleConns(10)

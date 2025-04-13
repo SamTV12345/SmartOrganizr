@@ -1,14 +1,14 @@
 import {Dropdown} from "../components/form/Dropdown";
 import {useEffect, useState} from "react";
-import {Folder} from "../models/Folder";
 import {apiURL} from "../Keycloak";
 import axios from "axios";
 import {Page as Paging} from "../models/Page";
 import {FolderEmbeddedContainer} from "../models/FolderEmbeddedContainer";
+import {FolderItem} from "@/src/models/Folder";
 
 export const ImportExportView = () => {
     const [selectedFolder, setSelectedFolder] = useState<string>()
-    const [loadedFolders, setLoadedFolders] = useState<Paging<FolderEmbeddedContainer<Folder>>>()
+    const [loadedFolders, setLoadedFolders] = useState<Paging<FolderEmbeddedContainer<FolderItem>>>()
 
     useEffect(() => {
         axios.get(apiURL + "/v1/elements/folders" + "?page=0")
@@ -16,7 +16,7 @@ export const ImportExportView = () => {
     }, [])
 
 
-    function downloadPDF(pdf:string, selectedFolder:Folder) {
+    function downloadPDF(pdf:string, selectedFolder:FolderItem) {
         const linkSource = `data:application/pdf;base64,${pdf}`;
         const downloadLink = document.createElement("a");
         const fileName = selectedFolder.id+".pdf";
@@ -28,7 +28,7 @@ export const ImportExportView = () => {
 
     const getPDFOfFolder = ()=>{
             axios.get(apiURL + "/v1/elements/"+selectedFolder+"/export")
-            .then(resp => downloadPDF(resp.data, loadedFolders?._embedded.elementRepresentationModelList.find(f=>f.id===selectedFolder) as Folder))
+            .then(resp => downloadPDF(resp.data, loadedFolders?._embedded.elementRepresentationModelList.find(f=>f.id===selectedFolder)!) )
     }
 
     return <div className="p-6">

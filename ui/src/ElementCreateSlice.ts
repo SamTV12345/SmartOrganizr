@@ -6,7 +6,7 @@ interface ElementProps {
     description: string,
     parent: number | undefined,
     // Note
-    author: number | undefined,
+    author: string | undefined,
     authorName:string,
     numberOfPages: number,
     type:string,

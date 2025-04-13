@@ -42,7 +42,7 @@ export const NoteAuthorCreateSearchBar = ()=> {
             dispatch(setElementSelectedAuthorName(v))}}/>
         <div>
             <i className="fa fa-check" onClick={() => {
-                if (selectedAuthorId !== -100) {
+                if (selectedAuthorId !== "") {
                     dispatch(setElementSelectedAuthorName(currentSearchAuthors?._embedded.authorRepresentationModelList.find(a => a.id === selectedAuthorId)?.name))
                     dispatch(setElementAuthor(currentSearchAuthors?._embedded.authorRepresentationModelList.find(a => a.id === selectedAuthorId)?.id))
                 }

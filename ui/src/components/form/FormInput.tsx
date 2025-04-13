@@ -3,7 +3,7 @@ import React, {FC, FocusEvent} from "react";
 type FormInputProps = {
     id: string,
     label: string,
-    value: string|number,
+    value?: string|number,
     onChange: (value: string) => void,
     className?: string,
     type?: React.HTMLInputTypeAttribute,

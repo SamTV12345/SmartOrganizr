@@ -1,7 +1,7 @@
 import {createSlice, PayloadAction} from '@reduxjs/toolkit'
 import {Author} from "./models/Author";
 import {NoteItem} from "./models/NoteItem";
-import {ElementItem} from "./models/ElementItem";
+import {ElementItem, isNote} from "./models/ElementItem";
 
 
 // Define a type for the slice state
@@ -22,7 +22,7 @@ const initialState: ModalProps = {
     selectedAuthor: undefined,
     selectedAuthorNotes: undefined,
     selectedFolder: undefined,
-    createdAuthor: {name:'',extraInformation:'',id:0},
+    createdAuthor: {name:'',extraInformation:'',id: "0"},
     openNotePDFUpload: false
 }
 
@@ -74,29 +74,24 @@ export const modalSlice = createSlice({
                 state.selectedFolder.description = action.payload
             }
         },
-        setSelectedFolderPage: (state, action)=>{
-            if(state.selectedFolder!== undefined){
-                state.selectedFolder.numberOfPages = action.payload
-            }
-        },
-        setSelectedAuthorName: (state, action)=>{
-            if(state.selectedFolder!== undefined && state.selectedFolder.author){
-                state.selectedFolder.author.name = action.payload
-            }
-        },
         setSelectedFolderAuthor: (state, action)=>{
-            if(state.selectedFolder!== undefined && state.selectedFolder.author){
+            if(state.selectedFolder && isNote(state.selectedFolder)) {
                 state.selectedFolder.author = action.payload
             }
         },
         setNotePDFUploadOpen: (state, action:PayloadAction<boolean>)=>{
             state.openNotePDFUpload = action.payload
-        }
+        },
+        setSelectedAuthorName: (state, action)=>{
+            if(state.selectedFolder && isNote(state.selectedFolder)) {
+                state.selectedFolder.author.name = action.payload
+            }
+        },
     }
 })
 
-export const {setModalOpen, setAuthor, setSelectedAuthorNotes, setAuthorName, setAuthorExtraInformation, setOpenAddModal,
+export const {setModalOpen, setSelectedAuthorName, setSelectedFolderAuthor, setSelectedAuthorNotes, setAuthorName, setAuthorExtraInformation, setOpenAddModal,
              setCreatedAuthorExtraInformation, setCreatedAuthorName, setSelectedFolderDescription, setSelectedFolder, setSelectedFolderName,
-    setSelectedFolderPage, setSelectedAuthorName, setSelectedFolderAuthor, setNotePDFUploadOpen,setCreatedAuthor} = modalSlice.actions
+    setNotePDFUploadOpen} = modalSlice.actions
 
 export default modalSlice.reducer

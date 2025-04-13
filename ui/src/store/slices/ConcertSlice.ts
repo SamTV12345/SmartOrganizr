@@ -16,13 +16,13 @@ const initialState: ConcertSliceProps = {
 
 type DeleteProps = {
     concertId:string,
-    noteId: number
+    noteId: string
 }
 
 type SwapProps  = {
     concertId:string,
-    noteId1:number,
-    noteId2:number
+    noteId1:string,
+    noteId2:string
 }
 
 export const concertSlice = createSlice({

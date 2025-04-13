@@ -1,16 +1,15 @@
-import {Folder} from "./Folder";
-import {ApiLink} from "./ApiLink";
-import {Author} from "./Author";
+import {FolderItem} from "./Folder";
+import {NoteItem} from "@/src/models/NoteItem";
 
-export interface ElementItem {
-    creationDate: Date,
-    id: string,
-    name: string,
-    parent: Folder,
-    author?:Author,
-    numberOfPages?:number,
-    description: string,
-    links?: ApiLink[],
-    length?:number,
-    type:string
+export type ElementItem = NoteItem|FolderItem
+
+
+
+export const isNote = (element: ElementItem): element is NoteItem => {
+    return element && element.type === 'note';
+}
+
+
+export const isFolder = (element: ElementItem): element is FolderItem => {
+    return element && element.type === 'folder';
 }

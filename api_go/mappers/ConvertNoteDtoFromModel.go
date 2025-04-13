@@ -19,7 +19,6 @@ func ConvertNoteDtoFromModel(model *models.Note, c *fiber.Ctx) *dto.Note {
 		parent = &parentDto
 	}
 	return &dto.Note{
-		Title:         model.Title,
 		Id:            model.Id,
 		CreationDate:  model.CreationDate,
 		Creator:       user,

@@ -16,7 +16,6 @@ func ConvertNoteFromEntity(entity db.Note, user models.User, author models.Autho
 
 func convertNote(entity db.Note, user models.User, author models.Author, parentFolder *models.Folder) models.Note {
 	return models.Note{
-		Title:         entity.Title.String,
 		Id:            entity.GetId(),
 		CreationDate:  entity.GetCreationDate(),
 		Creator:       user,

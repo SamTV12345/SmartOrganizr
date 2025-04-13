@@ -91,7 +91,7 @@ export const SearchElementView = ()=>{
         </tr>
         {searchedElements&& searchedElements._embedded&& searchedElements._embedded.noteRepresentationModelList&& searchedElements._embedded.noteRepresentationModelList.map((element, index)=>
                 <tr key={element.id}>
-                    <TableData content={element.title}/>
+                    <TableData content={element.name}/>
                     <TableData content={element.author.name}/>
                     <TableData content={element.description}/>
                     <TableData content={

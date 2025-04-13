@@ -20,7 +20,7 @@ export const NoteSearchModal = () => {
     const {t} = useTranslation()
     const searchedElements = useAppSelector(state => state.commonReducer.elementsSearched)
     const dispatch = useAppDispatch()
-    const [selectedNotes, setSelectedNotes] = useState<number[]>([])
+    const [selectedNotes, setSelectedNotes] = useState<string[]>([])
     const concerts = useAppSelector(state=>state.concertReducer.concerts)
     const selectedConcert = useAppSelector(state=>state.concertReducer.selectedConcert)
 
@@ -109,7 +109,7 @@ export const NoteSearchModal = () => {
                             setSelectedNotes([...selectedNotes, element.id]);
                         }
                     }}>
-                    <NoteSearchModalTD children={element.title}/>
+                    <NoteSearchModalTD children={element.name}/>
                     <NoteSearchModalTD children={element.author.name}/>
                     <NoteSearchModalTD children={element.description}/>
                     <NoteSearchModalTD children={element.parent.name}

@@ -4,19 +4,19 @@ import {fixProtocol} from "../../utils/Utilities";
 import {useState} from "react";
 import {Page} from "../../models/Page";
 import {FolderEmbeddedContainer} from "../../models/FolderEmbeddedContainer";
-import {Folder} from "../../models/Folder";
 import axios from "axios";
 import {useDebounce} from "../../utils/DebounceHook";
 import {apiURL} from "../../Keycloak";
 import {useAppDispatch, useAppSelector} from "../../store/hooks";
 import {useTranslation} from "react-i18next";
 import {FormInput} from "../form/FormInput";
+import {FolderItem} from "@/src/models/Folder";
 
 export const ParentFolderSearchBar = ()=>{
-    const [currentFolder,setCurrentFolder] = useState<Page<FolderEmbeddedContainer<Folder>>>()
+    const [currentFolder,setCurrentFolder] = useState<Page<FolderEmbeddedContainer<FolderItem>>>()
     const elementParentName = useAppSelector(state => state.elementReducer.searchParentName)
     const searchParentName = useAppSelector(state=>state.elementReducer.searchParentName)
-    const [selectedId, setSelectedFolderId] = useState<number>(-100)
+    const [selectedId, setSelectedFolderId] = useState<string>()
     const dispatch = useAppDispatch()
     const {t} = useTranslation()
     useDebounce(()=>{
@@ -26,7 +26,7 @@ export const ParentFolderSearchBar = ()=>{
     },1000,[elementParentName])
 
     const loadSearchedFolder = async(link:string)=> {
-        const folders: Page<FolderEmbeddedContainer<Folder>> = await new Promise<Page<FolderEmbeddedContainer<Folder>>>(resolve => {
+        const folders: Page<FolderEmbeddedContainer<FolderItem>> = await new Promise<Page<FolderEmbeddedContainer<FolderItem>>>(resolve => {
             axios.get(link)
                 .then((resp) => resolve(resp.data))
                 .catch((error) => {
@@ -41,7 +41,7 @@ export const ParentFolderSearchBar = ()=>{
     return <>
     <FormInput id={'superFolder'} label={t('superFolder')} value={searchParentName as string} onChange={(v)=>dispatch(setElementParentName(v))}/>
     <i className="fa fa-check" onClick={()=>{
-        if(selectedId!==-100 &&currentFolder?._embedded.elementRepresentationModelList){
+        if(selectedId && selectedId!=="" &&currentFolder?._embedded.elementRepresentationModelList){
             dispatch(setElementParentName(currentFolder._embedded.elementRepresentationModelList.find(a=>a.id===selectedId)?.name))
             dispatch(setElementParent(currentFolder._embedded.elementRepresentationModelList.find(a=>a.id===selectedId)?.id))
         }}}/>

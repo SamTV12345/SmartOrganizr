@@ -1,47 +1,22 @@
 import React, {FC, useState} from "react";
 import "./Tree.css"
-import {ElementItem} from "../models/ElementItem";
+import {ElementItem, isNote} from "../models/ElementItem";
 import axios, {AxiosResponse} from "axios";
 import {fixProtocol} from "../utils/Utilities";
-import {Folder} from "../models/Folder";
 import {setLoadedFolders, setNodes} from "../store/CommonSlice";
 import {useAppDispatch, useAppSelector} from "../store/hooks";
 import {apiURL} from "../Keycloak";
-import {setModalOpen, setNotePDFUploadOpen, setSelectedFolder} from "../ModalSlice";
-import {Author} from "../models/Author";
+import {setNotePDFUploadOpen, setSelectedFolder} from "../ModalSlice";
 import {addChild, deleteChild, handleNewElements, traverseTree} from "../utils/ElementUtils";
-import {choiceFolder} from "../utils/Constants";
+import {UpdateFolderOrNote} from "@/src/components/UpdateFolderOrNote";
+import {FolderItem} from "@/src/models/Folder";
 
-export interface TreeData {
-    creationDate: Date,
-    keyNum: string,
-    icon:string,
-    name:string,
-    length:number,
-    pdfAvailable?:boolean,
-    author?: Author
-    type: string,
-    links: string,
-    description: string,
-    numberOfPages?:number,
-    children?: TreeData[]
-}
+export type TreeData = ElementItem
 
-export interface TreeDataExpanded {
-    creationDate: Date,
-    keyNum:string,
-    icon:string,
-    name:string,
-    length:number,
-    type: string,
-    links: string,
-    author?: Author
-    description:string,
-    children?: TreeData[],
-    numberOfPages?:number,
-    pdfAvailable?:boolean,
-    nodes: TreeData[]
+export type TreeDataExpanded =  {
     setData: (payload: TreeData[])=>{payload: TreeData[], type: "commonSlice/setNodes"}
+}  & {
+    element: ElementItem
 }
 
 interface TreeProps {
@@ -49,33 +24,28 @@ interface TreeProps {
     setData: (payload: TreeData[])=>{payload: TreeData[], type: "commonSlice/setNodes"}
 }
 
-export const TreeElement:FC<TreeProps> = ({data})=>{
+export const TreeElement:FC<TreeProps> = ({data, setData})=>{
     return <div>
         <ul>
             {data && data.map(tree=>{
-                return <TreeNode name={tree.name} setData={setNodes} key={tree.keyNum+"tree"} author={tree.author}
-                                 icon={tree.icon} keyNum={tree.keyNum} numberOfPages={tree.numberOfPages}
-                                 children={tree.children} length={data.length} pdfAvailable={tree.pdfAvailable}
-                                 links={tree.links} type={tree.type} nodes={data} description={tree.description} creationDate={tree.creationDate}/>
+                return <TreeNode element={tree} setData={setData} key={tree.id}/>
             })}
         </ul>
         </div>
 }
 
-const TreeNode:FC<TreeDataExpanded> = ({ keyNum,icon,children,author
-                                           ,name, length,description,numberOfPages,
-                                           setData,type,links,creationDate,pdfAvailable }) => {
+const TreeNode:FC<TreeDataExpanded> = ({element, setData}) => {
     const [childVisible, setChildVisiblity] = useState(false);
     const dispatch = useAppDispatch()
     const nodes = useAppSelector(state=>state.commonReducer.nodes)
     const loadedFolders = useAppSelector(state=>state.commonReducer.loadedFolders)
-    const hasChild = type===choiceFolder && length>0
+    const hasChild = element.type === 'folder'
 
-    const onExpand = async (event: TreeData) => {
-        if (!loadedFolders.includes(event.keyNum)) {
-            dispatch(setLoadedFolders(event.keyNum))
+    const onExpand = async (event: FolderItem) => {
+        if (!loadedFolders.includes(event.id)) {
+            dispatch(setLoadedFolders(event.id))
             const loadedChildren: ElementItem[] = await new Promise<ElementItem[]>(resolve => {
-                axios.get(fixProtocol(event.links))
+                axios.get(fixProtocol(event.links[0].href))
                     .then(resp => resolve(resp.data))
                     .catch((error) => {
                         console.log(error)
@@ -84,8 +54,9 @@ const TreeNode:FC<TreeDataExpanded> = ({ keyNum,icon,children,author
             if (loadedChildren === undefined) {
                 return
             }
-            handleNewElements(event, loadedChildren);
-            dispatch(setNodes(traverseTree(event,nodes)))
+            const newItems = handleNewElements(event, loadedChildren);
+            const eventWithChildren = {...event, elements: newItems}
+            dispatch(setNodes(traverseTree(eventWithChildren,nodes)))
             }
     }
 
@@ -96,9 +67,9 @@ const TreeNode:FC<TreeDataExpanded> = ({ keyNum,icon,children,author
 
     const moveToFolder = async (element: TreeData, nodes: TreeData[], keyNum:string)=>{
         await new Promise<ElementItem[]>(() => {
-            axios.patch(apiURL+`/v1/elements/${element.keyNum}/${keyNum}`)
+            axios.patch(apiURL+`/v1/elements/${element.id}/${keyNum}`)
                 .then(() => {
-                    dispatch(setNodes(addChild(element, deleteChild(element.keyNum, nodes), keyNum)))
+                    dispatch(setNodes(addChild(element, deleteChild(element.id, nodes), keyNum)))
                 })
                 .catch((error) => {
                     console.log(error)
@@ -113,17 +84,17 @@ const TreeNode:FC<TreeDataExpanded> = ({ keyNum,icon,children,author
     }
 
     return (
-        <li className="d-tree-node ml-5 p-2" key={keyNum}>
+        <li className="d-tree-node ml-5 p-2" key={element.id}>
             <div className="flex gap-5"
-                 draggable={true} onDragStart={(e)=>drag(e,{keyNum,icon,children,author,name,length,type,links} as TreeData)}
+                 draggable={true} onDragStart={(e)=>drag(e, element)}
                  onDragOver={(e)=>{
-                     type=='Folder'?e.preventDefault():''
+                     element.type=='folder'?e.preventDefault():''
                  }}
                  onDrop={(e)=>{
                      const  element= JSON.parse(e.dataTransfer.getData("id"))
-                     if(element.keyNum!==keyNum) {
+                     if(element.keyNum!==element.id) {
                          e.preventDefault();
-                         moveToFolder(element,nodes, keyNum)
+                         moveToFolder(element,nodes, element.id)
                      }
                  }}>
                 {hasChild && (
@@ -134,27 +105,23 @@ const TreeNode:FC<TreeDataExpanded> = ({ keyNum,icon,children,author
                     >
                         <i className="fa-solid fa-chevron-right" onClick={()=>{
                             setChildVisiblity((v) => !v)
-                            onExpand({keyNum,icon,numberOfPages,
-                                creationDate,description,children,author,name,length,type,links})
+                            onExpand(element)
                         }}/>
                     </div>
                 )}
 
                 <div className="col d-tree-head">
-                    <i className={` ${icon} mr-2`}/>
-                    <span className="mr-2">{name}</span>
-                    <i className="fa-solid fa-pen" onClick={()=>{
-                        dispatch(setSelectedFolder({id: keyNum, length,numberOfPages,author,description,name,type} as ElementItem))
-                        dispatch(setModalOpen(true))
-                    }}/>
-                    {type==='Note' &&
+                    <i className={` fa-folder mr-2`}/>
+                    <span className="mr-2">{element.name}</span>
+                    <UpdateFolderOrNote element={element} trigger={<i className="fa-solid fa-pencil ml-2"/>} />
+                    {element.type==='note' &&
                         <i className="fa-solid fa-upload ml-2" onClick={()=>{
-                        dispatch(setSelectedFolder({id: keyNum, length,numberOfPages,author,description,name,type} as ElementItem))
+                        dispatch(setSelectedFolder(element))
                         dispatch(setNotePDFUploadOpen(true))
                     }}/>}
-                    {pdfAvailable &&
+                    {isNote(element) && element.pdfAvailable &&
                             <i className="fa-solid fa-eye ml-2" onClick={()=>{
-                                axios.get(apiURL+`/v1/elements/${keyNum}/pdf`)
+                                axios.get(apiURL+`/v1/elements/${element.id}/pdf`)
                                     .then((response:AxiosResponse<string>) => {
                                         openPDFInNewTab(response.data)
                                     }).catch((error) => {
@@ -163,9 +130,9 @@ const TreeNode:FC<TreeDataExpanded> = ({ keyNum,icon,children,author
                             }}/>
                     }
                     {
-                        type === 'Note' &&
+                        isNote(element) &&
                         <i className="fa-solid fa-copy ml-2" onClick={()=>{
-                            const link = window.location.protocol + "//" + window.location.host + "/ui/noteManagement/notes/" + keyNum
+                            const link = window.location.protocol + "//" + window.location.host + "/ui/noteManagement/notes/" + element.id
                             navigator.clipboard.writeText(link)
                         }}/>
                     }
@@ -175,7 +142,7 @@ const TreeNode:FC<TreeDataExpanded> = ({ keyNum,icon,children,author
             {hasChild && childVisible && (
                 <div className="d-tree-content">
                     <ul className="d-flex d-tree-container flex-column ml-5 p-1">
-                        <TreeElement data={children as TreeData[]}  setData={setData}/>
+                        <TreeElement data={element.elements}  setData={setData}/>
                     </ul>
                 </div>
             )}
