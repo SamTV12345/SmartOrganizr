@@ -266,11 +266,23 @@ func (n NoteService) UpdateNote(userId string, note models.Note) (models.Note, e
 		return models.Note{}, errors.New("not author of note")
 	}
 
+	var pdfContent sql.NullString
+	if len(note.PDFContent) == 0 {
+		pdfContent = sql.NullString{
+			Valid: false,
+		}
+	} else {
+		pdfContent = sql.NullString{
+			String: string(note.PDFContent),
+			Valid:  true,
+		}
+	}
+
 	err = n.Queries.UpdateNote(n.Ctx, db.UpdateNoteParams{
 		ID:            note.Id,
 		Description:   NewSQLNullString(note.Description),
 		NumberOfPages: NewSQLNullInt(note.NumberOfPages),
-		PdfContent:    NewSQLNullString(string(note.PDFContent)),
+		PdfContent:    pdfContent,
 		Name:          NewSQLNullString(note.Name),
 		AuthorIDFk:    NewSQLNullString(note.Author.ID),
 	})

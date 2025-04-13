@@ -109,12 +109,11 @@ const TreeNode:FC<TreeDataExpanded> = ({element, setData}) => {
                         }}/>
                     </div>
                 )}
-
                 <div className="col d-tree-head">
                     <i className={` fa-folder mr-2`}/>
                     <span className="mr-2">{element.name}</span>
                     <UpdateFolderOrNote element={element} trigger={<i className="fa-solid fa-pencil ml-2"/>} />
-                    {element.type==='note' &&
+                    {isNote(element) &&
                         <i className="fa-solid fa-upload ml-2" onClick={()=>{
                         dispatch(setSelectedFolder(element))
                         dispatch(setNotePDFUploadOpen(true))

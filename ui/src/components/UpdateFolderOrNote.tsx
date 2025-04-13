@@ -31,11 +31,11 @@ import {Page} from "@/src/models/Page";
 import {FolderEmbeddedContainer} from "@/src/models/FolderEmbeddedContainer";
 import {FolderItem, FolderPostDto} from "@/src/models/Folder";
 import {replaceFolder, replaceNote} from "@/src/utils/ElementUtils";
-import {NoteItem, NotePostDto} from "@/src/models/NoteItem";
+import {NoteItem, NotePostDto, NotePutDto} from "@/src/models/NoteItem";
 import {AuthorEmbeddedContainer} from "@/src/models/AuthorEmbeddedContainer";
 import {Author} from "@/src/models/Author";
-import React, {useEffect} from "react";
-import {ElementItem, isNote} from "@/src/models/ElementItem";
+import React, {useEffect, useMemo} from "react";
+import {ElementItem, isFolder, isNote} from "@/src/models/ElementItem";
 
 
 export type UpdateFolderOrNoteProps = {
@@ -53,8 +53,8 @@ export function UpdateFolderOrNote(props: UpdateFolderOrNoteProps) {
         return response.data
     }
 
-    const updateNote = async(note: NotePostDto)=>{
-        const response = await axios.post(apiURL+`/v1/elements/notes`, note)
+    const updateNote = async(note: NotePutDto)=>{
+        const response = await axios.patch(apiURL+`/v1/elements/notes/${props.element.id}`, note)
         return response.data
     }
 
@@ -89,7 +89,7 @@ export function UpdateFolderOrNote(props: UpdateFolderOrNoteProps) {
         }
     })
 
-    const createNoteMutation = useMutation<NoteItem, Error, NotePostDto>({
+    const createNoteMutation = useMutation<NoteItem, Error, NotePutDto>({
         mutationFn: updateNote,
         onSuccess:(data)=>{
             if (data.parent) {
@@ -146,12 +146,25 @@ export function UpdateFolderOrNote(props: UpdateFolderOrNoteProps) {
             createNoteMutation.mutate(values)
         }
     }
+    const selectableFolderItems = useMemo(()=>{
+        if (props.element.parent) {
+            return [props.element.parent]
+        } else {
+            return searchFoldersByName.data?._embedded.elementRepresentationModelList || []
+        }
+    }, [searchFoldersByName])
+
+
+    const selectableAuthorItems = useMemo(()=>{
+        if (isFolder(props.element)) {
+            return [] as Author[]
+        } else {
+           return [props.element.author, ...searchAuthorsByName.data?._embedded.authorRepresentationModelList || []]
+        }
+    }, [searchAuthorsByName])
 
 
     useEffect(() => {
-        const type = "numberOfPages" in parent ? "note" : "folder"
-
-
         if (isNote(props.element)) {
             form.reset({
                 authorId: props.element.author!.id,
@@ -159,22 +172,19 @@ export function UpdateFolderOrNote(props: UpdateFolderOrNoteProps) {
                 name: props.element.name!,
                 numberOfPages: props.element.numberOfPages!,
                 parentId: props.element.parent.id!,
-                type: type
+                type: props.element.type
             })
         } else {
             form.reset({
                 description: props.element.description,
                 name: props.element.name!,
                 parentId: props.element.parent?.id!,
-                type: type,
-                authorId: "",
-                extraInformation: "",
-                numberOfPages: 0
+                type:  props.element.type
             })
         }
 
 
-    }, [parent]);
+    }, [props]);
 
 
     return (
@@ -194,10 +204,12 @@ export function UpdateFolderOrNote(props: UpdateFolderOrNoteProps) {
                         <FormField
                             control={form.control}
                             name="type"
+                            disabled
                             render={({ field }) => (
                                 <FormItem className="space-y-3">
                                     <FormControl>
                                         <RadioGroup
+                                            disabled
                                             onValueChange={field.onChange}
                                             defaultValue={field.value}
                                             className="grid grid-cols-2"
@@ -224,20 +236,7 @@ export function UpdateFolderOrNote(props: UpdateFolderOrNoteProps) {
                                 </FormItem>
                             )}
                         />
-                        {watchType === 'note' &&<FormField
-                            control={form.control}
-                            name="name"
-                            render={({ field }) => (
-                                <FormItem className="grid-cols-2">
-                                    <FormLabel>{t('name')}</FormLabel>
-                                    <FormControl>
-                                        <Input {...field} />
-                                    </FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />}
-                        {watchType === 'note' &&<FormField
+                        <FormField
                             control={form.control}
                             name="name"
                             render={({ field }) => (
@@ -249,7 +248,7 @@ export function UpdateFolderOrNote(props: UpdateFolderOrNoteProps) {
                                     <FormMessage />
                                 </FormItem>
                             )}
-                        />}
+                        />
                         <FormField
                             control={form.control}
                             name="description"
@@ -313,7 +312,7 @@ export function UpdateFolderOrNote(props: UpdateFolderOrNoteProps) {
                                                     )}
                                                 >
                                                     {field.value
-                                                        ? searchAuthorsByName.data?._embedded.authorRepresentationModelList.find(
+                                                        ? selectableAuthorItems.find(
                                                             (language) => language.id === field.value
                                                         )?.name
                                                         : "Ordner auswählen"}
@@ -333,7 +332,7 @@ export function UpdateFolderOrNote(props: UpdateFolderOrNoteProps) {
                                                 <CommandList>
                                                     <CommandEmpty>No framework found.</CommandEmpty>
                                                     <CommandGroup>
-                                                        {searchAuthorsByName.data?._embedded.authorRepresentationModelList.map((language) => (
+                                                        {selectableAuthorItems.map((language) => (
                                                             <CommandItem
                                                                 value={language.name}
                                                                 key={language.id}
@@ -378,7 +377,7 @@ export function UpdateFolderOrNote(props: UpdateFolderOrNoteProps) {
                                                     )}
                                                 >
                                                     {field.value
-                                                        ? searchFoldersByName.data?._embedded.elementRepresentationModelList.find(
+                                                        ? selectableFolderItems.find(
                                                             (language) => language.id === field.value
                                                         )?.name
                                                         : "Ordner auswählen"}
@@ -398,7 +397,7 @@ export function UpdateFolderOrNote(props: UpdateFolderOrNoteProps) {
                                                 <CommandList>
                                                     <CommandEmpty>No framework found.</CommandEmpty>
                                                     <CommandGroup>
-                                                        {searchFoldersByName.data?._embedded.elementRepresentationModelList.map((language) => (
+                                                        {selectableFolderItems.map((language) => (
                                                             <CommandItem
                                                                 value={language.name}
                                                                 key={language.id}

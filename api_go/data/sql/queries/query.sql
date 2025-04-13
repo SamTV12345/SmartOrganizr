@@ -68,7 +68,7 @@ SELECT * FROM elements as folders WHERE type ='folder' AND user_id_fk = ? ORDER 
 
 
 -- name: FindAllSubElements :many
-SELECT sqlc.embed(elements), authors.* FROM elements LEFT JOIN authors ON elements.author_id_fk = authors.id WHERE parent = ? AND elements.user_id_fk = ? ORDER BY name;
+SELECT sqlc.embed(elements), authors.* FROM elements LEFT JOIN authors ON elements.author_id_fk = authors.id WHERE parent = ? AND elements.user_id_fk = ? ORDER BY elements.name;
 
 -- name: FindAllNotesByCreatorPaged :many
 SELECT sqlc.embed(note), sqlc.embed(a), sqlc.embed(p) FROM elements as note JOIN authors a on a.id = note.author_id_fk JOIN elements p ON p.id = note.parent WHERE note.type ='note' AND a.user_id_fk = ? ORDER BY note.name LIMIT ? OFFSET ?;
@@ -131,7 +131,7 @@ SELECT * FROM elements WHERE parent IS NULL AND type = 'folder' AND user_id_fk =
 INSERT INTO elements (id, type, name, description, user_id_fk, parent) VALUES (?,'folder', ?, ?, ?, ?);
 
 -- name: CreateNote :execlastid
-INSERT INTO elements (id, type, name, description, user_id_fk, parent, name, author_id_fk, number_of_pages) VALUES (?,'note', 'Note', ?, ?, ?, ?, ?, ?);
+INSERT INTO elements (id, type, name, description, user_id_fk, parent, author_id_fk, number_of_pages) VALUES (?,'note', ?, ?, ?, ?, ?, ?);
 
 -- name: FindFolderById :one
 SELECT * FROM elements WHERE id = ? and user_id_fk = ?;

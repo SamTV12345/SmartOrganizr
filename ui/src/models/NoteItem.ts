@@ -7,7 +7,7 @@ export interface NoteItem {
     author: Author,
     numberOfPages: number
     parent:FolderItem,
-    description: string,
+    description?: string,
     pdfAvailable: boolean,
     id: string
     creationDate: Date,
@@ -20,4 +20,10 @@ export type NotePostDto = {
     numberOfPages: number
     parentId: string
     name: string
+}
+
+
+export type NotePutDto = Omit<NoteItem, 'id'| 'parent'| 'author'| 'pdfAvailable' |'creationDate'> & {
+    authorId: string
+    parentId: string
 }

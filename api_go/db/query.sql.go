@@ -167,15 +167,15 @@ func (q *Queries) CreateFolder(ctx context.Context, arg CreateFolderParams) (int
 }
 
 const createNote = `-- name: CreateNote :execlastid
-INSERT INTO elements (id, type, name, description, user_id_fk, parent, name, author_id_fk, number_of_pages) VALUES (?,'note', 'Note', ?, ?, ?, ?, ?, ?)
+INSERT INTO elements (id, type, name, description, user_id_fk, parent, author_id_fk, number_of_pages) VALUES (?,'note', ?, ?, ?, ?, ?, ?)
 `
 
 type CreateNoteParams struct {
 	ID            string
+	Name          sql.NullString
 	Description   sql.NullString
 	UserIDFk      sql.NullString
 	Parent        sql.NullString
-	Name          sql.NullString
 	AuthorIDFk    sql.NullString
 	NumberOfPages sql.NullInt32
 }
@@ -183,10 +183,10 @@ type CreateNoteParams struct {
 func (q *Queries) CreateNote(ctx context.Context, arg CreateNoteParams) (int64, error) {
 	result, err := q.db.ExecContext(ctx, createNote,
 		arg.ID,
+		arg.Name,
 		arg.Description,
 		arg.UserIDFk,
 		arg.Parent,
-		arg.Name,
 		arg.AuthorIDFk,
 		arg.NumberOfPages,
 	)
@@ -816,7 +816,7 @@ func (q *Queries) FindAllParentFolders(ctx context.Context, userIDFk sql.NullStr
 }
 
 const findAllSubElements = `-- name: FindAllSubElements :many
-SELECT elements.type, elements.id, elements.creation_date, elements.description, elements.name, elements.number_of_pages, elements.user_id_fk, elements.parent, elements.author_id_fk, elements.pdf_content, authors.id, authors.extra_information, authors.name, authors.user_id_fk FROM elements LEFT JOIN authors ON elements.author_id_fk = authors.id WHERE parent = ? AND elements.user_id_fk = ? ORDER BY name
+SELECT elements.type, elements.id, elements.creation_date, elements.description, elements.name, elements.number_of_pages, elements.user_id_fk, elements.parent, elements.author_id_fk, elements.pdf_content, authors.id, authors.extra_information, authors.name, authors.user_id_fk FROM elements LEFT JOIN authors ON elements.author_id_fk = authors.id WHERE parent = ? AND elements.user_id_fk = ? ORDER BY elements.name
 `
 
 type FindAllSubElementsParams struct {
