@@ -10,36 +10,42 @@ import {setNotePDFUploadOpen, setSelectedFolder} from "../ModalSlice";
 import {addChild, deleteChild, handleNewElements, traverseTree} from "../utils/ElementUtils";
 import {UpdateFolderOrNote} from "@/src/components/UpdateFolderOrNote";
 import {FolderItem} from "@/src/models/Folder";
+import {useQueryClient} from "@tanstack/react-query";
 
 export type TreeData = ElementItem
 
 export type TreeDataExpanded =  {
-    setData: (payload: TreeData[])=>{payload: TreeData[], type: "commonSlice/setNodes"}
-}  & {
     element: ElementItem
 }
 
 interface TreeProps {
     data: TreeData[]
-    setData: (payload: TreeData[])=>{payload: TreeData[], type: "commonSlice/setNodes"}
 }
 
-export const TreeElement:FC<TreeProps> = ({data, setData})=>{
+export const TreeElement:FC<TreeProps> = ({data})=>{
     return <div>
         <ul>
             {data && data.map(tree=>{
-                return <TreeNode element={tree} setData={setData} key={tree.id}/>
+                if (tree.id === "df72e542-dcb8-4ab9-99ca-e806828594e3") {
+                    console.log("Updated in tree", tree)
+                }
+                return <TreeNode element={tree} key={tree.id}/>
             })}
         </ul>
         </div>
 }
 
-const TreeNode:FC<TreeDataExpanded> = ({element, setData}) => {
+const TreeNode:FC<TreeDataExpanded> = ({element}) => {
     const [childVisible, setChildVisiblity] = useState(false);
     const dispatch = useAppDispatch()
-    const nodes = useAppSelector(state=>state.commonReducer.nodes)
     const loadedFolders = useAppSelector(state=>state.commonReducer.loadedFolders)
     const hasChild = element.type === 'folder'
+    const queryClient = useQueryClient()
+
+
+    if (element.id === "df72e542-dcb8-4ab9-99ca-e806828594e3") {
+        console.log("Updated", element)
+    }
 
     const onExpand = async (event: FolderItem) => {
         if (!loadedFolders.includes(event.id)) {
@@ -56,7 +62,9 @@ const TreeNode:FC<TreeDataExpanded> = ({element, setData}) => {
             }
             const newItems = handleNewElements(event, loadedChildren);
             const eventWithChildren = {...event, elements: newItems}
-            dispatch(setNodes(traverseTree(eventWithChildren,nodes)))
+            queryClient.setQueryData(["folders"], (loadedNodes: ElementItem[])=>{
+                return traverseTree(eventWithChildren,loadedNodes)
+            })
             }
     }
 
@@ -65,16 +73,17 @@ const TreeNode:FC<TreeDataExpanded> = ({element, setData}) => {
         ev.dataTransfer.setData("id",JSON.stringify(id))
     }
 
-    const moveToFolder = async (element: TreeData, nodes: TreeData[], keyNum:string)=>{
+    const moveToFolder = async (element: TreeData, keyNum:string)=>{
         await new Promise<ElementItem[]>(() => {
             axios.patch(apiURL+`/v1/elements/${element.id}/${keyNum}`)
                 .then(() => {
-                    dispatch(setNodes(addChild(element, deleteChild(element.id, nodes), keyNum)))
+                    queryClient.setQueryData(["folders"], (folders: ElementItem[])=>{
+                        return addChild(element, deleteChild(element.id, folders), keyNum)})
+                    })
                 })
                 .catch((error) => {
                     console.log(error)
                 })
-        })
     }
 
     const openPDFInNewTab= (base64URL:string)=>{
@@ -91,10 +100,10 @@ const TreeNode:FC<TreeDataExpanded> = ({element, setData}) => {
                      element.type=='folder'?e.preventDefault():''
                  }}
                  onDrop={(e)=>{
-                     const  element= JSON.parse(e.dataTransfer.getData("id"))
-                     if(element.keyNum!==element.id) {
+                     const  parsedElement= JSON.parse(e.dataTransfer.getData("id"))
+                     if(parsedElement.id!==element.id) {
                          e.preventDefault();
-                         moveToFolder(element,nodes, element.id)
+                         moveToFolder(parsedElement, element.id)
                      }
                  }}>
                 {hasChild && (
@@ -141,7 +150,7 @@ const TreeNode:FC<TreeDataExpanded> = ({element, setData}) => {
             {hasChild && childVisible && (
                 <div className="d-tree-content">
                     <ul className="d-flex d-tree-container flex-column ml-5 p-1">
-                        <TreeElement data={element.elements}  setData={setData}/>
+                        <TreeElement data={element.elements}/>
                     </ul>
                 </div>
             )}

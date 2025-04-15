@@ -182,6 +182,7 @@ func SetupRouter(queries *db.Queries, config config.AppConfig) *fiber.App {
 		r.Get("/:folderId/children", controllers.FindNextChildren)
 		r.Get("/folders", controllers.SearchFolders)
 		r.Post("/notes", controllers.CreateNote)
+		r.Patch("/folders/:folderId", controllers.UpdateFolder)
 		r.Patch("/notes/:noteId", controllers.UpdateNote)
 		r.Get("/:noteId/parent", controllers.GetParentOfNote)
 		r.Get("/:noteId/pdf", controllers.GetNoteasPDF)

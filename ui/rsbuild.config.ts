@@ -18,11 +18,11 @@ export default defineConfig({
   },
   plugins: [
     pluginReact(),
-    pluginBabel({
+    /*pluginBabel({
       include: /\.(?:jsx|tsx)$/,
       babelLoaderOptions(opts) {
         opts.plugins?.unshift('babel-plugin-react-compiler');
       },
-    }),
+    }),*/
   ],
 });

@@ -255,3 +255,33 @@ func (f *FolderService) CountFolders(userId string, folderName string) (int, err
 	})
 	return int(count), nil
 }
+
+func (f *FolderService) UpdateFolder(userId string, folder models.Folder) (*models.Folder, error) {
+
+	var parent sql.NullString
+	if folder.Parent != nil {
+		parent = sql.NullString{
+			String: folder.Parent.Id,
+			Valid:  true,
+		}
+	} else {
+		parent = sql.NullString{
+			Valid: false,
+		}
+	}
+
+	if err := f.Queries.UpdateFolder(f.Ctx, db.UpdateFolderParams{
+		Name:        NewSQLNullString(folder.Name),
+		Description: NewSQLNullString(folder.Description),
+		ID:          folder.Id,
+		UserIDFk:    NewSQLNullString(userId),
+		Parent:      parent,
+	}); err != nil {
+		return nil, err
+	}
+	model, err := f.FindFolderByIdAndUser(folder.Id, userId)
+	if err != nil {
+		return nil, err
+	}
+	return model, nil
+}

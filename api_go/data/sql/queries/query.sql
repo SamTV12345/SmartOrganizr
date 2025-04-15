@@ -148,3 +148,6 @@ DELETE FROM elements WHERE id = ? AND user_id_fk = ?;
 
 -- name: UpdateNote :exec
 UPDATE elements SET name = ?, description = ?, author_id_fk = ?, number_of_pages = ?, pdf_content = ? WHERE id = ?;
+
+-- name: UpdateFolder :exec
+UPDATE elements SET name=?, description = ?, parent = ? WHERE id = ? and user_id_fk = ?;

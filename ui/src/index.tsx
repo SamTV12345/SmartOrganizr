@@ -11,6 +11,7 @@ import {I18nextProvider} from "react-i18next";
 import i18n from "./language/i18n";
 import axios from "axios";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import {queryClient} from "@/src/utils/QueryClient";
 
 
 export let accountURL = ''
@@ -53,7 +54,6 @@ const syncUser = ()=>{
 
 const root = ReactDOM.createRoot(document.getElementById('root') as HTMLElement)
 
-const queryClient = new QueryClient();
 
 const renderApp= (keycloak: Keycloak)=>
 {

@@ -1168,6 +1168,29 @@ func (q *Queries) UpdateAuthor(ctx context.Context, arg UpdateAuthorParams) erro
 	return err
 }
 
+const updateFolder = `-- name: UpdateFolder :exec
+UPDATE elements SET name=?, description = ?, parent = ? WHERE id = ? and user_id_fk = ?
+`
+
+type UpdateFolderParams struct {
+	Name        sql.NullString
+	Description sql.NullString
+	Parent      sql.NullString
+	ID          string
+	UserIDFk    sql.NullString
+}
+
+func (q *Queries) UpdateFolder(ctx context.Context, arg UpdateFolderParams) error {
+	_, err := q.db.ExecContext(ctx, updateFolder,
+		arg.Name,
+		arg.Description,
+		arg.Parent,
+		arg.ID,
+		arg.UserIDFk,
+	)
+	return err
+}
+
 const updateNote = `-- name: UpdateNote :exec
 UPDATE elements SET name = ?, description = ?, author_id_fk = ?, number_of_pages = ?, pdf_content = ? WHERE id = ?
 `

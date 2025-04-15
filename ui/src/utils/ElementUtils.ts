@@ -22,8 +22,10 @@ export const traverseTree = (event: TreeData, nodes: TreeData[]): TreeData[] =>
                 })
 
 export const replaceNote = (event: TreeData, nodes: TreeData[]): TreeData[] =>
-    nodes.map(node => node.id === event.id ? event : isNote(node) ?
-        node : {...node, children: replaceNote(event, node.elements)}
+    nodes.map(node => {
+            return node.id === event.id ? event : isNote(node) ?
+                node : {...node, children: replaceNote(event, node.elements)};
+        }
     )
 
 export const replaceFolder = (event: TreeData, nodes: TreeData[]): TreeData[] =>

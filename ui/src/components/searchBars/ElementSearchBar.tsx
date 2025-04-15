@@ -10,7 +10,6 @@ import {useEffect} from "react";
 
 export const ElementSearchBar = ()=>{
     const dispatch = useAppDispatch()
-    const searchedElements = useAppSelector(state=>state.commonReducer.elementsSearched)
     const text = useAppSelector(state=>state.commonReducer.noteSearchText)
 
     const loadNotes = async (link:string)=>{

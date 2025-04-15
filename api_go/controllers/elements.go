@@ -4,6 +4,7 @@ import (
 	"api_go/constants"
 	"api_go/controllers/dto"
 	"api_go/mappers"
+	"api_go/models"
 	"api_go/service"
 	"github.com/gofiber/fiber/v2"
 	"strconv"
@@ -176,6 +177,46 @@ func CreateNote(c *fiber.Ctx) error {
 		})
 	}
 	return c.JSON(note)
+}
+
+func UpdateFolder(c *fiber.Ctx) error {
+	var folderId = c.Params("folderId")
+	var userId = GetLocal[string](c, "userId")
+	var folderService = GetLocal[service.FolderService](c, "folderService")
+	var folderPatch dto.FolderPatchDto
+
+	if err := c.BodyParser(&folderPatch); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": err.Error(),
+		})
+	}
+
+	var folder, err = folderService.FindFolderByIdAndUser(folderId, userId)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{})
+	}
+	folder.Name = folderPatch.Name
+	folder.Description = folderPatch.Description
+	var parent *models.Folder
+	if folderPatch.ParentId != "" {
+		parent, err = folderService.FindFolderByIdAndUser(folderPatch.ParentId, userId)
+		if err != nil {
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+				"error": err.Error(),
+			})
+		}
+
+	}
+	folder.Parent = parent
+
+	folder, err = folderService.UpdateFolder(userId, *folder)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": err.Error(),
+		})
+	}
+	var folderDto = mappers.ConvertFolderDtoFromModel(*folder, c)
+	return c.JSON(folderDto)
 }
 
 func UpdateNote(c *fiber.Ctx) error {

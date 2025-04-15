@@ -13,7 +13,7 @@ import axios from "axios";
 import {apiURL} from "@/src/Keycloak";
 import {setNodes} from "@/src/store/CommonSlice";
 import {useAppDispatch, useAppSelector} from "@/src/store/hooks";
-import {useMutation} from "@tanstack/react-query";
+import {useMutation, useQueryClient} from "@tanstack/react-query";
 import {RadioGroup, RadioGroupItem} from "@/components/ui/radio-group";
 import {FormControl, FormField, FormItem, FormLabel, FormMessage} from "@/components/ui/form";
 import {Input} from "@/components/ui/input";
@@ -31,7 +31,7 @@ import {Page} from "@/src/models/Page";
 import {FolderEmbeddedContainer} from "@/src/models/FolderEmbeddedContainer";
 import {FolderItem, FolderPostDto} from "@/src/models/Folder";
 import {replaceFolder, replaceNote} from "@/src/utils/ElementUtils";
-import {NoteItem, NotePostDto, NotePutDto} from "@/src/models/NoteItem";
+import {NoteItem, NotePutDto} from "@/src/models/NoteItem";
 import {AuthorEmbeddedContainer} from "@/src/models/AuthorEmbeddedContainer";
 import {Author} from "@/src/models/Author";
 import React, {useEffect, useMemo} from "react";
@@ -45,11 +45,10 @@ export type UpdateFolderOrNoteProps = {
 
 export function UpdateFolderOrNote(props: UpdateFolderOrNoteProps) {
     const {t} = useTranslation()
-    const dispatch = useAppDispatch()
-    const nodes = useAppSelector(state=>state.commonReducer.nodes)
+    const queryClient = useQueryClient()
 
     const updateFolder = async(folder: FolderPostDto)=>{
-        const response = await axios.post(apiURL+`/v1/elements/folders`, folder)
+        const response = await axios.patch(apiURL+`/v1/elements/folders/${props.element.id}`, folder)
         return response.data
     }
 
@@ -81,22 +80,18 @@ export function UpdateFolderOrNote(props: UpdateFolderOrNoteProps) {
     const createFolderMutation = useMutation<FolderItem, Error, FolderPostDto>({
         mutationFn: updateFolder,
         onSuccess:(data)=>{
-            if (data.parent) {
-                dispatch(setNodes(replaceFolder(data, nodes)))
-            } else {
-                dispatch(setNodes(replaceFolder(data, nodes)))
-            }
+            queryClient.setQueryData(["folders"], (loadedNodes: ElementItem[])=>{
+                return replaceFolder(data, loadedNodes)
+            })
         }
     })
 
     const createNoteMutation = useMutation<NoteItem, Error, NotePutDto>({
         mutationFn: updateNote,
         onSuccess:(data)=>{
-            if (data.parent) {
-                dispatch(setNodes(replaceNote(data, nodes)))
-            } else {
-                dispatch(setNodes(replaceNote(data, nodes)))
-            }
+            queryClient.setQueryData(["folders"], (loadedNodes: ElementItem[])=>{
+                return replaceNote(data, loadedNodes)
+            })
         }
     })
 
@@ -129,21 +124,14 @@ export function UpdateFolderOrNote(props: UpdateFolderOrNoteProps) {
 
     const form = useForm<z.infer<typeof schema>>({
         resolver: zodResolver(schema),
-        defaultValues: {
-            name: "",
-            description: "",
-            parentId: "",
-            type: 'folder'
-        },
+        defaultValues: props.element
     })
-
-    const watchType = useWatch({name: 'type', control: form.control})
-
     function onSubmit(values: z.infer<typeof schema>) {
-        if ("type" in values && values.type === "folder") {
+        console.log("Submit values are", values)
+        if (props.element.type === 'folder') {
             createFolderMutation.mutate(values)
-        } else {
-            createNoteMutation.mutate(values)
+        } else if (props.element.type === 'note') {
+            createNoteMutation.mutate(values as NotePutDto)
         }
     }
     const selectableFolderItems = useMemo(()=>{
@@ -164,29 +152,6 @@ export function UpdateFolderOrNote(props: UpdateFolderOrNoteProps) {
     }, [searchAuthorsByName])
 
 
-    useEffect(() => {
-        if (isNote(props.element)) {
-            form.reset({
-                authorId: props.element.author!.id,
-                description: props.element.description,
-                name: props.element.name!,
-                numberOfPages: props.element.numberOfPages!,
-                parentId: props.element.parent.id!,
-                type: props.element.type
-            })
-        } else {
-            form.reset({
-                description: props.element.description,
-                name: props.element.name!,
-                parentId: props.element.parent?.id!,
-                type:  props.element.type
-            })
-        }
-
-
-    }, [props]);
-
-
     return (
         <Dialog>
             <DialogTrigger asChild>
@@ -195,7 +160,7 @@ export function UpdateFolderOrNote(props: UpdateFolderOrNoteProps) {
 
             <DialogContent className="">
                 <DialogTitle className="scroll-m-20 border-b pb-2 text-3xl font-semibold tracking-tight first:mt-0">
-                    Ordner oder Musiknote erstellen
+                    Ordner oder Musiknote updaten
                 </DialogTitle>
 
 
@@ -263,7 +228,7 @@ export function UpdateFolderOrNote(props: UpdateFolderOrNoteProps) {
                             )}
                         />
                         {
-                            watchType === 'note' &&                         <FormField
+                            props.element.type === 'note' &&                         <FormField
                                 control={form.control}
                                 name="numberOfPages"
                                 render={({ field }) => (
@@ -279,7 +244,7 @@ export function UpdateFolderOrNote(props: UpdateFolderOrNoteProps) {
                         }
 
                         {
-                            watchType === 'note' &&                         <FormField
+                            props.element.type === 'note' &&                         <FormField
                                 control={form.control}
                                 name="extraInformation"
                                 render={({ field }) => (
@@ -294,7 +259,7 @@ export function UpdateFolderOrNote(props: UpdateFolderOrNoteProps) {
                             />
                         }
 
-                        {watchType === 'note' && <FormField
+                        {props.element.type === 'note' && <FormField
                             control={form.control}
                             name="authorId"
                             render={({ field }) => (
