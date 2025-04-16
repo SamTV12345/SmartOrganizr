@@ -50,7 +50,7 @@ export const addChild = (event: TreeData, nodes: TreeData[], parentId: string): 
         } else if (isFolder(node)) {
             return {...node, elements: addChild(event, node.elements || [], parentId)} satisfies TreeData
         }
-        throw new Error("This should not happen")
+        return node
     })
 }
 

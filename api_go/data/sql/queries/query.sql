@@ -151,3 +151,7 @@ UPDATE elements SET name = ?, description = ?, author_id_fk = ?, number_of_pages
 
 -- name: UpdateFolder :exec
 UPDATE elements SET name=?, description = ?, parent = ? WHERE id = ? and user_id_fk = ?;
+
+
+-- name: MoveToFolder :exec
+UPDATE elements SET parent = ? WHERE id = ? and user_id_fk = ?;

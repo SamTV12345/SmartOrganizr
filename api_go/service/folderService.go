@@ -285,3 +285,15 @@ func (f *FolderService) UpdateFolder(userId string, folder models.Folder) (*mode
 	}
 	return model, nil
 }
+
+func (f *FolderService) MoveToFolder(sourceId string, targetId string, userId string) error {
+
+	if err := f.Queries.MoveToFolder(f.Ctx, db.MoveToFolderParams{
+		ID:       sourceId,
+		UserIDFk: NewSQLNullString(userId),
+		Parent:   NewSQLNullString(targetId),
+	}); err != nil {
+		return err
+	}
+	return nil
+}

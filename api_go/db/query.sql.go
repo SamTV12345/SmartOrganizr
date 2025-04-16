@@ -1097,6 +1097,21 @@ func (q *Queries) HealthCheck(ctx context.Context) (int32, error) {
 	return column_1, err
 }
 
+const moveToFolder = `-- name: MoveToFolder :exec
+UPDATE elements SET parent = ? WHERE id = ? and user_id_fk = ?
+`
+
+type MoveToFolderParams struct {
+	Parent   sql.NullString
+	ID       string
+	UserIDFk sql.NullString
+}
+
+func (q *Queries) MoveToFolder(ctx context.Context, arg MoveToFolderParams) error {
+	_, err := q.db.ExecContext(ctx, moveToFolder, arg.Parent, arg.ID, arg.UserIDFk)
+	return err
+}
+
 const searchByFolderName = `-- name: SearchByFolderName :many
 SELECT type, id, creation_date, description, name, number_of_pages, user_id_fk, parent, author_id_fk, pdf_content FROM elements WHERE name LIKE CONCAT('%', ?, '%') and type = 'folder' AND user_id_fk = ? ORDER BY name LIMIT ? OFFSET ?
 `

@@ -336,3 +336,17 @@ func GetNodeByID(c *fiber.Ctx) error {
 
 	return c.JSON(noteDetailDto)
 }
+
+func MoveToFolder(c *fiber.Ctx) error {
+	var userId = GetLocal[string](c, "userId")
+	var folderService = GetLocal[service.FolderService](c, "folderService")
+	var firstElement = c.Params("firstElement")
+	var secondElement = c.Params("lastElement")
+
+	if err := folderService.MoveToFolder(firstElement, secondElement, userId); err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": err.Error(),
+		})
+	}
+	return c.SendStatus(fiber.StatusNoContent)
+}
