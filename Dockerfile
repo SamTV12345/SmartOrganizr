@@ -33,6 +33,9 @@ COPY --from=frontend /app/dist ./ui/dist
 RUN go build -o app .
 
 FROM scratch as runtime
+
+EXPOSE 8080
+
 COPY --from=backend /app/app /app
 COPY --from=cache /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 

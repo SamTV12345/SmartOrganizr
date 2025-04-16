@@ -104,19 +104,19 @@ export function CreateFolderOrNote() {
 
     const folderSchema = z.object({
         name: z.string({required_error: t('fieldRequired')!}).min(1, {message: t('fieldRequired')!}),
-        description: z.string().optional(),
+        description: z.string().optional().transform(value => value || undefined),
         type: z.literal("folder"),
-        parentId: z.string().optional()
+        parentId: z.string().optional().transform(value => value || undefined)
     })
 
     const noteSchema = z.object({
         type: z.literal("note"),
         name: z.string({required_error: t('fieldRequired')!}).min(1, {message: t('fieldRequired')!}),
-        description: z.string({required_error: t('fieldRequired')!}).optional(),
+        description: z.string({required_error: t('fieldRequired')!}).optional().transform(value => value || undefined),
         numberOfPages: z.coerce.number({required_error: t('fieldRequired')!}),
         authorId: z.string({required_error: t('fieldRequired')!}),
         parentId: z.string({required_error: t('fieldRequired')!}),
-        extraInformation: z.string({required_error: t('fieldRequired')!}).optional(),
+        extraInformation: z.string({required_error: t('fieldRequired')!}).optional().transform(value => value || undefined),
     })
 
     const schema = z.union([folderSchema, noteSchema]);
@@ -189,7 +189,7 @@ export function CreateFolderOrNote() {
                                 </FormItem>
                             )}
                         />
-                        {watchType === 'note' &&<FormField
+                        <FormField
                             control={form.control}
                             name="name"
                             render={({ field }) => (
@@ -201,20 +201,7 @@ export function CreateFolderOrNote() {
                                     <FormMessage />
                                 </FormItem>
                             )}
-                        />}
-                        {watchType === 'note' &&<FormField
-                            control={form.control}
-                            name="name"
-                            render={({ field }) => (
-                                <FormItem className="grid-cols-2">
-                                    <FormLabel>{t('title')}</FormLabel>
-                                    <FormControl>
-                                        <Input {...field} />
-                                    </FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />}
+                        />
                         <FormField
                             control={form.control}
                             name="description"
@@ -393,7 +380,7 @@ export function CreateFolderOrNote() {
                             <DialogClose>
                                 <Button type="button" variant="secondary" >{t('cancel')}</Button>
                             </DialogClose>
-                            <Button type="submit" >{
+                            <Button disabled={false} type="submit" >{
                                 (createFolderMutation.isPending || createNoteMutation.isPending) ? <Loader className="animate-spin"/>:
                                     t('save')
                             }</Button>
