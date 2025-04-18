@@ -111,22 +111,13 @@ func (a *AuthorService) CountFindAllByCreator(userId string) (*int, error) {
 	return &authorCountInt, nil
 }
 
-func (a *AuthorService) CreateAuthor(author dto.Author, userId string) (models.Author, error) {
+func (a *AuthorService) CreateAuthor(author dto.AuthorCreateDto, userId string) (models.Author, error) {
 	var authorId, _ = uuid.NewRandom()
 	var _, err = a.Queries.CreateAuthor(context.Background(), db.CreateAuthorParams{
-		Name: sql.NullString{
-			String: author.Name,
-			Valid:  true,
-		},
-		ExtraInformation: sql.NullString{
-			String: author.ExtraInformation,
-			Valid:  true,
-		},
-		UserIDFk: sql.NullString{
-			String: userId,
-			Valid:  true,
-		},
-		ID: authorId.String(),
+		Name:             NewSQLNullString(author.Name),
+		ExtraInformation: NewSQLNullString(author.ExtraInformation),
+		UserIDFk:         NewSQLNullString(userId),
+		ID:               authorId.String(),
 	})
 	if err != nil {
 		return models.Author{}, err

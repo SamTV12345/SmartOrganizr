@@ -25,6 +25,10 @@ type AppConfigSSO struct {
 	SSORefreshInternal int
 }
 
+type AppParameters struct {
+	URL string
+}
+
 func (c AppConfigDatabase) GetDSN() string {
 	return c.User + ":" + c.Password + "@tcp(" + c.Host + ":" + string(rune(c.Port)) + ")/smartorganizr"
 }
@@ -33,9 +37,7 @@ type AppConfig struct {
 	Database AppConfigDatabase
 	Port     int
 	SSO      AppConfigSSO
-	App      struct {
-		URL string
-	}
+	App      AppParameters
 }
 
 func ReadConfig() (AppConfig, error) {
@@ -94,7 +96,7 @@ func ReadConfig() (AppConfig, error) {
 			AdminUser:        viper.GetString(SSOAdminUser),
 			AdminPassword:    viper.GetString(SSOAdminPassword),
 		},
-		App: struct{ URL string }{URL: viper.GetString(AppURL)},
+		App: AppParameters{URL: viper.GetString(AppURL)},
 	}
 
 	return config, nil

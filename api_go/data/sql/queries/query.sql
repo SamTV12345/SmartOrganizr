@@ -155,3 +155,13 @@ UPDATE elements SET name=?, description = ?, parent = ? WHERE id = ? and user_id
 
 -- name: MoveToFolder :exec
 UPDATE elements SET parent = ? WHERE id = ? and user_id_fk = ?;
+
+
+-- name: DeleteAllAuthors :exec
+DELETE FROM authors;
+
+-- name: DeleteAllNotes :exec
+DELETE FROM elements;
+
+-- name: DeleteAllUser :exec
+DELETE FROM user;

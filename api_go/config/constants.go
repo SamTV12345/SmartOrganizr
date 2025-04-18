@@ -7,6 +7,7 @@ const DatabaseUser = "database.user"
 const DatabaseDatabase = "database.database"
 const DatabasePassword = "database.password"
 const AppPort = "app.port"
+const AppMode = "app.mode"
 
 const SSOIssuer = "sso.issuer"
 const SSOClientID = "sso.client_id"

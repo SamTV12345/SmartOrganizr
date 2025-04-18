@@ -119,19 +119,20 @@ func DeleteAuthor(c *fiber.Ctx) error {
 }
 
 func CreateAuthor(c *fiber.Ctx) error {
-	var authorDto dto.Author
+	var authorDto dto.AuthorCreateDto
 	if err := c.BodyParser(&authorDto); err != nil {
 		return err
 	}
 	var authorService = GetLocal[service.AuthorService](c, constants.AuthorService)
 	var userId = GetLocal[string](c, constants.UserId)
+
 	var createdAuthor, err = authorService.CreateAuthor(authorDto, userId)
 	if err != nil {
 		return c.JSON(fiber.Map{
 			"error": err.Error(),
 		})
 	}
-	return c.Status(201).JSON(mappers.ConvertAuthorDtoFromModel(createdAuthor))
+	return c.Status(200).JSON(mappers.ConvertAuthorDtoFromModel(createdAuthor))
 }
 
 func GetNotesOfAuthor(c *fiber.Ctx) error {

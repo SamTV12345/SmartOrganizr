@@ -222,6 +222,33 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (int64, 
 	return result.LastInsertId()
 }
 
+const deleteAllAuthors = `-- name: DeleteAllAuthors :exec
+DELETE FROM authors
+`
+
+func (q *Queries) DeleteAllAuthors(ctx context.Context) error {
+	_, err := q.db.ExecContext(ctx, deleteAllAuthors)
+	return err
+}
+
+const deleteAllNotes = `-- name: DeleteAllNotes :exec
+DELETE FROM elements
+`
+
+func (q *Queries) DeleteAllNotes(ctx context.Context) error {
+	_, err := q.db.ExecContext(ctx, deleteAllNotes)
+	return err
+}
+
+const deleteAllUser = `-- name: DeleteAllUser :exec
+DELETE FROM user
+`
+
+func (q *Queries) DeleteAllUser(ctx context.Context) error {
+	_, err := q.db.ExecContext(ctx, deleteAllUser)
+	return err
+}
+
 const deleteAuthor = `-- name: DeleteAuthor :exec
 DELETE FROM authors WHERE id = ? AND user_id_fk = ?
 `

@@ -23,10 +23,6 @@ import (
 )
 
 func SetupRouter(queries *db.Queries, config config.AppConfig) *fiber.App {
-	validator, err := auth.NewKeycloakJWTValidator(config.SSO.Issuer, config.SSO.ClientID)
-	if err != nil {
-		panic(err)
-	}
 
 	app := fiber.New()
 
@@ -44,21 +40,44 @@ func SetupRouter(queries *db.Queries, config config.AppConfig) *fiber.App {
 	defer logger.Sync() // flushes buffer, if any
 	sugar := logger.Sugar()
 
-	go func() {
-		for {
-			if token.Jwt == nil {
-				tokenJwt, err := client.LoginAdmin(context.Background(), config.SSO.AdminUser, config.SSO.AdminPassword, config.SSO.Realm)
-				if err != nil {
-					sugar.Info("Error renewing keycloak token %s", err.Error())
-				}
-				sugar.Info("Renewing keycloak token")
-				token.Mu.Lock()
-				token.Jwt = tokenJwt
-				token.Mu.Unlock()
-			}
-			time.Sleep(time.Second * time.Duration(config.SSO.SSORefreshInternal))
+	var profile fiber.Router
+	if config.SSO.Issuer != "" {
+		validator, err := auth.NewKeycloakJWTValidator(config.SSO.Issuer, config.SSO.ClientID)
+		if err != nil {
+			panic(err)
 		}
-	}()
+		profile = app.Group("api", keyauth.New(keyauth.Config{
+			Validator: validator,
+		}))
+		go func() {
+			for {
+				if token.Jwt == nil {
+					tokenJwt, err := client.LoginAdmin(context.Background(), config.SSO.AdminUser, config.SSO.AdminPassword, config.SSO.Realm)
+					if err != nil {
+						sugar.Info("Error renewing keycloak token %s", err.Error())
+					}
+					sugar.Info("Renewing keycloak token")
+					token.Mu.Lock()
+					token.Jwt = tokenJwt
+					token.Mu.Unlock()
+				}
+				time.Sleep(time.Second * time.Duration(config.SSO.SSORefreshInternal))
+			}
+		}()
+
+	} else {
+		profile = app.Group("api")
+		app.Use(func(c *fiber.Ctx) error {
+			c.Locals("claims", &auth.Claims{
+				Username:   "test",
+				Email:      "test@test.com",
+				FamilyName: "test",
+				GivenName:  "test",
+			})
+			c.Locals("userId", "12345")
+			return c.Next()
+		})
+	}
 
 	var keycloakService = service.NewKeycloakService(
 		config.SSO.Realm,
@@ -126,10 +145,6 @@ func SetupRouter(queries *db.Queries, config config.AppConfig) *fiber.App {
 	app.Get("/api/public", controllers.GetIndex)
 
 	app.Get("/public/users/:userId/:image.png", controllers.GetUserImage)
-
-	profile := app.Group("api", keyauth.New(keyauth.Config{
-		Validator: validator,
-	}))
 
 	// Serve the React ui
 	app.Use("/ui", filesystem.New(filesystem.Config{
