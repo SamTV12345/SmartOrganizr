@@ -33,6 +33,9 @@ jobs:
       - name: Build
         run: pnpm build
         working-directory: ./ui
+      - name: Move to golang
+        run: |
+          mv ./ui/dist ./api_go/ui/dist
       - name: Install dependencies
         run: go mod download
         working-directory: ./api_go
