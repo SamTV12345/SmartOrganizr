@@ -18,6 +18,20 @@ jobs:
         uses: actions/setup-go@v4
         with:
           go-version: 1.21
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+      - name: Install Node.js
+        uses: actions/setup-node@v4
+        with:
+            node-version: 20
+            cache: 'pnpm'
+      - name: Install dependencies
+        run: pnpm install
+        working-directory: ./ui
+      - name: Build
+        run: pnpm build
+        working-directory: ./ui
       - name: Install dependencies
         run: go mod download
         working-directory: ./api_go
