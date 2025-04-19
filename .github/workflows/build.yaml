@@ -21,8 +21,10 @@ jobs:
       - name: Install dependencies
         run: go mod download
         working-directory: ./api_go
+      - name: Set up Docker
+        uses: docker/setup-docker-action@v4
       - name: Test
-        run: go test -v ./...
+        run: go test -v ./tests/...
         working-directory: ./api_go
   build:
     needs:
