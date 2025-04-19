@@ -24,7 +24,7 @@ jobs:
       - name: Set up Docker
         uses: docker/setup-docker-action@v4
       - name: Test
-        run: go test -v ./tests/...
+        run: go test ./tests/
         working-directory: ./api_go
   build:
     needs:
