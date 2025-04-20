@@ -8,6 +8,7 @@ import (
 	"api_go/models"
 	"context"
 	"database/sql"
+	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
 )
 
@@ -129,6 +130,14 @@ func (f *FolderService) CreateFolder(dto dto.FolderPostDto, userId string) (*mod
 	var parent sql.NullString
 
 	if dto.ParentId != nil && *dto.ParentId != "" {
+		_, err := f.Queries.FindFolderById(f.Ctx, db.FindFolderByIdParams{
+			ID:       *dto.ParentId,
+			UserIDFk: NewSQLNullString(userId),
+		})
+		if err != nil {
+			return nil, fiber.NewError(fiber.StatusConflict, "Parent folder not found")
+		}
+
 		parent = sql.NullString{
 			String: *dto.ParentId,
 			Valid:  true,

@@ -165,3 +165,13 @@ DELETE FROM elements;
 
 -- name: DeleteAllUser :exec
 DELETE FROM user;
+
+-- name: DeleteAllData :exec
+START TRANSACTION;
+SET FOREIGN_KEY_CHECKS = 0;
+TRUNCATE elements;
+TRUNCATE authors;
+TRUNCATE concert;
+TRUNCATE user;
+SET FOREIGN_KEY_CHECKS = 1;
+COMMIT;

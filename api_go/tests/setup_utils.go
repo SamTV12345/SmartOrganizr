@@ -68,6 +68,10 @@ func SetupTest(t *testing.T) *fiber.App {
 		if err != nil {
 			t.Fatalf("failed to delete all data: %v", err)
 		}
+		err = db.DeleteAllNotes(ctx)
+		if err != nil {
+			t.Fatalf("failed to delete all data: %v", err)
+		}
 
 		err = db.DeleteAllUser(ctx)
 		if err != nil {

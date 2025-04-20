@@ -6,6 +6,7 @@ import (
 	"api_go/mappers"
 	"api_go/models"
 	"api_go/service"
+	"errors"
 	"github.com/gofiber/fiber/v2"
 	"strconv"
 )
@@ -89,6 +90,13 @@ func CreateFolder(c *fiber.Ctx) error {
 	}
 	var folder, errorWhenCreating = folderService.CreateFolder(folderPostDto, userId)
 	if errorWhenCreating != nil {
+		var errorType *fiber.Error
+		if errors.As(errorWhenCreating, &errorType) {
+			return c.Status(errorType.Code).JSON(fiber.Map{
+				"error": errorWhenCreating.Error(),
+			})
+		}
+
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": errorWhenCreating.Error(),
 		})
