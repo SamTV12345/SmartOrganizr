@@ -18,7 +18,7 @@ require (
 	github.com/spf13/viper v1.20.1
 	github.com/testcontainers/testcontainers-go/modules/mysql v0.38.0
 	github.com/yeqown/go-qrcode/v2 v2.2.5
-	github.com/yeqown/go-qrcode/writer/standard v1.2.5
+	github.com/yeqown/go-qrcode/writer/standard v1.3.0
 	go.uber.org/zap v1.27.0
 )
 
