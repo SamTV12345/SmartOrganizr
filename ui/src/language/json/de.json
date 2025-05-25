@@ -65,5 +65,6 @@
   "lastname": "Nachname",
   "email": "E-Mail",
   "telephonenumber": "Telefonnummer",
-  "username": "Benutzername"
+  "username": "Benutzername",
+  "reset-password": "Passwort zurücksetzen"
 }

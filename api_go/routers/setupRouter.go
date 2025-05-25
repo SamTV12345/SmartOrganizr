@@ -142,8 +142,7 @@ func SetupRouter(queries *db.Queries, config config.AppConfig) *fiber.App {
 		return c.Next()
 	})
 
-	app.Get("/api/public", controllers.GetIndex)
-
+	app.Get("/public", controllers.GetIndex)
 	app.Get("/public/users/:userId/:image.png", controllers.GetUserImage)
 
 	// Serve the React ui
