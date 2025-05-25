@@ -166,6 +166,30 @@ func (q *Queries) CreateFolder(ctx context.Context, arg CreateFolderParams) (int
 	return result.LastInsertId()
 }
 
+const createIcalSync = `-- name: CreateIcalSync :execlastid
+INSERT INTO ical_sync (id, user_id_fk, ical_url, type) VALUES (?, ?, ?, ?)
+`
+
+type CreateIcalSyncParams struct {
+	ID       string
+	UserIDFk string
+	IcalUrl  string
+	Type     string
+}
+
+func (q *Queries) CreateIcalSync(ctx context.Context, arg CreateIcalSyncParams) (int64, error) {
+	result, err := q.db.ExecContext(ctx, createIcalSync,
+		arg.ID,
+		arg.UserIDFk,
+		arg.IcalUrl,
+		arg.Type,
+	)
+	if err != nil {
+		return 0, err
+	}
+	return result.LastInsertId()
+}
+
 const createNote = `-- name: CreateNote :execlastid
 INSERT INTO elements (id, type, name, description, user_id_fk, parent, author_id_fk, number_of_pages) VALUES (?,'note', ?, ?, ?, ?, ?, ?)
 `
@@ -465,6 +489,38 @@ func (q *Queries) FindAllFoldersByCreator(ctx context.Context, userIDFk sql.Null
 			&i.Parent,
 			&i.AuthorIDFk,
 			&i.PdfContent,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const findAllIcalSyncsByUser = `-- name: FindAllIcalSyncsByUser :many
+SELECT id, user_id_fk, ical_url, type FROM ical_sync WHERE user_id_fk = ? ORDER BY ical_url
+`
+
+func (q *Queries) FindAllIcalSyncsByUser(ctx context.Context, userIDFk string) ([]IcalSync, error) {
+	rows, err := q.db.QueryContext(ctx, findAllIcalSyncsByUser, userIDFk)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []IcalSync
+	for rows.Next() {
+		var i IcalSync
+		if err := rows.Scan(
+			&i.ID,
+			&i.UserIDFk,
+			&i.IcalUrl,
+			&i.Type,
 		); err != nil {
 			return nil, err
 		}
@@ -1023,6 +1079,48 @@ func (q *Queries) FindFolderById(ctx context.Context, arg FindFolderByIdParams) 
 	return i, err
 }
 
+const findIcalSyncById = `-- name: FindIcalSyncById :one
+SELECT id, user_id_fk, ical_url, type FROM ical_sync WHERE id = ? AND user_id_fk = ?
+`
+
+type FindIcalSyncByIdParams struct {
+	ID       string
+	UserIDFk string
+}
+
+func (q *Queries) FindIcalSyncById(ctx context.Context, arg FindIcalSyncByIdParams) (IcalSync, error) {
+	row := q.db.QueryRowContext(ctx, findIcalSyncById, arg.ID, arg.UserIDFk)
+	var i IcalSync
+	err := row.Scan(
+		&i.ID,
+		&i.UserIDFk,
+		&i.IcalUrl,
+		&i.Type,
+	)
+	return i, err
+}
+
+const findIcalSyncByTypeAndUser = `-- name: FindIcalSyncByTypeAndUser :one
+SELECT id, user_id_fk, ical_url, type FROM ical_sync WHERE type = ? AND user_id_fk = ?
+`
+
+type FindIcalSyncByTypeAndUserParams struct {
+	Type     string
+	UserIDFk string
+}
+
+func (q *Queries) FindIcalSyncByTypeAndUser(ctx context.Context, arg FindIcalSyncByTypeAndUserParams) (IcalSync, error) {
+	row := q.db.QueryRowContext(ctx, findIcalSyncByTypeAndUser, arg.Type, arg.UserIDFk)
+	var i IcalSync
+	err := row.Scan(
+		&i.ID,
+		&i.UserIDFk,
+		&i.IcalUrl,
+		&i.Type,
+	)
+	return i, err
+}
+
 const findNoteById = `-- name: FindNoteById :one
 SELECT note.type, note.id, note.creation_date, note.description, note.name, note.number_of_pages, note.user_id_fk, note.parent, note.author_id_fk, note.pdf_content,folder.type, folder.id, folder.creation_date, folder.description, folder.name, folder.number_of_pages, folder.user_id_fk, folder.parent, folder.author_id_fk, folder.pdf_content FROM elements note join elements folder ON note.parent = folder.id  WHERE note.type ='note' AND note.id = ?
 `
@@ -1230,6 +1328,36 @@ func (q *Queries) UpdateFolder(ctx context.Context, arg UpdateFolderParams) erro
 		arg.ID,
 		arg.UserIDFk,
 	)
+	return err
+}
+
+const updateIcalSync = `-- name: UpdateIcalSync :exec
+UPDATE ical_sync SET ical_url = ? WHERE id = ? AND user_id_fk = ?
+`
+
+type UpdateIcalSyncParams struct {
+	IcalUrl  string
+	ID       string
+	UserIDFk string
+}
+
+func (q *Queries) UpdateIcalSync(ctx context.Context, arg UpdateIcalSyncParams) error {
+	_, err := q.db.ExecContext(ctx, updateIcalSync, arg.IcalUrl, arg.ID, arg.UserIDFk)
+	return err
+}
+
+const updateIcalSyncByTypeAndUser = `-- name: UpdateIcalSyncByTypeAndUser :exec
+UPDATE ical_sync SET ical_url = ? WHERE type = ? AND user_id_fk = ?
+`
+
+type UpdateIcalSyncByTypeAndUserParams struct {
+	IcalUrl  string
+	Type     string
+	UserIDFk string
+}
+
+func (q *Queries) UpdateIcalSyncByTypeAndUser(ctx context.Context, arg UpdateIcalSyncByTypeAndUserParams) error {
+	_, err := q.db.ExecContext(ctx, updateIcalSyncByTypeAndUser, arg.IcalUrl, arg.Type, arg.UserIDFk)
 	return err
 }
 

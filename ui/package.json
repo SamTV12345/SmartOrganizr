@@ -44,7 +44,7 @@
     "keycloak-js": "^26.2.0",
     "lucide-react": "^0.485.0",
     "react": "^19.1.0",
-    "react-day-picker": "8.10.1",
+    "react-day-picker": "^9.7.0",
     "react-dom": "^19.1.0",
     "react-hook-form": "^7.56.4",
     "react-i18next": "^12.3.1",
@@ -62,7 +62,7 @@
     "@types/node": "^18.19.103",
     "@types/react": "^19.1.5",
     "@types/react-dom": "^19.1.5",
-    "tailwindcss": "^4.1.7",
-    "typescript": "^5.8.3"
+    "@typescript/native-preview": "7.0.0-dev.20250525.1",
+    "tailwindcss": "^4.1.7"
   }
 }

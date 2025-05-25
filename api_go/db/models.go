@@ -38,6 +38,13 @@ type Element struct {
 	PdfContent    sql.NullString
 }
 
+type IcalSync struct {
+	ID       string
+	UserIDFk string
+	IcalUrl  string
+	Type     string
+}
+
 type NoteInConcert struct {
 	ConcertIDFk    string
 	NoteIDFk       string

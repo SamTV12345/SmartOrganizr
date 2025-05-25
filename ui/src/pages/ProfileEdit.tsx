@@ -5,6 +5,7 @@ import {ProfileUploadEdit} from "@/src/components/profile/ProfileUploadEdit";
 import {ProfileGeneralEdit} from "@/src/components/profile/ProfileGeneralEdit";
 import {GeburtstagAdresseEdit} from "@/src/components/profile/GeburtstagAdresseEdit";
 import {PasswordReset} from "@/src/components/profile/PasswordReset";
+import {KonzertMeisterRestURL} from "@/src/components/profile/KonzertMeisterRestURL";
 
 export const ProfileEdit = ()=> {
 
@@ -19,6 +20,10 @@ export const ProfileEdit = ()=> {
                     <GeburtstagAdresseEdit/>
                     <PasswordReset/>
                 </div>
+                    <div>
+                        <KonzertMeisterRestURL/>
+
+                    </div>
                 </div>
             </div>
         </div>

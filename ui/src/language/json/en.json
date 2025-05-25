@@ -41,5 +41,7 @@
   "appearanceDate": "Appearance date",
   "hints": "Hints",
   "save": "Save",
-  "noteManagement": "Note management"
+  "noteManagement": "Note management",
+  "konzertmeister-url": "Konzertmeister URL",
+  "fieldMustBeUrl": "This field must be a valid URL."
 }

@@ -12,6 +12,7 @@ import (
 	"api_go/ui"
 	"context"
 	"github.com/Nerzal/gocloak/v13"
+	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/fiber/v2/middleware/filesystem"
@@ -25,6 +26,7 @@ import (
 func SetupRouter(queries *db.Queries, config config.AppConfig) *fiber.App {
 
 	app := fiber.New()
+	validate := validator.New(validator.WithRequiredStructEnabled())
 
 	app.Use(cors.New(cors.Config{
 		AllowOrigins: "*",
@@ -42,12 +44,12 @@ func SetupRouter(queries *db.Queries, config config.AppConfig) *fiber.App {
 
 	var profile fiber.Router
 	if config.SSO.Issuer != "" {
-		validator, err := auth.NewKeycloakJWTValidator(config.SSO.Issuer, config.SSO.ClientID)
+		jwtValidator, err := auth.NewKeycloakJWTValidator(config.SSO.Issuer, config.SSO.ClientID)
 		if err != nil {
 			panic(err)
 		}
 		profile = app.Group("api", keyauth.New(keyauth.Config{
-			Validator: validator,
+			Validator: jwtValidator,
 		}))
 		go func() {
 			for {
@@ -104,6 +106,10 @@ func SetupRouter(queries *db.Queries, config config.AppConfig) *fiber.App {
 
 	noteService.AuthorService = &authorService
 
+	var icalSyncService = service.IcalSyncService{
+		Queries: queries,
+	}
+
 	var folderService = service.FolderService{
 		Queries:       queries,
 		Ctx:           context.Background(),
@@ -128,6 +134,8 @@ func SetupRouter(queries *db.Queries, config config.AppConfig) *fiber.App {
 		SetLocal[string](c, constants.BaseURL, config.App.URL)
 		SetLocal[service.AuthorService](c, constants.AuthorService, authorService)
 		SetLocal[service.ConcertService](c, constants.ConcertService, concertService)
+		SetLocal[*validator.Validate](c, constants.Validator, validate)
+		SetLocal[service.IcalSyncService](c, constants.IcalSyncService, icalSyncService)
 		// Go to next middleware:
 		return c.Next()
 	})
@@ -168,6 +176,8 @@ func SetupRouter(queries *db.Queries, config config.AppConfig) *fiber.App {
 		r.Get("/token", controllers.GetUser)
 		r.Patch("/:userId", controllers.UpdateUser)
 		r.Post("/:userId/profile", controllers.UploadProfile)
+		r.Post("/:userId/konzertmeister-url", controllers.SetKonzertmeisterUrl)
+		r.Get("/:userId/konzertmeister-url", controllers.GetKonzertmeisterUrl)
 		r.Get("/me", controllers.GetUserProfile)
 		r.Get("/offline", controllers.GetOfflineData)
 		r.Delete("/:userId/profile", controllers.DeleteProfilePic)

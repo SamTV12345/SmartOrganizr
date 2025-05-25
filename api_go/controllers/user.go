@@ -7,6 +7,7 @@ import (
 	"api_go/mappers"
 	"api_go/models"
 	"api_go/service"
+	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v2"
 )
 
@@ -182,4 +183,51 @@ func UpdateUser(c *fiber.Ctx) error {
 		})
 	}
 	return c.JSON(mappers.ConvertUserDtoFromModel(*loadedUser, c))
+}
+
+func GetKonzertmeisterUrl(c *fiber.Ctx) error {
+	var userId = GetLocal[string](c, "userId")
+	var icalSyncService = GetLocal[service.IcalSyncService](c, constants.IcalSyncService)
+
+	var icalSyncModel, err = icalSyncService.GetIcalSync("konzertmeister", userId)
+	if err != nil {
+		return c.Status(500).JSON(fiber.Map{
+			"error": "Failed to get Konzertmeister URL",
+		})
+	}
+
+	if icalSyncModel == nil {
+		return c.Status(404).JSON(fiber.Map{
+			"error": "Konzertmeister URL not found",
+		})
+	}
+
+	return c.JSON(mappers.ConvertIcalSyncFromModelToDto(*icalSyncModel))
+}
+
+func SetKonzertmeisterUrl(c *fiber.Ctx) error {
+	var userId = GetLocal[string](c, "userId")
+	var icalSyncService = GetLocal[service.IcalSyncService](c, constants.IcalSyncService)
+	var validatorToUse = GetLocal[*validator.Validate](c, constants.Validator)
+
+	var icalSync dto.IcalSyncDto
+	if err := c.BodyParser(&icalSync); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": err.Error(),
+		})
+	}
+	if err := validatorToUse.Struct(icalSync); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "Invalid input data",
+		})
+	}
+
+	var icalSyncModel, err = icalSyncService.SetIcalSync(icalSync, "konzertmeister", userId)
+	if err != nil {
+		return c.Status(500).JSON(fiber.Map{
+			"error": "Failed to set Konzertmeister URL",
+		})
+	}
+
+	return c.JSON(mappers.ConvertIcalSyncFromModelToDto(*icalSyncModel))
 }

@@ -66,5 +66,7 @@
   "email": "E-Mail",
   "telephonenumber": "Telefonnummer",
   "username": "Benutzername",
-  "reset-password": "Passwort zurücksetzen"
+  "reset-password": "Passwort zurücksetzen",
+  "konzertmeister-url": "Konzertmeister URL",
+  "fieldMustBeUrl": "Dieses Feld muss eine gültige URL sein."
 }

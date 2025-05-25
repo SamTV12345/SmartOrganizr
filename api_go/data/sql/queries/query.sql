@@ -175,3 +175,21 @@ TRUNCATE concert;
 TRUNCATE user;
 SET FOREIGN_KEY_CHECKS = 1;
 COMMIT;
+
+-- name: FindAllIcalSyncsByUser :many
+SELECT * FROM ical_sync WHERE user_id_fk = ? ORDER BY ical_url;
+
+-- name: FindIcalSyncById :one
+SELECT * FROM ical_sync WHERE id = ? AND user_id_fk = ?;
+
+-- name: CreateIcalSync :execlastid
+INSERT INTO ical_sync (id, user_id_fk, ical_url, type) VALUES (?, ?, ?, ?);
+
+-- name: UpdateIcalSync :exec
+UPDATE ical_sync SET ical_url = ? WHERE id = ? AND user_id_fk = ?;
+
+-- name: UpdateIcalSyncByTypeAndUser :exec
+UPDATE ical_sync SET ical_url = ? WHERE type = ? AND user_id_fk = ?;
+
+-- name: FindIcalSyncByTypeAndUser :one
+SELECT * FROM ical_sync WHERE type = ? AND user_id_fk = ?;
