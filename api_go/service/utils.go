@@ -12,6 +12,18 @@ func NewSQLNullString(value string) sql.NullString {
 	}
 }
 
+func NewSQLNullStringNullValue(value *string) sql.NullString {
+	if value == nil {
+		return sql.NullString{
+			Valid: false,
+		}
+	}
+	return sql.NullString{
+		String: *value,
+		Valid:  true,
+	}
+}
+
 func NewSQLNullInt(value int) sql.NullInt32 {
 	return sql.NullInt32{
 		Int32: int32(value),

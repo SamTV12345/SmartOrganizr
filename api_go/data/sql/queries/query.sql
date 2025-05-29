@@ -195,7 +195,7 @@ UPDATE ical_sync SET ical_url = ?, last_synced = ? WHERE type = ? AND user_id_fk
 SELECT * FROM ical_sync WHERE type = ? AND user_id_fk = ?;
 
 -- name: FindIcalSyncWithUserSinceDate :many
-SELECT sqlc.embed(ical_sync), sqlc.embed(user) FROM ical_sync JOIN user ON ical_sync.user_id_fk = user.id WHERE last_synced > ?;
+SELECT sqlc.embed(ical_sync), sqlc.embed(user) FROM ical_sync JOIN user ON ical_sync.user_id_fk = user.id WHERE ical_sync.last_synced > ? or ical_sync.last_synced IS NULL;
 
 
 -- name: CreateEvent :exec
@@ -215,3 +215,5 @@ REPLACE INTO events (
     ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
 );
 
+-- name: UpdateLastSyncOfIcal :exec
+UPDATE ical_sync SET last_synced = ? WHERE id = ?

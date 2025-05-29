@@ -29,7 +29,7 @@ func SyncAllICALFiles(queries *db.Queries, setupLogger *zap.SugaredLogger) {
 			summary := event.GetProperty("SUMMARY")
 			url := event.GetProperty("URL")
 			geoDate := event.GetProperty("GEO")
-			location := event.GetProperty("LOCATION")
+			locationProperty := event.GetProperty("LOCATION")
 			uid := event.GetProperty("UID")
 			tzId := event.GetProperty("TZID")
 			description := event.GetProperty("DESCRIPTION")
@@ -45,15 +45,25 @@ func SyncAllICALFiles(queries *db.Queries, setupLogger *zap.SugaredLogger) {
 				setupLogger.Errorf("No end date found for event %s", summary)
 			}
 
-			geoDateX, geoDateY := splitGeoDates(geoDate.Value)
+			var geoDateX *float64
+			var geoDateY *float64
+			var location *string
+
+			if locationProperty != nil {
+				location = &locationProperty.Value
+			}
+
+			if geoDate != nil {
+				geoDateX, geoDateY = splitGeoDates(geoDate.Value)
+			}
 			eventToCreate := db.Event{
 				Uid:         uid.Value,
-				UserIDFk:    tzId.Value,
+				UserIDFk:    foundFileToSync.User.ID,
 				Summary:     service.NewSQLNullString(summary.Value),
 				Url:         service.NewSQLNullString(url.Value),
 				GeoDateX:    service.NewSQLNullFloatNullable(geoDateX),
 				GeoDateY:    service.NewSQLNullFloatNullable(geoDateY),
-				Location:    service.NewSQLNullString(location.Value),
+				Location:    service.NewSQLNullStringNullValue(location),
 				TzID:        service.NewSQLNullString(tzId.Value),
 				Description: service.NewSQLNullString(description.Value),
 				StartDate:   service.NewSQLNullTime(startDate),
@@ -76,6 +86,12 @@ func SyncAllICALFiles(queries *db.Queries, setupLogger *zap.SugaredLogger) {
 			if err != nil {
 				setupLogger.Errorf("Error syncing calendar for user %s with error %v", foundFileToSync.User.Username.String, err)
 			}
+		}
+		if err := queries.UpdateLastSyncOfIcal(context.Background(), db.UpdateLastSyncOfIcalParams{
+			ID:         foundFileToSync.IcalSync.ID,
+			LastSynced: service.NewSQLNullTime(time.Now()),
+		}); err != nil {
+			setupLogger.Errorf("Error updating last sync of ical file to sync: %v", err)
 		}
 	}
 }

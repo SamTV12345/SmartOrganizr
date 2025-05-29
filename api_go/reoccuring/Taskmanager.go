@@ -7,7 +7,7 @@ import (
 )
 
 func ExecuteOncePerHour(db *db.Queries, setupLogger *zap.SugaredLogger) {
-	ticker := time.NewTicker(time.Hour * 24)
+	ticker := time.NewTicker(time.Minute)
 	quit := make(chan struct{})
 	go func() {
 		for {

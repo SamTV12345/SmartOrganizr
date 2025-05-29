@@ -1176,7 +1176,7 @@ func (q *Queries) FindIcalSyncByTypeAndUser(ctx context.Context, arg FindIcalSyn
 }
 
 const findIcalSyncWithUserSinceDate = `-- name: FindIcalSyncWithUserSinceDate :many
-SELECT ical_sync.id, ical_sync.user_id_fk, ical_sync.ical_url, ical_sync.type, ical_sync.last_synced, user.id, user.side_bar_collapsed, user.username, user.profile_picture, user.email, user.firstname, user.lastname, user.telephonenumber, user.birthday, user.country, user.postalcode, user.city, user.street FROM ical_sync JOIN user ON ical_sync.user_id_fk = user.id WHERE last_synced > ?
+SELECT ical_sync.id, ical_sync.user_id_fk, ical_sync.ical_url, ical_sync.type, ical_sync.last_synced, user.id, user.side_bar_collapsed, user.username, user.profile_picture, user.email, user.firstname, user.lastname, user.telephonenumber, user.birthday, user.country, user.postalcode, user.city, user.street FROM ical_sync JOIN user ON ical_sync.user_id_fk = user.id WHERE ical_sync.last_synced > ? or ical_sync.last_synced IS NULL
 `
 
 type FindIcalSyncWithUserSinceDateRow struct {
@@ -1475,6 +1475,20 @@ func (q *Queries) UpdateIcalSyncByTypeAndUser(ctx context.Context, arg UpdateIca
 		arg.Type,
 		arg.UserIDFk,
 	)
+	return err
+}
+
+const updateLastSyncOfIcal = `-- name: UpdateLastSyncOfIcal :exec
+UPDATE ical_sync SET last_synced = ? WHERE id = ?
+`
+
+type UpdateLastSyncOfIcalParams struct {
+	LastSynced sql.NullTime
+	ID         string
+}
+
+func (q *Queries) UpdateLastSyncOfIcal(ctx context.Context, arg UpdateLastSyncOfIcalParams) error {
+	_, err := q.db.ExecContext(ctx, updateLastSyncOfIcal, arg.LastSynced, arg.ID)
 	return err
 }
 

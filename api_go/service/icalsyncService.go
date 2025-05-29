@@ -9,10 +9,27 @@ import (
 	"database/sql"
 	"errors"
 	"github.com/google/uuid"
+	"net/http"
+	"strings"
 )
 
 type IcalSyncService struct {
 	Queries *db.Queries
+}
+
+func (i *IcalSyncService) ValidateIcalOnline(icalUrl string) (bool, error) {
+	createdRequest, err := http.NewRequest("HEAD", icalUrl, nil)
+	if err != nil {
+		return false, err
+	}
+	client := &http.Client{}
+	response, err := client.Do(createdRequest)
+	if err != nil {
+		return false, err
+	}
+	defer response.Body.Close()
+	contentTypeHeader := response.Header.Get("Content-Type")
+	return strings.Contains(contentTypeHeader, "text/calendar"), nil
 }
 
 func (i *IcalSyncService) saveIcalSync(icalSync models.IcalSyncModel, typeOfIcal string) (*models.IcalSyncModel, error) {

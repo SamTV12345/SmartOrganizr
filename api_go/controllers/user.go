@@ -222,7 +222,15 @@ func SetKonzertmeisterUrl(c *fiber.Ctx) error {
 		})
 	}
 
-	var icalSyncModel, err = icalSyncService.SetIcalSync(icalSync, "konzertmeister", userId)
+	validatedIcal, err := icalSyncService.ValidateIcalOnline(icalSync.Url)
+
+	if err != nil || !validatedIcal {
+		return c.Status(500).JSON(fiber.Map{
+			"error": "Failed to validate Konzertmeister URL",
+		})
+	}
+
+	icalSyncModel, err := icalSyncService.SetIcalSync(icalSync, "konzertmeister", userId)
 	if err != nil {
 		return c.Status(500).JSON(fiber.Map{
 			"error": "Failed to set Konzertmeister URL",
