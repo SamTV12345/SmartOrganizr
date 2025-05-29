@@ -23,7 +23,7 @@ import (
 	"time"
 )
 
-func SetupRouter(queries *db.Queries, config config.AppConfig) *fiber.App {
+func SetupRouter(queries *db.Queries, config config.AppConfig, logger *zap.SugaredLogger) *fiber.App {
 
 	app := fiber.New()
 	validate := validator.New(validator.WithRequiredStructEnabled())
@@ -38,9 +38,6 @@ func SetupRouter(queries *db.Queries, config config.AppConfig) *fiber.App {
 		Mu:  sync.Mutex{},
 	}
 	var client = gocloak.NewClient(config.SSO.Url)
-	logger, _ := zap.NewProduction()
-	defer logger.Sync() // flushes buffer, if any
-	sugar := logger.Sugar()
 
 	var profile fiber.Router
 	if config.SSO.Issuer != "" {
@@ -56,9 +53,9 @@ func SetupRouter(queries *db.Queries, config config.AppConfig) *fiber.App {
 				if token.Jwt == nil {
 					tokenJwt, err := client.LoginAdmin(context.Background(), config.SSO.AdminUser, config.SSO.AdminPassword, config.SSO.Realm)
 					if err != nil {
-						sugar.Info("Error renewing keycloak token %s", err.Error())
+						logger.Info("Error renewing keycloak token %s", err.Error())
 					}
-					sugar.Info("Renewing keycloak token")
+					logger.Info("Renewing keycloak token")
 					token.Mu.Lock()
 					token.Jwt = tokenJwt
 					token.Mu.Unlock()

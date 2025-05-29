@@ -3,26 +3,34 @@ package main
 import (
 	"api_go/config"
 	db2 "api_go/db"
+	"api_go/logger"
+	"api_go/reoccuring"
 	"api_go/routers"
-	"log"
 	"strconv"
 )
 
 func main() {
-	log.Println("Starting smartorganizr")
+
+	setupLogger := logger.SetupLogger()
+	defer setupLogger.Sync() // flushes buffer, if any
+	setupLogger.Info("Starting smartorganizr")
 	appConfig, err := config.ReadConfig()
 	if err != nil {
-		log.Fatalf("Error reading config file, %s", err)
+		setupLogger.Fatalf("Error reading config file, %s", err)
 		return
 	}
 
-	log.Printf("Connecting with user %s to database %s:%d", appConfig.Database.User, appConfig.Database.Host, appConfig.Database.Port)
+	setupLogger.Info("Connecting with user %s to database %s:%d", appConfig.Database.User, appConfig.Database.Host, appConfig.Database.Port)
 
 	var db = db2.Setup(appConfig.Database)
-	var app = routers.SetupRouter(db, appConfig)
+	var app = routers.SetupRouter(db, appConfig, setupLogger)
+
+	reoccuring.ExecuteOncePerHour(db, setupLogger)
+
 	err = app.Listen("0.0.0.0:" + strconv.Itoa(appConfig.Port))
 	if err != nil {
-		log.Fatalf("Error starting server, %s", err)
+		setupLogger.Fatalf("Error starting server, %s", err)
 		return
 	}
+
 }

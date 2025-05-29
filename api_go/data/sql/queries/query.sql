@@ -183,13 +183,35 @@ SELECT * FROM ical_sync WHERE user_id_fk = ? ORDER BY ical_url;
 SELECT * FROM ical_sync WHERE id = ? AND user_id_fk = ?;
 
 -- name: CreateIcalSync :execlastid
-INSERT INTO ical_sync (id, user_id_fk, ical_url, type) VALUES (?, ?, ?, ?);
+INSERT INTO ical_sync (id, user_id_fk, ical_url, type, last_synced) VALUES (?, ?, ?, ?, ?);
 
 -- name: UpdateIcalSync :exec
-UPDATE ical_sync SET ical_url = ? WHERE id = ? AND user_id_fk = ?;
+UPDATE ical_sync SET ical_url = ?, last_synced = ? WHERE id = ? AND user_id_fk = ?;
 
 -- name: UpdateIcalSyncByTypeAndUser :exec
-UPDATE ical_sync SET ical_url = ? WHERE type = ? AND user_id_fk = ?;
+UPDATE ical_sync SET ical_url = ?, last_synced = ? WHERE type = ? AND user_id_fk = ?;
 
 -- name: FindIcalSyncByTypeAndUser :one
 SELECT * FROM ical_sync WHERE type = ? AND user_id_fk = ?;
+
+-- name: FindIcalSyncWithUserSinceDate :many
+SELECT sqlc.embed(ical_sync), sqlc.embed(user) FROM ical_sync JOIN user ON ical_sync.user_id_fk = user.id WHERE last_synced > ?;
+
+
+-- name: CreateEvent :exec
+REPLACE INTO events (
+    uid,
+    user_id_fk,
+    summary,
+    url,
+    geo_date_x,
+    geo_date_y,
+    location,
+    tz_id,
+    description,
+    start_date,
+    end_date
+) VALUES (
+    ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
+);
+
