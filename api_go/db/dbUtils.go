@@ -1,4 +1,4 @@
-package service
+package db
 
 import (
 	"database/sql"
@@ -22,6 +22,27 @@ func NewSQLNullStringNullValue(value *string) sql.NullString {
 		String: *value,
 		Valid:  true,
 	}
+}
+
+func ConvertSQLNullFloatToFloat(value sql.NullFloat64) *float64 {
+	if !value.Valid {
+		return nil
+	}
+	return &value.Float64
+}
+
+func ConvertSQLNullString(value sql.NullString) *string {
+	if !value.Valid {
+		return nil
+	}
+	return &value.String
+}
+
+func ConvertSQLNullTime(value sql.NullTime) *time.Time {
+	if !value.Valid {
+		return nil
+	}
+	return &value.Time
 }
 
 func NewSQLNullInt(value int) sql.NullInt32 {

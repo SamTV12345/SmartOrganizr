@@ -107,6 +107,10 @@ func SetupRouter(queries *db.Queries, config config.AppConfig, logger *zap.Sugar
 		Queries: queries,
 	}
 
+	var eventService = service.EventService{
+		Queries: queries,
+	}
+
 	var folderService = service.FolderService{
 		Queries:       queries,
 		Ctx:           context.Background(),
@@ -133,7 +137,8 @@ func SetupRouter(queries *db.Queries, config config.AppConfig, logger *zap.Sugar
 		SetLocal[service.ConcertService](c, constants.ConcertService, concertService)
 		SetLocal[*validator.Validate](c, constants.Validator, validate)
 		SetLocal[service.IcalSyncService](c, constants.IcalSyncService, icalSyncService)
-		// Go to next middleware:
+		SetLocal[service.EventService](c, constants.EventService, eventService)
+
 		return c.Next()
 	})
 
@@ -178,6 +183,10 @@ func SetupRouter(queries *db.Queries, config config.AppConfig, logger *zap.Sugar
 		r.Get("/me", controllers.GetUserProfile)
 		r.Get("/offline", controllers.GetOfflineData)
 		r.Delete("/:userId/profile", controllers.DeleteProfilePic)
+	})
+
+	profile.Route("v1/events", func(r fiber.Router) {
+		r.Get("/:userId", controllers.GetEvents)
 	})
 
 	profile.Route("v1/authors", func(r fiber.Router) {

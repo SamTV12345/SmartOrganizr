@@ -37,7 +37,7 @@ func (a *AuthorService) LoadAllAuthors(userId string) ([]models.Author, error) {
 func (a *AuthorService) LoadAuthorById(authorId string, userId string) (models.Author, error) {
 	authorDB, err := a.Queries.FindAuthorById(a.Ctx, db.FindAuthorByIdParams{
 		ID:       authorId,
-		UserIDFk: NewSQLNullString(userId),
+		UserIDFk: db.NewSQLNullString(userId),
 	})
 	if err != nil {
 		return models.Author{}, err
@@ -48,7 +48,7 @@ func (a *AuthorService) LoadAuthorById(authorId string, userId string) (models.A
 
 func (a *AuthorService) FindByCreatorAndSearchText(userId string, nameStr string) ([]models.Author, error) {
 	var authorsDb, err = a.Queries.FindAllAuthorsByCreatorAndSearchText(context.Background(), db.FindAllAuthorsByCreatorAndSearchTextParams{
-		UserIDFk: NewSQLNullString(userId),
+		UserIDFk: db.NewSQLNullString(userId),
 		CONCAT:   nameStr,
 		CONCAT_2: nameStr,
 	})
@@ -84,7 +84,7 @@ func (a *AuthorService) FindAllByCreator(userId string, page int) ([]models.Auth
 	var authorsDb, err = a.Queries.FindAllAuthorsByCreator(a.Ctx, db.FindAllAuthorsByCreatorParams{
 		Limit:    constants.CurrentPageSize,
 		Offset:   int32(constants.CurrentPageSize * page),
-		UserIDFk: NewSQLNullString(userId),
+		UserIDFk: db.NewSQLNullString(userId),
 	})
 	if err != nil {
 		return nil, err
@@ -114,9 +114,9 @@ func (a *AuthorService) CountFindAllByCreator(userId string) (*int, error) {
 func (a *AuthorService) CreateAuthor(author dto.AuthorCreateDto, userId string) (models.Author, error) {
 	var authorId, _ = uuid.NewRandom()
 	var _, err = a.Queries.CreateAuthor(context.Background(), db.CreateAuthorParams{
-		Name:             NewSQLNullString(author.Name),
-		ExtraInformation: NewSQLNullString(author.ExtraInformation),
-		UserIDFk:         NewSQLNullString(userId),
+		Name:             db.NewSQLNullString(author.Name),
+		ExtraInformation: db.NewSQLNullString(author.ExtraInformation),
+		UserIDFk:         db.NewSQLNullString(userId),
 		ID:               authorId.String(),
 	})
 	if err != nil {
@@ -158,8 +158,8 @@ func (a *AuthorService) DeleteAuthor(authorId string, userId string) error {
 
 func (a *AuthorService) FindAllNotesByAuthor(userId string, authorId string) (*[]models.Note, error) {
 	var notes, err = a.Queries.FindAllNotesByAuthor(context.Background(), db.FindAllNotesByAuthorParams{
-		UserIDFk:   NewSQLNullString(userId),
-		AuthorIDFk: NewSQLNullString(authorId),
+		UserIDFk:   db.NewSQLNullString(userId),
+		AuthorIDFk: db.NewSQLNullString(authorId),
 	})
 
 	if err != nil {
@@ -204,16 +204,16 @@ func (a *AuthorService) FindAuthorByIdAndUser(authorId string, userId string) (m
 func (a *AuthorService) UpdateAuthor(authorPatchDto dto.AuthorPatchDto, userId string, authorId string) (models.Author, error) {
 	err := a.Queries.UpdateAuthor(context.Background(), db.UpdateAuthorParams{
 		ID:               authorId,
-		ExtraInformation: NewSQLNullString(authorPatchDto.ExtraInformation),
-		Name:             NewSQLNullString(authorPatchDto.Name),
-		UserIDFk:         NewSQLNullString(userId),
+		ExtraInformation: db.NewSQLNullString(authorPatchDto.ExtraInformation),
+		Name:             db.NewSQLNullString(authorPatchDto.Name),
+		UserIDFk:         db.NewSQLNullString(userId),
 	})
 	if err != nil {
 		return models.Author{}, err
 	}
 	var author, errFetching = a.Queries.FindAuthorById(context.Background(), db.FindAuthorByIdParams{
 		ID:       authorId,
-		UserIDFk: NewSQLNullString(userId),
+		UserIDFk: db.NewSQLNullString(userId),
 	})
 	if errFetching != nil {
 		return models.Author{}, errFetching

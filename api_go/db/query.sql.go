@@ -1289,6 +1289,45 @@ func (q *Queries) FindUserById(ctx context.Context, id string) (User, error) {
 	return i, err
 }
 
+const getEventsOfUser = `-- name: GetEventsOfUser :many
+SELECT uid, user_id_fk, summary, url, geo_date_x, geo_date_y, location, tz_id, description, start_date, end_date FROM events WHERE user_id_fk = ?
+`
+
+func (q *Queries) GetEventsOfUser(ctx context.Context, userIDFk string) ([]Event, error) {
+	rows, err := q.db.QueryContext(ctx, getEventsOfUser, userIDFk)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Event
+	for rows.Next() {
+		var i Event
+		if err := rows.Scan(
+			&i.Uid,
+			&i.UserIDFk,
+			&i.Summary,
+			&i.Url,
+			&i.GeoDateX,
+			&i.GeoDateY,
+			&i.Location,
+			&i.TzID,
+			&i.Description,
+			&i.StartDate,
+			&i.EndDate,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getIndexAuthorsOnPage = `-- name: GetIndexAuthorsOnPage :many
 SELECT COUNT(*) FROM authors a WHERE a.name<? ORDER BY a.name,a.id
 `

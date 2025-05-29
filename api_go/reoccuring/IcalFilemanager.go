@@ -2,7 +2,6 @@ package reoccuring
 
 import (
 	"api_go/db"
-	"api_go/service"
 	"context"
 	ics "github.com/arran4/golang-ical"
 	"go.uber.org/zap"
@@ -13,12 +12,13 @@ import (
 
 func SyncAllICALFiles(queries *db.Queries, setupLogger *zap.SugaredLogger) {
 	timeMinusOne := time.Now().Add(time.Duration(-1) * time.Minute)
-	foundIcalFilestoSync, err := queries.FindIcalSyncWithUserSinceDate(context.Background(), service.NewSQLNullTime(timeMinusOne))
+	foundIcalFilestoSync, err := queries.FindIcalSyncWithUserSinceDate(context.Background(), db.NewSQLNullTime(timeMinusOne))
 
 	if err != nil {
 		setupLogger.Errorf("Error retrieving ical files to sync: %v", err)
 	}
 
+	setupLogger.Info("Performing sync of ical files to sync: ", len(foundIcalFilestoSync))
 	for _, foundFileToSync := range foundIcalFilestoSync {
 		urlToSync := foundFileToSync.IcalSync.IcalUrl
 		cal, err := ics.ParseCalendarFromUrl(urlToSync)
@@ -59,15 +59,15 @@ func SyncAllICALFiles(queries *db.Queries, setupLogger *zap.SugaredLogger) {
 			eventToCreate := db.Event{
 				Uid:         uid.Value,
 				UserIDFk:    foundFileToSync.User.ID,
-				Summary:     service.NewSQLNullString(summary.Value),
-				Url:         service.NewSQLNullString(url.Value),
-				GeoDateX:    service.NewSQLNullFloatNullable(geoDateX),
-				GeoDateY:    service.NewSQLNullFloatNullable(geoDateY),
-				Location:    service.NewSQLNullStringNullValue(location),
-				TzID:        service.NewSQLNullString(tzId.Value),
-				Description: service.NewSQLNullString(description.Value),
-				StartDate:   service.NewSQLNullTime(startDate),
-				EndDate:     service.NewSQLNullTime(endDate),
+				Summary:     db.NewSQLNullString(summary.Value),
+				Url:         db.NewSQLNullString(url.Value),
+				GeoDateX:    db.NewSQLNullFloatNullable(geoDateX),
+				GeoDateY:    db.NewSQLNullFloatNullable(geoDateY),
+				Location:    db.NewSQLNullStringNullValue(location),
+				TzID:        db.NewSQLNullString(tzId.Value),
+				Description: db.NewSQLNullString(description.Value),
+				StartDate:   db.NewSQLNullTime(startDate),
+				EndDate:     db.NewSQLNullTime(endDate),
 			}
 			err = queries.CreateEvent(context.Background(), db.CreateEventParams{
 				GeoDateY:    eventToCreate.GeoDateY,
@@ -89,7 +89,7 @@ func SyncAllICALFiles(queries *db.Queries, setupLogger *zap.SugaredLogger) {
 		}
 		if err := queries.UpdateLastSyncOfIcal(context.Background(), db.UpdateLastSyncOfIcalParams{
 			ID:         foundFileToSync.IcalSync.ID,
-			LastSynced: service.NewSQLNullTime(time.Now()),
+			LastSynced: db.NewSQLNullTime(time.Now()),
 		}); err != nil {
 			setupLogger.Errorf("Error updating last sync of ical file to sync: %v", err)
 		}

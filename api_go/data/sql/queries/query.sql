@@ -216,4 +216,7 @@ REPLACE INTO events (
 );
 
 -- name: UpdateLastSyncOfIcal :exec
-UPDATE ical_sync SET last_synced = ? WHERE id = ?
+UPDATE ical_sync SET last_synced = ? WHERE id = ?;
+
+-- name: GetEventsOfUser :many
+SELECT * FROM events WHERE user_id_fk = ? ORDER BY start_date DESC;

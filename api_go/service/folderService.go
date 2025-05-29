@@ -41,10 +41,10 @@ func (f *FolderService) loadSubElements(folder *models.Folder, user models.User)
 		var author *models.Author = nil
 		if _, ok := ielement.(db.Note); ok {
 			var dbAuthor = mappers.ConvertAuthorFromEntity(db.Author{
-				UserIDFk:         NewSQLNullString(element.UserIDFk.String),
-				Name:             NewSQLNullString(element.Name.String),
+				UserIDFk:         db.NewSQLNullString(element.UserIDFk.String),
+				Name:             db.NewSQLNullString(element.Name.String),
 				ID:               element.ID.String,
-				ExtraInformation: NewSQLNullString(element.ExtraInformation.String),
+				ExtraInformation: db.NewSQLNullString(element.ExtraInformation.String),
 			})
 			author = &dbAuthor
 		}
@@ -111,7 +111,7 @@ func (f *FolderService) LoadAllFolders(userId string) ([]models.Folder, error) {
 func (f *FolderService) FindFolderByIdAndUser(folderId string, userId string) (*models.Folder, error) {
 	folder, err := f.Queries.FindFolderById(f.Ctx, db.FindFolderByIdParams{
 		ID:       folderId,
-		UserIDFk: NewSQLNullString(userId),
+		UserIDFk: db.NewSQLNullString(userId),
 	})
 	if err != nil {
 		return nil, err
@@ -132,7 +132,7 @@ func (f *FolderService) CreateFolder(dto dto.FolderPostDto, userId string) (*mod
 	if dto.ParentId != nil && *dto.ParentId != "" {
 		_, err := f.Queries.FindFolderById(f.Ctx, db.FindFolderByIdParams{
 			ID:       *dto.ParentId,
-			UserIDFk: NewSQLNullString(userId),
+			UserIDFk: db.NewSQLNullString(userId),
 		})
 		if err != nil {
 			return nil, fiber.NewError(fiber.StatusConflict, "Parent folder not found")
@@ -188,8 +188,8 @@ func (f *FolderService) CreateFolder(dto dto.FolderPostDto, userId string) (*mod
 
 func (f *FolderService) FindNextChildren(folderId string, userId string) ([]models.Element, error) {
 	var elements, errFromSub = f.Queries.FindAllSubElements(f.Ctx, db.FindAllSubElementsParams{
-		UserIDFk: NewSQLNullString(userId),
-		Parent:   NewSQLNullString(folderId),
+		UserIDFk: db.NewSQLNullString(userId),
+		Parent:   db.NewSQLNullString(folderId),
 	})
 
 	if errFromSub != nil {
@@ -206,10 +206,10 @@ func (f *FolderService) FindNextChildren(folderId string, userId string) ([]mode
 		var author *models.Author
 		if _, ok := convertedElement.(db.Note); ok {
 			var authorMapped = mappers.ConvertAuthorFromEntity(db.Author{
-				UserIDFk:         NewSQLNullString(element.UserIDFk.String),
-				Name:             NewSQLNullString(element.Name.String),
+				UserIDFk:         db.NewSQLNullString(element.UserIDFk.String),
+				Name:             db.NewSQLNullString(element.Name.String),
 				ID:               element.ID.String,
-				ExtraInformation: NewSQLNullString(element.ExtraInformation.String),
+				ExtraInformation: db.NewSQLNullString(element.ExtraInformation.String),
 			})
 			author = &authorMapped
 		}
@@ -280,10 +280,10 @@ func (f *FolderService) UpdateFolder(userId string, folder models.Folder) (*mode
 	}
 
 	if err := f.Queries.UpdateFolder(f.Ctx, db.UpdateFolderParams{
-		Name:        NewSQLNullString(folder.Name),
-		Description: NewSQLNullString(folder.Description),
+		Name:        db.NewSQLNullString(folder.Name),
+		Description: db.NewSQLNullString(folder.Description),
 		ID:          folder.Id,
-		UserIDFk:    NewSQLNullString(userId),
+		UserIDFk:    db.NewSQLNullString(userId),
 		Parent:      parent,
 	}); err != nil {
 		return nil, err
@@ -299,8 +299,8 @@ func (f *FolderService) MoveToFolder(sourceId string, targetId string, userId st
 
 	if err := f.Queries.MoveToFolder(f.Ctx, db.MoveToFolderParams{
 		ID:       sourceId,
-		UserIDFk: NewSQLNullString(userId),
-		Parent:   NewSQLNullString(targetId),
+		UserIDFk: db.NewSQLNullString(userId),
+		Parent:   db.NewSQLNullString(targetId),
 	}); err != nil {
 		return err
 	}
