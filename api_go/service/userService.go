@@ -25,9 +25,9 @@ func (u *UserService) LoadUser(userId string) (*models.User, error) {
 func (u *UserService) SaveUser(user *models.User) error {
 	_, err := u.Queries.CreateUser(u.Ctx, db.CreateUserParams{
 		ID:               user.UserId,
-		Username:         NewSQLNullString(user.Username),
-		Firstname:        NewSQLNullString(user.Firstname),
-		Lastname:         NewSQLNullString(user.Lastname),
+		Username:         db.NewSQLNullString(user.Username),
+		Firstname:        db.NewSQLNullString(user.Firstname),
+		Lastname:         db.NewSQLNullString(user.Lastname),
 		SideBarCollapsed: user.SideBarCollapsed,
 	})
 	return err
@@ -44,10 +44,10 @@ func (u *UserService) UpdateSyncFromKeycloakUser(user *models.User) error {
 			String: user.Username,
 			Valid:  true,
 		},
-		Firstname:        NewSQLNullString(user.Firstname),
-		Lastname:         NewSQLNullString(user.Lastname),
-		Email:            NewSQLNullString(user.Email),
-		Telephonenumber:  NewSQLNullString(loadedUser.TelephoneNumber),
+		Firstname:        db.NewSQLNullString(user.Firstname),
+		Lastname:         db.NewSQLNullString(user.Lastname),
+		Email:            db.NewSQLNullString(user.Email),
+		Telephonenumber:  db.NewSQLNullString(loadedUser.TelephoneNumber),
 		SideBarCollapsed: user.SideBarCollapsed,
 	})
 	return err
@@ -56,11 +56,11 @@ func (u *UserService) UpdateSyncFromKeycloakUser(user *models.User) error {
 func (u *UserService) UpdateFromEndpoint(user *models.User) error {
 	err := u.Queries.UpdateUser(u.Ctx, db.UpdateUserParams{
 		ID:               user.UserId,
-		Username:         NewSQLNullString(user.Username),
-		Firstname:        NewSQLNullString(user.Firstname),
-		Lastname:         NewSQLNullString(user.Lastname),
-		Email:            NewSQLNullString(user.Email),
-		Telephonenumber:  NewSQLNullString(user.TelephoneNumber),
+		Username:         db.NewSQLNullString(user.Username),
+		Firstname:        db.NewSQLNullString(user.Firstname),
+		Lastname:         db.NewSQLNullString(user.Lastname),
+		Email:            db.NewSQLNullString(user.Email),
+		Telephonenumber:  db.NewSQLNullString(user.TelephoneNumber),
 		SideBarCollapsed: user.SideBarCollapsed,
 	})
 	return err
@@ -69,7 +69,7 @@ func (u *UserService) UpdateFromEndpoint(user *models.User) error {
 func (u *UserService) UpdateProfilePicture(userId string, profilePic []byte) error {
 	err := u.Queries.UpdateUserProfilePicture(u.Ctx, db.UpdateUserProfilePictureParams{
 		ID:             userId,
-		ProfilePicture: NewSQLNullString(string(profilePic)),
+		ProfilePicture: db.NewSQLNullString(string(profilePic)),
 	})
 	return err
 }

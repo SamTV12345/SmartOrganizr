@@ -32,7 +32,7 @@ func (n NoteService) LoadAllNotes(userId string, page *int, nameStr *string) ([]
 	var numberOfElements int64
 	if page == nil {
 		if nameStr == nil {
-			notesRetrieved, err := n.Queries.FindAllNotesByCreator(n.Ctx, NewSQLNullString(userId))
+			notesRetrieved, err := n.Queries.FindAllNotesByCreator(n.Ctx, db.NewSQLNullString(userId))
 			if err != nil {
 				return nil, 0, err
 			}
@@ -43,14 +43,14 @@ func (n NoteService) LoadAllNotes(userId string, page *int, nameStr *string) ([]
 					Folder: note.Element_2,
 				})
 			}
-			numberOfElements, err = n.Queries.CountFindAllNotesByCreator(n.Ctx, NewSQLNullString(userId))
+			numberOfElements, err = n.Queries.CountFindAllNotesByCreator(n.Ctx, db.NewSQLNullString(userId))
 			if err != nil {
 				return nil, 0, err
 			}
 		} else {
 			notesRetrieved, err := n.Queries.FindAllNotesByCreatorWithSearch(n.Ctx, db.FindAllNotesByCreatorWithSearchParams{
-				UserIDFk: NewSQLNullString(userId),
-				CONCAT:   NewSQLNullString(*nameStr),
+				UserIDFk: db.NewSQLNullString(userId),
+				CONCAT:   db.NewSQLNullString(*nameStr),
 			})
 			if err != nil {
 				return nil, 0, err
@@ -63,8 +63,8 @@ func (n NoteService) LoadAllNotes(userId string, page *int, nameStr *string) ([]
 				})
 			}
 			numberOfElements, err = n.Queries.CountFindAllNotesByCreatorWithSearch(n.Ctx, db.CountFindAllNotesByCreatorWithSearchParams{
-				CONCAT:   NewSQLNullString(*nameStr),
-				UserIDFk: NewSQLNullString(userId),
+				CONCAT:   db.NewSQLNullString(*nameStr),
+				UserIDFk: db.NewSQLNullString(userId),
 			})
 			if err != nil {
 				return nil, 0, err
@@ -73,7 +73,7 @@ func (n NoteService) LoadAllNotes(userId string, page *int, nameStr *string) ([]
 	} else {
 		if nameStr == nil {
 			notesRetrieved, err := n.Queries.FindAllNotesByCreatorPaged(n.Ctx, db.FindAllNotesByCreatorPagedParams{
-				UserIDFk: NewSQLNullString(userId),
+				UserIDFk: db.NewSQLNullString(userId),
 				Limit:    constants.CurrentPageSize,
 				Offset:   int32(*page * constants.CurrentPageSize),
 			})
@@ -87,13 +87,13 @@ func (n NoteService) LoadAllNotes(userId string, page *int, nameStr *string) ([]
 					Folder: note.Element_2,
 				})
 			}
-			numberOfElements, err = n.Queries.CountFindAllNotesByCreator(n.Ctx, NewSQLNullString(userId))
+			numberOfElements, err = n.Queries.CountFindAllNotesByCreator(n.Ctx, db.NewSQLNullString(userId))
 			if err != nil {
 				return nil, 0, err
 			}
 		} else {
 			notesRetrieved, err := n.Queries.FindAllNotesByCreatorPagedWithSearch(n.Ctx, db.FindAllNotesByCreatorPagedWithSearchParams{
-				UserIDFk: NewSQLNullString(userId),
+				UserIDFk: db.NewSQLNullString(userId),
 				Limit:    constants.CurrentPageSize,
 				Offset:   int32(*page * constants.CurrentPageSize),
 				CONCAT:   nameStr,
@@ -109,8 +109,8 @@ func (n NoteService) LoadAllNotes(userId string, page *int, nameStr *string) ([]
 				})
 			}
 			numberOfElements, err = n.Queries.CountFindAllNotesByCreatorWithSearch(n.Ctx, db.CountFindAllNotesByCreatorWithSearchParams{
-				CONCAT:   NewSQLNullString(*nameStr),
-				UserIDFk: NewSQLNullString(userId),
+				CONCAT:   db.NewSQLNullString(*nameStr),
+				UserIDFk: db.NewSQLNullString(userId),
 			})
 			if err != nil {
 				return nil, 0, err
@@ -239,12 +239,12 @@ func (n NoteService) CreateNote(userId string, note dto.NotePostDto) (*models.No
 	var noteId, _ = uuid.NewRandom()
 	var _, err = n.Queries.CreateNote(n.Ctx, db.CreateNoteParams{
 		ID:            noteId.String(),
-		Name:          NewSQLNullString(note.Name),
-		Description:   NewSQLNullString(note.Description),
-		UserIDFk:      NewSQLNullString(userId),
-		AuthorIDFk:    NewSQLNullString(note.AuthorId),
-		Parent:        NewSQLNullString(note.ParentId),
-		NumberOfPages: NewSQLNullInt(note.NumberOfPages),
+		Name:          db.NewSQLNullString(note.Name),
+		Description:   db.NewSQLNullString(note.Description),
+		UserIDFk:      db.NewSQLNullString(userId),
+		AuthorIDFk:    db.NewSQLNullString(note.AuthorId),
+		Parent:        db.NewSQLNullString(note.ParentId),
+		NumberOfPages: db.NewSQLNullInt(note.NumberOfPages),
 	})
 	if err != nil {
 		return nil, err
@@ -280,11 +280,11 @@ func (n NoteService) UpdateNote(userId string, note models.Note) (models.Note, e
 
 	err = n.Queries.UpdateNote(n.Ctx, db.UpdateNoteParams{
 		ID:            note.Id,
-		Description:   NewSQLNullString(note.Description),
-		NumberOfPages: NewSQLNullInt(note.NumberOfPages),
+		Description:   db.NewSQLNullString(note.Description),
+		NumberOfPages: db.NewSQLNullInt(note.NumberOfPages),
 		PdfContent:    pdfContent,
-		Name:          NewSQLNullString(note.Name),
-		AuthorIDFk:    NewSQLNullString(note.Author.ID),
+		Name:          db.NewSQLNullString(note.Name),
+		AuthorIDFk:    db.NewSQLNullString(note.Author.ID),
 	})
 
 	if err != nil {
