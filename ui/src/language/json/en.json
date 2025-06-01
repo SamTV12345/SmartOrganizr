@@ -43,5 +43,6 @@
   "save": "Save",
   "noteManagement": "Note management",
   "konzertmeister-url": "Konzertmeister URL",
-  "fieldMustBeUrl": "This field must be a valid URL."
+  "fieldMustBeUrl": "This field must be a valid URL.",
+  "event-current": "Upcoming events"
 }

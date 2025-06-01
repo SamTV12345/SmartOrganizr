@@ -13,4 +13,5 @@ type Event struct {
 	Description *string    `json:"description"`
 	StartDate   *time.Time `json:"startDate"`
 	EndDate     *time.Time `json:"endDate"`
+	Status      int        `json:"status"`
 }

@@ -68,5 +68,6 @@
   "username": "Benutzername",
   "reset-password": "Passwort zurücksetzen",
   "konzertmeister-url": "Konzertmeister URL",
-  "fieldMustBeUrl": "Dieses Feld muss eine gültige URL sein."
+  "fieldMustBeUrl": "Dieses Feld muss eine gültige URL sein.",
+  "event-current": "Anstehende Events"
 }
