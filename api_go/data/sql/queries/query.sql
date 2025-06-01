@@ -219,4 +219,4 @@ REPLACE INTO events (
 UPDATE ical_sync SET last_synced = ? WHERE id = ?;
 
 -- name: GetEventsOfUser :many
-SELECT * FROM events WHERE user_id_fk = ? ORDER BY start_date DESC;
+SELECT * FROM events WHERE user_id_fk = ? ORDER BY start_date;

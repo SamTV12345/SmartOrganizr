@@ -1290,7 +1290,7 @@ func (q *Queries) FindUserById(ctx context.Context, id string) (User, error) {
 }
 
 const getEventsOfUser = `-- name: GetEventsOfUser :many
-SELECT uid, user_id_fk, summary, url, geo_date_x, geo_date_y, location, tz_id, description, start_date, end_date FROM events WHERE user_id_fk = ?
+SELECT uid, user_id_fk, summary, url, geo_date_x, geo_date_y, location, tz_id, description, start_date, end_date FROM events WHERE user_id_fk = ? ORDER BY start_date
 `
 
 func (q *Queries) GetEventsOfUser(ctx context.Context, userIDFk string) ([]Event, error) {
