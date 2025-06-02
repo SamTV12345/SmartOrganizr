@@ -1290,11 +1290,16 @@ func (q *Queries) FindUserById(ctx context.Context, id string) (User, error) {
 }
 
 const getEventsOfUser = `-- name: GetEventsOfUser :many
-SELECT uid, user_id_fk, summary, url, geo_date_x, geo_date_y, location, tz_id, description, start_date, end_date FROM events WHERE user_id_fk = ? ORDER BY start_date
+SELECT uid, user_id_fk, summary, url, geo_date_x, geo_date_y, location, tz_id, description, start_date, end_date FROM events WHERE user_id_fk = ? AND start_date > ?  ORDER BY start_date
 `
 
-func (q *Queries) GetEventsOfUser(ctx context.Context, userIDFk string) ([]Event, error) {
-	rows, err := q.db.QueryContext(ctx, getEventsOfUser, userIDFk)
+type GetEventsOfUserParams struct {
+	UserIDFk  string
+	StartDate sql.NullTime
+}
+
+func (q *Queries) GetEventsOfUser(ctx context.Context, arg GetEventsOfUserParams) ([]Event, error) {
+	rows, err := q.db.QueryContext(ctx, getEventsOfUser, arg.UserIDFk, arg.StartDate)
 	if err != nil {
 		return nil, err
 	}

@@ -6,6 +6,7 @@ import (
 	"api_go/mappers"
 	"api_go/service"
 	"github.com/gofiber/fiber/v2"
+	"time"
 )
 
 func GetEvents(c *fiber.Ctx) error {
@@ -18,8 +19,16 @@ func GetEvents(c *fiber.Ctx) error {
 		}
 	}
 	eventService := mappers.GetLocal[service.EventService](c, constants.EventService)
-
-	eventsLoaded, err := eventService.GetEventsOfUser(keycloakId)
+	var sinceDate = c.Query("since", time.Now().Format(time.RFC3339))
+	// 2025-06-02T08:44:02.589Z
+	parsedSinceDate, err := time.Parse(time.RFC3339, sinceDate)
+	if err != nil {
+		return &fiber.Error{
+			Code:    400,
+			Message: err.Error(),
+		}
+	}
+	eventsLoaded, err := eventService.GetEventsOfUser(keycloakId, &parsedSinceDate)
 	if err != nil {
 		return &fiber.Error{
 			Code:    403,

@@ -5,12 +5,17 @@ import {useKeycloak} from "@/src/Keycloak/useKeycloak";
 import {EventModel} from "@/src/models/EventModel";
 import {Card, CardContent, CardDescription, CardHeader, CardTitle} from "@/components/ui/card";
 import {useTranslation} from "react-i18next";
+import {EventCard} from "@/src/components/EventCard";
 
 export const EventView = ()=> {
   const user = useKeycloak()
   const {t} = useTranslation()
   const getEvents = async ()=>{
-    return await axios.get<EventModel[]>(apiURL+'/v1/events/' + user.subject)
+    return await axios.get<EventModel[]>(apiURL+'/v1/events/' + user.subject, {
+      params: {
+        since: new Date().toISOString()
+      }
+    })
   }
 
   const {data} = useQuery({
@@ -23,22 +28,7 @@ export const EventView = ()=> {
       <h2 className="text-2xl font-bold">{t('event-current')}</h2>
       <main className="flex flex-row gap-5 overflow-y-auto pt-5 pb-5">
         {
-          data?.data.map((d)=>{
-            return             <Card className="w-fit">
-              <CardHeader className="w-96">
-                <CardTitle>{d.summary}</CardTitle>
-                <CardDescription>{d?.description}</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-2">
-                  <label>Ort</label>
-                  <span>{d.location}</span>
-                  <label>Zeit</label>
-                  <span>{d.startDate? `${new Date(d.startDate).toLocaleString()}`: ''}</span>
-                </div>
-              </CardContent>
-            </Card>
-          })
+          data?.data.map((d)=><EventCard event={d} key={d.uid}/>)
         }
       </main>
     </div>

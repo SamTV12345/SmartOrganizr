@@ -5,14 +5,18 @@ import (
 	"api_go/mappers"
 	"api_go/models"
 	"context"
+	"time"
 )
 
 type EventService struct {
 	Queries *db.Queries
 }
 
-func (e *EventService) GetEventsOfUser(id string) ([]models.Event, error) {
-	dbEvents, err := e.Queries.GetEventsOfUser(context.Background(), id)
+func (e *EventService) GetEventsOfUser(id string, since *time.Time) ([]models.Event, error) {
+	dbEvents, err := e.Queries.GetEventsOfUser(context.Background(), db.GetEventsOfUserParams{
+		UserIDFk:  id,
+		StartDate: db.NewSQLNullTime(*since),
+	})
 	if err != nil {
 		return nil, err
 	}

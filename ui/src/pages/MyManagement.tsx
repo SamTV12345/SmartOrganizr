@@ -8,7 +8,7 @@ export const MyManagement = ()=>{
 
     return <div className="flex  items-center">
         <div className="w-full">
-            <h2 className="text-2xl text-center md:mt-32">Mein Notenmanagement</h2>
+            <h2 className="text-2xl text-center md:mt-8">Mein Notenmanagement</h2>
             <div className="p-10 grid md:grid-cols-3 grid-cols-2 gap-5">
                 <NavigationButton className="h-64" onClick={() => {
                    navigate("/noteManagement/authors")
