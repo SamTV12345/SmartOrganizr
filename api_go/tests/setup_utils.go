@@ -3,6 +3,7 @@ package tests
 import (
 	"api_go/config"
 	db2 "api_go/db"
+	"api_go/logger"
 	"api_go/routers"
 	"context"
 	"github.com/docker/go-connections/nat"
@@ -36,11 +37,20 @@ var host = ""
 func SetupTest(t *testing.T) *fiber.App {
 	ctx := context.Background()
 	if mysqlInstance == nil {
-		mysqlInstance, _ = mysql2.Run(ctx, "mysql:lts")
+		var err error
+		mysqlInstance, err = mysql2.Run(ctx, "mysql:lts")
+		if err != nil {
+			panic(err)
+		}
 	}
-	host, _ = mysqlInstance.Host(ctx)
-	port, _ = mysqlInstance.MappedPort(ctx, "3306")
-
+	host, err := mysqlInstance.Host(ctx)
+	if err != nil {
+		panic(err)
+	}
+	port, err = mysqlInstance.MappedPort(ctx, "3306")
+	if err != nil {
+		panic(err)
+	}
 	var appconfig = config.AppConfig{
 		Database: config.AppConfigDatabase{
 			Database: "test",
@@ -56,7 +66,8 @@ func SetupTest(t *testing.T) *fiber.App {
 	}
 
 	var db = db2.Setup(appconfig.Database)
-	var app = routers.SetupRouter(db, appconfig)
+	setupLogger := logger.SetupLogger()
+	var app = routers.SetupRouter(db, appconfig, setupLogger)
 	var syncUser, _ = http.NewRequest("PUT", "/api/v1/users/", nil)
 	app.Test(syncUser)
 	if app == nil {

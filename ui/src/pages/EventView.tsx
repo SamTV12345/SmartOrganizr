@@ -3,7 +3,6 @@ import { apiURL } from "../Keycloak"
 import axios from "axios"
 import {useKeycloak} from "@/src/Keycloak/useKeycloak";
 import {EventModel} from "@/src/models/EventModel";
-import {Card, CardContent, CardDescription, CardHeader, CardTitle} from "@/components/ui/card";
 import {useTranslation} from "react-i18next";
 import {EventCard} from "@/src/components/EventCard";
 

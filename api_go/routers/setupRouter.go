@@ -119,6 +119,8 @@ func SetupRouter(queries *db.Queries, config config.AppConfig, logger *zap.Sugar
 		AuthorService: authorService,
 	}
 
+	var clubService = service.NewClubService(queries)
+
 	noteService.FolderService = &folderService
 
 	var concertService = service.ConcertService{
@@ -138,6 +140,7 @@ func SetupRouter(queries *db.Queries, config config.AppConfig, logger *zap.Sugar
 		SetLocal[*validator.Validate](c, constants.Validator, validate)
 		SetLocal[service.IcalSyncService](c, constants.IcalSyncService, icalSyncService)
 		SetLocal[service.EventService](c, constants.EventService, eventService)
+		SetLocal[service.ClubService](c, constants.ClubService, clubService)
 
 		return c.Next()
 	})
@@ -202,6 +205,10 @@ func SetupRouter(queries *db.Queries, config config.AppConfig, logger *zap.Sugar
 		r.Post("/", controllers.CreateConcert)
 		r.Get("/:concertId", controllers.GetConcert)
 		r.Delete("/:concertId", controllers.DeleteConcert)
+	})
+
+	profile.Route("v1/clubs", func(r fiber.Router) {
+		r.Get("/:userId", controllers.GetAllClubsForMe)
 	})
 
 	profile.Route("v1/elements", func(r fiber.Router) {

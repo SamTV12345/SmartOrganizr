@@ -8,11 +8,26 @@ import (
 	"database/sql"
 )
 
+type Address struct {
+	ID          string
+	Street      string
+	HouseNumber string
+	Location    string
+	PostalCode  string
+	Country     string
+}
+
 type Author struct {
 	ID               string
 	ExtraInformation sql.NullString
 	Name             sql.NullString
 	UserIDFk         sql.NullString
+}
+
+type Club struct {
+	ID        string
+	Name      string
+	AddressID string
 }
 
 type Concert struct {

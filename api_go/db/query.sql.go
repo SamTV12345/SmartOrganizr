@@ -1289,6 +1289,48 @@ func (q *Queries) FindUserById(ctx context.Context, id string) (User, error) {
 	return i, err
 }
 
+const getClubs = `-- name: GetClubs :many
+SELECT clubs.id, clubs.name, clubs.address_id, address.id, address.street, address.house_number, address.location, address.postal_code, address.country from clubs join address ON clubs.address_id = address.id WHERE clubs.id = ?
+`
+
+type GetClubsRow struct {
+	Club    Club
+	Address Address
+}
+
+func (q *Queries) GetClubs(ctx context.Context, id string) ([]GetClubsRow, error) {
+	rows, err := q.db.QueryContext(ctx, getClubs, id)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetClubsRow
+	for rows.Next() {
+		var i GetClubsRow
+		if err := rows.Scan(
+			&i.Club.ID,
+			&i.Club.Name,
+			&i.Club.AddressID,
+			&i.Address.ID,
+			&i.Address.Street,
+			&i.Address.HouseNumber,
+			&i.Address.Location,
+			&i.Address.PostalCode,
+			&i.Address.Country,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getEventsOfUser = `-- name: GetEventsOfUser :many
 SELECT uid, user_id_fk, summary, url, geo_date_x, geo_date_y, location, tz_id, description, start_date, end_date FROM events WHERE user_id_fk = ? AND start_date > ?  ORDER BY start_date
 `

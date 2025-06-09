@@ -4,10 +4,27 @@ import {useTranslation} from "react-i18next";
 import {SideBarItem} from "./SideBarItem";
 import {SidebarHeading} from "@/src/components/layout/SidebarHeading";
 import {useKeycloak} from "@/src/Keycloak/useKeycloak";
+import {useQuery} from "@tanstack/react-query";
+import axios from "axios";
+import {EventModel} from "@/src/models/EventModel";
+import {apiURL} from "@/src/Keycloak";
+import {Club} from "@/src/models/Club";
+
+
 
 export const SideBar  = ()=>{
+  const user = useKeycloak()
   const sideBarCollapsed = useAppSelector(state=>state.commonReducer.sideBarCollapsed)
   const {t} = useTranslation()
+
+  const getClubs = async ()=>{
+    return await axios.get<Club[]>(apiURL+'/v1/clubs/' + user.subject)
+  }
+
+  const {data} = useQuery({
+    queryKey: ['clubs'],
+    queryFn: getClubs
+  })
 
 
   return <aside className={`w-full h-full float-left ${sideBarCollapsed?'hidden': 'col-span-6 md:col-span-1'} z-10 w-full bg-gray-800 flex  border-none sticky`} aria-label="Sidebar">
@@ -23,6 +40,9 @@ export const SideBar  = ()=>{
     <SidebarHeading>{t('create-new')}</SidebarHeading>
     <SideBarItem highlightPath="/createClub" translationkey={t('create-club')} icon={<i className="fa-solid fa-drum fa-xl"></i>}></SideBarItem>
     <SidebarHeading>{t('my-clubs')}</SidebarHeading>
+    {
+      data?.data.map((d)=><SideBarItem highlightPath={"/clubs"+ "/"+d.id} translationkey={d.name} icon={<i className="fa-solid fa-drum fa-xl"></i>}/>)
+    }
 
     <SidebarHeading>{t('my-profile')}</SidebarHeading>
     <SideBarItem highlightPath={'/noteManagement'} translationkey={t('noteManagement')} icon={<i className="fa-solid fa-bars-progress fa-xl"></i>}/>

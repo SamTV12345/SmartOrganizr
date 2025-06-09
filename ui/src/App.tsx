@@ -20,6 +20,7 @@ import {Loader2} from "lucide-react";
 import {ProfileEdit} from "@/src/pages/ProfileEdit";
 import {NoteDetailView} from "@/src/pages/NoteDetailView";
 import {EventView} from "@/src/pages/EventView";
+import {ClubView} from "@/src/pages/ClubView";
 
 function App() {
     const sideBarCollapsed = useAppSelector(state=>state.commonReducer.sideBarCollapsed)
@@ -49,6 +50,7 @@ function App() {
                       <Route path={"/noteManagement"} element={<MyManagement/>}/>
                       <Route path="/profile/edit" element={<ProfileEdit/>}/>
                       <Route path="/myDates" element={<EventView/>}/>
+                      <Route path="/createClub" element={<Suspense><ClubView/></Suspense>} />
                       <Route path={"/noteManagement/authors"} element={
                           <Suspense>
                               <AuthorLazyLoad/>

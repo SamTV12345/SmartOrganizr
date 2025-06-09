@@ -220,3 +220,6 @@ UPDATE ical_sync SET last_synced = ? WHERE id = ?;
 
 -- name: GetEventsOfUser :many
 SELECT * FROM events WHERE user_id_fk = ? AND start_date > ?  ORDER BY start_date;
+
+-- name: GetClubs :many
+SELECT sqlc.embed(clubs), sqlc.embed(address) from clubs join address ON clubs.address_id = address.id WHERE clubs.id = ?;
