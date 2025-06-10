@@ -1428,6 +1428,63 @@ func (q *Queries) MoveToFolder(ctx context.Context, arg MoveToFolderParams) erro
 	return err
 }
 
+const saveAddress = `-- name: SaveAddress :exec
+REPLACE INTO address(
+        id,
+        street,
+        house_number,
+        location,
+        postal_code,
+        country
+) VALUES (
+        ?, ?, ?, ?, ?, ?
+)
+`
+
+type SaveAddressParams struct {
+	ID          string
+	Street      string
+	HouseNumber string
+	Location    string
+	PostalCode  string
+	Country     string
+}
+
+func (q *Queries) SaveAddress(ctx context.Context, arg SaveAddressParams) error {
+	_, err := q.db.ExecContext(ctx, saveAddress,
+		arg.ID,
+		arg.Street,
+		arg.HouseNumber,
+		arg.Location,
+		arg.PostalCode,
+		arg.Country,
+	)
+	return err
+}
+
+const saveClub = `-- name: SaveClub :exec
+REPLACE INTO clubs(
+        id,
+        name,
+        address_id
+) VALUES(
+        ?,
+        ?,
+        ?
+)
+`
+
+type SaveClubParams struct {
+	ID        string
+	Name      string
+	AddressID string
+}
+
+func (q *Queries) SaveClub(ctx context.Context, arg SaveClubParams) error {
+	_, err := q.db.ExecContext(ctx, saveClub, arg.ID, arg.Name, arg.AddressID)
+	return err
+}
+
 const searchByFolderName = `-- name: SearchByFolderName :many
 SELECT type, id, creation_date, description, name, number_of_pages, user_id_fk, parent, author_id_fk, pdf_content FROM elements WHERE name LIKE CONCAT('%', ?, '%') and type = 'folder' AND user_id_fk = ? ORDER BY name LIMIT ? OFFSET ?
 `

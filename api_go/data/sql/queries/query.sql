@@ -223,3 +223,29 @@ SELECT * FROM events WHERE user_id_fk = ? AND start_date > ?  ORDER BY start_dat
 
 -- name: GetClubs :many
 SELECT sqlc.embed(clubs), sqlc.embed(address) from clubs join address ON clubs.address_id = address.id WHERE clubs.id = ?;
+
+-- name: SaveClub :exec
+REPLACE INTO clubs(
+        id,
+        name,
+        address_id
+) VALUES(
+        ?,
+        ?,
+        ?
+);
+
+-- name: SaveAddress :exec
+REPLACE INTO address(
+        id,
+        street,
+        house_number,
+        location,
+        postal_code,
+        country
+) VALUES (
+        ?, ?, ?, ?, ?, ?
+)
+
+-- name: FindClubByName :exec
+SELECT sqlc.embed(clubs), sqlc.embed(address) from clubs join address ON clubs.address_id = address.id WHERE ;

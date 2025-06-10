@@ -17,14 +17,14 @@ func ConvertClubFromEntityToModel(club db.GetClubsRow) models.Club {
 
 func ConvertClubFromModelToDto(club models.Club) dto.ClubDto {
 	return dto.ClubDto{
-		ID:   club.ID,
-		Name: club.Name,
-
-		Street:      club.Street,
-		PostalCode:  club.PostalCode,
-		Id:          club.ID,
-		HouseNumber: club.HouseNumber,
-		Country:     club.Country,
-		Location:    club.Location,
+		ID: club.ID,
+		BaseClubFields: dto.BaseClubFields{
+			Name:        club.Name,
+			Location:    club.Location,
+			Country:     club.Country,
+			Street:      club.Street,
+			PostalCode:  club.PostalCode,
+			HouseNumber: club.HouseNumber,
+		},
 	}
 }

@@ -4,6 +4,7 @@ import (
 	"api_go/constants"
 	"api_go/controllers/dto"
 	"api_go/mappers"
+	"api_go/models"
 	"api_go/service"
 	"github.com/gofiber/fiber/v2"
 )
@@ -24,4 +25,20 @@ func GetAllClubsForMe(c *fiber.Ctx) error {
 	}
 
 	return c.JSON(clubDtos)
+}
+
+func PostClub(c *fiber.Ctx) error {
+	userId := GetLocal[string](c, "userId")
+	clubService := GetLocal[service.ClubService](c, constants.ClubService)
+	var club dto.ClubPostDto
+	if err := c.BodyParser(&club); err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, err.Error())
+	}
+
+	savedClub, err := clubService.CreateClub(club)
+	if err != nil {
+		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
+	}
+	clubFromModelToDto := mappers.ConvertClubFromModelToDto(*savedClub)
+	return c.JSON(clubFromModelToDto)
 }

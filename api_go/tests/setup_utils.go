@@ -32,7 +32,6 @@ func TestMain(m *testing.M) {
 
 var mysqlInstance *mysql2.MySQLContainer = nil
 var port nat.Port
-var host = ""
 
 func SetupTest(t *testing.T) *fiber.App {
 	ctx := context.Background()

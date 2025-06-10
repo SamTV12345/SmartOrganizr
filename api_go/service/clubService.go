@@ -1,15 +1,18 @@
 package service
 
 import (
+	"api_go/controllers/dto"
 	"api_go/db"
 	"api_go/mappers"
 	"api_go/models"
 	"context"
+	"github.com/google/uuid"
 )
 
 type ClubService struct {
-	queries *db.Queries
-	context context.Context
+	queries        *db.Queries
+	addressService AddressService
+	context        context.Context
 }
 
 func NewClubService(queries *db.Queries) ClubService {
@@ -31,4 +34,52 @@ func (c *ClubService) GetAllClubsForMyId(userId *string) (*[]models.Club, error)
 		clubModels = append(clubModels, mappers.ConvertClubFromEntityToModel(club))
 	}
 	return &clubModels, nil
+}
+
+func (c *ClubService) CreateClub(club dto.ClubPostDto) (*models.Club, error) {
+	addressId, err := uuid.NewRandom()
+	if err != nil {
+		return nil, err
+	}
+
+	clubId, err := uuid.NewRandom()
+	if err != nil {
+		return nil, err
+	}
+
+	savedAddress, err := c.addressService.SaveAddress(&models.Address{
+		Street:      club.Street,
+		PostalCode:  club.PostalCode,
+		Id:          addressId.String(),
+		HouseNumber: club.HouseNumber,
+		Location:    club.Location,
+		Country:     club.Country,
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	clubToSave := db.SaveClubParams{
+		ID:        clubId.String(),
+		Name:      club.Name,
+		AddressID: addressId.String(),
+	}
+	if err := c.queries.SaveClub(c.context, clubToSave); err != nil {
+		return nil, err
+	}
+
+	savedClub := models.Club{
+		Name: clubToSave.Name,
+		ID:   clubToSave.ID,
+		Address: models.Address{
+			Street:      savedAddress.Street,
+			PostalCode:  savedAddress.PostalCode,
+			Id:          savedAddress.Id,
+			Country:     savedAddress.Country,
+			Location:    savedAddress.Location,
+			HouseNumber: savedAddress.HouseNumber,
+		},
+	}
+	return &savedClub, nil
 }
