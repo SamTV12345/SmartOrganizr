@@ -22,7 +22,7 @@ func main() {
 
 	setupLogger.Info("Connecting with user %s to database %s:%d", appConfig.Database.User, appConfig.Database.Host, appConfig.Database.Port)
 
-	var db = db2.Setup(appConfig.Database)
+	var db, _ = db2.Setup(appConfig.Database)
 	var app = routers.SetupRouter(db, appConfig, setupLogger)
 
 	reoccuring.ExecuteOncePerHour(db, setupLogger)

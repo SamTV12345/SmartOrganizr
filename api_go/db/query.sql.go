@@ -298,7 +298,7 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (int64, 
 }
 
 const deleteAllAuthors = `-- name: DeleteAllAuthors :exec
-DELETE FROM authors
+TRUNCATE authors
 `
 
 func (q *Queries) DeleteAllAuthors(ctx context.Context) error {
@@ -306,12 +306,21 @@ func (q *Queries) DeleteAllAuthors(ctx context.Context) error {
 	return err
 }
 
-const deleteAllNotes = `-- name: DeleteAllNotes :exec
-DELETE FROM elements
+const deleteAllConcerts = `-- name: DeleteAllConcerts :exec
+TRUNCATE concert
 `
 
-func (q *Queries) DeleteAllNotes(ctx context.Context) error {
-	_, err := q.db.ExecContext(ctx, deleteAllNotes)
+func (q *Queries) DeleteAllConcerts(ctx context.Context) error {
+	_, err := q.db.ExecContext(ctx, deleteAllConcerts)
+	return err
+}
+
+const deleteAllElements = `-- name: DeleteAllElements :exec
+TRUNCATE elements
+`
+
+func (q *Queries) DeleteAllElements(ctx context.Context) error {
+	_, err := q.db.ExecContext(ctx, deleteAllElements)
 	return err
 }
 
@@ -321,6 +330,15 @@ DELETE FROM user
 
 func (q *Queries) DeleteAllUser(ctx context.Context) error {
 	_, err := q.db.ExecContext(ctx, deleteAllUser)
+	return err
+}
+
+const deleteAllUsers = `-- name: DeleteAllUsers :exec
+TRUNCATE user
+`
+
+func (q *Queries) DeleteAllUsers(ctx context.Context) error {
+	_, err := q.db.ExecContext(ctx, deleteAllUsers)
 	return err
 }
 

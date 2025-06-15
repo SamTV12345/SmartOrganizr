@@ -156,25 +156,20 @@ UPDATE elements SET name=?, description = ?, parent = ? WHERE id = ? and user_id
 -- name: MoveToFolder :exec
 UPDATE elements SET parent = ? WHERE id = ? and user_id_fk = ?;
 
-
--- name: DeleteAllAuthors :exec
-DELETE FROM authors;
-
--- name: DeleteAllNotes :exec
-DELETE FROM elements;
-
 -- name: DeleteAllUser :exec
 DELETE FROM user;
 
--- name: DeleteAllData :exec
-START TRANSACTION;
-SET FOREIGN_KEY_CHECKS = 0;
-TRUNCATE elements;
+
+
+
+-- name: DeleteAllElements :exec
+TRUNCATE elements ;
+-- name: DeleteAllAuthors :exec
 TRUNCATE authors;
+-- name: DeleteAllConcerts :exec
 TRUNCATE concert;
+-- name: DeleteAllUsers :exec
 TRUNCATE user;
-SET FOREIGN_KEY_CHECKS = 1;
-COMMIT;
 
 -- name: FindAllIcalSyncsByUser :many
 SELECT * FROM ical_sync WHERE user_id_fk = ? ORDER BY ical_url;

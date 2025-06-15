@@ -13,7 +13,7 @@ import (
 	"time"
 )
 
-func Setup(config config.AppConfigDatabase) *Queries {
+func Setup(config config.AppConfigDatabase) (*Queries, *sql.DB) {
 	configMysql := mysql.Config{
 		User:                 config.User,
 		Passwd:               config.Password,
@@ -26,7 +26,7 @@ func Setup(config config.AppConfigDatabase) *Queries {
 	println(configMysql.FormatDSN())
 	open, err := sql.Open("mysql", configMysql.FormatDSN())
 	if err != nil {
-		return nil
+		return nil, nil
 	}
 
 	open.SetConnMaxLifetime(time.Minute * 3)
@@ -49,5 +49,5 @@ func Setup(config config.AppConfigDatabase) *Queries {
 		log.Fatal(err)
 	}
 
-	return queries
+	return queries, open
 }

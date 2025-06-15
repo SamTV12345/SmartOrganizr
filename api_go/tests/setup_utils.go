@@ -64,7 +64,7 @@ func SetupTest(t *testing.T) *fiber.App {
 		},
 	}
 
-	var db = db2.Setup(appconfig.Database)
+	var db, rawDB = db2.Setup(appconfig.Database)
 	setupLogger := logger.SetupLogger()
 	var app = routers.SetupRouter(db, appconfig, setupLogger)
 	var syncUser, _ = http.NewRequest("PUT", "/api/v1/users/", nil)
@@ -74,19 +74,24 @@ func SetupTest(t *testing.T) *fiber.App {
 	}
 
 	t.Cleanup(func() {
+		rawDB.Exec("SET FOREIGN_KEY_CHECKS = 0;")
+		err = db.DeleteAllConcerts(ctx)
+		if err != nil {
+			t.Fatalf("failed to delete all concerts: %v", err)
+		}
+		err = db.DeleteAllElements(ctx)
+		if err != nil {
+			t.Fatalf("failed to delete all data: %v", err)
+		}
 		err := db.DeleteAllAuthors(ctx)
 		if err != nil {
 			t.Fatalf("failed to delete all data: %v", err)
 		}
-		err = db.DeleteAllNotes(ctx)
-		if err != nil {
-			t.Fatalf("failed to delete all data: %v", err)
-		}
-
 		err = db.DeleteAllUser(ctx)
 		if err != nil {
 			t.Fatalf("failed to delete all data: %v", err)
 		}
+		rawDB.Exec("SET FOREIGN_KEY_CHECKS = 1;")
 	})
 
 	return app

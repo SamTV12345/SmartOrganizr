@@ -7,7 +7,7 @@ import (
 
 func TestIndex(t *testing.T) {
 	app := SetupTest(t)
-	req, _ := http.NewRequest("GET", "/api/public", nil)
+	req, _ := http.NewRequest("GET", "/public", nil)
 	res, _ := app.Test(req)
 
 	if res.StatusCode != http.StatusOK {
