@@ -121,6 +121,8 @@ func SetupRouter(queries *db.Queries, config config.AppConfig, logger *zap.Sugar
 
 	var clubService = service.NewClubService(queries)
 
+	var clubMemberService = service.NewClubMemberService(queries, clubService)
+
 	noteService.FolderService = &folderService
 
 	var concertService = service.ConcertService{
@@ -141,6 +143,7 @@ func SetupRouter(queries *db.Queries, config config.AppConfig, logger *zap.Sugar
 		SetLocal[service.IcalSyncService](c, constants.IcalSyncService, icalSyncService)
 		SetLocal[service.EventService](c, constants.EventService, eventService)
 		SetLocal[service.ClubService](c, constants.ClubService, clubService)
+		SetLocal[service.ClubMemberService](c, constants.ClubMemberService, clubMemberService)
 
 		return c.Next()
 	})
