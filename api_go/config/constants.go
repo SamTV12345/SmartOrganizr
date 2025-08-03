@@ -11,9 +11,9 @@ const AppMode = "app.mode"
 
 const SSOIssuer = "sso.issuer"
 const SSOClientID = "sso.client_id"
+const SSOClientSecret = "sso.client_secret"
 const SSOFrontendClientID = "sso.frontend_client_id"
 const SSOUrl = "sso.url"
 const SSORealm = "sso.realm"
-const SSOAdminUser = "sso.admin_user"
-const SSOAdminPassword = "sso.admin_password"
+
 const SSORefreshInternal = "sso.refresh_interval"
