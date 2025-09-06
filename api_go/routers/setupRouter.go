@@ -11,6 +11,10 @@ import (
 	"api_go/service"
 	"api_go/ui"
 	"context"
+	"net/http"
+	"sync"
+	"time"
+
 	"github.com/Nerzal/gocloak/v13"
 	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v2"
@@ -18,9 +22,6 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/filesystem"
 	"github.com/gofiber/fiber/v2/middleware/keyauth"
 	"go.uber.org/zap"
-	"net/http"
-	"sync"
-	"time"
 )
 
 func SetupRouter(queries *db.Queries, config config.AppConfig, logger *zap.SugaredLogger) *fiber.App {
@@ -50,6 +51,7 @@ func SetupRouter(queries *db.Queries, config config.AppConfig, logger *zap.Sugar
 		}))
 		go func() {
 			for {
+				logger.Infof("Retrieving token")
 				if token.Jwt == nil {
 					tokenJwt, err := client.LoginClient(context.Background(), config.SSO.ClientID, config.SSO.ClientSecret, config.SSO.Realm)
 					if err != nil {

@@ -3,11 +3,12 @@ package reoccuring
 import (
 	"api_go/db"
 	"context"
-	ics "github.com/arran4/golang-ical"
-	"go.uber.org/zap"
 	"strconv"
 	"strings"
 	"time"
+
+	ics "github.com/arran4/golang-ical"
+	"go.uber.org/zap"
 )
 
 func SyncAllICALFiles(queries *db.Queries, setupLogger *zap.SugaredLogger) {
@@ -20,12 +21,14 @@ func SyncAllICALFiles(queries *db.Queries, setupLogger *zap.SugaredLogger) {
 
 	setupLogger.Info("Performing sync of ical files to sync: ", len(foundIcalFilestoSync))
 	for _, foundFileToSync := range foundIcalFilestoSync {
+		setupLogger.Info("Syncing ical file for user: ", foundFileToSync.User.Username.String)
 		urlToSync := foundFileToSync.IcalSync.IcalUrl
 		cal, err := ics.ParseCalendarFromUrl(urlToSync)
 		if err != nil {
 			setupLogger.Errorf("Error syncing calendar for user %s with error %v", foundFileToSync.User.Username.String, err)
 		}
 		for _, event := range cal.Events() {
+			setupLogger.Infof("Syncing event %s for user %s", event.GetProperty("SUMMARY").Value, foundFileToSync.User.Username.String)
 			summary := event.GetProperty("SUMMARY")
 			url := event.GetProperty("URL")
 			geoDate := event.GetProperty("GEO")
