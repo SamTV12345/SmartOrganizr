@@ -2,12 +2,13 @@ package reoccuring
 
 import (
 	"api_go/db"
-	"go.uber.org/zap"
 	"time"
+
+	"go.uber.org/zap"
 )
 
 func ExecuteOncePerHour(db *db.Queries, setupLogger *zap.SugaredLogger) {
-	ticker := time.NewTicker(time.Minute)
+	ticker := time.NewTicker(time.Hour)
 	quit := make(chan struct{})
 	go func() {
 		for {
