@@ -1,9 +1,10 @@
 package config
 
 import (
-	"github.com/spf13/viper"
 	"log"
 	"strings"
+
+	"github.com/spf13/viper"
 )
 
 type AppConfigDatabase struct {
@@ -86,11 +87,12 @@ func ReadConfig() (AppConfig, error) {
 			Realm              string
 			SSORefreshInternal int
 		}{ClientID: viper.GetString(SSOClientID),
-			Issuer:           viper.GetString(SSOIssuer),
-			Url:              viper.GetString(SSOUrl),
-			FrontendClientID: viper.GetString(SSOFrontendClientID),
-			Realm:            viper.GetString(SSORealm),
-			ClientSecret:     viper.GetString(SSOClientSecret),
+			Issuer:             viper.GetString(SSOIssuer),
+			Url:                viper.GetString(SSOUrl),
+			FrontendClientID:   viper.GetString(SSOFrontendClientID),
+			Realm:              viper.GetString(SSORealm),
+			ClientSecret:       viper.GetString(SSOClientSecret),
+			SSORefreshInternal: viper.GetInt(SSORefreshInternal),
 		},
 		App: AppParameters{URL: viper.GetString(AppURL)},
 	}
