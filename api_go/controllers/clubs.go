@@ -41,7 +41,7 @@ func PostClub(c *fiber.Ctx) error {
 	}
 	clubFromModelToDto := mappers.ConvertClubFromModelToDto(*savedClub)
 
-	if err := clubService.AddUserToClub(savedClub.Id, userId, models.Admin); err != nil {
+	if err := clubService.AddUserToClub(savedClub.ID, userId, models.Admin); err != nil {
 		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
 	}
 	return c.JSON(clubFromModelToDto)

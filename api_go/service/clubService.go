@@ -15,10 +15,11 @@ type ClubService struct {
 	context        context.Context
 }
 
-func NewClubService(queries *db.Queries) ClubService {
+func NewClubService(queries *db.Queries, addressService AddressService) ClubService {
 	return ClubService{
-		queries: queries,
-		context: context.Background(),
+		queries:        queries,
+		context:        context.Background(),
+		addressService: addressService,
 	}
 }
 

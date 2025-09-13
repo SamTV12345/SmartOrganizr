@@ -6,4 +6,4 @@ CREATE TABLE club_participant (
     FOREIGN KEY (`user_id`)  REFERENCES user(id),
     FOREIGN KEY (`club_id`) REFERENCES clubs(id),
     PRIMARY KEY (user_id, club_id)
- );
+ ) COLLATE = utf8mb4_general_ci;

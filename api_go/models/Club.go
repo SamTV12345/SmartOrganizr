@@ -15,7 +15,7 @@ func (c ClubRole) String() string {
 }
 
 type Club struct {
-	ID   string
-	Name string
-	Address
+	ID      string
+	Name    string
+	Address Address
 }

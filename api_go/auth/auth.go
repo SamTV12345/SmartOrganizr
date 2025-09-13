@@ -6,6 +6,7 @@ import (
 	"github.com/coreos/go-oidc/v3/oidc"
 	"github.com/gofiber/fiber/v2"
 	"github.com/golang-jwt/jwt/v4"
+	"go.uber.org/zap"
 )
 
 type Claims struct {
@@ -18,10 +19,11 @@ type Claims struct {
 	Email      string `json:"email"`
 }
 
-func NewKeycloakJWTValidator(issuerUrl, clientId string) (func(*fiber.Ctx, string) (bool, error), error) {
+func NewKeycloakJWTValidator(issuerUrl, clientId string, logger *zap.SugaredLogger) (func(*fiber.Ctx, string) (bool, error), error) {
 	ctx := context.Background()
 	provider, err := oidc.NewProvider(ctx, issuerUrl)
 	if err != nil {
+		logger.Errorf("Failed to create oidc provider: %v", err)
 		return nil, err
 	}
 	verifier := provider.Verifier(&oidc.Config{
@@ -31,6 +33,7 @@ func NewKeycloakJWTValidator(issuerUrl, clientId string) (func(*fiber.Ctx, strin
 		var ctx = c.UserContext()
 		_, err := verifier.Verify(ctx, key)
 		if err != nil {
+			logger.Warnf("Failed to authenticate with smartorganizr: %v", err)
 			return false, err
 		}
 		token, _ := jwt.ParseWithClaims(key, &Claims{},

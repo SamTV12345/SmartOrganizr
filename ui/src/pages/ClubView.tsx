@@ -1,4 +1,5 @@
 import {FC} from "react";
+import {useMutation} from '@tanstack/react-query'
 import {useTranslation} from "react-i18next";
 import {FormProvider, useForm} from "react-hook-form";
 import {z} from "zod";
@@ -7,6 +8,8 @@ import {FormControl, FormField, FormItem, FormLabel, FormMessage} from "@/compon
 import {Input} from "@/components/ui/input";
 import {Step} from "@/src/components/layout/Step";
 import {Stepper} from "@/src/components/layout/Stepper";
+import axios from "axios";
+import {apiURL} from "@/src/Keycloak";
 
 type ClubProps = {
 
@@ -14,16 +17,37 @@ type ClubProps = {
 
 export const ClubView: FC<ClubProps> = ({})=>{
     const {t} = useTranslation()
+
     const formSchema = z.object({
         name: z.string()
     })
+
+
 
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
     })
 
-    const onSubmit = ()=>{
+    const mutation = useMutation<void, void, {
+        name: string
+    }>(
+        {
+            mutationFn: async (variables)=>{
+                return await axios.post(apiURL + "/v1/clubs/", {
+                    name: variables.name
+                })
+            },
+            onSuccess: ()=>{
+                console.log("Created")
+            }
+        }
+    )
 
+    const onSubmit = ()=>{
+        console.log('Submitting')
+        mutation.mutate({
+            name: 'test'
+        })
     }
 
     const BaseDataStep = ()=>{

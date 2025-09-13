@@ -48,7 +48,7 @@ export const Stepper: FC<StepperProps> = ({children}) => {
             <p className="float-right mt-5 flex gap-5">
                 {currentStep > 0 && <Button variant="secondary" onClick={()=>setCurrentStep(currentStep - 1)}>{t('cancel')}</Button>}
                 {currentStep < children.length && <Button  onClick={()=>setCurrentStep(currentStep + 1)}>{t('continue')}</Button> }
-                {currentStep === children.length && <Button>{t('save')}</Button> }
+                {currentStep === children.length && <Button type="submit">{t('save')}</Button> }
             </p>
         </div>
 

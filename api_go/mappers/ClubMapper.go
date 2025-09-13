@@ -20,11 +20,11 @@ func ConvertClubFromModelToDto(club models.Club) dto.ClubDto {
 		ID: club.ID,
 		BaseClubFields: dto.BaseClubFields{
 			Name:        club.Name,
-			Location:    club.Location,
-			Country:     club.Country,
-			Street:      club.Street,
-			PostalCode:  club.PostalCode,
-			HouseNumber: club.HouseNumber,
+			Location:    club.Address.Location,
+			Country:     club.Address.Country,
+			Street:      club.Address.Street,
+			PostalCode:  club.Address.PostalCode,
+			HouseNumber: club.Address.HouseNumber,
 		},
 	}
 }

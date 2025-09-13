@@ -42,7 +42,7 @@ func SetupRouter(queries *db.Queries, config config.AppConfig, logger *zap.Sugar
 
 	var profile fiber.Router
 	if config.SSO.Issuer != "" {
-		jwtValidator, err := auth.NewKeycloakJWTValidator(config.SSO.Issuer, config.SSO.ClientID)
+		jwtValidator, err := auth.NewKeycloakJWTValidator(config.SSO.Issuer, config.SSO.ClientID, logger)
 		if err != nil {
 			panic(err)
 		}
@@ -55,7 +55,7 @@ func SetupRouter(queries *db.Queries, config config.AppConfig, logger *zap.Sugar
 				if token.Jwt == nil {
 					tokenJwt, err := client.LoginClient(context.Background(), config.SSO.ClientID, config.SSO.ClientSecret, config.SSO.Realm)
 					if err != nil {
-						logger.Info("Error renewing keycloak token %s", err.Error())
+						logger.Info("Error renewing keycloak token", err.Error())
 					}
 					logger.Info("Renewing keycloak token")
 					token.Mu.Lock()
@@ -121,7 +121,8 @@ func SetupRouter(queries *db.Queries, config config.AppConfig, logger *zap.Sugar
 		AuthorService: authorService,
 	}
 
-	var clubService = service.NewClubService(queries)
+	var addressService = service.NewAddressService(queries)
+	var clubService = service.NewClubService(queries, addressService)
 
 	var clubMemberService = service.NewClubMemberService(queries, clubService)
 
