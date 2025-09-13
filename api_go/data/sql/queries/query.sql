@@ -243,7 +243,19 @@ REPLACE INTO address(
 );
 
 -- name: FindClubByName :many
-SELECT sqlc.embed(clubs), sqlc.embed(address), sqlc.embed(club_participant) from clubs join address ON clubs.address_id = address.id join club_participant ON club_participant.club_id = clubs.id  WHERE club_participant.user_id = ?;
+SELECT sqlc.embed(clubs), sqlc.embed(address) from clubs join address ON clubs.address_id = address.id WHERE clubs.name = ?;
+
+
+-- name: CreateMemberInClub :exec
+INSERT INTO club_participant(
+        user_id,
+        club_id,
+        role
+) VALUES (
+        ?,
+        ?,
+        ?
+);
 
 -- name: FindAllMembersOfClub :many
 SELECT sqlc.embed(clubs), sqlc.embed(club_participant) from clubs join club_participant ON club_participant.club_id = clubs.id join user on user.id = club_participant.user_id  WHERE clubs.id = ?;

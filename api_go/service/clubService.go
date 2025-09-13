@@ -36,6 +36,14 @@ func (c *ClubService) GetAllClubsForMyId(userId *string) (*[]models.Club, error)
 	return &clubModels, nil
 }
 
+func (c *ClubService) AddUserToClub(clubId string, userId string, role models.ClubRole) error {
+	return c.queries.CreateMemberInClub(c.context, db.CreateMemberInClubParams{
+		ClubID: clubId,
+		UserID: userId,
+		Role:   db.ClubParticipantRole(role.String()),
+	})
+}
+
 func (c *ClubService) CreateClub(club dto.ClubPostDto) (*models.Club, error) {
 	addressId, err := uuid.NewRandom()
 	if err != nil {

@@ -79,7 +79,7 @@ type Club struct {
 type ClubParticipant struct {
 	UserID string
 	ClubID string
-	Role   NullClubParticipantRole
+	Role   ClubParticipantRole
 }
 
 type Concert struct {

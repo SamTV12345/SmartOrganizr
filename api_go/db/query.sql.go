@@ -241,6 +241,29 @@ func (q *Queries) CreateIcalSync(ctx context.Context, arg CreateIcalSyncParams) 
 	return result.LastInsertId()
 }
 
+const createMemberInClub = `-- name: CreateMemberInClub :exec
+INSERT INTO club_participant(
+        user_id,
+        club_id,
+        role
+) VALUES (
+        ?,
+        ?,
+        ?
+)
+`
+
+type CreateMemberInClubParams struct {
+	UserID string
+	ClubID string
+	Role   ClubParticipantRole
+}
+
+func (q *Queries) CreateMemberInClub(ctx context.Context, arg CreateMemberInClubParams) error {
+	_, err := q.db.ExecContext(ctx, createMemberInClub, arg.UserID, arg.ClubID, arg.Role)
+	return err
+}
+
 const createNote = `-- name: CreateNote :execlastid
 INSERT INTO elements (id, type, name, description, user_id_fk, parent, author_id_fk, number_of_pages) VALUES (?,'note', ?, ?, ?, ?, ?, ?)
 `
@@ -1081,52 +1104,6 @@ func (q *Queries) FindAuthorById(ctx context.Context, arg FindAuthorByIdParams) 
 		&i.UserIDFk,
 	)
 	return i, err
-}
-
-const findClubByName = `-- name: FindClubByName :many
-SELECT clubs.id, clubs.name, clubs.address_id, address.id, address.street, address.house_number, address.location, address.postal_code, address.country, club_participant.user_id, club_participant.club_id, club_participant.role from clubs join address ON clubs.address_id = address.id join club_participant ON club_participant.club_id = clubs.id  WHERE club_participant.user_id = ?
-`
-
-type FindClubByNameRow struct {
-	Club            Club
-	Address         Address
-	ClubParticipant ClubParticipant
-}
-
-func (q *Queries) FindClubByName(ctx context.Context, userID string) ([]FindClubByNameRow, error) {
-	rows, err := q.db.QueryContext(ctx, findClubByName, userID)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	var items []FindClubByNameRow
-	for rows.Next() {
-		var i FindClubByNameRow
-		if err := rows.Scan(
-			&i.Club.ID,
-			&i.Club.Name,
-			&i.Club.AddressID,
-			&i.Address.ID,
-			&i.Address.Street,
-			&i.Address.HouseNumber,
-			&i.Address.Location,
-			&i.Address.PostalCode,
-			&i.Address.Country,
-			&i.ClubParticipant.UserID,
-			&i.ClubParticipant.ClubID,
-			&i.ClubParticipant.Role,
-		); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Close(); err != nil {
-		return nil, err
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
 }
 
 const findConcertById = `-- name: FindConcertById :one
