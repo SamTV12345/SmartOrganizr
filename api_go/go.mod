@@ -6,7 +6,7 @@ require (
 	codeberg.org/go-pdf/fpdf v0.11.1
 	github.com/Nerzal/gocloak/v13 v13.9.0
 	github.com/arran4/golang-ical v0.3.2
-	github.com/coreos/go-oidc/v3 v3.14.1
+	github.com/coreos/go-oidc/v3 v3.16.0
 	github.com/docker/go-connections v0.5.0
 	github.com/go-faker/faker/v4 v4.6.0
 	github.com/go-playground/validator/v10 v10.26.0
@@ -43,7 +43,7 @@ require (
 	github.com/fogleman/gg v1.3.0 // indirect
 	github.com/fsnotify/fsnotify v1.8.0 // indirect
 	github.com/gabriel-vasile/mimetype v1.4.8 // indirect
-	github.com/go-jose/go-jose/v4 v4.0.5 // indirect
+	github.com/go-jose/go-jose/v4 v4.1.3 // indirect
 	github.com/go-logr/logr v1.4.2 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/go-ole/go-ole v1.3.0 // indirect
