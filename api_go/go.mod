@@ -1,6 +1,6 @@
 module api_go
 
-go 1.24.0
+go 1.25.0
 
 require (
 	codeberg.org/go-pdf/fpdf v0.11.1
