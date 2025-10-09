@@ -40,6 +40,10 @@ func SetupRouter(queries *db.Queries, config config.AppConfig, logger *zap.Sugar
 	}
 	var client = gocloak.NewClient(config.SSO.Url)
 
+	app.Get("/health", func(c *fiber.Ctx) error {
+		return c.SendString("OK")
+	})
+
 	var profile fiber.Router
 	if config.SSO.Issuer != "" {
 		jwtValidator, err := auth.NewKeycloakJWTValidator(config.SSO.Issuer, config.SSO.ClientID, logger)
