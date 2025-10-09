@@ -1,9 +1,0 @@
-FROM amazoncorretto:21-alpine AS runtime
-
-# Copy the package
-COPY ./api/target/*-SNAPSHOT.jar \
-	/app/smartOrganizr.jar
-
-WORKDIR /app
-ENTRYPOINT  ["java", "-jar","smartOrganizr.jar"]
-EXPOSE 8080
