@@ -32,8 +32,12 @@ export class  ApiClient {
         }
     }
 
-    async getAllNotes(): Promise<NoteResponse> {
-        const response = await fetchWithAuth(`${this.baseUrl}/api/v1/elements/notes`)
+    async getAllNotes(noteName: string): Promise<NoteResponse> {
+        const url = new URL(`${this.baseUrl}/api/v1/elements/notes`)
+        if (noteName && noteName.length > 0) {
+            url.searchParams.append('noteName', noteName)
+        }
+        const response = await fetchWithAuth(url.toString())
         if (!response.ok) {
             console.log(await response.text())
             throw new Error('Network response was not ok');

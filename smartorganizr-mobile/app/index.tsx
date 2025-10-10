@@ -1,3 +1,8 @@
+import {maybeCompleteAuthSession} from 'expo-web-browser'
+
+
+maybeCompleteAuthSession();
+
 import {View, Text, TextInput, StyleSheet, TouchableOpacity, Alert, KeyboardAvoidingView, Platform} from "react-native";
 import React, { useState, useEffect} from "react";
 import {DiscoveryDocument, makeRedirectUri, useAuthRequest} from "expo-auth-session";
@@ -6,10 +11,7 @@ import {apiClient, setApiClient} from "@/api/ApiClient";
 import {ACCESS_TOKEN, LOGIN_URL} from "@/api/constants";
 import {jwtDecode} from "jwt-decode";
 import {useRouter} from "expo-router";
-import {maybeCompleteAuthSession} from 'expo-web-browser'
 
-
-maybeCompleteAuthSession();
 
 export default function Index() {
     const [url, setUrl] = useState("");
@@ -103,7 +105,7 @@ export default function Index() {
 
     return (
         <KeyboardAvoidingView
-            style={{ flex: 1 }}
+            style={{ flex: 1, backgroundColor: 'black' }}
             behavior={Platform.OS === "ios" ? "padding" : "height"}
         >
         <View style={styles.container}>
