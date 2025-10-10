@@ -74,7 +74,7 @@ SELECT sqlc.embed(elements), authors.* FROM elements LEFT JOIN authors ON elemen
 SELECT sqlc.embed(note), sqlc.embed(a), sqlc.embed(p) FROM elements as note JOIN authors a on a.id = note.author_id_fk JOIN elements p ON p.id = note.parent WHERE note.type ='note' AND a.user_id_fk = ? ORDER BY note.name LIMIT ? OFFSET ?;
 
 -- name: FindAllNotesByCreator :many
-SELECT sqlc.embed(note), sqlc.embed(a), sqlc.embed(p) FROM elements as note JOIN authors a on a.id = elements.author_id_fk JOIN elements p ON p.id = elements.parent  WHERE elements.type ='note' AND a.user_id_fk = ? ORDER BY note.name;
+SELECT sqlc.embed(note), sqlc.embed(a), sqlc.embed(p) FROM elements as note JOIN authors a on a.id = note.author_id_fk JOIN elements p ON p.id = note.parent  WHERE note.type ='note' AND a.user_id_fk = ? ORDER BY note.name;
 
 -- name: CountFindAllNotesByCreator :one
 SELECT COUNT(*) FROM elements as note WHERE note.type ='note' AND note.user_id_fk = ?;
@@ -83,7 +83,7 @@ SELECT COUNT(*) FROM elements as note WHERE note.type ='note' AND note.user_id_f
 SELECT sqlc.embed(note), sqlc.embed(a), sqlc.embed(p) FROM elements as note JOIN authors a on a.id = note.author_id_fk JOIN elements p ON p.id = note.parent WHERE note.type ='note' and note.name LIKE CONCAT('%',?,'%') AND a.user_id_fk = ? ORDER BY note.name LIMIT ? OFFSET ?;
 
 -- name: FindAllNotesByCreatorWithSearch :many
-SELECT sqlc.embed(note), sqlc.embed(a), sqlc.embed(p) FROM elements as note JOIN authors a on a.id = elements.author_id_fk JOIN elements p ON p.id = elements.parent  WHERE elements.type ='note' and note.name LIKE CONCAT('%',?,'%') AND a.user_id_fk = ? ORDER BY note.name;
+SELECT sqlc.embed(note), sqlc.embed(a), sqlc.embed(p) FROM elements as note JOIN authors a on a.id = note.author_id_fk JOIN elements p ON p.id = note.parent  WHERE note.type ='note' and note.name LIKE CONCAT('%',?,'%') AND a.user_id_fk = ? ORDER BY note.name;
 
 -- name: CountFindAllNotesByCreatorWithSearch :one
 SELECT COUNT(*) FROM elements as note WHERE note.type ='note' and note.name LIKE CONCAT('%',?,'%') AND note.user_id_fk = ?;

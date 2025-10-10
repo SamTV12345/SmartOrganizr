@@ -20,7 +20,7 @@ func main() {
 		return
 	}
 
-	setupLogger.Info("Connecting with user %s to database %s:%d", appConfig.Database.User, appConfig.Database.Host, appConfig.Database.Port)
+	setupLogger.Infof("Connecting with user %s to database %s:%d", appConfig.Database.User, appConfig.Database.Host, appConfig.Database.Port)
 
 	var db, _ = db2.Setup(appConfig.Database)
 	var app = routers.SetupRouter(db, appConfig, setupLogger)

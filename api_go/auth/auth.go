@@ -3,6 +3,7 @@ package auth
 import (
 	"context"
 	"fmt"
+
 	"github.com/coreos/go-oidc/v3/oidc"
 	"github.com/gofiber/fiber/v2"
 	"github.com/golang-jwt/jwt/v4"
@@ -27,7 +28,8 @@ func NewKeycloakJWTValidator(issuerUrl, clientId string, logger *zap.SugaredLogg
 		return nil, err
 	}
 	verifier := provider.Verifier(&oidc.Config{
-		ClientID: clientId,
+		ClientID:          clientId,
+		SkipClientIDCheck: true,
 	})
 	return func(c *fiber.Ctx, key string) (bool, error) {
 		var ctx = c.UserContext()

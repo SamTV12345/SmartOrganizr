@@ -64,7 +64,7 @@ func ReadConfig() (AppConfig, error) {
 	viper.SetDefault(SSOIssuer, "http://localhost/realms/smartOrganizr")
 	viper.SetDefault(SSOUrl, "http://localhost/")
 	viper.SetDefault(SSOClientID, "smartOrganizr")
-	viper.SetDefault(SSOClientSecret, "changeMe")
+	viper.SetDefault(SSOClientSecret, "E0TbfxKMpx7xofUYn4OzFKfP0vq30Qsf")
 	viper.SetDefault(SSOFrontendClientID, "smartorganizr-frontend")
 	viper.SetDefault(SSORealm, "smartOrganizr")
 	viper.SetDefault(SSORefreshInternal, 250) // in seconds

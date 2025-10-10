@@ -1,0 +1,4 @@
+export const PUBLIC_CONFIG_KEY = "PUBLIC_CONFIG_KEY";
+export const LOGIN_URL = "PUBLIC_URL"
+export const ACCESS_TOKEN = "ACCESS_TOKEN"
+
