@@ -27,6 +27,19 @@ export type Folder = {
     creator: User
 }
 
+export type PagedEmbeddedResponse<T> = {
+    _embedded: {
+        noteRepresentationModelList: T[]
+    },
+    _links: Record<string, unknown>,
+    page: {
+        size: number
+        // ggf. weitere Felder wie totalElements, totalPages, number etc.
+    }
+}
+
+export type NoteResponse = PagedEmbeddedResponse<Note>;
+
 export type Note = {
     author: Author,
     numberOfPages: number,

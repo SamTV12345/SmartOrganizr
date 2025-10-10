@@ -20,6 +20,7 @@ export default function RedirectLayout() {
                     tabBarIcon: ({ color }) => <FontAwesome size={28} name="home" color={color} />,
                 }}
             />
-        </Tabs></QueryClientProvider>
+        </Tabs>
+        </QueryClientProvider>
     );
 }

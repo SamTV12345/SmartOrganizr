@@ -1,7 +1,7 @@
 import {getNetworkStateAsync} from "expo-network";
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {ACCESS_TOKEN, LOGIN_URL, PUBLIC_CONFIG_KEY} from "@/api/constants";
-import {ConfigModel, Note} from "@/api/types";
+import {ConfigModel, Note, NoteResponse} from "@/api/types";
 import {ConfigModelValidation} from "@/api/validation";
 
 export class  ApiClient {
@@ -32,7 +32,7 @@ export class  ApiClient {
         }
     }
 
-    async getAllNotes(): Promise<Note> {
+    async getAllNotes(): Promise<NoteResponse> {
         const response = await fetchWithAuth(`${this.baseUrl}/api/v1/elements/notes`)
         if (!response.ok) {
             console.log(await response.text())
