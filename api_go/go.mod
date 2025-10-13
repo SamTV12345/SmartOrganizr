@@ -7,7 +7,7 @@ require (
 	github.com/Nerzal/gocloak/v13 v13.9.0
 	github.com/arran4/golang-ical v0.3.2
 	github.com/coreos/go-oidc/v3 v3.16.0
-	github.com/docker/go-connections v0.5.0
+	github.com/docker/go-connections v0.6.0
 	github.com/go-faker/faker/v4 v4.6.0
 	github.com/go-playground/validator/v10 v10.28.0
 	github.com/go-sql-driver/mysql v1.9.2
