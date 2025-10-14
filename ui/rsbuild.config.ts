@@ -1,5 +1,5 @@
 import { defineConfig } from '@rsbuild/core';
-import { pluginBabel } from '@rsbuild/plugin-babel';
+import { pluginTypeCheck } from "@rsbuild/plugin-type-check";
 import { pluginReact } from '@rsbuild/plugin-react';
 
 export default defineConfig({
@@ -18,11 +18,6 @@ export default defineConfig({
   },
   plugins: [
     pluginReact(),
-    /*pluginBabel({
-      include: /\.(?:jsx|tsx)$/,
-      babelLoaderOptions(opts) {
-        opts.plugins?.unshift('babel-plugin-react-compiler');
-      },
-    }),*/
+      pluginTypeCheck()
   ],
 });

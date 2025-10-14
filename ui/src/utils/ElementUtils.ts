@@ -35,7 +35,7 @@ export const replaceFolder = (event: TreeData, nodes: TreeData[]): TreeData[] =>
 
 
 //add child
-export const addChild = (event: TreeData, nodes: TreeData[], parentId: string): TreeData[] => {
+export const addChild = (event: TreeData, nodes: TreeData[], parentId: string|undefined): TreeData[] => {
     return nodes.map(node => {
         //if other children are in this folder
         if (node.id === parentId && isFolder(node)) {

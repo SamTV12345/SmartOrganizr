@@ -11,7 +11,6 @@ import {FormProvider, useForm, useWatch} from "react-hook-form";
 import {zodResolver} from "@hookform/resolvers/zod";
 import axios from "axios";
 import {apiURL} from "@/src/Keycloak";
-import {setNodes} from "@/src/store/CommonSlice";
 import {useAppDispatch, useAppSelector} from "@/src/store/hooks";
 import {useMutation, useQueryClient} from "@tanstack/react-query";
 import {RadioGroup, RadioGroupItem} from "@/components/ui/radio-group";

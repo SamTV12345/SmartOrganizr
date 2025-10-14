@@ -56,7 +56,7 @@ export const GeburtstagAdresseEdit = ()=>{
                                                 <Button
                                                     variant={"outline"}
                                                     className={cn(
-                                                        "w-[240px] bg-transparent pl-3 text-left font-normal",
+                                                        " bg-transparent pl-3 text-left font-normal",
                                                         !field.value && "text-muted-foreground"
                                                     )}
                                                 >
@@ -65,9 +65,9 @@ export const GeburtstagAdresseEdit = ()=>{
                                                             locale: de
                                                         })
                                                     ) : (
-                                                        <span>Geburtstag</span>
+                                                        <span>{t('birthday')}</span>
                                                     )}
-                                                    <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                                                    <CalendarIcon className="ml-auto opacity-50" />
                                                 </Button>
                                             </FormControl>
                                         </PopoverTrigger>

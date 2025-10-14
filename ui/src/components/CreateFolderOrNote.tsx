@@ -11,12 +11,9 @@ import {FormProvider, useForm, useWatch} from "react-hook-form";
 import {zodResolver} from "@hookform/resolvers/zod";
 import axios from "axios";
 import {apiURL} from "@/src/Keycloak";
-import {setNodes} from "@/src/store/CommonSlice";
-import {useAppDispatch, useAppSelector} from "@/src/store/hooks";
-import {useMutation} from "@tanstack/react-query";
+
+import {useMutation, useQueryClient} from "@tanstack/react-query";
 import {RadioGroup, RadioGroupItem} from "@/components/ui/radio-group";
-import {Label} from "@/components/ui/label";
-import {useEffect, useState} from "react";
 import {FormControl, FormField, FormItem, FormLabel, FormMessage} from "@/components/ui/form";
 import {Input} from "@/components/ui/input";
 import {
@@ -36,11 +33,11 @@ import {addAsParent, addChild} from "@/src/utils/ElementUtils";
 import {NoteItem, NotePostDto} from "@/src/models/NoteItem";
 import {AuthorEmbeddedContainer} from "@/src/models/AuthorEmbeddedContainer";
 import {Author} from "@/src/models/Author";
+import {ElementItem} from "@/src/models/ElementItem";
 
 export function CreateFolderOrNote() {
     const {t} = useTranslation()
-    const dispatch = useAppDispatch()
-    const nodes = useAppSelector(state=>state.commonReducer.nodes)
+    const queryclient = useQueryClient()
 
     const createFolder = async(folder: FolderPostDto)=>{
         const response = await axios.post(apiURL+`/v1/elements/folders`, folder)
@@ -76,9 +73,13 @@ export function CreateFolderOrNote() {
         mutationFn: createFolder,
         onSuccess:(data)=>{
             if (data.parent != undefined || data.parent != null) {
-                dispatch(setNodes(addChild(data, nodes, data.parent.id)))
+                queryclient.setQueryData(['folders'], (nodes: ElementItem[])=>{
+                    return addChild(data, nodes, data.parent?.id)
+                })
             } else {
-                dispatch(setNodes(addAsParent(data, nodes)))
+                queryclient.setQueryData(['folders'], (nodes: ElementItem[])=>{
+                    return addAsParent(data, nodes)
+                })
             }
         }
     })
@@ -87,9 +88,13 @@ export function CreateFolderOrNote() {
         mutationFn: createNote,
         onSuccess:(data)=>{
             if (data.parent != undefined || data.parent != null) {
-                dispatch(setNodes(addChild(data, nodes, data.parent.id)))
+                queryclient.setQueryData(['folders'], (nodes: ElementItem[])=>{
+                    return addChild(data, nodes, data.parent?.id)
+                })
             } else {
-                dispatch(setNodes(addAsParent(data, nodes)))
+                queryclient.setQueryData(['folders'], (nodes: ElementItem[])=>{
+                    return addAsParent(data, nodes)
+                })
             }
         }
     })

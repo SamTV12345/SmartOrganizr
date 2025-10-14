@@ -3,7 +3,7 @@ import "./Tree.css"
 import {ElementItem, isNote} from "../models/ElementItem";
 import axios, {AxiosResponse} from "axios";
 import {fixProtocol} from "../utils/Utilities";
-import {setLoadedFolders, setNodes} from "../store/CommonSlice";
+import {setLoadedFolders} from "../store/CommonSlice";
 import {useAppDispatch, useAppSelector} from "../store/hooks";
 import {apiURL} from "../Keycloak";
 import {setNotePDFUploadOpen, setSelectedFolder} from "../ModalSlice";
@@ -26,9 +26,6 @@ export const TreeElement:FC<TreeProps> = ({data})=>{
     return <div>
         <ul>
             {data && data.map(tree=>{
-                if (tree.id === "df72e542-dcb8-4ab9-99ca-e806828594e3") {
-                    console.log("Updated in tree", tree)
-                }
                 return <TreeNode element={tree} key={tree.id}/>
             })}
         </ul>
@@ -41,11 +38,6 @@ const TreeNode:FC<TreeDataExpanded> = ({element}) => {
     const loadedFolders = useAppSelector(state=>state.commonReducer.loadedFolders)
     const hasChild = element.type === 'folder'
     const queryClient = useQueryClient()
-
-
-    if (element.id === "df72e542-dcb8-4ab9-99ca-e806828594e3") {
-        console.log("Updated", element)
-    }
 
     const onExpand = async (event: FolderItem) => {
         if (!loadedFolders.includes(event.id)) {

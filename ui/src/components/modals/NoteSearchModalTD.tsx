@@ -1,7 +1,7 @@
 import {FC} from "react";
 
 interface NoteSearchModalTDProps {
-        children: React.ReactElement|string|React.ReactElement[]
+        children: React.ReactElement|string|React.ReactElement[]| undefined
 }
 
 export const NoteSearchModalTD:FC<NoteSearchModalTDProps> = ({children}) => {

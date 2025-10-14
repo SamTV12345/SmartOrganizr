@@ -11,7 +11,6 @@ import {ElementEmbeddedContainer} from "../models/ElementEmbeddedContainer";
 interface CommonProps {
     sideBarCollapsed: boolean,
     authorPage: Page<AuthorEmbeddedContainer<Author>> | undefined,
-    nodes: TreeData[],
     authorSearchText: string
     loadedFolders: string[],
     noteSearchText: string,
@@ -23,7 +22,6 @@ const initialState: CommonProps = {
     sideBarCollapsed: false,
     noteSearchText:'',
     authorPage: undefined,
-    nodes: [],
     authorSearchText: '',
     loadedFolders:[],
     elementsSearched: undefined
@@ -40,9 +38,6 @@ export const commonSlice = createSlice({
         setAuthorPage: (state, action) => {
             state.authorPage = action.payload
         },
-        setNodes: (state, action:PayloadAction<TreeData[]>) => {
-            state.nodes = action.payload
-        },
         setAuthorSearchText: (state,action )=>{
             state.authorSearchText = action.payload
         },
@@ -58,6 +53,6 @@ export const commonSlice = createSlice({
     }
 })
 
-export const {setSideBarCollapsed, setAuthorPage, setNodes, setAuthorSearchText, setLoadedFolders, setNotesSearched, setNotesSearchText} = commonSlice.actions
+export const {setSideBarCollapsed, setAuthorPage, setAuthorSearchText, setLoadedFolders, setNotesSearched, setNotesSearchText} = commonSlice.actions
 
     export default commonSlice.reducer
