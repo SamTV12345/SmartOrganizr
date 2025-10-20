@@ -32,7 +32,7 @@ COPY --from=frontend /app/dist ./ui/dist
 
 RUN go build -o app .
 
-FROM scratch as runtime
+FROM alpine:3 as runtime
 
 EXPOSE 8080
 
