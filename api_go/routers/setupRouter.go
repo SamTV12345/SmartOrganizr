@@ -225,6 +225,7 @@ func SetupRouter(queries *db.Queries, config config.AppConfig, logger *zap.Sugar
 	profile.Route("v1/elements", func(r fiber.Router) {
 		r.Get("/parentDecks", controllers.GetParentDecks)
 		r.Get("/notes", controllers.GetNotes)
+		r.Delete("/:elementid", controllers.DeleteElement)
 		r.Get("/notes/:noteId", controllers.GetNodeByID)
 		r.Post("/folders", controllers.CreateFolder)
 		r.Get("/:folderId/children", controllers.FindNextChildren)

@@ -14,6 +14,8 @@ export const FolderView = ()=>{
             const response = await axios.get(apiURL + "/v1/elements/parentDecks")
             return response.data
         },
+        staleTime: 1000 * 60 * 10,
+        refetchOnMount: false
     })
 
 
@@ -22,8 +24,6 @@ export const FolderView = ()=>{
             <i className="fa fa-spinner fa-spin fa-3x"/>
         </div>
     }
-
-    console.log("DAta is", data)
 
     return <div>
         <CreateFolderOrNote/>

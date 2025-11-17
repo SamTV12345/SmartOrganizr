@@ -388,6 +388,20 @@ func (q *Queries) DeleteConcert(ctx context.Context, id string) error {
 	return err
 }
 
+const deleteFolderCasCade = `-- name: DeleteFolderCasCade :exec
+DELETE FROM elements WHERE id = ? AND user_id_fk = ? and type = 'folder'
+`
+
+type DeleteFolderCasCadeParams struct {
+	ID       string
+	UserIDFk sql.NullString
+}
+
+func (q *Queries) DeleteFolderCasCade(ctx context.Context, arg DeleteFolderCasCadeParams) error {
+	_, err := q.db.ExecContext(ctx, deleteFolderCasCade, arg.ID, arg.UserIDFk)
+	return err
+}
+
 const deleteNote = `-- name: DeleteNote :exec
 DELETE FROM elements WHERE id = ? AND user_id_fk = ?
 `

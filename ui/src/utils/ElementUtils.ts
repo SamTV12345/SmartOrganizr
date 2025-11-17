@@ -60,13 +60,15 @@ export const deleteTopElements = (keyNum: string, nodes:TreeData[]):TreeData[]=>
 }
 
 export const deleteChild = (keyNum: string, nodes: ElementItem[]): TreeData[] => {
-    return nodes.map(node => {
-        if (isFolder(node)) {
-            return {...node, children: node.elements?.filter(c => c.id !== keyNum)} as TreeData
-        } else {
-            return {...node, children: deleteChild(keyNum,  [])}
-        }
-    })
+    return nodes
+        .filter(n => n.id !== keyNum)
+        .map(node => {
+            if (isFolder(node)) {
+                const updatedElements = deleteChild(keyNum, node.elements || []);
+                return { ...node, elements: updatedElements } as TreeData;
+            }
+            return node as TreeData;
+        });
 }
 
 export const addAsParent = (event:TreeData,nodes: TreeData[])=>{

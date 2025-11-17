@@ -113,7 +113,10 @@ const TreeNode:FC<TreeDataExpanded> = ({element}) => {
                 <div className="col d-tree-head">
                     <i className={` fa-folder mr-2`}/>
                     <span className="mr-2">{element.name}</span>
-                    <UpdateFolderOrNote element={element} trigger={<i className="fa-solid fa-pencil ml-2"/>} />
+                    <UpdateFolderOrNote onDelete={(elementId)=>{
+                        queryClient.setQueryData(["folders"], (folders: ElementItem[])=>{
+                            return deleteChild(elementId, folders)
+                    })}} element={element} trigger={<i className="fa-solid fa-pencil ml-2"/>} />
                     {isNote(element) &&
                         <i className="fa-solid fa-upload ml-2" onClick={()=>{
                         dispatch(setSelectedFolder(element))

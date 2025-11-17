@@ -6,9 +6,11 @@ import (
 	"api_go/mappers"
 	"api_go/models"
 	"api_go/service"
+	"database/sql"
 	"errors"
-	"github.com/gofiber/fiber/v2"
 	"strconv"
+
+	"github.com/gofiber/fiber/v2"
 )
 
 func GetParentDecks(c *fiber.Ctx) error {
@@ -25,6 +27,34 @@ func GetParentDecks(c *fiber.Ctx) error {
 		folderDtos = append(folderDtos, mappers.ConvertFolderDtoFromModel(fdto, c))
 	}
 	return c.JSON(folderDtos)
+}
+
+func DeleteElement(c *fiber.Ctx) error {
+	var userId = GetLocal[string](c, "userId")
+	var elementId = c.Params("elementId")
+
+	var folderService = GetLocal[service.FolderService](c, "folderService")
+	var noteService = GetLocal[service.NoteService](c, "noteService")
+
+	lookedUpFolder, err := folderService.FindFolderByIdAndUser(elementId, userId)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": err.Error(),
+		})
+	}
+	if err := folderService.DeleteFolder(lookedUpFolder.Id, userId); err != nil {
+		return c.SendStatus(fiber.StatusInternalServerError)
+	}
+
+	if err := noteService.DeleteNote(userId, elementId); err != nil {
+		if !errors.Is(err, sql.ErrNoRows) {
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+				"error": err.Error(),
+			})
+		}
+	}
+
+	return c.SendStatus(fiber.StatusNoContent)
 }
 
 func GetNotes(c *fiber.Ctx) error {

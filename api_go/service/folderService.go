@@ -8,6 +8,7 @@ import (
 	"api_go/models"
 	"context"
 	"database/sql"
+
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
 )
@@ -118,7 +119,7 @@ func (f *FolderService) FindFolderByIdAndUser(folderId string, userId string) (*
 	}
 	var creator, errWhenLoading = f.UserService.LoadUser(userId)
 	if errWhenLoading != nil {
-		return nil, err
+		return nil, errWhenLoading
 	}
 	var folderDb = db.ConvertFolderEntityToDBVersion(folder)
 	var folderModel = mappers.ConvertFolderFromEntity(folderDb, *creator)
@@ -173,6 +174,9 @@ func (f *FolderService) CreateFolder(dto dto.FolderPostDto, userId string) (*mod
 	}
 
 	createdFolder, err := f.FindFolderByIdAndUser(folderId.String(), userId)
+	if err != nil {
+		return nil, err
+	}
 	if dto.ParentId != nil {
 		var parentFolder, errParent = f.FindFolderByIdAndUser(*dto.ParentId, userId)
 		if errParent != nil {
@@ -180,10 +184,14 @@ func (f *FolderService) CreateFolder(dto dto.FolderPostDto, userId string) (*mod
 		}
 		createdFolder.Parent = parentFolder
 	}
-	if err != nil {
-		return nil, err
-	}
 	return createdFolder, nil
+}
+
+func (f *FolderService) DeleteFolder(folderId string, userId string) error {
+	return f.Queries.DeleteFolderCasCade(f.Ctx, db.DeleteFolderCasCadeParams{
+		ID:       folderId,
+		UserIDFk: db.NewSQLNullString(userId),
+	})
 }
 
 func (f *FolderService) FindNextChildren(folderId string, userId string) ([]models.Element, error) {

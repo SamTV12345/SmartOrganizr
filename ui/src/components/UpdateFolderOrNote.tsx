@@ -4,14 +4,13 @@ import {
     DialogContent, DialogFooter, DialogTitle,
     DialogTrigger,
 } from "@/components/ui/dialog"
-import {Check, ChevronsUpDown, Loader, Pencil, PlusIcon} from "lucide-react";
+import {Check, ChevronsUpDown, Loader} from "lucide-react";
 import {useTranslation} from "react-i18next";
-import {undefined, z} from "zod";
-import {FormProvider, useForm, useWatch} from "react-hook-form";
+import {z} from "zod";
+import {FormProvider, useForm} from "react-hook-form";
 import {zodResolver} from "@hookform/resolvers/zod";
 import axios from "axios";
 import {apiURL} from "@/src/Keycloak";
-import {useAppDispatch, useAppSelector} from "@/src/store/hooks";
 import {useMutation, useQueryClient} from "@tanstack/react-query";
 import {RadioGroup, RadioGroupItem} from "@/components/ui/radio-group";
 import {FormControl, FormField, FormItem, FormLabel, FormMessage} from "@/components/ui/form";
@@ -33,18 +32,40 @@ import {replaceFolder, replaceNote} from "@/src/utils/ElementUtils";
 import {NoteItem, NotePutDto} from "@/src/models/NoteItem";
 import {AuthorEmbeddedContainer} from "@/src/models/AuthorEmbeddedContainer";
 import {Author} from "@/src/models/Author";
-import React, {useEffect, useMemo} from "react";
+import React, {useEffect, useMemo, useState} from "react";
 import {ElementItem, isFolder, isNote} from "@/src/models/ElementItem";
 
 
 export type UpdateFolderOrNoteProps = {
     element: ElementItem,
     trigger: React.ReactNode
+    onDelete: (elementId: string)=>void
 }
+
+
 
 export function UpdateFolderOrNote(props: UpdateFolderOrNoteProps) {
     const {t} = useTranslation()
     const queryClient = useQueryClient()
+    const [confirmDelete, setConfirmDelete] = useState(false);
+    const deleteElement = async () => {
+        const response = await axios.delete(apiURL + `/v1/elements/${props.element.id}`);
+        return response.data;
+    };
+    const deleteMutation = useMutation<void, Error, void>({
+        mutationFn: deleteElement,
+        onSuccess: () => {
+            props.onDelete(props.element.id);
+        }
+    });
+
+
+
+    useEffect(() => {
+        if (!confirmDelete) return;
+        const timer = setTimeout(() => setConfirmDelete(false), 5000); // auto-cancel nach 5s
+        return () => clearTimeout(timer);
+    }, [confirmDelete]);
 
     const updateFolder = async(folder: FolderPostDto)=>{
         const response = await axios.patch(apiURL+`/v1/elements/folders/${props.element.id}`, folder)
@@ -391,6 +412,34 @@ export function UpdateFolderOrNote(props: UpdateFolderOrNoteProps) {
                             <DialogClose>
                                 <Button type="button" variant="secondary" >{t('cancel')}</Button>
                             </DialogClose>
+                            {!confirmDelete ? (
+                                <Button
+                                    type="button"
+                                    variant="secondary"
+                                    onClick={() => setConfirmDelete(true)}
+                                >
+                                    <i className="fa-solid fa-trash text-red-600"></i>
+                                </Button>
+                            ) : (
+                                <div className="flex items-center space-x-2">
+                                    <DialogClose>
+                                        <Button
+                                            type="button"
+                                            className="bg-red-600 text-white hover:bg-red-700"
+                                            onClick={() => deleteMutation.mutate()}
+                                        >
+                                            {deleteMutation.isPending ? <Loader className="animate-spin" /> : t('confirm')}
+                                        </Button>
+                                    </DialogClose>
+                                    <Button
+                                        type="button"
+                                        variant="ghost"
+                                        onClick={() => setConfirmDelete(false)}
+                                    >
+                                        {t('cancel')}
+                                    </Button>
+                                </div>
+                            )}
                             <Button type="submit" >{
                                 (createFolderMutation.isPending || createNoteMutation.isPending) ? <Loader className="animate-spin"/>:
                                     t('save')

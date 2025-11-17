@@ -259,3 +259,7 @@ INSERT INTO club_participant(
 
 -- name: FindAllMembersOfClub :many
 SELECT sqlc.embed(clubs), sqlc.embed(club_participant) from clubs join club_participant ON club_participant.club_id = clubs.id join user on user.id = club_participant.user_id  WHERE clubs.id = ?;
+
+
+-- name: DeleteFolderCasCade :exec
+DELETE FROM elements WHERE id = ? AND user_id_fk = ? and type = 'folder';
