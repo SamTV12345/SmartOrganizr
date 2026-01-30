@@ -4,7 +4,9 @@ on:
   push:
 
 env:
-  REGISTRY_IMAGE: samuel19982/smartorganizr
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+  REGISTRY_IMAGE: ghcr.io/${{ github.repository }}
 
 jobs:
   test:
@@ -12,40 +14,48 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
       - name: Set up Go
         uses: actions/setup-go@v4
         with:
           go-version: 1.25
+
       - uses: pnpm/action-setup@v4
         with:
           version: 10
+
       - name: Install Node.js
         uses: actions/setup-node@v4
         with:
-            node-version: 20
-            cache: 'pnpm'
-            cache-dependency-path: ./ui/pnpm-lock.yaml
+          node-version: 20
+          cache: pnpm
+          cache-dependency-path: ./ui/pnpm-lock.yaml
+
       - name: Install dependencies
         run: pnpm install
         working-directory: ./ui
+
       - name: Build
         run: pnpm build
         working-directory: ./ui
+
       - name: Move to golang
-        run: |
-          mv ./ui/dist ./api_go/ui/dist
+        run: mv ./ui/dist ./api_go/ui/dist
+
       - name: Install dependencies
         run: go mod download
         working-directory: ./api_go
+
       - name: Set up Docker
         uses: docker/setup-docker-action@v4
+
       - name: Test
         run: go test ./tests/
         working-directory: ./api_go
+
   build:
     if: github.ref == 'refs/heads/master'
-    needs:
-      - test
+    needs: test
     strategy:
       fail-fast: false
       matrix:
@@ -55,12 +65,14 @@ jobs:
           - platform: linux/arm64
             runs-on: ubuntu-24.04-arm
     runs-on: ${{ matrix.runs-on }}
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          fetch-tags: 'true'
-          fetch-depth: '0'
+          fetch-tags: true
+          fetch-depth: 0
+
       - name: Prepare
         run: |
           platform=${{ matrix.platform }}
@@ -72,17 +84,19 @@ jobs:
         with:
           images: ${{ env.REGISTRY_IMAGE }}
 
-      - name: Login to Docker Hub
+      - name: Login to GHCR
         uses: docker/login-action@v3
         with:
-          username: samuel19982
-          password: ${{ secrets.DOCKER_PASSWORD }}
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
+
       - name: Build and push by digest
         id: build
         uses: docker/build-push-action@v6
@@ -107,16 +121,17 @@ jobs:
           retention-days: 1
 
   merge:
-    runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/master'
-    needs:
-      - build
+    needs: build
+    runs-on: ubuntu-latest
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          fetch-tags: 'true'
-          fetch-depth: '0'
+          fetch-tags: true
+          fetch-depth: 0
+
       - name: Download digests
         uses: actions/download-artifact@v4
         with:
@@ -124,11 +139,12 @@ jobs:
           pattern: digests-*
           merge-multiple: true
 
-      - name: Login to Docker Hub
+      - name: Login to GHCR
         uses: docker/login-action@v3
         with:
-          username: samuel19982
-          password: ${{ secrets.DOCKER_PASSWORD }}
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -143,32 +159,36 @@ jobs:
             type=ref,event=pr
             type=semver,pattern={{version}}
             type=semver,pattern={{major}}.{{minor}}
+
       - name: Get last tag and commit hash
-        id: vars
         run: |
           TAG=$(git describe --tags --abbrev=0)
           HASH=$(git rev-parse --short HEAD)
           echo "IMAGE_TAG=${TAG}-${HASH}" >> $GITHUB_ENV
+
       - name: Create manifest list and push
         working-directory: ${{ runner.temp }}/digests
         run: |
-            DIGEST_FLAGS=$(for f in *; do printf '%s@sha256:%s ' "$REGISTRY_IMAGE" "$f"; done)
-            docker buildx imagetools create -t $REGISTRY_IMAGE:$IMAGE_TAG $DIGEST_FLAGS
+          DIGEST_FLAGS=$(for f in *; do printf '%s@sha256:%s ' "$REGISTRY_IMAGE" "$f"; done)
+          docker buildx imagetools create \
+            -t $REGISTRY_IMAGE:$IMAGE_TAG \
+            $DIGEST_FLAGS
 
       - name: Inspect image
         run: |
-          docker buildx imagetools inspect ${{ env.REGISTRY_IMAGE }}:${{ steps.meta.outputs.version }}
-      - name: Checkout
+          docker buildx imagetools inspect ${{ env.REGISTRY_IMAGE }}:${{ env.IMAGE_TAG }}
+
+      - name: Checkout Helm charts repo
         uses: actions/checkout@v4
         with:
-          repository: 'SamTV12345/smartorganizr-charts'
-          token: '${{ secrets.SMARTORGANIZR_CHARTS_PUSH_TOKEN }}'
+          repository: SamTV12345/smartorganizr-charts
+          token: ${{ secrets.SMARTORGANIZR_CHARTS_PUSH_TOKEN }}
+
       - name: Change argocd tag
         run: |
-            sed -i "s|tag: .*|tag: \"${{ env.IMAGE_TAG }}\"|g" ./values-dynamic.yaml
-            git config --global user.name 'github-actions'
-            git config --global user.email 'noreply@github.com'
-            git add .
-            git commit -m "chore: bump image to ${{ env.IMAGE_TAG }}"
-            git push origin main
-          
+          sed -i "s|tag: .*|tag: \"${IMAGE_TAG}\"|g" ./values-dynamic.yaml
+          git config --global user.name 'github-actions'
+          git config --global user.email 'noreply@github.com'
+          git add .
+          git commit -m "chore: bump image to ${IMAGE_TAG}"
+          git push origin main

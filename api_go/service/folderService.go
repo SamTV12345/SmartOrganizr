@@ -177,7 +177,7 @@ func (f *FolderService) CreateFolder(dto dto.FolderPostDto, userId string) (*mod
 	if err != nil {
 		return nil, err
 	}
-	if dto.ParentId != nil {
+	if dto.ParentId != nil && *dto.ParentId != "" {
 		var parentFolder, errParent = f.FindFolderByIdAndUser(*dto.ParentId, userId)
 		if errParent != nil {
 			return nil, errParent

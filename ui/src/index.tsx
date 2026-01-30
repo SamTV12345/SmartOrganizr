@@ -74,7 +74,7 @@ const renderApp= (keycloak: Keycloak)=>
 
 const bootstrapApp = async () => {
     if(keycloak === undefined){
-        axios.get(apiURL+"/../public")
+        axios.get("/../public")
             .then(resp=>{
                 setLinks(resp.data._links)
                 accountURL = resp.data.url+"/realms/"+resp.data.realm+"/account"

@@ -5,7 +5,10 @@ import { pluginReact } from '@rsbuild/plugin-react';
 export default defineConfig({
   server: {
     base: '/ui/',
-    port: 5173
+    port: 5173,
+    proxy: {
+      '/public': 'http://localhost:8080',
+    }
   },
   html: {
     template: './index.html',
