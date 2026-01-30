@@ -1,238 +1,212 @@
-import { Button } from "@/components/ui/button"
+import { Button } from "@/components/ui/button";
 import {
-    Dialog, DialogClose,
-    DialogContent, DialogFooter, DialogTitle,
+    Dialog,
+    DialogClose,
+    DialogContent,
+    DialogFooter,
+    DialogTitle,
     DialogTrigger,
-} from "@/components/ui/dialog"
-import {Check, ChevronsUpDown, Loader, PlusIcon} from "lucide-react";
-import {useTranslation} from "react-i18next";
-import {z} from "zod";
-import {FormProvider, useForm, useWatch} from "react-hook-form";
-import {zodResolver} from "@hookform/resolvers/zod";
-import axios from "axios";
-import {apiURL} from "@/src/Keycloak";
-
-import {useMutation, useQueryClient} from "@tanstack/react-query";
-import {RadioGroup, RadioGroupItem} from "@/components/ui/radio-group";
-import {FormControl, FormField, FormItem, FormLabel, FormMessage} from "@/components/ui/form";
-import {Input} from "@/components/ui/input";
+} from "@/components/ui/dialog";
 import {
-    Command,
-    CommandEmpty,
-    CommandGroup,
-    CommandInput,
-    CommandItem,
-    CommandList,
-} from "@/components/ui/command"
-import {Popover, PopoverContent, PopoverTrigger} from "@/components/ui/popover";
-import { cn } from "./NavigationButton";
-import {Page} from "@/src/models/Page";
-import {FolderEmbeddedContainer} from "@/src/models/FolderEmbeddedContainer";
-import {FolderItem, FolderPostDto} from "@/src/models/Folder";
-import {addAsParent, addChild} from "@/src/utils/ElementUtils";
-import {NoteItem, NotePostDto} from "@/src/models/NoteItem";
-import {AuthorEmbeddedContainer} from "@/src/models/AuthorEmbeddedContainer";
-import {Author} from "@/src/models/Author";
-import {ElementItem} from "@/src/models/ElementItem";
+    Check,
+    ChevronsUpDown,
+    Loader,
+    PlusIcon,
+} from "lucide-react";
+import { useTranslation } from "react-i18next";
+import { z } from "zod";
+import { useForm, useWatch } from "react-hook-form";
+import axios from "axios";
+import { apiURL } from "@/src/Keycloak";
+
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import {
+    Form,
+    FormControl,
+    FormField,
+    FormItem,
+    FormLabel,
+    FormMessage,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { FolderItem, FolderPostDto } from "@/src/models/Folder";
+import { addAsParent, addChild } from "@/src/utils/ElementUtils";
+import { NoteItem, NotePostDto } from "@/src/models/NoteItem";
+import { ElementItem } from "@/src/models/ElementItem";
+
+import { standardSchemaResolver } from "@hookform/resolvers/standard-schema";
 
 export function CreateFolderOrNote() {
-    const {t} = useTranslation()
-    const queryclient = useQueryClient()
+    const { t } = useTranslation();
+    const queryClient = useQueryClient();
 
-    const createFolder = async(folder: FolderPostDto)=>{
-        const response = await axios.post(apiURL+`/v1/elements/folders`, folder)
-        return response.data
-    }
-
-    const createNote = async(note: NotePostDto)=>{
-        const response = await axios.post(apiURL+`/v1/elements/notes`, note)
-        return response.data
-    }
-
-    const searchFolder = async(folderName: string)=>{
-        const response = await axios.get(apiURL+`/v1/elements/folders`, {
-            params: {
-                folderName,
-                page: 0
-            }
-        })
-        return response.data
-    }
-
-    const searchAuthor = async(folderName: string)=>{
-        const response = await axios.get(apiURL+`/v1/authors`, {
-            params: {
-                name: folderName,
-                page: 0
-            }
-        })
-        return response.data
-    }
-
-    const createFolderMutation = useMutation<FolderItem, Error, FolderPostDto>({
-        mutationFn: createFolder,
-        onSuccess:(data)=>{
-            if (data.parent != undefined || data.parent != null) {
-                queryclient.setQueryData(['folders'], (nodes: ElementItem[])=>{
-                    return addChild(data, nodes, data.parent?.id)
-                })
-            } else {
-                queryclient.setQueryData(['folders'], (nodes: ElementItem[])=>{
-                    return addAsParent(data, nodes)
-                })
-            }
-        }
-    })
-
-    const createNoteMutation = useMutation<NoteItem, Error, NotePostDto>({
-        mutationFn: createNote,
-        onSuccess:(data)=>{
-            if (data.parent != undefined || data.parent != null) {
-                queryclient.setQueryData(['folders'], (nodes: ElementItem[])=>{
-                    return addChild(data, nodes, data.parent?.id)
-                })
-            } else {
-                queryclient.setQueryData(['folders'], (nodes: ElementItem[])=>{
-                    return addAsParent(data, nodes)
-                })
-            }
-        }
-    })
-
-    const searchAuthorsByName = useMutation<Page<AuthorEmbeddedContainer<Author>>, Error, string>({
-        mutationFn: searchAuthor,
-    })
-
-    const searchFoldersByName = useMutation<Page<FolderEmbeddedContainer<FolderItem>>, Error, string>({
-        mutationFn: searchFolder,
-    })
+    /* ------------------------------------------------------------------ */
+    /* Zod 4 schemas                                                      */
+    /* ------------------------------------------------------------------ */
 
     const folderSchema = z.object({
-        name: z
-            .string()
-            .min(1, { message: t("fieldRequired")! }),
-
-        description: z
-            .string()
-            .optional()
-            .transform((value) => value || undefined),
-
         type: z.literal("folder"),
-
-        parentId: z
-            .string()
-            .optional()
-            .transform((value) => value || undefined),
+        name: z.string().min(1, { message: t("fieldRequired")! }),
+        description: z.string().default(""),
+        parentId: z.string().default(""),
     });
 
     const noteSchema = z.object({
         type: z.literal("note"),
-
-        name: z
-            .string()
-            .min(1, { message: t("fieldRequired")! }),
-
-        description: z
-            .string()
-            .optional()
-            .transform((value) => value || undefined),
-
-        numberOfPages: z.coerce
+        name: z.string().min(1, { message: t("fieldRequired")! }),
+        description: z.string().default(""),
+        numberOfPages: z
             .number()
             .refine((v) => !Number.isNaN(v), {
                 message: t("fieldRequired")!,
             }),
-
-        authorId: z
-            .string()
-            .min(1, { message: t("fieldRequired")! }),
-
-        parentId: z
-            .string()
-            .min(1, { message: t("fieldRequired")! }),
-
-        extraInformation: z
-            .string()
-            .optional()
-            .transform((value) => value || undefined),
+        authorId: z.string().min(1, { message: t("fieldRequired")! }),
+        parentId: z.string().min(1, { message: t("fieldRequired")! }),
+        extraInformation: z.string().default(""),
     });
 
-    const schema = z.union([folderSchema, noteSchema]);
+    const schema = z.discriminatedUnion("type", [
+        folderSchema,
+        noteSchema,
+    ]);
 
-    const form = useForm<z.infer<typeof schema>>({
-        resolver: zodResolver(schema),
+    type FormValues = z.infer<typeof schema>;
+
+    /* ------------------------------------------------------------------ */
+    /* React Hook Form                                                     */
+    /* ------------------------------------------------------------------ */
+
+    const form = useForm({
+        resolver: standardSchemaResolver(schema),
         defaultValues: {
+            type: "folder",
             name: "",
             description: "",
             parentId: "",
-            type: 'folder'
         },
-    })
+    });
 
-    const watchType = useWatch({name: 'type', control: form.control})
+    const watchType = useWatch({
+        control: form.control,
+        name: "type",
+    });
 
-    function onSubmit(values: z.infer<typeof schema>) {
+    /* ------------------------------------------------------------------ */
+    /* API calls                                                           */
+    /* ------------------------------------------------------------------ */
+
+    const createFolder = async (folder: FolderPostDto) => {
+        const response = await axios.post(
+            `${apiURL}/v1/elements/folders`,
+            folder
+        );
+        return response.data;
+    };
+
+    const createNote = async (note: NotePostDto) => {
+        const response = await axios.post(
+            `${apiURL}/v1/elements/notes`,
+            note
+        );
+        return response.data;
+    };
+
+    const createFolderMutation = useMutation<
+        FolderItem,
+        Error,
+        FolderPostDto
+    >({
+        mutationFn: createFolder,
+        onSuccess: (data) => {
+            queryClient.setQueryData(
+                ["folders"],
+                (nodes: ElementItem[] = []) =>
+                    data.parent
+                        ? addChild(data, nodes, data.parent.id)
+                        : addAsParent(data, nodes)
+            );
+        },
+    });
+
+    const createNoteMutation = useMutation<
+        NoteItem,
+        Error,
+        NotePostDto
+    >({
+        mutationFn: createNote,
+        onSuccess: (data) => {
+            queryClient.setQueryData(
+                ["folders"],
+                (nodes: ElementItem[] = []) =>
+                    data.parent
+                        ? addChild(data, nodes, data.parent.id)
+                        : addAsParent(data, nodes)
+            );
+        },
+    });
+
+    /* ------------------------------------------------------------------ */
+    /* Submit                                                              */
+    /* ------------------------------------------------------------------ */
+
+    const onSubmit = (values: FormValues) => {
         if (values.type === "folder") {
-            createFolderMutation.mutate(values)
+            createFolderMutation.mutate(values);
         } else {
-            createNoteMutation.mutate(values)
+            createNoteMutation.mutate(values);
         }
-    }
+    };
 
+    /* ------------------------------------------------------------------ */
+    /* Render                                                              */
+    /* ------------------------------------------------------------------ */
 
     return (
         <Dialog>
             <DialogTrigger asChild>
-                <Button variant="outline" className="float-right mr-5 mt-5"><PlusIcon/></Button>
+                <Button variant="outline" className="float-right mr-5 mt-5">
+                    <PlusIcon />
+                </Button>
             </DialogTrigger>
 
-            <DialogContent className="">
-                <DialogTitle className="scroll-m-20 border-b pb-2 text-3xl font-semibold tracking-tight first:mt-0">
+            <DialogContent>
+                <DialogTitle className="border-b pb-2 text-3xl font-semibold">
                     Ordner oder Musiknote erstellen
                 </DialogTitle>
 
-
-                <FormProvider {...form}>
-                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+                <Form {...form}>
+                    <form
+                        onSubmit={form.handleSubmit(onSubmit)}
+                        className="space-y-8"
+                    >
+                        {/* TYPE */}
                         <FormField
                             control={form.control}
                             name="type"
                             render={({ field }) => (
-                                <FormItem className="space-y-3">
+                                <FormItem>
                                     <FormControl>
                                         <RadioGroup
+                                            value={field.value}
                                             onValueChange={field.onChange}
-                                            defaultValue={field.value}
                                             className="grid grid-cols-2"
                                         >
-                                            <FormItem className="flex items-center space-x-3 space-y-0">
-                                                <FormControl>
-                                                    <RadioGroupItem value="folder" />
-                                                </FormControl>
-                                                <FormLabel className="font-normal">
-                                                    Ordner
-                                                </FormLabel>
-                                            </FormItem>
-                                            <FormItem className="flex items-center space-x-3 space-y-0">
-                                                <FormControl>
-                                                    <RadioGroupItem value="note" />
-                                                </FormControl>
-                                                <FormLabel className="font-normal">
-                                                    Musiknote
-                                                </FormLabel>
-                                            </FormItem>
+                                            <RadioGroupItem value="folder" />
+                                            <RadioGroupItem value="note" />
                                         </RadioGroup>
                                     </FormControl>
-                                    <FormMessage />
                                 </FormItem>
                             )}
                         />
+
+                        {/* NAME */}
                         <FormField
                             control={form.control}
                             name="name"
                             render={({ field }) => (
-                                <FormItem className="grid-cols-2">
-                                    <FormLabel>{t('name')}</FormLabel>
+                                <FormItem>
+                                    <FormLabel>{t("name")}</FormLabel>
                                     <FormControl>
                                         <Input {...field} />
                                     </FormControl>
@@ -240,193 +214,71 @@ export function CreateFolderOrNote() {
                                 </FormItem>
                             )}
                         />
+
+                        {/* DESCRIPTION */}
                         <FormField
                             control={form.control}
                             name="description"
                             render={({ field }) => (
-                                <FormItem className="grid-cols-2">
-                                    <FormLabel>{t('description')}</FormLabel>
+                                <FormItem>
+                                    <FormLabel>{t("description")}</FormLabel>
                                     <FormControl>
                                         <Input {...field} />
                                     </FormControl>
-                                    <FormMessage />
                                 </FormItem>
                             )}
                         />
-                        {
-                            watchType === 'note' &&                         <FormField
-                                control={form.control}
-                                name="numberOfPages"
-                                render={({ field }) => (
-                                    <FormItem className="grid-cols-2">
-                                        <FormLabel>{t('numberOfPages')}</FormLabel>
-                                        <FormControl>
-                                            <Input type="number" min={0} {...field} />
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-                        }
 
-                        {
-                            watchType === 'note' &&                         <FormField
-                                control={form.control}
-                                name="extraInformation"
-                                render={({ field }) => (
-                                    <FormItem className="grid-cols-2">
-                                        <FormLabel>{t('extraInformation')}</FormLabel>
-                                        <FormControl>
-                                            <Input {...field} />
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-                        }
-
-                        {watchType === 'note' && <FormField
-                            control={form.control}
-                            name="authorId"
-                            render={({ field }) => (
-                                <FormItem className="grid-cols-2">
-                                    <FormLabel>Author</FormLabel>
-                                    <Popover>
-                                        <PopoverTrigger asChild>
+                        {/* NOTE ONLY */}
+                        {watchType === "note" && (
+                            <>
+                                <FormField
+                                    control={form.control}
+                                    name="numberOfPages"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>{t("numberOfPages")}</FormLabel>
                                             <FormControl>
-                                                <Button
-                                                    variant="outline"
-                                                    role="combobox"
-                                                    className={cn(
-                                                        "justify-between",
-                                                        !field.value && "text-muted-foreground"
-                                                    )}
-                                                >
-                                                    {field.value
-                                                        ? searchAuthorsByName.data?._embedded.authorRepresentationModelList.find(
-                                                            (language) => language.id === field.value
-                                                        )?.name
-                                                        : "Ordner auswählen"}
-                                                    <ChevronsUpDown className="opacity-50" />
-                                                </Button>
+                                                <Input type="number" {...field} />
                                             </FormControl>
-                                        </PopoverTrigger>
-                                        <PopoverContent className="w-[220px] p-0">
-                                            <Command>
-                                                <CommandInput
-                                                    placeholder="Author suchen..."
-                                                    className="h-9"
-                                                    onValueChange={(e)=>{
-                                                        searchAuthorsByName.mutate(e)
-                                                    }}
-                                                />
-                                                <CommandList>
-                                                    <CommandEmpty>No framework found.</CommandEmpty>
-                                                    <CommandGroup>
-                                                        {searchAuthorsByName.data?._embedded.authorRepresentationModelList.map((language) => (
-                                                            <CommandItem
-                                                                value={language.name}
-                                                                key={language.id}
-                                                                onSelect={() => {
-                                                                    form.setValue("authorId", language.id)
-                                                                }}
-                                                            >
-                                                                {language.name}
-                                                                <Check
-                                                                    className={cn(
-                                                                        "ml-auto",
-                                                                        language.id === field.value
-                                                                            ? "opacity-100"
-                                                                            : "opacity-0"
-                                                                    )}
-                                                                />
-                                                            </CommandItem>
-                                                        ))}
-                                                    </CommandGroup>
-                                                </CommandList>
-                                            </Command>
-                                        </PopoverContent>
-                                    </Popover>
-                                    <FormMessage />
-                                </FormItem>)}/>}
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
 
-                        <FormField
-                            control={form.control}
-                            name="parentId"
-                            render={({ field }) => (
-                                <FormItem className="grid-cols-2">
-                                    <FormLabel>Ordner</FormLabel>
-                                    <Popover>
-                                        <PopoverTrigger asChild>
+                                <FormField
+                                    control={form.control}
+                                    name="extraInformation"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>{t("extraInformation")}</FormLabel>
                                             <FormControl>
-                                                <Button
-                                                    variant="outline"
-                                                    role="combobox"
-                                                    className={cn(
-                                                        "justify-between",
-                                                        !field.value && "text-muted-foreground"
-                                                    )}
-                                                >
-                                                    {field.value
-                                                        ? searchFoldersByName.data?._embedded.elementRepresentationModelList.find(
-                                                            (language) => language.id === field.value
-                                                        )?.name
-                                                        : "Ordner auswählen"}
-                                                    <ChevronsUpDown className="opacity-50" />
-                                                </Button>
+                                                <Input {...field} />
                                             </FormControl>
-                                        </PopoverTrigger>
-                                        <PopoverContent className="w-[220px] p-0">
-                                            <Command>
-                                                <CommandInput
-                                                    placeholder="Search framework..."
-                                                    className="h-9"
-                                                    onValueChange={(e)=>{
-                                                        searchFoldersByName.mutate(e)
-                                                    }}
-                                                />
-                                                <CommandList>
-                                                    <CommandEmpty>No framework found.</CommandEmpty>
-                                                    <CommandGroup>
-                                                        {searchFoldersByName.data?._embedded.elementRepresentationModelList.map((language) => (
-                                                            <CommandItem
-                                                                value={language.name}
-                                                                key={language.id}
-                                                                onSelect={() => {
-                                                                    form.setValue("parentId", language.id)
-                                                                }}
-                                                            >
-                                                                {language.name}
-                                                                <Check
-                                                                    className={cn(
-                                                                        "ml-auto",
-                                                                        language.id === field.value
-                                                                            ? "opacity-100"
-                                                                            : "opacity-0"
-                                                                    )}
-                                                                />
-                                                            </CommandItem>
-                                                        ))}
-                                                    </CommandGroup>
-                                                </CommandList>
-                                            </Command>
-                                        </PopoverContent>
-                                    </Popover>
-                                    <FormMessage />
-                                </FormItem>)}/>
+                                        </FormItem>
+                                    )}
+                                />
+                            </>
+                        )}
+
                         <DialogFooter>
-                            <DialogClose>
-                                <Button type="button" variant="secondary" >{t('cancel')}</Button>
+                            <DialogClose asChild>
+                                <Button type="button" variant="secondary">
+                                    {t("cancel")}
+                                </Button>
                             </DialogClose>
-                            <Button disabled={false} type="submit" >{
-                                (createFolderMutation.isPending || createNoteMutation.isPending) ? <Loader className="animate-spin"/>:
-                                    t('save')
-                            }</Button>
+
+                            <Button type="submit">
+                                {(createFolderMutation.isPending ||
+                                    createNoteMutation.isPending) && (
+                                    <Loader className="mr-2 animate-spin" />
+                                )}
+                                {t("save")}
+                            </Button>
                         </DialogFooter>
                     </form>
-                </FormProvider>
+                </Form>
             </DialogContent>
         </Dialog>
-
-    )
+    );
 }
