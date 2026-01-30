@@ -59,7 +59,7 @@
   "devDependencies": {
     "@rsbuild/plugin-type-check": "^1.2.4",
     "@tailwindcss/postcss": "^4.1.7",
-    "@types/node": "^18.19.103",
+    "@types/node": "^25.1.0",
     "@types/react": "^19.1.5",
     "@types/react-dom": "^19.1.5",
     "typescript": "^5.9.3",
