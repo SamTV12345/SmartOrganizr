@@ -167,6 +167,7 @@ func SetupRouter(queries *db.Queries, config config.AppConfig, logger *zap.Sugar
 
 	app.Get("/public", controllers.GetIndex)
 	app.Get("/public/users/:userId/:image.png", controllers.GetUserImage)
+	app.Get("/public/:folderId/export", controllers.ExportPDFFromNotes)
 
 	// Serve the React ui
 	app.Use("/ui", filesystem.New(filesystem.Config{

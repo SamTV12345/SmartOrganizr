@@ -9,13 +9,15 @@ import axios from "axios";
 import {setElementAuthor, setElementSelectedAuthorName} from "../../ElementCreateSlice";
 import {useTranslation} from "react-i18next";
 import {FormInput} from "../form/FormInput";
+import {FormField} from "@/components/ui/form";
+import {Popover, PopoverContent, PopoverTrigger} from "@/components/ui/popover";
+import {Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList} from "@/components/ui/command";
 
 export const NoteAuthorCreateSearchBar = ()=> {
     const dispatch = useAppDispatch()
-    const [typed, setTyped] = useState<boolean>()
     const authorName = useAppSelector(state=>state.elementReducer.authorName)
-    const selectedAuthorId = useAppSelector(state=>state.elementReducer.author)
     const [currentSearchAuthors, setCurrentSearchAuthors] = useState<Page<AuthorEmbeddedContainer<Author>>>()
+    const [open, setOpen] = useState(false)
     const {t} = useTranslation()
 
     const loadAuthors = async (link: string) => {
@@ -36,25 +38,55 @@ export const NoteAuthorCreateSearchBar = ()=> {
             loadAuthors(apiURL + `/v1/authors?page=0&name=${authorName}`)
     }, 1000, [authorName])
 
-    return <>
-        <FormInput id={'author'} label={t('author')} value={authorName} onChange={(v) => {
-            !typed && setTyped(true)
-            dispatch(setElementSelectedAuthorName(v))}}/>
-        <div>
-            <i className="fa fa-check" onClick={() => {
-                if (selectedAuthorId !== "") {
-                    dispatch(setElementSelectedAuthorName(currentSearchAuthors?._embedded.authorRepresentationModelList.find(a => a.id === selectedAuthorId)?.name))
-                    dispatch(setElementAuthor(currentSearchAuthors?._embedded.authorRepresentationModelList.find(a => a.id === selectedAuthorId)?.id))
-                }
-            }}/>
-        </div>
-        <div/>
-        {typed && <ul>
-            {currentSearchAuthors && currentSearchAuthors._embedded &&
-                currentSearchAuthors._embedded.authorRepresentationModelList.map(a =>
-                    <li key={a.id}
-                        className={`${selectedAuthorId === a.id ? 'bg-gray-500 ' : ''}text-center`}
-                        onClick={() => dispatch(setElementAuthor(a.id))}>{a.name}</li>)}
-        </ul>}
-        </>
+    return <FormField
+        name="parentId"
+        render={({ field }) => (
+            <Popover open={open} onOpenChange={setOpen}>
+                <PopoverTrigger asChild>
+                    <div>
+                        <FormInput
+                            id="author"
+                            value={authorName}
+                            label={t("author")}
+                            onChange={(v) => {
+                                dispatch(setElementSelectedAuthorName(v));
+                                setOpen(true);
+                            }}
+                            onFocus={() => setOpen(true)}
+                        />
+                    </div>
+                </PopoverTrigger>
+
+            <PopoverContent
+                className="w-[--radix-popover-trigger-width] p-0"
+                align="start"
+                onOpenAutoFocus={(e) => e.preventDefault()}
+            >
+                <Command shouldFilter={false}>
+                    <CommandList className="max-h-64 overflow-y-auto">
+                        <CommandEmpty>{t("noResults")}</CommandEmpty>
+
+                        <CommandGroup>
+                            {currentSearchAuthors?._embedded?.authorRepresentationModelList.map(
+                                (author) => (
+                                    <CommandItem
+                                        key={author.id}
+                                        value={author.name}
+                                        onSelect={() => {
+                                            field.onChange(author.id);
+                                            dispatch(
+                                               setElementSelectedAuthorName(author.name)
+                                            );
+                                            setOpen(false);
+                                        }}
+                                    >
+                                        {author.name}
+                                    </CommandItem>
+                                )
+                            )}
+                        </CommandGroup>
+                    </CommandList>
+                </Command>
+            </PopoverContent>
+        </Popover>)}/>
 }

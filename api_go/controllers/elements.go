@@ -338,18 +338,19 @@ func UpdatePDFOfNote(c *fiber.Ctx) error {
 }
 
 func ExportPDFFromNotes(c *fiber.Ctx) error {
-	userId := GetLocal[string](c, "userId")
 	folderservice := GetLocal[service.FolderService](c, constants.FolderService)
 	userservice := GetLocal[service.UserService](c, constants.UserService)
 
 	var folderId = c.Params("folderId")
-	pdfContent, err := service.GeneratePDFForFolder(folderId, folderservice, userId, userservice)
+	pdfContent, err := service.GeneratePDFForFolder(folderId, folderservice, userservice)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": err.Error(),
 		})
 	}
 	c.Set("Content-Type", "application/pdf")
+	c.Set("Content-Disposition", `inline; filename="folder.pdf"`)
+	c.Set("Content-Length", strconv.Itoa(len(pdfContent)))
 	return c.Send(pdfContent)
 }
 

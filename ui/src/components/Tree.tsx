@@ -1,6 +1,6 @@
 import React, {FC, useState} from "react";
 import "./Tree.css"
-import {ElementItem, isNote} from "../models/ElementItem";
+import {ElementItem, isFolder, isNote} from "../models/ElementItem";
 import axios, {AxiosResponse} from "axios";
 import {fixProtocol} from "../utils/Utilities";
 import {setLoadedFolders} from "../store/CommonSlice";
@@ -25,7 +25,7 @@ interface TreeProps {
 export const TreeElement:FC<TreeProps> = ({data})=>{
     return <div>
         <ul>
-            {data && data.map(tree=>{
+            {data?.map(tree=>{
                 return <TreeNode element={tree} key={tree.id}/>
             })}
         </ul>
@@ -33,7 +33,7 @@ export const TreeElement:FC<TreeProps> = ({data})=>{
 }
 
 const TreeNode:FC<TreeDataExpanded> = ({element}) => {
-    const [childVisible, setChildVisiblity] = useState(false);
+    const [childVisible, setChildVisible] = useState(false);
     const dispatch = useAppDispatch()
     const loadedFolders = useAppSelector(state=>state.commonReducer.loadedFolders)
     const hasChild = element.type === 'folder'
@@ -105,7 +105,7 @@ const TreeNode:FC<TreeDataExpanded> = ({element}) => {
                         }`}
                     >
                         <i className="fa-solid fa-chevron-right" onClick={()=>{
-                            setChildVisiblity((v) => !v)
+                            setChildVisible((v) => !v)
                             onExpand(element)
                         }}/>
                     </div>

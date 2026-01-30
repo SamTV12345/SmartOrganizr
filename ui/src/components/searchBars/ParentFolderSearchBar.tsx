@@ -1,6 +1,4 @@
-import {setElementParent, setElementParentName} from "../../ElementCreateSlice";
-import {Waypoint} from "react-waypoint";
-import {fixProtocol} from "../../utils/Utilities";
+import {setElementParentName} from "../../ElementCreateSlice";
 import {useState} from "react";
 import {Page} from "../../models/Page";
 import {FolderEmbeddedContainer} from "../../models/FolderEmbeddedContainer";
@@ -9,14 +7,17 @@ import {useDebounce} from "../../utils/DebounceHook";
 import {apiURL} from "../../Keycloak";
 import {useAppDispatch, useAppSelector} from "../../store/hooks";
 import {useTranslation} from "react-i18next";
-import {FormInput} from "../form/FormInput";
 import {FolderItem} from "@/src/models/Folder";
+import {Popover, PopoverContent, PopoverTrigger} from "@/components/ui/popover";
+import {Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList} from "@/components/ui/command";
+import {FormField} from "@/components/ui/form";
+import {FormInput} from "@/src/components/form/FormInput";
 
 export const ParentFolderSearchBar = ()=>{
     const [currentFolder,setCurrentFolder] = useState<Page<FolderEmbeddedContainer<FolderItem>>>()
     const elementParentName = useAppSelector(state => state.elementReducer.searchParentName)
     const searchParentName = useAppSelector(state=>state.elementReducer.searchParentName)
-    const [selectedId, setSelectedFolderId] = useState<string>()
+    const [open, setOpen] = useState(false)
     const dispatch = useAppDispatch()
     const {t} = useTranslation()
     useDebounce(()=>{
@@ -38,23 +39,53 @@ export const ParentFolderSearchBar = ()=>{
         }
     }
 
-    return <>
-    <FormInput id={'superFolder'} label={t('superFolder')} value={searchParentName as string} onChange={(v)=>dispatch(setElementParentName(v))}/>
-    <i className="fa fa-check" onClick={()=>{
-        if(selectedId && selectedId!=="" &&currentFolder?._embedded.elementRepresentationModelList){
-            dispatch(setElementParentName(currentFolder._embedded.elementRepresentationModelList.find(a=>a.id===selectedId)?.name))
-            dispatch(setElementParent(currentFolder._embedded.elementRepresentationModelList.find(a=>a.id===selectedId)?.id))
-        }}}/>
-    <ul>
-        {currentFolder&&currentFolder._embedded && currentFolder._embedded.elementRepresentationModelList.map((folder,index)=>
-            <li key={folder.id} onClick={()=>{setSelectedFolderId(folder.id)}} className={`${selectedId===folder.id?'bg-gray-600':''}`}>{folder.name}
-                {currentFolder.page.size-index<10 &&
-                    currentFolder._links && currentFolder._links.next
-                    && currentFolder._links.next.href
-                    && <Waypoint onEnter={()=>{
-                        loadSearchedFolder(fixProtocol(currentFolder._links.next.href))
-                    }}/>}</li>
-        )}
-    </ul>
-</>
+    return <FormField name="parentId" render={({field})=>
+        <Popover open={open} onOpenChange={setOpen}>
+            <PopoverTrigger asChild>
+                <div>
+                    <FormInput
+                        id="parentFolder"
+                        value={searchParentName}
+                        label={t("superFolder")}
+                        onChange={(v) => {
+                            dispatch(setElementParentName(v));
+                            if (!open) setOpen(true);
+                        }}
+                        onFocus={() => setOpen(true)}
+                    />
+                </div>
+            </PopoverTrigger>
+
+            <PopoverContent
+                className="w-[--radix-popover-trigger-width] p-0"
+                align="start"
+                onOpenAutoFocus={(e) => e.preventDefault()}
+            >
+                <Command shouldFilter={false}>
+                    <CommandList className="max-h-64 overflow-y-auto">
+                        <CommandEmpty>{t("noResults")}</CommandEmpty>
+
+                        <CommandGroup>
+                            {currentFolder?._embedded?.elementRepresentationModelList.map(
+                                (folder) => (
+                                    <CommandItem
+                                        key={folder.id}
+                                        value={folder.name}
+                                        onSelect={() => {
+                                            field.onChange(folder.id);
+                                            dispatch(
+                                                setElementParentName(folder.name)
+                                            );
+                                            setOpen(false);
+                                        }}
+                                    >
+                                        {folder.name}
+                                    </CommandItem>
+                                )
+                            )}
+                        </CommandGroup>
+                    </CommandList>
+                </Command>
+            </PopoverContent>
+        </Popover>}/>
 }

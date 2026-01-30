@@ -136,6 +136,9 @@ INSERT INTO elements (id, type, name, description, user_id_fk, parent, author_id
 -- name: FindFolderById :one
 SELECT * FROM elements WHERE id = ? and user_id_fk = ?;
 
+-- name: FindFolderByIdWithoutUserId :one
+SELECT * FROM elements WHERE id = ?;
+
 -- name: SearchByFolderName :many
 SELECT * FROM elements WHERE name LIKE CONCAT('%', ?, '%') and type = 'folder' AND user_id_fk = ? ORDER BY name LIMIT ? OFFSET ?;
 

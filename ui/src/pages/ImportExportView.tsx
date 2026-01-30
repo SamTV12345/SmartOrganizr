@@ -27,8 +27,7 @@ export const ImportExportView = () => {
     }
 
     const getPDFOfFolder = ()=>{
-            axios.get(apiURL + "/v1/elements/"+selectedFolder+"/export")
-            .then(resp => downloadPDF(resp.data, loadedFolders?._embedded.elementRepresentationModelList.find(f=>f.id===selectedFolder)!) )
+            window.open(`/public/${selectedFolder}/export`, '_blank');
     }
 
     return <div className="p-6">

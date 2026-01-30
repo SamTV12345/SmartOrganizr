@@ -4,21 +4,18 @@ import (
 	"api_go/models"
 	"bufio"
 	"bytes"
+
 	"codeberg.org/go-pdf/fpdf"
 	"github.com/yeqown/go-qrcode/v2"
 	"github.com/yeqown/go-qrcode/writer/standard"
 )
 
-func GeneratePDFForFolder(folderId string, folderservice FolderService, userId string, userservice UserService) ([]byte, error) {
-	folderToExport, err := folderservice.FindFolderByIdAndUser(folderId, userId)
+func GeneratePDFForFolder(folderId string, folderservice FolderService, userservice UserService) ([]byte, error) {
+	folderToExport, creator, err := folderservice.FindFolderById(folderId)
 	if err != nil {
 		return nil, err
 	}
-	var user, errWhenLoading = userservice.LoadUser(userId)
-	if errWhenLoading != nil {
-		return nil, errWhenLoading
-	}
-	folderservice.loadSubElements(folderToExport, *user)
+	folderservice.loadSubElements(folderToExport, *creator)
 	type DataPDFHolder struct {
 		filename string
 		Note     models.Note

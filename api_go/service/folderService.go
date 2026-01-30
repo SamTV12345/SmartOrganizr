@@ -127,6 +127,21 @@ func (f *FolderService) FindFolderByIdAndUser(folderId string, userId string) (*
 	return &folderModel, nil
 }
 
+func (f *FolderService) FindFolderById(folderId string) (*models.Folder, *models.User, error) {
+	folder, err := f.Queries.FindFolderByIdWithoutUserId(f.Ctx, folderId)
+	if err != nil {
+		return nil, nil, err
+	}
+	var creator, errWhenLoading = f.UserService.LoadUser(folder.UserIDFk.String)
+	if errWhenLoading != nil {
+		return nil, nil, errWhenLoading
+	}
+	var folderDb = db.ConvertFolderEntityToDBVersion(folder)
+	var folderModel = mappers.ConvertFolderFromEntity(folderDb, *creator)
+	f.loadSubElements(&folderModel, *creator)
+	return &folderModel, creator, nil
+}
+
 func (f *FolderService) CreateFolder(dto dto.FolderPostDto, userId string) (*models.Folder, error) {
 	var parent sql.NullString
 

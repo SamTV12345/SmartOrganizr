@@ -8,8 +8,6 @@ import {
     DialogTrigger,
 } from "@/components/ui/dialog";
 import {
-    Check,
-    ChevronsUpDown,
     Loader,
     PlusIcon,
 } from "lucide-react";
@@ -36,6 +34,9 @@ import { NoteItem, NotePostDto } from "@/src/models/NoteItem";
 import { ElementItem } from "@/src/models/ElementItem";
 
 import { standardSchemaResolver } from "@hookform/resolvers/standard-schema";
+import {Label} from "@/components/ui/label";
+import {ParentFolderSearchBar} from "@/src/components/searchBars/ParentFolderSearchBar";
+import {NoteAuthorCreateSearchBar} from "@/src/components/searchBars/NoteAuthorCreateSearchBar";
 
 export function CreateFolderOrNote() {
     const { t } = useTranslation();
@@ -190,10 +191,17 @@ export function CreateFolderOrNote() {
                                         <RadioGroup
                                             value={field.value}
                                             onValueChange={field.onChange}
-                                            className="grid grid-cols-2"
+                                            className="grid grid-cols-2 gap-4"
                                         >
-                                            <RadioGroupItem value="folder" />
-                                            <RadioGroupItem value="note" />
+                                            <div className="flex items-center gap-2">
+                                                <RadioGroupItem value="folder" id="folder" />
+                                                <Label htmlFor="folder">Ordner</Label>
+                                            </div>
+
+                                            <div className="flex items-center gap-2">
+                                                <RadioGroupItem value="note" id="note" />
+                                                <Label htmlFor="note">Musiknote</Label>
+                                            </div>
                                         </RadioGroup>
                                     </FormControl>
                                 </FormItem>
@@ -260,6 +268,12 @@ export function CreateFolderOrNote() {
                                 />
                             </>
                         )}
+                        <ParentFolderSearchBar/>
+                        {
+                            watchType === 'note' && (
+                                    <NoteAuthorCreateSearchBar/>
+                            )
+                        }
 
                         <DialogFooter>
                             <DialogClose asChild>

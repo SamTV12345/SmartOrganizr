@@ -1267,6 +1267,28 @@ func (q *Queries) FindFolderById(ctx context.Context, arg FindFolderByIdParams) 
 	return i, err
 }
 
+const findFolderByIdWithoutUserId = `-- name: FindFolderByIdWithoutUserId :one
+SELECT type, id, creation_date, description, name, number_of_pages, user_id_fk, parent, author_id_fk, pdf_content FROM elements WHERE id = ?
+`
+
+func (q *Queries) FindFolderByIdWithoutUserId(ctx context.Context, id string) (Element, error) {
+	row := q.db.QueryRowContext(ctx, findFolderByIdWithoutUserId, id)
+	var i Element
+	err := row.Scan(
+		&i.Type,
+		&i.ID,
+		&i.CreationDate,
+		&i.Description,
+		&i.Name,
+		&i.NumberOfPages,
+		&i.UserIDFk,
+		&i.Parent,
+		&i.AuthorIDFk,
+		&i.PdfContent,
+	)
+	return i, err
+}
+
 const findIcalSyncById = `-- name: FindIcalSyncById :one
 SELECT id, user_id_fk, ical_url, type, last_synced FROM ical_sync WHERE id = ? AND user_id_fk = ?
 `
