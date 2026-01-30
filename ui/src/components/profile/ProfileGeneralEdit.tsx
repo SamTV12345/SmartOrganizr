@@ -46,14 +46,29 @@ export const ProfileGeneralEdit = ()=>{
 
 
     const formSchemaUser = z.object({
-        firstname: z.string({required_error: t('fieldRequired')!}).min(1, {message: t('fieldRequired')!}),
-        lastname: z.string({required_error: t('fieldRequired')!}).min(1, {message: t('fieldRequired')!}),
-        email: z.string({required_error: t('fieldRequired')!}).email({message: t('emailInvalid')!}),
-        username: z.string({required_error: t('fieldRequired')!}).min(1, {message: t('fieldRequired')!})
+        firstname: z
+            .string()
+            .min(1, { message: t("fieldRequired")! }),
+
+        lastname: z
+            .string()
+            .min(1, { message: t("fieldRequired")! }),
+
+        email: z
+            .string()
+            .min(1, { message: t("fieldRequired")! })
+            .email({ message: t("emailInvalid")! }),
+
+        username: z
+            .string()
+            .min(1, { message: t("fieldRequired")! })
             .regex(/^[a-z]+$/, { message: "Nur Kleinbuchstaben erlaubt" })
-            .refine((val) => !/\s/.test(val), { message: "Keine Leerzeichen erlaubt" }),
+            .refine((val) => !/\s/.test(val), {
+                message: "Keine Leerzeichen erlaubt",
+            }),
+
         telephoneNumber: z.string().optional(),
-    })
+    });
 
     const userForm = useForm<z.infer<typeof formSchemaUser>>({
         resolver: zodResolver(formSchemaUser),

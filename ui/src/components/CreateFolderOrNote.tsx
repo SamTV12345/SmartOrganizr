@@ -108,21 +108,54 @@ export function CreateFolderOrNote() {
     })
 
     const folderSchema = z.object({
-        name: z.string({required_error: t('fieldRequired')!}).min(1, {message: t('fieldRequired')!}),
-        description: z.string().optional().transform(value => value || undefined),
+        name: z
+            .string()
+            .min(1, { message: t("fieldRequired")! }),
+
+        description: z
+            .string()
+            .optional()
+            .transform((value) => value || undefined),
+
         type: z.literal("folder"),
-        parentId: z.string().optional().transform(value => value || undefined)
-    })
+
+        parentId: z
+            .string()
+            .optional()
+            .transform((value) => value || undefined),
+    });
 
     const noteSchema = z.object({
         type: z.literal("note"),
-        name: z.string({required_error: t('fieldRequired')!}).min(1, {message: t('fieldRequired')!}),
-        description: z.string({required_error: t('fieldRequired')!}).optional().transform(value => value || undefined),
-        numberOfPages: z.coerce.number({required_error: t('fieldRequired')!}),
-        authorId: z.string({required_error: t('fieldRequired')!}),
-        parentId: z.string({required_error: t('fieldRequired')!}),
-        extraInformation: z.string({required_error: t('fieldRequired')!}).optional().transform(value => value || undefined),
-    })
+
+        name: z
+            .string()
+            .min(1, { message: t("fieldRequired")! }),
+
+        description: z
+            .string()
+            .optional()
+            .transform((value) => value || undefined),
+
+        numberOfPages: z.coerce
+            .number()
+            .refine((v) => !Number.isNaN(v), {
+                message: t("fieldRequired")!,
+            }),
+
+        authorId: z
+            .string()
+            .min(1, { message: t("fieldRequired")! }),
+
+        parentId: z
+            .string()
+            .min(1, { message: t("fieldRequired")! }),
+
+        extraInformation: z
+            .string()
+            .optional()
+            .transform((value) => value || undefined),
+    });
 
     const schema = z.union([folderSchema, noteSchema]);
 

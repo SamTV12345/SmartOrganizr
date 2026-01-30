@@ -124,21 +124,42 @@ export function UpdateFolderOrNote(props: UpdateFolderOrNoteProps) {
     })
 
     const folderSchema = z.object({
-        name: z.string({required_error: t('fieldRequired')!}).min(1, {message: t('fieldRequired')!}),
+        name: z
+            .string()
+            .min(1, { message: t("fieldRequired")! }),
+
         description: z.string().optional(),
+
         type: z.literal("folder"),
+
         parentId: z.string().optional(),
-    })
+    });
 
     const noteSchema = z.object({
         type: z.literal("note"),
-        name: z.string(),
-        description: z.string({required_error: t('fieldRequired')!}).optional(),
-        numberOfPages: z.coerce.number({required_error: t('fieldRequired')!}),
-        authorId: z.string({required_error: t('fieldRequired')!}),
-        parentId: z.string({required_error: t('fieldRequired')!}),
+
+        name: z
+            .string()
+            .min(1, { message: t("fieldRequired")! }),
+
+        description: z.string().optional(),
+
+        numberOfPages: z.coerce
+            .number()
+            .refine((v) => !Number.isNaN(v), {
+                message: t("fieldRequired")!,
+            }),
+
+        authorId: z
+            .string()
+            .min(1, { message: t("fieldRequired")! }),
+
+        parentId: z
+            .string()
+            .min(1, { message: t("fieldRequired")! }),
+
         extraInformation: z.string().optional(),
-    })
+    });
 
     const schema = z.union([folderSchema, noteSchema]);
 

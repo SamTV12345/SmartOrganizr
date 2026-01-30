@@ -4,10 +4,9 @@ import {useParams} from "react-router-dom";
 import {Loader} from "lucide-react";
 import {apiURL} from "@/src/Keycloak";
 import {NoteDetail} from "@/src/models/NoteDetail";
-import {Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle} from "@/components/ui/card";
-import {Form, FormProvider, useForm} from "react-hook-form";
-import {FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage} from "@/components/ui/form";
-import {RadioGroup, RadioGroupItem} from "@/components/ui/radio-group";
+import {Card, CardContent, CardDescription, CardHeader, CardTitle} from "@/components/ui/card";
+import {FormProvider, useForm} from "react-hook-form";
+import {FormControl, FormField, FormItem, FormLabel, FormMessage} from "@/components/ui/form";
 import {z} from "zod";
 import {t} from "i18next";
 import {zodResolver} from "@hookform/resolvers/zod";
@@ -30,13 +29,29 @@ export const NoteDetailView  =()=>{
     })
     const noteSchema = z.object({
         type: z.literal("note"),
-        title: z.string({required_error: t('fieldRequired')!}).min(1, {message: t('fieldRequired')!}),
-        description: z.string({required_error: t('fieldRequired')!}).optional(),
-        numberOfPages: z.coerce.number({required_error: t('fieldRequired')!}),
-        authorId: z.string({required_error: t('fieldRequired')!}),
-        parentId: z.string({required_error: t('fieldRequired')!}),
-        extraInformation: z.string({required_error: t('fieldRequired')!}).optional(),
-    })
+
+        title: z
+            .string()
+            .min(1, { message: t("fieldRequired")! }),
+
+        description: z.string().optional(),
+
+        numberOfPages: z.coerce
+            .number()
+            .refine((v) => !Number.isNaN(v), {
+                message: t("fieldRequired")!,
+            }),
+
+        authorId: z
+            .string()
+            .min(1, { message: t("fieldRequired")! }),
+
+        parentId: z
+            .string()
+            .min(1, { message: t("fieldRequired")! }),
+
+        extraInformation: z.string().optional(),
+    });
 
     const onSubmit = ()=>{
         console.log("submit")

@@ -41,9 +41,12 @@ export function CreateAuthorDialog() {
     })
 
     const formSchema = z.object({
-        name: z.string({required_error: t('fieldRequired')!}).min(1, {message: t('fieldRequired')!}),
+        name: z
+            .string()
+            .min(1, { message: t("fieldRequired")! }),
+
         extraInformation: z.string().optional(),
-    })
+    });
 
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),

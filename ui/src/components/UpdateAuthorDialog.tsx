@@ -63,10 +63,16 @@ export function UpdateAuthorDialog() {
     })
 
     const formSchema = z.object({
-        id: z.string({required_error: t('fieldRequired')!}).min(1, {message: t('fieldRequired')!}),
-        name: z.string({required_error: t('fieldRequired')!}).min(1, {message: t('fieldRequired')!}),
+        id: z
+            .string()
+            .min(1, { message: t("fieldRequired")! }),
+
+        name: z
+            .string()
+            .min(1, { message: t("fieldRequired")! }),
+
         extraInformation: z.string().optional(),
-    })
+    });
 
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
