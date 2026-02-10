@@ -24,7 +24,7 @@
     "@radix-ui/react-separator": "^1.1.8",
     "@radix-ui/react-slot": "^1.2.4",
     "@radix-ui/react-tooltip": "^1.2.8",
-    "@reduxjs/toolkit": "^2.8.2",
+    "@reduxjs/toolkit": "^2.11.2",
     "@rsbuild/core": "^1.5.17",
     "@rsbuild/plugin-babel": "^1.1.0",
     "@rsbuild/plugin-react": "^1.4.1",
