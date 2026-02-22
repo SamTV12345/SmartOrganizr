@@ -46,6 +46,7 @@
   "scanning": "Scanning...",
   "scanFailed": "Scanning failed. Please try again with a clearer image.",
   "scanNoTextFound": "No text was detected on this image.",
+  "authorResolveFailed": "Author could not be found or created automatically.",
   "save": "Save",
   "noteManagement": "Note management",
   "konzertmeister-url": "Konzertmeister URL",

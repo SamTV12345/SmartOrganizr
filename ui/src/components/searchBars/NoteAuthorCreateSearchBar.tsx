@@ -1,5 +1,5 @@
 import React, {useMemo, useState} from "react";
-import {useAppDispatch, useAppSelector} from "../../store/hooks";
+import {useAppDispatch} from "../../store/hooks";
 import {Page} from "../../models/Page";
 import {AuthorEmbeddedContainer} from "../../models/AuthorEmbeddedContainer";
 import {Author} from "../../models/Author";
@@ -8,7 +8,7 @@ import {apiURL} from "../../Keycloak";
 import axios from "axios";
 import {setElementSelectedAuthorName} from "../../ElementCreateSlice";
 import {useTranslation} from "react-i18next";
-import {FormField, FormLabel} from "@/components/ui/form";
+import {FormControl, FormField, FormItem, FormLabel, FormMessage} from "@/components/ui/form";
 import {
     Combobox,
     ComboboxCollection,
@@ -27,8 +27,8 @@ type AuthorOption = {
 
 export const NoteAuthorCreateSearchBar = ()=> {
     const dispatch = useAppDispatch()
-    const authorName = useAppSelector(state=>state.elementReducer.authorName)
-    const {control, setValue} = useFormContext()
+    const {control, setValue, watch} = useFormContext()
+    const authorName = (watch("authorName") as string | undefined) ?? ""
     const [currentSearchAuthors, setCurrentSearchAuthors] = useState<Page<AuthorEmbeddedContainer<Author>>>()
     const {t} = useTranslation()
 
@@ -46,8 +46,11 @@ export const NoteAuthorCreateSearchBar = ()=> {
     }
 
     useDebounce(() => {
-        if ( authorName && authorName.length > 0)
+        if ( authorName && authorName.length > 0) {
             loadAuthors(apiURL + `/v1/authors?page=0&name=${authorName}`)
+            return;
+        }
+        setCurrentSearchAuthors(undefined);
     }, 1000, [authorName])
 
     const authorOptions: AuthorOption[] = useMemo(
@@ -75,43 +78,62 @@ export const NoteAuthorCreateSearchBar = ()=> {
                     shouldTouch: true,
                     shouldValidate: true,
                 });
+                setValue("authorName", name, {
+                    shouldDirty: true,
+                    shouldTouch: true,
+                    shouldValidate: true,
+                });
                 dispatch(setElementSelectedAuthorName(name));
             };
 
-            return <div className="space-y-2">
+            return <FormItem>
                 <FormLabel>{t("author")}</FormLabel>
-                <Combobox
-                    items={authorOptions}
-                    value={selectedAuthor}
-                    itemToStringLabel={(item: AuthorOption) => item.label}
-                    itemToStringValue={(item: AuthorOption) => item.value}
-                    onValueChange={(option) => {
-                        handleAuthorSelect(option as AuthorOption | null);
-                    }}
-                    inputValue={authorName ?? ""}
-                    onInputValueChange={(value) => {
-                        dispatch(setElementSelectedAuthorName(value));
-                    }}
-                >
-                    <ComboboxInput
-                        className="w-full"
-                        showTrigger
-                        showClear
-                        placeholder={String(t("author"))}
-                    />
-                    <ComboboxContent>
-                        <ComboboxList>
-                            <ComboboxCollection>
-                                {(option: AuthorOption) => (
-                                    <ComboboxItem key={option.value} value={option}>
-                                        {option.label}
-                                    </ComboboxItem>
-                                )}
-                            </ComboboxCollection>
-                            <ComboboxEmpty>{String(t("noResults"))}</ComboboxEmpty>
-                        </ComboboxList>
-                    </ComboboxContent>
-                </Combobox>
-            </div>;
+                <FormControl>
+                    <Combobox
+                        items={authorOptions}
+                        value={selectedAuthor}
+                        itemToStringLabel={(item: AuthorOption) => item.label}
+                        itemToStringValue={(item: AuthorOption) => item.value}
+                        onValueChange={(option) => {
+                            handleAuthorSelect(option as AuthorOption | null);
+                        }}
+                        inputValue={authorName ?? ""}
+                        onInputValueChange={(value) => {
+                            const nextValue = value ?? "";
+                            setValue("authorName", nextValue, {
+                                shouldDirty: true,
+                                shouldTouch: true,
+                                shouldValidate: true,
+                            });
+                            setValue("authorId", "", {
+                                shouldDirty: true,
+                                shouldTouch: true,
+                                shouldValidate: true,
+                            });
+                            dispatch(setElementSelectedAuthorName(nextValue));
+                        }}
+                    >
+                        <ComboboxInput
+                            className="w-full"
+                            showTrigger
+                            showClear
+                            placeholder={String(t("author"))}
+                        />
+                        <ComboboxContent>
+                            <ComboboxList>
+                                <ComboboxCollection>
+                                    {(option: AuthorOption) => (
+                                        <ComboboxItem key={option.value} value={option}>
+                                            {option.label}
+                                        </ComboboxItem>
+                                    )}
+                                </ComboboxCollection>
+                                <ComboboxEmpty>{String(t("noResults"))}</ComboboxEmpty>
+                            </ComboboxList>
+                        </ComboboxContent>
+                    </Combobox>
+                </FormControl>
+                <FormMessage />
+            </FormItem>;
         }}/>
 }
