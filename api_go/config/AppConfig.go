@@ -29,6 +29,15 @@ type AppParameters struct {
 	URL string
 }
 
+type AppConfigSMTP struct {
+	Host        string
+	Port        int
+	Username    string
+	Password    string
+	FromAddress string
+	Enabled     bool
+}
+
 func (c AppConfigDatabase) GetDSN() string {
 	return c.User + ":" + c.Password + "@tcp(" + c.Host + ":" + string(rune(c.Port)) + ")/smartorganizr"
 }
@@ -38,6 +47,7 @@ type AppConfig struct {
 	Port     int
 	SSO      AppConfigSSO
 	App      AppParameters
+	SMTP     AppConfigSMTP
 }
 
 func ReadConfig() (AppConfig, error) {
@@ -68,6 +78,9 @@ func ReadConfig() (AppConfig, error) {
 	viper.SetDefault(SSOFrontendClientID, "smartorganizr-frontend")
 	viper.SetDefault(SSORealm, "smartOrganizr")
 	viper.SetDefault(SSORefreshInternal, 250) // in seconds
+	viper.SetDefault(SMTPEnabled, false)
+	viper.SetDefault(SMTPPort, 587)
+	viper.SetDefault(SMTPFromAddress, "noreply@smartorganizr.local")
 
 	var config = AppConfig{
 		Database: struct {
@@ -95,6 +108,14 @@ func ReadConfig() (AppConfig, error) {
 			SSORefreshInternal: viper.GetInt(SSORefreshInternal),
 		},
 		App: AppParameters{URL: viper.GetString(AppURL)},
+		SMTP: AppConfigSMTP{
+			Host:        viper.GetString(SMTPHost),
+			Port:        viper.GetInt(SMTPPort),
+			Username:    viper.GetString(SMTPUsername),
+			Password:    viper.GetString(SMTPPassword),
+			FromAddress: viper.GetString(SMTPFromAddress),
+			Enabled:     viper.GetBool(SMTPEnabled),
+		},
 	}
 
 	return config, nil

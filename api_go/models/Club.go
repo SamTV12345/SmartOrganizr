@@ -2,10 +2,11 @@ package models
 
 type ClubRole string
 
-// role ENUM('LEITER','CO_LEITER', 'SCHATZMEISTER', 'MITGLIED'),
+// role ENUM('LEITER','CO_LEITER', 'SCHRIFTFUEHRER', 'SCHATZMEISTER', 'MITGLIED'),
 const (
 	Admin     ClubRole = "LEITER"
 	CoAdmin   ClubRole = "CO_LEITER"
+	Secretary ClubRole = "SCHRIFTFUEHRER"
 	Treasurer ClubRole = "SCHATZMEISTER"
 	Member    ClubRole = "MITGLIED"
 )
@@ -15,7 +16,13 @@ func (c ClubRole) String() string {
 }
 
 type Club struct {
-	ID      string
-	Name    string
-	Address Address
+	ID                       string
+	Name                     string
+	ClubType                 string
+	Address                  Address
+	DatesVisibleForAllMember bool
+	MembersCanSendMessages   bool
+	FeedbackVisibility       string
+	ReasonVisibility         string
+	ConfirmedRepresentative  bool
 }

@@ -242,7 +242,7 @@ func (q *Queries) CreateIcalSync(ctx context.Context, arg CreateIcalSyncParams) 
 }
 
 const createMemberInClub = `-- name: CreateMemberInClub :exec
-INSERT INTO club_participant(
+INSERT IGNORE INTO club_participant(
         user_id,
         club_id,
         role
@@ -261,6 +261,82 @@ type CreateMemberInClubParams struct {
 
 func (q *Queries) CreateMemberInClub(ctx context.Context, arg CreateMemberInClubParams) error {
 	_, err := q.db.ExecContext(ctx, createMemberInClub, arg.UserID, arg.ClubID, arg.Role)
+	return err
+}
+
+const createClubInvitation = `-- name: CreateClubInvitation :exec
+INSERT INTO club_invitation(
+        token,
+        club_id,
+        invited_email,
+        invited_by_user_id,
+        expires_at
+) VALUES (
+        ?, ?, ?, ?, ?
+)
+`
+
+type CreateClubInvitationParams struct {
+	Token           string
+	ClubID          string
+	InvitedEmail    string
+	InvitedByUserID string
+	ExpiresAt       sql.NullTime
+}
+
+func (q *Queries) CreateClubInvitation(ctx context.Context, arg CreateClubInvitationParams) error {
+	_, err := q.db.ExecContext(ctx, createClubInvitation, arg.Token, arg.ClubID, arg.InvitedEmail, arg.InvitedByUserID, arg.ExpiresAt)
+	return err
+}
+
+const countClubMembersByRole = `-- name: CountClubMembersByRole :one
+SELECT COUNT(*)
+from club_participant
+where club_id = ? and role = ?
+`
+
+type CountClubMembersByRoleParams struct {
+	ClubID string
+	Role   ClubParticipantRole
+}
+
+func (q *Queries) CountClubMembersByRole(ctx context.Context, arg CountClubMembersByRoleParams) (int64, error) {
+	row := q.db.QueryRowContext(ctx, countClubMembersByRole, arg.ClubID, arg.Role)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
+const updateClubMemberRole = `-- name: UpdateClubMemberRole :exec
+UPDATE club_participant
+SET role = ?
+WHERE club_id = ? and user_id = ?
+`
+
+type UpdateClubMemberRoleParams struct {
+	Role   ClubParticipantRole
+	ClubID string
+	UserID string
+}
+
+func (q *Queries) UpdateClubMemberRole(ctx context.Context, arg UpdateClubMemberRoleParams) error {
+	_, err := q.db.ExecContext(ctx, updateClubMemberRole, arg.Role, arg.ClubID, arg.UserID)
+	return err
+}
+
+const markClubInvitationAccepted = `-- name: MarkClubInvitationAccepted :exec
+UPDATE club_invitation
+SET accepted_at = ?
+WHERE token = ?
+`
+
+type MarkClubInvitationAcceptedParams struct {
+	AcceptedAt sql.NullTime
+	Token      string
+}
+
+func (q *Queries) MarkClubInvitationAccepted(ctx context.Context, arg MarkClubInvitationAcceptedParams) error {
+	_, err := q.db.ExecContext(ctx, markClubInvitationAccepted, arg.AcceptedAt, arg.Token)
 	return err
 }
 
@@ -645,16 +721,19 @@ func (q *Queries) FindAllIcalSyncsByUser(ctx context.Context, userIDFk string) (
 }
 
 const findAllMembersOfClub = `-- name: FindAllMembersOfClub :many
-SELECT clubs.id, clubs.name, clubs.address_id, club_participant.user_id, club_participant.club_id, club_participant.role from clubs join club_participant ON club_participant.club_id = clubs.id join user on user.id = club_participant.user_id  WHERE clubs.id = ?
+SELECT club_participant.user_id, club_participant.club_id, club_participant.role, user.id, user.side_bar_collapsed, user.username, user.profile_picture, user.email, user.firstname, user.lastname, user.telephonenumber, user.birthday, user.country, user.postalcode, user.city, user.street
+from club_participant
+         join user on user.id = club_participant.user_id
+where club_participant.club_id = ?
 `
 
 type FindAllMembersOfClubRow struct {
-	Club            Club
 	ClubParticipant ClubParticipant
+	User            User
 }
 
-func (q *Queries) FindAllMembersOfClub(ctx context.Context, id string) ([]FindAllMembersOfClubRow, error) {
-	rows, err := q.db.QueryContext(ctx, findAllMembersOfClub, id)
+func (q *Queries) FindAllMembersOfClub(ctx context.Context, clubID string) ([]FindAllMembersOfClubRow, error) {
+	rows, err := q.db.QueryContext(ctx, findAllMembersOfClub, clubID)
 	if err != nil {
 		return nil, err
 	}
@@ -663,12 +742,22 @@ func (q *Queries) FindAllMembersOfClub(ctx context.Context, id string) ([]FindAl
 	for rows.Next() {
 		var i FindAllMembersOfClubRow
 		if err := rows.Scan(
-			&i.Club.ID,
-			&i.Club.Name,
-			&i.Club.AddressID,
 			&i.ClubParticipant.UserID,
 			&i.ClubParticipant.ClubID,
 			&i.ClubParticipant.Role,
+			&i.User.ID,
+			&i.User.SideBarCollapsed,
+			&i.User.Username,
+			&i.User.ProfilePicture,
+			&i.User.Email,
+			&i.User.Firstname,
+			&i.User.Lastname,
+			&i.User.Telephonenumber,
+			&i.User.Birthday,
+			&i.User.Country,
+			&i.User.Postalcode,
+			&i.User.City,
+			&i.User.Street,
 		); err != nil {
 			return nil, err
 		}
@@ -681,6 +770,47 @@ func (q *Queries) FindAllMembersOfClub(ctx context.Context, id string) ([]FindAl
 		return nil, err
 	}
 	return items, nil
+}
+
+const findClubMemberByClubAndUser = `-- name: FindClubMemberByClubAndUser :one
+SELECT club_participant.user_id, club_participant.club_id, club_participant.role, user.id, user.side_bar_collapsed, user.username, user.profile_picture, user.email, user.firstname, user.lastname, user.telephonenumber, user.birthday, user.country, user.postalcode, user.city, user.street
+from club_participant
+         join user on user.id = club_participant.user_id
+where club_participant.club_id = ? and club_participant.user_id = ?
+`
+
+type FindClubMemberByClubAndUserParams struct {
+	ClubID string
+	UserID string
+}
+
+type FindClubMemberByClubAndUserRow struct {
+	ClubParticipant ClubParticipant
+	User            User
+}
+
+func (q *Queries) FindClubMemberByClubAndUser(ctx context.Context, arg FindClubMemberByClubAndUserParams) (FindClubMemberByClubAndUserRow, error) {
+	row := q.db.QueryRowContext(ctx, findClubMemberByClubAndUser, arg.ClubID, arg.UserID)
+	var i FindClubMemberByClubAndUserRow
+	err := row.Scan(
+		&i.ClubParticipant.UserID,
+		&i.ClubParticipant.ClubID,
+		&i.ClubParticipant.Role,
+		&i.User.ID,
+		&i.User.SideBarCollapsed,
+		&i.User.Username,
+		&i.User.ProfilePicture,
+		&i.User.Email,
+		&i.User.Firstname,
+		&i.User.Lastname,
+		&i.User.Telephonenumber,
+		&i.User.Birthday,
+		&i.User.Country,
+		&i.User.Postalcode,
+		&i.User.City,
+		&i.User.Street,
+	)
+	return i, err
 }
 
 const findAllNotesByAuthor = `-- name: FindAllNotesByAuthor :many
@@ -1123,7 +1253,7 @@ func (q *Queries) FindAuthorById(ctx context.Context, arg FindAuthorByIdParams) 
 }
 
 const findClubByName = `-- name: FindClubByName :many
-SELECT clubs.id, clubs.name, clubs.address_id, address.id, address.street, address.house_number, address.location, address.postal_code, address.country from clubs join address ON clubs.address_id = address.id WHERE clubs.name = ?
+SELECT clubs.id, clubs.name, clubs.address_id, clubs.club_type, clubs.dates_visible_for_all_members, clubs.members_can_send_messages, clubs.feedback_visibility, clubs.reason_visibility, clubs.confirmed_representative, address.id, address.street, address.house_number, address.location, address.postal_code, address.country from clubs join address ON clubs.address_id = address.id WHERE clubs.name = ?
 `
 
 type FindClubByNameRow struct {
@@ -1144,6 +1274,12 @@ func (q *Queries) FindClubByName(ctx context.Context, name string) ([]FindClubBy
 			&i.Club.ID,
 			&i.Club.Name,
 			&i.Club.AddressID,
+			&i.Club.ClubType,
+			&i.Club.DatesVisibleForAllMembers,
+			&i.Club.MembersCanSendMessages,
+			&i.Club.FeedbackVisibility,
+			&i.Club.ReasonVisibility,
+			&i.Club.ConfirmedRepresentative,
 			&i.Address.ID,
 			&i.Address.Street,
 			&i.Address.HouseNumber,
@@ -1162,6 +1298,59 @@ func (q *Queries) FindClubByName(ctx context.Context, name string) ([]FindClubBy
 		return nil, err
 	}
 	return items, nil
+}
+
+const findClubByID = `-- name: FindClubByID :one
+SELECT clubs.id, clubs.name, clubs.address_id, clubs.club_type, clubs.dates_visible_for_all_members, clubs.members_can_send_messages, clubs.feedback_visibility, clubs.reason_visibility, clubs.confirmed_representative, address.id, address.street, address.house_number, address.location, address.postal_code, address.country from clubs join address ON clubs.address_id = address.id WHERE clubs.id = ?
+`
+
+type FindClubByIDRow struct {
+	Club    Club
+	Address Address
+}
+
+func (q *Queries) FindClubByID(ctx context.Context, id string) (FindClubByIDRow, error) {
+	row := q.db.QueryRowContext(ctx, findClubByID, id)
+	var i FindClubByIDRow
+	err := row.Scan(
+		&i.Club.ID,
+		&i.Club.Name,
+		&i.Club.AddressID,
+		&i.Club.ClubType,
+		&i.Club.DatesVisibleForAllMembers,
+		&i.Club.MembersCanSendMessages,
+		&i.Club.FeedbackVisibility,
+		&i.Club.ReasonVisibility,
+		&i.Club.ConfirmedRepresentative,
+		&i.Address.ID,
+		&i.Address.Street,
+		&i.Address.HouseNumber,
+		&i.Address.Location,
+		&i.Address.PostalCode,
+		&i.Address.Country,
+	)
+	return i, err
+}
+
+const findClubInvitationByToken = `-- name: FindClubInvitationByToken :one
+SELECT token, club_id, invited_email, invited_by_user_id, created_at, expires_at, accepted_at
+from club_invitation
+where token = ?
+`
+
+func (q *Queries) FindClubInvitationByToken(ctx context.Context, token string) (ClubInvitation, error) {
+	row := q.db.QueryRowContext(ctx, findClubInvitationByToken, token)
+	var i ClubInvitation
+	err := row.Scan(
+		&i.Token,
+		&i.ClubID,
+		&i.InvitedEmail,
+		&i.InvitedByUserID,
+		&i.CreatedAt,
+		&i.ExpiresAt,
+		&i.AcceptedAt,
+	)
+	return i, err
 }
 
 const findConcertById = `-- name: FindConcertById :one
@@ -1449,8 +1638,37 @@ func (q *Queries) FindUserById(ctx context.Context, id string) (User, error) {
 	return i, err
 }
 
+const findUserByEmail = `-- name: FindUserByEmail :one
+SELECT id, side_bar_collapsed, username, profile_picture, email, firstname, lastname, telephonenumber, birthday, country, postalcode, city, street FROM user WHERE email = ?
+`
+
+func (q *Queries) FindUserByEmail(ctx context.Context, email sql.NullString) (User, error) {
+	row := q.db.QueryRowContext(ctx, findUserByEmail, email)
+	var i User
+	err := row.Scan(
+		&i.ID,
+		&i.SideBarCollapsed,
+		&i.Username,
+		&i.ProfilePicture,
+		&i.Email,
+		&i.Firstname,
+		&i.Lastname,
+		&i.Telephonenumber,
+		&i.Birthday,
+		&i.Country,
+		&i.Postalcode,
+		&i.City,
+		&i.Street,
+	)
+	return i, err
+}
+
 const getClubs = `-- name: GetClubs :many
-SELECT clubs.id, clubs.name, clubs.address_id, address.id, address.street, address.house_number, address.location, address.postal_code, address.country from clubs join address ON clubs.address_id = address.id WHERE clubs.id = ?
+SELECT clubs.id, clubs.name, clubs.address_id, clubs.club_type, clubs.dates_visible_for_all_members, clubs.members_can_send_messages, clubs.feedback_visibility, clubs.reason_visibility, clubs.confirmed_representative, address.id, address.street, address.house_number, address.location, address.postal_code, address.country
+from clubs
+         join address ON clubs.address_id = address.id
+         join club_participant cp ON cp.club_id = clubs.id
+WHERE cp.user_id = ?
 `
 
 type GetClubsRow struct {
@@ -1471,6 +1689,12 @@ func (q *Queries) GetClubs(ctx context.Context, id string) ([]GetClubsRow, error
 			&i.Club.ID,
 			&i.Club.Name,
 			&i.Club.AddressID,
+			&i.Club.ClubType,
+			&i.Club.DatesVisibleForAllMembers,
+			&i.Club.MembersCanSendMessages,
+			&i.Club.FeedbackVisibility,
+			&i.Club.ReasonVisibility,
+			&i.Club.ConfirmedRepresentative,
 			&i.Address.ID,
 			&i.Address.Street,
 			&i.Address.HouseNumber,
@@ -1626,8 +1850,20 @@ const saveClub = `-- name: SaveClub :exec
 REPLACE INTO clubs(
         id,
         name,
-        address_id
+        address_id,
+        club_type,
+        dates_visible_for_all_members,
+        members_can_send_messages,
+        feedback_visibility,
+        reason_visibility,
+        confirmed_representative
 ) VALUES(
+        ?,
+        ?,
+        ?,
+        ?,
+        ?,
+        ?,
         ?,
         ?,
         ?
@@ -1635,13 +1871,31 @@ REPLACE INTO clubs(
 `
 
 type SaveClubParams struct {
-	ID        string
-	Name      string
-	AddressID string
+	ID                        string
+	Name                      string
+	AddressID                 string
+	ClubType                  string
+	DatesVisibleForAllMembers bool
+	MembersCanSendMessages    bool
+	FeedbackVisibility        string
+	ReasonVisibility          string
+	ConfirmedRepresentative   bool
 }
 
 func (q *Queries) SaveClub(ctx context.Context, arg SaveClubParams) error {
-	_, err := q.db.ExecContext(ctx, saveClub, arg.ID, arg.Name, arg.AddressID)
+	_, err := q.db.ExecContext(
+		ctx,
+		saveClub,
+		arg.ID,
+		arg.Name,
+		arg.AddressID,
+		arg.ClubType,
+		arg.DatesVisibleForAllMembers,
+		arg.MembersCanSendMessages,
+		arg.FeedbackVisibility,
+		arg.ReasonVisibility,
+		arg.ConfirmedRepresentative,
+	)
 	return err
 }
 

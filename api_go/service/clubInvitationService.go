@@ -1,0 +1,116 @@
+package service
+
+import (
+	"api_go/db"
+	"api_go/models"
+	"context"
+	"database/sql"
+	"errors"
+	"github.com/google/uuid"
+	"strings"
+	"time"
+)
+
+type ClubInvitationService struct {
+	queries     *db.Queries
+	ctx         context.Context
+	mailService MailService
+	baseURL     string
+}
+
+type ClubInvitationDetails struct {
+	Token        string
+	ClubID       string
+	ClubName     string
+	InvitedEmail string
+	ExpiresAt    time.Time
+	AcceptedAt   *time.Time
+}
+
+func NewClubInvitationService(queries *db.Queries, mailService MailService, baseURL string) ClubInvitationService {
+	return ClubInvitationService{
+		queries:     queries,
+		ctx:         context.Background(),
+		mailService: mailService,
+		baseURL:     baseURL,
+	}
+}
+
+func (s *ClubInvitationService) CreateAndSendInvitation(clubID string, invitedByUserID string, invitedByName string, email string) (string, error) {
+	token := uuid.NewString()
+	expiresAt := time.Now().Add(14 * 24 * time.Hour)
+	err := s.queries.CreateClubInvitation(s.ctx, db.CreateClubInvitationParams{
+		Token:           token,
+		ClubID:          clubID,
+		InvitedEmail:    email,
+		InvitedByUserID: invitedByUserID,
+		ExpiresAt:       db.NewSQLNullTime(expiresAt),
+	})
+	if err != nil {
+		return "", err
+	}
+
+	club, err := s.queries.FindClubByID(s.ctx, clubID)
+	clubName := "Verein"
+	if err == nil {
+		clubName = club.Club.Name
+	}
+
+	invitationURL := strings.TrimSuffix(s.baseURL, "/") + "/ui/invite/" + token
+	if err := s.mailService.SendClubInvitationEmail(email, clubName, invitedByName, invitationURL); err != nil {
+		return "", err
+	}
+	return token, nil
+}
+
+func (s *ClubInvitationService) GetInvitationByToken(token string) (*ClubInvitationDetails, error) {
+	invitation, err := s.queries.FindClubInvitationByToken(s.ctx, token)
+	if err != nil {
+		return nil, err
+	}
+
+	clubRow, err := s.queries.FindClubByID(s.ctx, invitation.ClubID)
+	if err != nil {
+		return nil, err
+	}
+
+	var acceptedAt *time.Time
+	if invitation.AcceptedAt.Valid {
+		acceptedAt = &invitation.AcceptedAt.Time
+	}
+
+	return &ClubInvitationDetails{
+		Token:        invitation.Token,
+		ClubID:       invitation.ClubID,
+		ClubName:     clubRow.Club.Name,
+		InvitedEmail: invitation.InvitedEmail,
+		ExpiresAt:    invitation.ExpiresAt.Time,
+		AcceptedAt:   acceptedAt,
+	}, nil
+}
+
+func (s *ClubInvitationService) AcceptInvitation(token string, userID string, userEmail string, clubService ClubService) error {
+	invitation, err := s.queries.FindClubInvitationByToken(s.ctx, token)
+	if err != nil {
+		return err
+	}
+
+	if invitation.AcceptedAt.Valid {
+		return errors.New("invitation already accepted")
+	}
+	if invitation.ExpiresAt.Valid && invitation.ExpiresAt.Time.Before(time.Now()) {
+		return errors.New("invitation expired")
+	}
+	if !strings.EqualFold(invitation.InvitedEmail, userEmail) {
+		return errors.New("invitation email does not match authenticated user")
+	}
+
+	if err := clubService.AddUserToClub(invitation.ClubID, userID, models.Member); err != nil {
+		return err
+	}
+
+	return s.queries.MarkClubInvitationAccepted(s.ctx, db.MarkClubInvitationAcceptedParams{
+		AcceptedAt: sql.NullTime{Time: time.Now(), Valid: true},
+		Token:      token,
+	})
+}

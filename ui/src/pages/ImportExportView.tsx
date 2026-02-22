@@ -1,10 +1,14 @@
-import {Dropdown} from "../components/form/Dropdown";
-import {useEffect, useState} from "react";
+import {useEffect, useMemo, useState} from "react";
 import {apiURL} from "../Keycloak";
 import axios from "axios";
 import {Page as Paging} from "../models/Page";
 import {FolderEmbeddedContainer} from "../models/FolderEmbeddedContainer";
 import {FolderItem} from "@/src/models/Folder";
+import {Card, CardContent, CardDescription, CardHeader, CardTitle} from "@/components/ui/card";
+import {Button} from "@/components/ui/button";
+import {Label} from "@/components/ui/label";
+import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/components/ui/select";
+import {Download, FolderOpen} from "lucide-react";
 
 export const ImportExportView = () => {
     const [selectedFolder, setSelectedFolder] = useState<string>()
@@ -15,35 +19,71 @@ export const ImportExportView = () => {
             .then(resp => setLoadedFolders(resp.data))
     }, [])
 
+    const folders = useMemo(() => {
+        return loadedFolders?._embedded?.elementRepresentationModelList ?? []
+    }, [loadedFolders])
 
-    function downloadPDF(pdf:string, selectedFolder:FolderItem) {
-        const linkSource = `data:application/pdf;base64,${pdf}`;
-        const downloadLink = document.createElement("a");
-        const fileName = selectedFolder.id+".pdf";
-
-        downloadLink.href = linkSource;
-        downloadLink.download = fileName;
-        downloadLink.click();
-    }
+    const selectedFolderName = useMemo(() => {
+        return folders.find(folder => folder.id === selectedFolder)?.name
+    }, [folders, selectedFolder])
 
     const getPDFOfFolder = ()=>{
-            window.open(`/public/${selectedFolder}/export`, '_blank');
+        if(!selectedFolder){
+            return
+        }
+        window.open(`/public/${selectedFolder}/export`, '_blank');
     }
 
-    return <div className="p-6">
-            <h1 className="text-2xl">Export</h1>
-            <h2 className="text-xl">Export Data as QR-Code</h2>
+    return (
+        <main className="mx-auto w-full max-w-4xl space-y-6 px-4 py-6 md:px-6 md:py-8">
+            <section className="rounded-2xl border bg-gradient-to-br from-primary/10 via-background to-secondary/30 p-6">
+                <h1 className="text-3xl font-semibold tracking-tight">Import/Export</h1>
+                <p className="text-muted-foreground mt-2 text-sm">
+                    Exportiere einen Ordner als PDF für Druck, Teilen oder Offline-Nutzung.
+                </p>
+            </section>
 
-            <div className="grid grid-cols-[20%_10%_10%] gap-4">
-                    <Dropdown value={selectedFolder} onChange={(e) => {
-                        console.log(e)
-                        setSelectedFolder(e.target.value)
-                    }}>
-                        {loadedFolders && loadedFolders._embedded &&
-                            loadedFolders?._embedded.elementRepresentationModelList.map(folder => <option value={folder.id}
-                                                                                                          key={folder.id}>{folder.name}</option>)}
-                    </Dropdown>
-                <button onClick={()=>getPDFOfFolder()} disabled={selectedFolder===undefined} className="bg-blue-500 disabled:bg-red-500 rounded ">Anfordern</button>
-            </div>
-        </div>
+            <Card>
+                <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                        <FolderOpen className="size-5 text-primary"/>
+                        Ordner exportieren
+                    </CardTitle>
+                    <CardDescription>
+                        Wähle einen Ordner und exportiere den Inhalt als PDF.
+                    </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                    <div className="grid gap-2">
+                        <Label>Ordner</Label>
+                        <Select value={selectedFolder} onValueChange={setSelectedFolder}>
+                            <SelectTrigger className="w-full">
+                                <SelectValue placeholder="Ordner auswählen"/>
+                            </SelectTrigger>
+                            <SelectContent>
+                                {folders.map(folder => (
+                                    <SelectItem key={folder.id} value={folder.id}>
+                                        {folder.name}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                    </div>
+
+                    <div className="flex flex-wrap items-center gap-3">
+                        <Button onClick={getPDFOfFolder} disabled={selectedFolder===undefined}>
+                            <Download className="size-4"/>
+                            PDF exportieren
+                        </Button>
+                        {selectedFolderName && (
+                            <p className="text-muted-foreground text-sm">
+                                Ausgewählt: <span className="text-foreground font-medium">{selectedFolderName}</span>
+                            </p>
+                        )}
+                    </div>
+                </CardContent>
+            </Card>
+        </main>
+    )
 }
+

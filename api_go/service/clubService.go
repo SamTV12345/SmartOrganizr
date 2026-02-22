@@ -6,7 +6,9 @@ import (
 	"api_go/mappers"
 	"api_go/models"
 	"context"
+	"database/sql"
 	"github.com/google/uuid"
+	"strings"
 )
 
 type ClubService struct {
@@ -70,17 +72,29 @@ func (c *ClubService) CreateClub(club dto.ClubPostDto) (*models.Club, error) {
 	}
 
 	clubToSave := db.SaveClubParams{
-		ID:        clubId.String(),
-		Name:      club.Name,
-		AddressID: addressId.String(),
+		ID:                        clubId.String(),
+		Name:                      club.Name,
+		AddressID:                 addressId.String(),
+		ClubType:                  club.ClubType,
+		DatesVisibleForAllMembers: club.DatesVisibleForAllMember,
+		MembersCanSendMessages:    club.MembersCanSendMessages,
+		FeedbackVisibility:        club.FeedbackVisibility,
+		ReasonVisibility:          club.ReasonVisibility,
+		ConfirmedRepresentative:   club.ConfirmedRepresentative,
 	}
 	if err := c.queries.SaveClub(c.context, clubToSave); err != nil {
 		return nil, err
 	}
 
 	savedClub := models.Club{
-		Name: clubToSave.Name,
-		ID:   clubToSave.ID,
+		Name:                     clubToSave.Name,
+		ID:                       clubToSave.ID,
+		ClubType:                 clubToSave.ClubType,
+		DatesVisibleForAllMember: clubToSave.DatesVisibleForAllMembers,
+		MembersCanSendMessages:   clubToSave.MembersCanSendMessages,
+		FeedbackVisibility:       clubToSave.FeedbackVisibility,
+		ReasonVisibility:         clubToSave.ReasonVisibility,
+		ConfirmedRepresentative:  clubToSave.ConfirmedRepresentative,
 		Address: models.Address{
 			Street:      savedAddress.Street,
 			PostalCode:  savedAddress.PostalCode,
@@ -91,4 +105,33 @@ func (c *ClubService) CreateClub(club dto.ClubPostDto) (*models.Club, error) {
 		},
 	}
 	return &savedClub, nil
+}
+
+func (c *ClubService) InviteUsersByEmail(clubId string, emails []string) ([]string, []string, error) {
+	addedEmails := make([]string, 0)
+	invitedEmails := make([]string, 0)
+
+	for _, email := range emails {
+		normalizedEmail := strings.TrimSpace(strings.ToLower(email))
+		if normalizedEmail == "" {
+			continue
+		}
+
+		user, err := c.queries.FindUserByEmail(c.context, db.NewSQLNullString(normalizedEmail))
+		if err != nil {
+			if err == sql.ErrNoRows {
+				invitedEmails = append(invitedEmails, normalizedEmail)
+				continue
+			}
+			return nil, nil, err
+		}
+
+		err = c.AddUserToClub(clubId, user.ID, models.Member)
+		if err != nil {
+			return nil, nil, err
+		}
+		addedEmails = append(addedEmails, normalizedEmail)
+	}
+
+	return addedEmails, invitedEmails, nil
 }

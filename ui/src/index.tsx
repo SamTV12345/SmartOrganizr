@@ -21,16 +21,25 @@ applyTheme(getInitialTheme());
 
 const initKeycloak = (keycloak: Keycloak) => {
     console.log("Called initKeycloak")
+    const isPublicInvitePath = window.location.pathname.includes("/ui/invite/")
+    const onLoadMode = isPublicInvitePath ? "check-sso" : "login-required"
     return new Promise((resolve) => {
-        keycloak.init({onLoad: 'login-required', silentCheckSsoFallback: true, checkLoginIframe: false })
+        keycloak.init({onLoad: onLoadMode, silentCheckSsoFallback: true, checkLoginIframe: false })
             .then((res) => {
                 setLoadedKeycloak(keycloak)
-                axios.defaults.headers["Authorization"] = `Bearer ${keycloak.token}`
+                if (keycloak.token) {
+                    axios.defaults.headers["Authorization"] = `Bearer ${keycloak.token}`
+                }
                 axios.defaults.headers['Content-Type']  = 'application/json'
-                syncUser()
+                if (keycloak.authenticated) {
+                    syncUser()
+                }
                 resolve(res)
 
                 let updateToken = ()=>setInterval(()=>{
+                    if(!keycloak.authenticated) {
+                        return
+                    }
                     keycloak.updateToken(30)
                         .then((refreshed)=>{
                             if(refreshed){

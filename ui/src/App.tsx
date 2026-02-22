@@ -20,6 +20,8 @@ import {ProfileEdit} from "@/src/pages/ProfileEdit";
 import {NoteDetailView} from "@/src/pages/NoteDetailView";
 import {EventView} from "@/src/pages/EventView";
 import {ClubView} from "@/src/pages/ClubView";
+import {ClubDetailView} from "@/src/pages/ClubDetailView";
+import {InviteAcceptView} from "@/src/pages/InviteAcceptView";
 
 function RootLayout() {
     return (
@@ -38,7 +40,8 @@ function RootLayout() {
 function App() {
     const {t} = useTranslation()
     const keycloak = useKeycloak()
-    if(keycloak.tokenParsed === undefined){
+    const isPublicInvitePath = window.location.pathname.includes("/ui/invite/")
+    if(keycloak.tokenParsed === undefined && !isPublicInvitePath){
         return <Loader2/>
     }
 
@@ -53,6 +56,7 @@ function App() {
   return (
       <BrowserRouter basename="/ui">
           <Routes>
+              <Route path="/invite/:token" element={<Suspense><InviteAcceptView/></Suspense>} />
               <Route element={<RootLayout />}>
                   <Route path="/" element={<Navigate to={"/welcome"}/>}/>
                   <Route path={"/welcome"} element={<WelcomePage/>}/>
@@ -60,6 +64,7 @@ function App() {
                   <Route path="/profile/edit" element={<ProfileEdit/>}/>
                   <Route path="/myDates" element={<EventView/>}/>
                   <Route path="/createClub" element={<Suspense><ClubView/></Suspense>} />
+                  <Route path="/clubs/:clubId" element={<Suspense><ClubDetailView/></Suspense>} />
                   <Route path={"/noteManagement/authors"} element={
                       <Suspense>
                           <AuthorLazyLoad/>
@@ -73,6 +78,12 @@ function App() {
                   <Route path={"/noteManagement/notes"} element={
                       <Suspense>
                         <SearchElementViewLazyLoad/>
+                      </Suspense>
+                  }
+                  />
+                  <Route path={"/noteManagement/search"} element={
+                      <Suspense>
+                          <SearchElementViewLazyLoad/>
                       </Suspense>
                   }
                   />

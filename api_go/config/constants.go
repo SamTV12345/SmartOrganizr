@@ -17,3 +17,10 @@ const SSOUrl = "sso.url"
 const SSORealm = "sso.realm"
 
 const SSORefreshInternal = "sso.refresh_interval"
+
+const SMTPHost = "smtp.host"
+const SMTPPort = "smtp.port"
+const SMTPUsername = "smtp.username"
+const SMTPPassword = "smtp.password"
+const SMTPFromAddress = "smtp.from_address"
+const SMTPEnabled = "smtp.enabled"

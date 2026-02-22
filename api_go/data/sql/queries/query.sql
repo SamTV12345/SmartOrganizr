@@ -43,6 +43,9 @@ INSERT INTO authors (id, name, extra_information, user_id_fk) VALUES (?, ?, ?, ?
 -- name: FindUserById :one
 SELECT * FROM user WHERE id = ?;
 
+-- name: FindUserByEmail :one
+SELECT * FROM user WHERE email = ?;
+
 
 
 
@@ -220,14 +223,30 @@ UPDATE ical_sync SET last_synced = ? WHERE id = ?;
 SELECT * FROM events WHERE user_id_fk = ? AND start_date > ?  ORDER BY start_date;
 
 -- name: GetClubs :many
-SELECT sqlc.embed(clubs), sqlc.embed(address) from clubs join address ON clubs.address_id = address.id WHERE clubs.id = ?;
+SELECT sqlc.embed(clubs), sqlc.embed(address)
+from clubs
+         join address ON clubs.address_id = address.id
+         join club_participant cp ON cp.club_id = clubs.id
+WHERE cp.user_id = ?;
 
 -- name: SaveClub :exec
 REPLACE INTO clubs(
         id,
         name,
-        address_id
+        address_id,
+        club_type,
+        dates_visible_for_all_members,
+        members_can_send_messages,
+        feedback_visibility,
+        reason_visibility,
+        confirmed_representative
 ) VALUES(
+        ?,
+        ?,
+        ?,
+        ?,
+        ?,
+        ?,
         ?,
         ?,
         ?
@@ -248,9 +267,12 @@ REPLACE INTO address(
 -- name: FindClubByName :many
 SELECT sqlc.embed(clubs), sqlc.embed(address) from clubs join address ON clubs.address_id = address.id WHERE clubs.name = ?;
 
+-- name: FindClubByID :one
+SELECT sqlc.embed(clubs), sqlc.embed(address) from clubs join address ON clubs.address_id = address.id WHERE clubs.id = ?;
+
 
 -- name: CreateMemberInClub :exec
-INSERT INTO club_participant(
+INSERT IGNORE INTO club_participant(
         user_id,
         club_id,
         role
@@ -261,7 +283,47 @@ INSERT INTO club_participant(
 );
 
 -- name: FindAllMembersOfClub :many
-SELECT sqlc.embed(clubs), sqlc.embed(club_participant) from clubs join club_participant ON club_participant.club_id = clubs.id join user on user.id = club_participant.user_id  WHERE clubs.id = ?;
+SELECT sqlc.embed(club_participant), sqlc.embed(user)
+from club_participant
+         join user on user.id = club_participant.user_id
+where club_participant.club_id = ?;
+
+-- name: FindClubMemberByClubAndUser :one
+SELECT sqlc.embed(club_participant), sqlc.embed(user)
+from club_participant
+         join user on user.id = club_participant.user_id
+where club_participant.club_id = ? and club_participant.user_id = ?;
+
+-- name: UpdateClubMemberRole :exec
+UPDATE club_participant
+SET role = ?
+WHERE club_id = ? and user_id = ?;
+
+-- name: CountClubMembersByRole :one
+SELECT COUNT(*)
+from club_participant
+where club_id = ? and role = ?;
+
+-- name: CreateClubInvitation :exec
+INSERT INTO club_invitation(
+        token,
+        club_id,
+        invited_email,
+        invited_by_user_id,
+        expires_at
+) VALUES (
+        ?, ?, ?, ?, ?
+);
+
+-- name: FindClubInvitationByToken :one
+SELECT token, club_id, invited_email, invited_by_user_id, created_at, expires_at, accepted_at
+from club_invitation
+where token = ?;
+
+-- name: MarkClubInvitationAccepted :exec
+UPDATE club_invitation
+SET accepted_at = ?
+WHERE token = ?;
 
 
 -- name: DeleteFolderCasCade :exec

@@ -7,6 +7,7 @@ import {NoteItem} from "../../models/NoteItem";
 import {useDebounce} from "../../utils/DebounceHook";
 import {apiURL} from "../../Keycloak";
 import {useEffect} from "react";
+import {Input} from "@/components/ui/input";
 
 export const ElementSearchBar = ()=>{
     const dispatch = useAppDispatch()
@@ -33,6 +34,15 @@ export const ElementSearchBar = ()=>{
         },
         1000,[text])
 
-    return <input className="w-8/12 m-2 bg-gray-700 text-white pl-3 pr-3" value={text} onChange={v=>dispatch(setNotesSearchText(v.target.value))}/>
+    return (
+        <div className="w-full">
+            <Input
+                value={text}
+                onChange={v=>dispatch(setNotesSearchText(v.target.value))}
+                placeholder="Notenname suchen..."
+                className="w-full"
+            />
+        </div>
+    )
 
 }

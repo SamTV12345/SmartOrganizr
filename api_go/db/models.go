@@ -13,10 +13,11 @@ import (
 type ClubParticipantRole string
 
 const (
-	ClubParticipantRoleLEITER        ClubParticipantRole = "LEITER"
-	ClubParticipantRoleCOLEITER      ClubParticipantRole = "CO_LEITER"
-	ClubParticipantRoleSCHATZMEISTER ClubParticipantRole = "SCHATZMEISTER"
-	ClubParticipantRoleMITGLIED      ClubParticipantRole = "MITGLIED"
+	ClubParticipantRoleLEITER         ClubParticipantRole = "LEITER"
+	ClubParticipantRoleCOLEITER       ClubParticipantRole = "CO_LEITER"
+	ClubParticipantRoleSCHRIFTFUEHRER ClubParticipantRole = "SCHRIFTFUEHRER"
+	ClubParticipantRoleSCHATZMEISTER  ClubParticipantRole = "SCHATZMEISTER"
+	ClubParticipantRoleMITGLIED       ClubParticipantRole = "MITGLIED"
 )
 
 func (e *ClubParticipantRole) Scan(src interface{}) error {
@@ -71,15 +72,31 @@ type Author struct {
 }
 
 type Club struct {
-	ID        string
-	Name      string
-	AddressID string
+	ID                        string
+	Name                      string
+	AddressID                 string
+	ClubType                  string
+	DatesVisibleForAllMembers bool
+	MembersCanSendMessages    bool
+	FeedbackVisibility        string
+	ReasonVisibility          string
+	ConfirmedRepresentative   bool
 }
 
 type ClubParticipant struct {
 	UserID string
 	ClubID string
 	Role   ClubParticipantRole
+}
+
+type ClubInvitation struct {
+	Token           string
+	ClubID          string
+	InvitedEmail    string
+	InvitedByUserID string
+	CreatedAt       sql.NullTime
+	ExpiresAt       sql.NullTime
+	AcceptedAt      sql.NullTime
 }
 
 type Concert struct {

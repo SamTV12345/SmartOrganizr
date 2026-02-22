@@ -7,13 +7,18 @@ import {ElementEmbeddedContainer} from "../models/ElementEmbeddedContainer";
 import {NoteItem} from "../models/NoteItem";
 import axios from "axios";
 import {setNotesSearched} from "../store/CommonSlice";
-import {TableData} from "../components/table/TableData";
 import {Waypoint} from "react-waypoint";
+import {Card, CardContent, CardDescription, CardHeader, CardTitle} from "@/components/ui/card";
+import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow} from "@/components/ui/table";
+import {ExternalLink, Music2} from "lucide-react";
+import {useNavigate} from "react-router-dom";
+import {Button} from "@/components/ui/button";
 
 export const SearchElementView = ()=>{
     const {t} = useTranslation()
     const searchedElements = useAppSelector(state=>state.commonReducer.elementsSearched)
     const dispatch = useAppDispatch()
+    const navigate = useNavigate()
 
     const loadNotes = async (link:string)=>{
         if(searchedElements==null){
@@ -36,78 +41,73 @@ export const SearchElementView = ()=>{
         }
     }
 
-    return <table className="w-full md:w-8/12  divide-y table-fixed divide-gray-700 md:mx-auto md:mt-4 md:mb-4 border-collapse" id="searchTable">
-        <thead className="bg-gray-700">
-        <tr className="">
-            <th className="py-3 px-6 text-xs font-medium tracking-wider text-left uppercase text-gray-400 md:rounded-tl-2xl">
-                <div className="flex items-center justify-center">
-                    {t('title')}
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none"
-                         viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"
-                              d="M8 9l4-4 4 4m0 6l-4 4-4-4"/>
-                    </svg>
-                </div>
-            </th>
-            <th className="py-3 px-6 text-xs font-medium tracking-wider text-left uppercase text-gray-400">
-                <div className="flex items-center justify-center">
-                    {t('author')}
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none"
-                         viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"
-                              d="M8 9l4-4 4 4m0 6l-4 4-4-4"/>
-                    </svg>
-                </div>
-            </th>
-            <th className="py-3 px-6 text-xs font-medium tracking-wider text-left uppercase text-gray-400">
-                <div className="flex items-center justify-center">
-                    {t('description')}
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none"
-                         viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"
-                              d="M8 9l4-4 4 4m0 6l-4 4-4-4"/>
-                    </svg>
-                </div>
-            </th>
-            <th className="py-3 px-6 text-xs font-medium tracking-wider text-left uppercase text-gray-400 md:rounded-tr-2xl">
-                <div className="flex items-center justify-center">
-                    {t('superFolder')}
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none"
-                         viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"
-                              d="M8 9l4-4 4 4m0 6l-4 4-4-4"/>
-                    </svg>
-                </div>
-            </th>
-        </tr>
-        </thead>
-        <tbody className="divide-y bg-gray-800 divide-gray-700">
-        <tr key="searchbarElement">
-            <td className="col-span-3 bg-gray-800" colSpan={4}>
-                <div className="flex justify-center">
+    const notes = searchedElements?._embedded?.noteRepresentationModelList ?? []
+
+    return (
+        <main className="mx-auto w-full max-w-6xl space-y-6 px-4 py-6 md:px-6 md:py-8">
+            <section className="rounded-2xl border bg-gradient-to-br from-primary/10 via-background to-secondary/30 p-6">
+                <h1 className="text-3xl font-semibold tracking-tight">{t("search")}</h1>
+                <p className="text-muted-foreground mt-2 text-sm">Suche in deinen Noten, Autor*innen und Ordnern.</p>
+            </section>
+
+            <Card>
+                <CardHeader className="space-y-3">
+                    <CardTitle className="flex items-center gap-2">
+                        <Music2 className="size-5 text-primary"/>
+                        Notensuche
+                    </CardTitle>
+                    <CardDescription>Filtere sofort nach Titel. Weitere Ergebnisse werden automatisch nachgeladen.</CardDescription>
                     <ElementSearchBar/>
-                </div>
-            </td>
-        </tr>
-        {searchedElements&& searchedElements._embedded&& searchedElements._embedded.noteRepresentationModelList&& searchedElements._embedded.noteRepresentationModelList.map((element, index)=>
-                <tr key={element.id}>
-                    <TableData content={element.name}/>
-                    <TableData content={element.author.name}/>
-                    <TableData content={element.description}/>
-                    <TableData content={
-                        <>
-                            {element.parent.name}
-                            {searchedElements.page.size-index<5 &&
-                                searchedElements._links && searchedElements._links.next
-                                && searchedElements._links.next.href
-                                && <Waypoint onEnter={()=>{
-                                    loadNotes(fixProtocol(searchedElements._links.next.href))
-                                }}/>}
-                        </>
-                    }/>
-        </tr>
-        )
-        }
-        </tbody>
-    </table>
+                </CardHeader>
+                <CardContent>
+                    <Table>
+                        <TableHeader>
+                            <TableRow>
+                                <TableHead>{t("title")}</TableHead>
+                                <TableHead>{t("author")}</TableHead>
+                                <TableHead>{t("description")}</TableHead>
+                                <TableHead>{t("superFolder")}</TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                            {notes.length === 0 && (
+                                <TableRow>
+                                    <TableCell colSpan={4} className="text-muted-foreground h-24 text-center">
+                                        Keine Ergebnisse.
+                                    </TableCell>
+                                </TableRow>
+                            )}
+                            {notes.map((element, index)=>
+                                <TableRow key={element.id} className="cursor-pointer" onClick={() => navigate(`/noteManagement/notes/${element.id}`)}>
+                                    <TableCell className="max-w-[260px] truncate">
+                                        <Button
+                                            variant="ghost"
+                                            className="h-auto w-full justify-start px-0 font-medium"
+                                            onClick={(event) => {
+                                                event.stopPropagation()
+                                                navigate(`/noteManagement/notes/${element.id}`)
+                                            }}
+                                        >
+                                            {element.name}
+                                            <ExternalLink className="ml-2 size-3.5"/>
+                                        </Button>
+                                    </TableCell>
+                                    <TableCell className="max-w-[220px] truncate">{element.author?.name}</TableCell>
+                                    <TableCell className="max-w-[340px] truncate">{element.description}</TableCell>
+                                    <TableCell className="max-w-[240px] truncate">
+                                        {element.parent?.name}
+                                        {searchedElements?.page && searchedElements.page.size-index<5 &&
+                                            searchedElements._links?.next?.href &&
+                                            <Waypoint onEnter={()=>{
+                                                loadNotes(fixProtocol(searchedElements._links.next.href))
+                                            }}/>}
+                                    </TableCell>
+                                </TableRow>
+                            )}
+                        </TableBody>
+                    </Table>
+                </CardContent>
+            </Card>
+        </main>
+    )
 }

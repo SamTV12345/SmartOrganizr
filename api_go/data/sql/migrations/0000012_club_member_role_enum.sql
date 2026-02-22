@@ -1,0 +1,4 @@
+-- +goose Up
+ALTER TABLE club_participant
+    MODIFY role ENUM ('LEITER', 'CO_LEITER', 'SCHRIFTFUEHRER', 'SCHATZMEISTER', 'MITGLIED') NOT NULL;
+

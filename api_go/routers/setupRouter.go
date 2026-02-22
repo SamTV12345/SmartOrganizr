@@ -127,6 +127,8 @@ func SetupRouter(queries *db.Queries, config config.AppConfig, logger *zap.Sugar
 
 	var addressService = service.NewAddressService(queries)
 	var clubService = service.NewClubService(queries, addressService)
+	var mailService = service.NewMailService(config.SMTP)
+	var clubInvitationService = service.NewClubInvitationService(queries, mailService, config.App.URL)
 
 	var clubMemberService = service.NewClubMemberService(queries, clubService)
 
@@ -151,6 +153,7 @@ func SetupRouter(queries *db.Queries, config config.AppConfig, logger *zap.Sugar
 		SetLocal[service.EventService](c, constants.EventService, eventService)
 		SetLocal[service.ClubService](c, constants.ClubService, clubService)
 		SetLocal[service.ClubMemberService](c, constants.ClubMemberService, clubMemberService)
+		SetLocal[service.ClubInvitationService](c, constants.ClubInvitationService, clubInvitationService)
 
 		return c.Next()
 	})
@@ -168,6 +171,7 @@ func SetupRouter(queries *db.Queries, config config.AppConfig, logger *zap.Sugar
 	app.Get("/public", controllers.GetIndex)
 	app.Get("/public/users/:userId/:image.png", controllers.GetUserImage)
 	app.Get("/public/:folderId/export", controllers.ExportPDFFromNotes)
+	app.Get("/api/public/invitations/:token", controllers.GetPublicClubInvitation)
 
 	// Serve the React ui
 	app.Use("/ui", filesystem.New(filesystem.Config{
@@ -222,6 +226,16 @@ func SetupRouter(queries *db.Queries, config config.AppConfig, logger *zap.Sugar
 	profile.Route("v1/clubs", func(r fiber.Router) {
 		r.Get("/:userId", controllers.GetAllClubsForMe)
 		r.Post("/", controllers.PostClub)
+		r.Get("/:clubId/me/permissions", controllers.GetMyClubPermissions)
+		r.Get("/:clubId/members", controllers.GetClubMembers)
+		r.Patch("/:clubId/members/:memberUserId/role", controllers.PatchClubMemberRole)
+		r.Get("/:clubId/members/export", controllers.ExportClubMembersCSV)
+		r.Post("/:clubId/members/import", controllers.ImportClubMembersCSV)
+		r.Post("/:clubId/members/invite", controllers.InviteClubMembers)
+	})
+
+	profile.Route("v1/invitations", func(r fiber.Router) {
+		r.Post("/:token/accept", controllers.AcceptClubInvitation)
 	})
 
 	profile.Route("v1/elements", func(r fiber.Router) {

@@ -1,13 +1,9 @@
-import { useEffect } from "react";
-import { useParams } from "react-router-dom";
+import { useMemo } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
 import axios from "axios";
-import { Loader } from "lucide-react";
-import { t } from "i18next";
-
-import { standardSchemaResolver } from "@hookform/resolvers/standard-schema";
+import { ArrowLeft, ChevronLeft, ChevronRight, FileMusic, Loader2 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { apiURL } from "@/src/Keycloak";
 import { NoteDetail } from "@/src/models/NoteDetail";
@@ -19,195 +15,131 @@ import {
     CardHeader,
     CardTitle,
 } from "@/components/ui/card";
-import {
-    Form,
-    FormControl,
-    FormField,
-    FormItem,
-    FormLabel,
-    FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
 
 export const NoteDetailView = () => {
     const { id } = useParams();
-
-    /* ----------------------------- Zod 4 schema ----------------------------- */
-
-    const noteSchema = z.object({
-        type: z.literal("note"),
-
-        title: z.string().min(1, {
-            message: t("fieldRequired")!,
-        }),
-
-        description: z.string().default(""),
-
-        numberOfPages: z.number().refine(
-            (v) => !Number.isNaN(v),
-            { message: t("fieldRequired")! }
-        ),
-
-        authorId: z.string().min(1, {
-            message: t("fieldRequired")!,
-        }),
-
-        parentId: z.string().min(1, {
-            message: t("fieldRequired")!,
-        }),
-
-        extraInformation: z.string().default(""),
-    });
-
-    type NoteFormValues = z.infer<typeof noteSchema>;
-
-    /* ----------------------------- React Query ----------------------------- */
+    const navigate = useNavigate();
+    const { t } = useTranslation();
 
     const { data, isLoading } = useQuery({
         queryKey: ["note", id],
         queryFn: async () => {
-            const response = await axios.get<NoteDetail>(
-                `${apiURL}/v1/elements/notes/${id}`
-            );
+            const response = await axios.get<NoteDetail>(`${apiURL}/v1/elements/notes/${id}`);
             return response.data;
         },
         enabled: !!id,
     });
 
-    /* ----------------------------- React Hook Form ----------------------------- */
+    const currentNote = data?.currentNote;
+    const previousNote = data?.previousNote;
+    const nextNote = data?.nextNote;
 
-    const form = useForm({
-        resolver: standardSchemaResolver(noteSchema),
-        defaultValues: {
-            type: "note",
-            title: "",
-            description: "",
-            numberOfPages: 0,
-            authorId: "",
-            parentId: "",
-            extraInformation: "",
-        },
-    });
-
-    const onSubmit = (values: NoteFormValues) => {
-        console.log(values);
-    };
-
-    /* ----------------------------- Reset on load ----------------------------- */
-
-    useEffect(() => {
-        if (!data) return;
-
-        form.reset({
-            type: "note",
-            title: data.currentNote?.name ?? "",
-            description: data.currentNote?.description ?? "",
-            numberOfPages: data.currentNote?.numberOfPages ?? 0,
-            authorId: data.currentNote?.author.id ?? "",
-            parentId: data.currentNote?.parent.id ?? "",
-            extraInformation: "",
-        });
-    }, [data, form]);
-
-    /* ----------------------------- Render ----------------------------- */
+    const metaItems = useMemo(
+        () => [
+            { label: t("title"), value: currentNote?.name || "-" },
+            { label: t("author"), value: currentNote?.author?.name || "-" },
+            { label: t("description"), value: currentNote?.description || "-" },
+            { label: t("numberOfPages"), value: String(currentNote?.numberOfPages ?? "-") },
+            { label: t("superFolder"), value: currentNote?.parent?.name || "-" },
+            { label: "Index im Ordner", value: String(data?.index ?? "-") },
+        ],
+        [currentNote, data?.index, t]
+    );
 
     if (isLoading) {
-        return <Loader />;
+        return (
+            <div className="flex h-full items-center justify-center">
+                <Loader2 className="size-6 animate-spin text-muted-foreground" />
+            </div>
+        );
+    }
+
+    if (!currentNote) {
+        return (
+            <main className="mx-auto w-full max-w-4xl px-4 py-6 md:px-6 md:py-8">
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Note nicht gefunden</CardTitle>
+                        <CardDescription>Die angeforderte Note ist nicht verfügbar.</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <Button onClick={() => navigate("/noteManagement/notes")}>
+                            <ArrowLeft className="mr-2 size-4" />
+                            Zurück zur Suche
+                        </Button>
+                    </CardContent>
+                </Card>
+            </main>
+        );
     }
 
     return (
-        <Card className="m-6">
-            <CardHeader>
-                <CardTitle>Musiknote {data?.currentNote?.name}</CardTitle>
-                <CardDescription>
-                    {data?.currentNote?.description}
-                </CardDescription>
-            </CardHeader>
+        <main className="mx-auto w-full max-w-5xl space-y-6 px-4 py-6 md:px-6 md:py-8">
+            <section className="rounded-2xl border bg-gradient-to-br from-primary/10 via-background to-secondary/30 p-6">
+                <div className="flex flex-wrap items-start justify-between gap-4">
+                    <div>
+                        <h1 className="text-3xl font-semibold tracking-tight">{currentNote.name}</h1>
+                        <p className="text-muted-foreground mt-2 text-sm">
+                            {currentNote.author?.name} · {currentNote.parent?.name}
+                        </p>
+                    </div>
+                    <Button variant="outline" onClick={() => navigate("/noteManagement/notes")}>
+                        <ArrowLeft className="mr-2 size-4" />
+                        Zurück zur Suche
+                    </Button>
+                </div>
+            </section>
 
-            <CardContent>
-                <Form {...form}>
-                    <form
-                        onSubmit={form.handleSubmit(onSubmit)}
-                        className="space-y-8"
-                    >
-                        <FormField
-                            control={form.control}
-                            name="title"
-                            render={({ field }) => (
-                                <FormItem className="grid grid-cols-2">
-                                    <FormLabel>{t("title")}</FormLabel>
-                                    <FormControl>
-                                        <Input {...field} disabled />
-                                    </FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
+            <div className="grid gap-4 lg:grid-cols-[2fr_1fr]">
+                <Card>
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-2">
+                            <FileMusic className="size-5 text-primary" />
+                            Notendetails
+                        </CardTitle>
+                        <CardDescription>Alle wichtigen Informationen zur gewählten Note.</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                        {metaItems.map((item) => (
+                            <div key={item.label} className="grid gap-1">
+                                <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{item.label}</p>
+                                <p className="text-sm">{item.value}</p>
+                            </div>
+                        ))}
+                    </CardContent>
+                </Card>
 
-                        <FormField
-                            control={form.control}
-                            name="description"
-                            render={({ field }) => (
-                                <FormItem className="grid grid-cols-2">
-                                    <FormLabel>{t("description")}</FormLabel>
-                                    <FormControl>
-                                        <Input {...field} disabled />
-                                    </FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-
-                        <FormField
-                            control={form.control}
-                            name="numberOfPages"
-                            render={({ field }) => (
-                                <FormItem className="grid grid-cols-2">
-                                    <FormLabel>{t("numberOfPages")}</FormLabel>
-                                    <FormControl>
-                                        <Input {...field} type="number" disabled />
-                                    </FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-
-                        <div className="grid grid-cols-2">
-                            <Label>Vorherige Musiknote</Label>
-                            <Input
-                                disabled
-                                value={data?.previousNote?.name ?? ""}
-                            />
-                        </div>
-
-                        <div className="grid grid-cols-2">
-                            <Label>Nächste Musiknote</Label>
-                            <Input
-                                disabled
-                                value={data?.nextNote?.name ?? ""}
-                            />
-                        </div>
-
-                        <div className="grid grid-cols-2">
-                            <Label>Stelle innerhalb des Ordners</Label>
-                            <Input
-                                disabled
-                                type="number"
-                                value={data?.index ?? 0}
-                            />
-                        </div>
-
-                        <div className="grid grid-cols-2">
-                            <Label>Name des Ordners</Label>
-                            <Input
-                                disabled
-                                value={data?.currentNote?.parent.name ?? ""}
-                            />
-                        </div>
-                    </form>
-                </Form>
-            </CardContent>
-        </Card>
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Navigation</CardTitle>
+                        <CardDescription>Zwischen Noten im gleichen Ordner wechseln.</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-3">
+                        <Button
+                            variant="outline"
+                            className="w-full justify-between"
+                            disabled={!previousNote}
+                            onClick={() => previousNote && navigate(`/noteManagement/notes/${previousNote.id}`)}
+                        >
+                            <span className="truncate">{previousNote?.name || "Keine vorherige Note"}</span>
+                            <ChevronLeft className="size-4" />
+                        </Button>
+                        <Separator />
+                        <Button
+                            variant="outline"
+                            className="w-full justify-between"
+                            disabled={!nextNote}
+                            onClick={() => nextNote && navigate(`/noteManagement/notes/${nextNote.id}`)}
+                        >
+                            <span className="truncate">{nextNote?.name || "Keine nächste Note"}</span>
+                            <ChevronRight className="size-4" />
+                        </Button>
+                    </CardContent>
+                </Card>
+            </div>
+        </main>
     );
 };
+
