@@ -16,7 +16,7 @@ export const FormInput:FC<FormInputProps> =({id,label,value,onChange, className,
     return <>
         <label className="p-2.5">{label}</label>
      <input value={value} name={id} type={type} onBlur={onBlur} onFocus={onFocus}
-           className={"border text-sm rounded-lg block w-full p-2.5 bg-gray-700 border-gray-600 placeholder-gray-400 text-white focus:ring-blue-500 focus:border-blue-500" + className}
+           className={"border-input bg-background text-foreground placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-ring/50 block w-full rounded-md border px-3 py-2 text-sm shadow-xs outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50 " + (className ?? "")}
             onChange={(v)=>onChange(v.target.value)}/>
         </>
 }

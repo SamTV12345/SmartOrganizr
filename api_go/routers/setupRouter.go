@@ -59,7 +59,7 @@ func SetupRouter(queries *db.Queries, config config.AppConfig, logger *zap.Sugar
 				if token.Jwt == nil {
 					tokenJwt, err := client.LoginClient(context.Background(), config.SSO.ClientID, config.SSO.ClientSecret, config.SSO.Realm)
 					if err != nil {
-						logger.Info("Error renewing keycloak token", err.Error())
+						logger.Info("Error renewing keycloak token ", err.Error())
 					}
 					logger.Info("Renewing keycloak token")
 					token.Mu.Lock()
