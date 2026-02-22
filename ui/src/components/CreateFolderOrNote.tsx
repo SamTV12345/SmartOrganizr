@@ -67,7 +67,7 @@ const noteSchema = z.object({
     authorId: z.string(),
     authorName: z.string().min(1),
     parentId: z.string().min(1),
-    extraInformation: z.string(),
+    extraInformation: z.string().optional(),
 });
 
 const schema = z.discriminatedUnion("type", [folderSchema, noteSchema]);
