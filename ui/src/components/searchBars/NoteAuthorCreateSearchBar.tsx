@@ -39,13 +39,13 @@ export const NoteAuthorCreateSearchBar = ()=> {
     }, 1000, [authorName])
 
     return <FormField
-        name="parentId"
+        name="authorId"
         render={({ field }) => (
             <Popover open={open} onOpenChange={setOpen}>
                 <PopoverTrigger asChild>
                     <div>
                         <FormInput
-                            id="author"
+                            id="authorId"
                             value={authorName}
                             label={t("author")}
                             onChange={(v) => {

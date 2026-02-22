@@ -9,7 +9,7 @@ import {useAppDispatch, useAppSelector} from "../../store/hooks";
 import {useTranslation} from "react-i18next";
 import {FolderItem} from "@/src/models/Folder";
 import {Popover, PopoverContent, PopoverTrigger} from "@/components/ui/popover";
-import {Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList} from "@/components/ui/command";
+import {Command, CommandEmpty, CommandGroup, CommandItem, CommandList} from "@/components/ui/command";
 import {FormField} from "@/components/ui/form";
 import {FormInput} from "@/src/components/form/FormInput";
 
