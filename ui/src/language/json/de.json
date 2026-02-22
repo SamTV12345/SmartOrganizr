@@ -50,6 +50,7 @@
   "scanning": "Scanne...",
   "scanFailed": "Scan fehlgeschlagen. Bitte versuchen Sie es mit einem klareren Bild erneut.",
   "scanNoTextFound": "Auf diesem Bild wurde kein Text erkannt.",
+  "scanImageWillBeUploaded": "Das aufgenommene Bild wird beim Speichern mit hochgeladen.",
   "authorResolveFailed": "Author konnte nicht automatisch gefunden oder erstellt werden.",
   "location": "Aufführungsort",
   "noteManagement": "Notenmanagement",

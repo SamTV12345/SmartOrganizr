@@ -131,7 +131,7 @@ SELECT * FROM elements WHERE parent IS NULL AND type = 'folder' AND user_id_fk =
 INSERT INTO elements (id, type, name, description, user_id_fk, parent) VALUES (?,'folder', ?, ?, ?, ?);
 
 -- name: CreateNote :execlastid
-INSERT INTO elements (id, type, name, description, user_id_fk, parent, author_id_fk, number_of_pages) VALUES (?,'note', ?, ?, ?, ?, ?, ?);
+INSERT INTO elements (id, type, name, description, user_id_fk, parent, author_id_fk, number_of_pages, pdf_content) VALUES (?,'note', ?, ?, ?, ?, ?, ?, ?);
 
 -- name: FindFolderById :one
 SELECT * FROM elements WHERE id = ? and user_id_fk = ?;

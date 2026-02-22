@@ -20,6 +20,7 @@ export type NotePostDto = {
     numberOfPages: number
     parentId: string
     name: string
+    pdfContent?: string
 }
 
 

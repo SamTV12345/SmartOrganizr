@@ -265,7 +265,7 @@ func (q *Queries) CreateMemberInClub(ctx context.Context, arg CreateMemberInClub
 }
 
 const createNote = `-- name: CreateNote :execlastid
-INSERT INTO elements (id, type, name, description, user_id_fk, parent, author_id_fk, number_of_pages) VALUES (?,'note', ?, ?, ?, ?, ?, ?)
+INSERT INTO elements (id, type, name, description, user_id_fk, parent, author_id_fk, number_of_pages, pdf_content) VALUES (?,'note', ?, ?, ?, ?, ?, ?, ?)
 `
 
 type CreateNoteParams struct {
@@ -276,6 +276,7 @@ type CreateNoteParams struct {
 	Parent        sql.NullString
 	AuthorIDFk    sql.NullString
 	NumberOfPages sql.NullInt32
+	PdfContent    sql.NullString
 }
 
 func (q *Queries) CreateNote(ctx context.Context, arg CreateNoteParams) (int64, error) {
@@ -287,6 +288,7 @@ func (q *Queries) CreateNote(ctx context.Context, arg CreateNoteParams) (int64, 
 		arg.Parent,
 		arg.AuthorIDFk,
 		arg.NumberOfPages,
+		arg.PdfContent,
 	)
 	if err != nil {
 		return 0, err

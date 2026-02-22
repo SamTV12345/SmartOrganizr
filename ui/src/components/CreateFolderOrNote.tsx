@@ -62,7 +62,7 @@ const folderSchema = z.object({
 const noteSchema = z.object({
     type: z.literal("note"),
     name: z.string().min(1),
-    description: z.string(),
+    description: z.string().optional(),
     numberOfPages: z.number().min(1),
     authorId: z.string(),
     authorName: z.string().min(1),
@@ -154,6 +154,7 @@ export function CreateFolderOrNote() {
     const [open, setOpen] = useState(false);
     const [isScanning, setIsScanning] = useState(false);
     const [scanError, setScanError] = useState<string | null>(null);
+    const [scannedPdfContent, setScannedPdfContent] = useState("");
     const cameraInputRef = useRef<HTMLInputElement | null>(null);
 
     const form = useForm<FormValues>({
@@ -175,6 +176,7 @@ export function CreateFolderOrNote() {
     const closeAndResetForm = () => {
         setOpen(false);
         setScanError(null);
+        setScannedPdfContent("");
         form.reset(FOLDER_DEFAULTS);
         resetDispatch();
     };
@@ -182,6 +184,7 @@ export function CreateFolderOrNote() {
     const resetForNextEntry = (createdType: "folder" | "note") => {
         const parentId = form.getValues("parentId");
         setScanError(null);
+        setScannedPdfContent("");
 
         if (createdType === "folder") {
             form.reset({ ...FOLDER_DEFAULTS, parentId: parentId ?? "" });
@@ -279,6 +282,7 @@ export function CreateFolderOrNote() {
                 numberOfPages: values.numberOfPages,
                 parentId: values.parentId,
                 authorId: resolvedAuthorId,
+                pdfContent: scannedPdfContent || undefined,
             });
         }
     };
@@ -292,6 +296,14 @@ export function CreateFolderOrNote() {
         cameraInputRef.current?.click();
     };
 
+    const readFileAsDataUrl = (file: File): Promise<string> =>
+        new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(String(reader.result ?? ""));
+            reader.onerror = () => reject(reader.error);
+            reader.readAsDataURL(file);
+        });
+
     const handleCameraFileChange = async (
         event: ChangeEvent<HTMLInputElement>
     ) => {
@@ -302,6 +314,9 @@ export function CreateFolderOrNote() {
         setScanError(null);
 
         try {
+            const scannedImageDataUrl = await readFileAsDataUrl(file);
+            setScannedPdfContent(scannedImageDataUrl);
+
             const tesseractModule = await import("tesseract.js");
             const createWorker =
                 tesseractModule.createWorker ??
@@ -559,6 +574,11 @@ export function CreateFolderOrNote() {
                                     {scanError && (
                                         <p className="text-sm text-destructive">
                                             {scanError}
+                                        </p>
+                                    )}
+                                    {!scanError && scannedPdfContent && (
+                                        <p className="text-sm text-emerald-600">
+                                            {t("scanImageWillBeUploaded")}
                                         </p>
                                     )}
                                 </div>

@@ -6,4 +6,5 @@ type NotePostDto struct {
 	NumberOfPages int    `json:"numberOfPages"`
 	ParentId      string `json:"parentId"`
 	Name          string `json:"name"`
+	PdfContent    string `json:"pdfContent"`
 }

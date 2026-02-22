@@ -237,6 +237,7 @@ func (n NoteService) DeleteNote(userId string, noteId string) error {
 
 func (n NoteService) CreateNote(userId string, note dto.NotePostDto) (*models.Note, error) {
 	var noteId, _ = uuid.NewRandom()
+	var pdfContent = db.NewSQLNullString(note.PdfContent)
 	var _, err = n.Queries.CreateNote(n.Ctx, db.CreateNoteParams{
 		ID:            noteId.String(),
 		Name:          db.NewSQLNullString(note.Name),
@@ -245,6 +246,7 @@ func (n NoteService) CreateNote(userId string, note dto.NotePostDto) (*models.No
 		AuthorIDFk:    db.NewSQLNullString(note.AuthorId),
 		Parent:        db.NewSQLNullString(note.ParentId),
 		NumberOfPages: db.NewSQLNullInt(note.NumberOfPages),
+		PdfContent:    pdfContent,
 	})
 	if err != nil {
 		return nil, err
