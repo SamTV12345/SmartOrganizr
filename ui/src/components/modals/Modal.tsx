@@ -22,9 +22,9 @@ export const Modal:FC<ModalProps>  = ({headerText,children, onCancel, onAccept, 
     const {t} = useTranslation()
 
     return  openModal ? createPortal(<div id="defaultModal" tabIndex={-1} aria-hidden="true" onClick={()=>dispatch(setModalOpen(false))}
-                             className="overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 md:inset-0 h-modal md:h-full z-40">
-        <div className="grid place-items-center h-screen">
-            <div className="relative rounded-lg shadow bg-gray-700 justify-center w-full md:w-2/4" onClick={(e)=>e.stopPropagation()}>
+                             className="fixed inset-0 z-50 overflow-y-auto overflow-x-hidden p-2 sm:p-4">
+        <div className="flex min-h-full items-center justify-center">
+            <div className="relative flex w-full max-h-[calc(100dvh-1rem)] flex-col justify-center rounded-lg bg-gray-700 shadow sm:max-h-[calc(100dvh-2rem)] md:w-2/4" onClick={(e)=>e.stopPropagation()}>
                 <div className="flex justify-between items-start p-4 rounded-t border-b border-gray-600">
                     <h3 className="text-xl font-semibold text-white">
                         {headerText}
@@ -34,10 +34,10 @@ export const Modal:FC<ModalProps>  = ({headerText,children, onCancel, onAccept, 
                         <span className="sr-only">{t('closeModal')}</span>
                     </button>
                 </div>
-                <div className="p-6 space-y-6 text-base leading-relaxed text-gray-400">
+                <div className="overflow-y-auto p-6 space-y-6 text-base leading-relaxed text-gray-400">
                         {children}
                 </div>
-                <div className="flex items-center p-6 space-x-2 rounded-b border-t border-gray-200 border-gray-600">
+                <div className="flex shrink-0 items-center p-6 space-x-2 rounded-b border-t border-gray-200 border-gray-600">
                     <button data-modal-toggle="defaultModal" type="button" className="text-gray-500 focus:ring-4 focus:outline-none focus:ring-blue-300 rounded-lg border border-gray-200 text-sm font-medium px-5 py-2.5 hover:text-gray-900 focus:z-10 bg-gray-700 text-gray-300 border-gray-500 hover:text-white hover:bg-gray-600 focus:ring-gray-600" onClick={onCancel}>{cancelText}</button>
                     <button data-modal-toggle="defaultModal" type="button" className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center bg-blue-600 hover:bg-blue-700 focus:ring-blue-800" onClick={onAccept}>{acceptText}</button>
                     <i className="fa-solid fa-trash text-red-600 fa-xl" onClick={onDelete}/>
