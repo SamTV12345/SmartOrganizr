@@ -11,7 +11,8 @@ import axios from "axios";
 import {apiURL} from "@/src/Keycloak";
 import {useKeycloak} from "@/src/Keycloak/useKeycloak";
 import {Skeleton} from "@/components/ui/skeleton";
-import {useEffect} from "react";
+import {useEffect, useState} from "react";
+import {Loader2} from "lucide-react";
 
 type UrlRequest = {
     url: string;
@@ -20,6 +21,7 @@ type UrlRequest = {
 export const KonzertMeisterRestURL = ()=>{
     const {t} = useTranslation()
     const keycloak = useKeycloak()
+    const [syncResult, setSyncResult] = useState<string | null>(null)
     const {data, isLoading} = useQuery({
         queryKey: ['konzertmeisterUrl', keycloak.subject],
         queryFn: async () => {
@@ -47,6 +49,19 @@ export const KonzertMeisterRestURL = ()=>{
         mutationFn: updateKonzertMeisterRestURL,
     })
 
+    const syncKonzertMeisterMutation = useMutation<{ syncedEvents: number }, Error, void>({
+        mutationFn: async () => {
+            return await axios.post(apiURL + `/v1/users/${keycloak.subject}/konzertmeister-url/sync`)
+                .then(response => response.data)
+        },
+        onSuccess: (data) => {
+            setSyncResult(`${data.syncedEvents} ${t("eventsSynced")}`)
+        },
+        onError: () => {
+            setSyncResult(t("syncFailed"))
+        }
+    })
+
     const formSchemaKonzertmeister = z.object({
         konzertmeisterURL: z.string().url({message: t('fieldMustBeUrl')!}),
     })
@@ -64,8 +79,8 @@ export const KonzertMeisterRestURL = ()=>{
         },
     })
 
-    return <Card className="bg-gray-700 text-white">
-        <CardHeader className="border-b-2 border-gray-600 bg-accentDark">
+    return <Card>
+        <CardHeader className="bg-muted/40 border-b">
             <CardTitle>Konzertmeister URL</CardTitle>
         </CardHeader>
         <CardContent>
@@ -85,7 +100,16 @@ export const KonzertMeisterRestURL = ()=>{
                     </FormItem>
                 )}
             /> }
-                    <Button variant="default" className="float-right mt-5 bg-accentDark hover:bg-accentDarkHover cursor-pointer">{t('save')}</Button>
+                    <div className="flex flex-col gap-2 md:flex-row md:justify-end">
+                        <Button variant="secondary" type="button" className="w-full md:w-auto" onClick={() => {
+                            syncKonzertMeisterMutation.mutate()
+                        }}>
+                            {syncKonzertMeisterMutation.isPending && <Loader2 className="mr-2 animate-spin" />}
+                            {t('sync-now')}
+                        </Button>
+                        <Button variant="default" className="w-full md:w-auto">{t('save')}</Button>
+                    </div>
+                    {syncResult && <p className="text-muted-foreground text-sm">{syncResult}</p>}
                 </form>
             </FormProvider>
         </CardContent>

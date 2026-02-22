@@ -12,9 +12,12 @@ import i18n from "./language/i18n";
 import axios from "axios";
 import { QueryClientProvider } from "@tanstack/react-query";
 import {queryClient} from "@/src/utils/QueryClient";
+import { applyTheme, getInitialTheme } from "@/src/utils/ThemeUtils";
 
 
 export let accountURL = ''
+
+applyTheme(getInitialTheme());
 
 const initKeycloak = (keycloak: Keycloak) => {
     console.log("Called initKeycloak")

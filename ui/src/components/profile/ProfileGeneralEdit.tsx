@@ -92,8 +92,8 @@ export const ProfileGeneralEdit = ()=>{
     }, [keycloak.tokenParsed]);
 
 
-    return <Card className="bg-gray-700 text-white">
-        <CardHeader className="border-b-2 border-gray-600 bg-accentDark">
+    return <Card>
+        <CardHeader className="bg-muted/40 border-b">
             <CardTitle>Persönliche Daten</CardTitle>
         </CardHeader>
         <CardContent>
@@ -166,7 +166,7 @@ export const ProfileGeneralEdit = ()=>{
                             )}
                         />
                     </div>
-                    <Button variant="default" className="float-right mt-5 bg-accentDark hover:bg-accentDarkHover cursor-pointer">{t('save')}</Button>
+                    <Button variant="default" className="mt-5 w-full md:ml-auto md:w-auto">{t('save')}</Button>
                 </form>
             </FormProvider>
         </CardContent>

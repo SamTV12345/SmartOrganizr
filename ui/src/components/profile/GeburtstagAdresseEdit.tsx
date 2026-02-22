@@ -7,7 +7,7 @@ import {z} from "zod";
 import {zodResolver} from "@hookform/resolvers/zod";
 import { useTranslation } from "react-i18next";
 import { PopoverTrigger,Popover,PopoverContent} from '@/components/ui/popover'
-import { cn } from "../NavigationButton";
+import { cn } from "@/src/lib/utils";
 import {format} from "date-fns";
 import {CalendarIcon} from "lucide-react";
 import {Calendar} from "@/components/ui/calendar";
@@ -36,8 +36,8 @@ export const GeburtstagAdresseEdit = ()=>{
     }
 
 
-    return    <Card className="bg-gray-700 text-white">
-        <CardHeader className="border-b-2 border-gray-600 bg-accentDark">
+    return    <Card>
+        <CardHeader className="bg-muted/40 border-b">
             <CardTitle>Geburtstag und Adresse</CardTitle>
         </CardHeader>
         <CardContent>
@@ -150,7 +150,7 @@ export const GeburtstagAdresseEdit = ()=>{
                             )}
                         />
                     </div>
-                    <Button variant="default" className="float-right mt-5 bg-accentDark hover:bg-accentDarkHover cursor-pointer">{t('save')}</Button>
+                    <Button variant="default" className="mt-5 w-full md:ml-auto md:w-auto">{t('save')}</Button>
                 </form>
             </FormProvider>
         </CardContent>

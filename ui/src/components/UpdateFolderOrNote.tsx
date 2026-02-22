@@ -18,6 +18,17 @@ import {
     DialogTitle,
     DialogTrigger,
 } from "@/components/ui/dialog";
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+    AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import {
     Form,
@@ -79,7 +90,6 @@ export function UpdateFolderOrNote({
                                    }: UpdateFolderOrNoteProps) {
     const { t } = useTranslation();
     const queryClient = useQueryClient();
-    const [confirmDelete, setConfirmDelete] = useState(false);
 
     /* ------------------------------------------------------------------ */
     /* Zod 4 schemas                                                      */
@@ -154,12 +164,6 @@ export function UpdateFolderOrNote({
         mutationFn: deleteElement,
         onSuccess: () => onDelete(element.id),
     });
-
-    useEffect(() => {
-        if (!confirmDelete) return;
-        const timer = setTimeout(() => setConfirmDelete(false), 5000);
-        return () => clearTimeout(timer);
-    }, [confirmDelete]);
 
     /* ------------------------------------------------------------------ */
     /* Update API                                                         */
@@ -321,6 +325,45 @@ export function UpdateFolderOrNote({
                         />
 
                         <DialogFooter>
+                            {isFolder(element) && (
+                                <AlertDialog>
+                                    <AlertDialogTrigger asChild>
+                                        <Button
+                                            type="button"
+                                            variant="destructive"
+                                            disabled={deleteMutation.isPending}
+                                        >
+                                            {deleteMutation.isPending && (
+                                                <Loader className="mr-2 animate-spin" />
+                                            )}
+                                            {t("deleteFolder")}
+                                        </Button>
+                                    </AlertDialogTrigger>
+                                    <AlertDialogContent>
+                                        <AlertDialogHeader>
+                                            <AlertDialogTitle>
+                                                {t("are-you-sure")}
+                                            </AlertDialogTitle>
+                                            <AlertDialogDescription>
+                                                {t("are-you-sure-folder-description")}
+                                            </AlertDialogDescription>
+                                        </AlertDialogHeader>
+                                        <AlertDialogFooter>
+                                            <AlertDialogCancel>
+                                                {t("cancel")}
+                                            </AlertDialogCancel>
+                                            <AlertDialogAction
+                                                className="bg-red-600 hover:bg-red-900"
+                                                onClick={() => {
+                                                    deleteMutation.mutate();
+                                                }}
+                                            >
+                                                {t("continue")}
+                                            </AlertDialogAction>
+                                        </AlertDialogFooter>
+                                    </AlertDialogContent>
+                                </AlertDialog>
+                            )}
                             <DialogClose asChild>
                                 <Button variant="secondary">
                                     {t("cancel")}

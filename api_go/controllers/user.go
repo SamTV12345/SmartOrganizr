@@ -239,3 +239,19 @@ func SetKonzertmeisterUrl(c *fiber.Ctx) error {
 
 	return c.JSON(mappers.ConvertIcalSyncFromModelToDto(*icalSyncModel))
 }
+
+func SyncKonzertmeisterUrl(c *fiber.Ctx) error {
+	var userId = GetLocal[string](c, "userId")
+	var icalSyncService = GetLocal[service.IcalSyncService](c, constants.IcalSyncService)
+
+	syncedCount, err := icalSyncService.SyncIcalByType("konzertmeister", userId)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": "Failed to sync Konzertmeister URL",
+		})
+	}
+
+	return c.JSON(fiber.Map{
+		"syncedEvents": syncedCount,
+	})
+}

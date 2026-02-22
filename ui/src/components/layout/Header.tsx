@@ -1,7 +1,7 @@
 import {useAppDispatch, useAppSelector} from "../../store/hooks";
 import {setSideBarCollapsed} from "../../store/CommonSlice";
 import {useMemo, useState} from "react";
-import {apiURL, keycloak, uiURL} from "../../Keycloak";
+import {apiURL, uiURL} from "../../Keycloak";
 import {useTranslation} from "react-i18next";
 import {accountURL} from "../../index";
 import {Avatar, AvatarFallback, AvatarImage} from "@/components/ui/avatar";
@@ -12,6 +12,7 @@ import axios from "axios";
 import {User} from "@/src/models/User";
 import {useNavigate} from "react-router-dom";
 import {Button} from "@/components/ui/button";
+import {Menu} from "lucide-react";
 
 
 export const Header = ()=>{
@@ -38,13 +39,19 @@ export const Header = ()=>{
 
 
     return (
-        <div className="bg-neutral-900 w-full col-span-6 w-screen">
-            <div className="flex items-center justify-between border-gray-100 py-6 md:justify-start md:space-x-10 col-span-6 w-screen h-14">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"
-                 onClick={()=>{dispatch(setSideBarCollapsed(!sideBarCollapsed))}}
-                 className=" text-white  focus:animate-pulse p-4 h-20">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
-            </svg>
+        <div className="bg-background border-b col-span-6 w-full">
+            <div className="flex h-14 items-center justify-between px-2 md:px-4">
+                <Button
+                    variant="ghost"
+                    size="icon"
+                    className="md:hidden"
+                    onClick={() => {
+                        dispatch(setSideBarCollapsed(!sideBarCollapsed));
+                    }}
+                >
+                    <Menu />
+                    <span className="sr-only">Open navigation</span>
+                </Button>
                 <div className="flex flex-grow">
                 </div>
                 <div className="w-20">
@@ -56,21 +63,21 @@ export const Header = ()=>{
                                 </Avatar>
                         </div>
                         <div onBlur={()=>setAvatarDropdownClicked(!avatarDrodownClicked)}
-                            className={cn("absolute bg-gray-700 z-40 right-0 z-10 top-9 mt-2 w-56 origin-top-right shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none",
+                            className={cn("bg-popover text-popover-foreground border-border absolute top-9 right-0 z-40 mt-2 w-56 origin-top-right border shadow-lg focus:outline-none",
                                 avatarDrodownClicked? "transition-opacity duration-100 ease-out opacity-100" : "transition-opacity duration-100 ease-in opacity-0 pointer-events-none"
                             )}
                             role="menu" aria-orientation="vertical" aria-labelledby="menu-button" >
                             <div className={cn("py-1")} role="none">
-                                <a target="_blank" href={accountURL} className="text-white block px-4 py-2 text-sm hover:bg-gray-500" role="menuitem"
+                                <a target="_blank" href={accountURL} className="hover:bg-accent hover:text-accent-foreground block px-4 py-2 text-sm" role="menuitem"
                                     id="menu-item-0">{t('accountSettings')}</a>
                                 <button onClick={()=>{
                                     navigate('/profile/edit')
                                 }}
-                                        className="text-white block w-full px-4 py-2 text-left text-sm cursor-pointer hover:bg-gray-500"
+                                        className="hover:bg-accent hover:text-accent-foreground block w-full cursor-pointer px-4 py-2 text-left text-sm"
                                         role="menuitem"  id="menu-item-3">Profilbild ändern
                                 </button>
                                     <button type="submit" onClick={()=>keycloak.logout({redirectUri: uiURL})}
-                                            className="text-white block w-full px-4 py-2 text-left text-sm cursor-pointer hover:bg-gray-500"
+                                            className="hover:bg-accent hover:text-accent-foreground block w-full cursor-pointer px-4 py-2 text-left text-sm"
                                             role="menuitem"  id="menu-item-3">{t('signOut')}
                                     </button>
                             </div>

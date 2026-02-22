@@ -8,14 +8,16 @@ import (
 )
 
 func parseSummaryAndStatus(summaryAndStatus string) (summary string, status models.ConfirmStatus) {
-	var trimmedSummaryAndStatus = strings.TrimSpace(summaryAndStatus)
-	if strings.HasPrefix(trimmedSummaryAndStatus, "(-)") {
-		return trimmedSummaryAndStatus[4:], models.Deny
-	} else if strings.HasPrefix(trimmedSummaryAndStatus, "(+)") {
-		return trimmedSummaryAndStatus[4:], models.Ok
-	} else if strings.HasPrefix(trimmedSummaryAndStatus, "") {
-		return trimmedSummaryAndStatus, models.Maybe
-	} else {
+	trimmedSummaryAndStatus := strings.TrimSpace(summaryAndStatus)
+
+	switch {
+	case strings.HasPrefix(trimmedSummaryAndStatus, "(-)"):
+		return strings.TrimSpace(strings.TrimPrefix(trimmedSummaryAndStatus, "(-)")), models.Deny
+	case strings.HasPrefix(trimmedSummaryAndStatus, "(+)"):
+		return strings.TrimSpace(strings.TrimPrefix(trimmedSummaryAndStatus, "(+)")), models.Ok
+	case strings.HasPrefix(trimmedSummaryAndStatus, "(?)"):
+		return strings.TrimSpace(strings.TrimPrefix(trimmedSummaryAndStatus, "(?)")), models.Maybe
+	default:
 		return trimmedSummaryAndStatus, models.NotYetDecided
 	}
 }

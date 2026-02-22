@@ -84,18 +84,18 @@ export const ProfileUploadEdit = ()=>{
         </div>
     }
 
-    return                     <Card className="bg-gray-700 text-white">
-        <CardHeader className="border-b-2 border-gray-600 bg-accentDark">
+    return                     <Card>
+        <CardHeader className="bg-muted/40 border-b">
             <CardTitle>Profilbild anpassen</CardTitle>
         </CardHeader>
-        <CardContent className="flex">
+        <CardContent className="flex flex-col gap-4 md:flex-row md:items-end">
             <div className="relative  w-24 h-24 avatar-hover">
                 <Avatar className="cursor-pointer w-24 h-24"  onClick={() => fileInputRef.current?.click()}>
                     <AvatarImage src={data?.profilePicUrl}/>
                     <AvatarFallback>{initials}</AvatarFallback>
                 </Avatar>
                 <i
-                    className="cursor-pointer fa-solid fa-pencil text-transparent absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2"/>
+                    className="pointer-events-none absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 cursor-pointer text-transparent fa-solid fa-pencil"/>
                 <input
                     type="file"
                     accept="image/png, image/gif, image/jpeg"
@@ -104,7 +104,7 @@ export const ProfileUploadEdit = ()=>{
                     onChange={handleFileChange}
                 />
             </div>
-            {data?.profilePicUrl &&<Button variant="destructive" className="cursor-pointer mt-auto ml-6" onClick={()=>{
+            {data?.profilePicUrl &&<Button variant="destructive" className="w-full md:mt-auto md:ml-6 md:w-auto" onClick={()=>{
                 deleteImage.mutate()
             }}>Profilbild löschen</Button>}
         </CardContent>

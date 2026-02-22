@@ -193,6 +193,7 @@ func SetupRouter(queries *db.Queries, config config.AppConfig, logger *zap.Sugar
 		r.Patch("/:userId", controllers.UpdateUser)
 		r.Post("/:userId/profile", controllers.UploadProfile)
 		r.Post("/:userId/konzertmeister-url", controllers.SetKonzertmeisterUrl)
+		r.Post("/:userId/konzertmeister-url/sync", controllers.SyncKonzertmeisterUrl)
 		r.Get("/:userId/konzertmeister-url", controllers.GetKonzertmeisterUrl)
 		r.Get("/me", controllers.GetUserProfile)
 		r.Get("/offline", controllers.GetOfflineData)

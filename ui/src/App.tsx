@@ -2,10 +2,9 @@ import './App.css'
 import './index.css'
 import "@fortawesome/fontawesome-free/css/all.min.css"
 import {useKeycloak} from "./Keycloak/useKeycloak";
-import {BrowserRouter, Navigate, Route, Routes} from "react-router-dom";
+import {BrowserRouter, Navigate, Outlet, Route, Routes} from "react-router-dom";
 import {Header} from "./components/layout/Header";
 import {SideBar} from "./components/layout/SideBar";
-import {useAppSelector} from "./store/hooks";
 import {useTranslation} from "react-i18next";
 import React, {SuspenseProps} from 'react';
 import {
@@ -22,8 +21,21 @@ import {NoteDetailView} from "@/src/pages/NoteDetailView";
 import {EventView} from "@/src/pages/EventView";
 import {ClubView} from "@/src/pages/ClubView";
 
+function RootLayout() {
+    return (
+        <div className="flex h-dvh flex-col overflow-hidden">
+            <Header />
+            <div className="flex min-h-0 flex-1">
+                <SideBar />
+                <main className="min-h-0 flex-1 overflow-auto">
+                    <Outlet />
+                </main>
+            </div>
+        </div>
+    );
+}
+
 function App() {
-    const sideBarCollapsed = useAppSelector(state=>state.commonReducer.sideBarCollapsed)
     const {t} = useTranslation()
     const keycloak = useKeycloak()
     if(keycloak.tokenParsed === undefined){
@@ -40,51 +52,47 @@ function App() {
 
   return (
       <BrowserRouter basename="/ui">
-          <div className="grid  grid-rows-[auto_1fr] h-full md:grid-cols-[250px_1fr]">
-              <Header/>
-              <SideBar/>
-              <div className={`col-span-6 md:col-span-5 ${sideBarCollapsed?'xs:col-span-5':'hidden'} md:block w-full overflow-x-auto`}>
-                  <Routes>
-                      <Route path="/" element={<Navigate to={"/welcome"}/>}/>
-                      <Route path={"/welcome"} element={<WelcomePage/>}/>
-                      <Route path={"/noteManagement"} element={<MyManagement/>}/>
-                      <Route path="/profile/edit" element={<ProfileEdit/>}/>
-                      <Route path="/myDates" element={<EventView/>}/>
-                      <Route path="/createClub" element={<Suspense><ClubView/></Suspense>} />
-                      <Route path={"/noteManagement/authors"} element={
-                          <Suspense>
-                              <AuthorLazyLoad/>
-                          </Suspense>
-                      }/>
-                      <Route path={"/noteManagement/folders"} element={
-                            <Suspense>
-                                    <FolderViewLazyLoad/>
-                            </Suspense>}
-                      />
-                      <Route path={"/noteManagement/notes"} element={
-                          <Suspense>
-                            <SearchElementViewLazyLoad/>
-                          </Suspense>
-                      }
-                      />
-                      <Route path={"/noteManagement/concerts"} element={
-                          <Suspense>
-                              <ConcertViewLazyLoad/>
-                          </Suspense>
-                      }/>
-                      <Route path={"/noteManagement/io"} element={
-                          <Suspense>
-                              <ImportExportViewLazyLoad/>
-                          </Suspense>
-                      }/>
-                      <Route path={"/noteManagement/notes/:id"} element={
-                            <Suspense>
-                                <NoteDetailView/>
-                            </Suspense>
-                        }/>
-                  </Routes>
-              </div>
-          </div>
+          <Routes>
+              <Route element={<RootLayout />}>
+                  <Route path="/" element={<Navigate to={"/welcome"}/>}/>
+                  <Route path={"/welcome"} element={<WelcomePage/>}/>
+                  <Route path={"/noteManagement"} element={<MyManagement/>}/>
+                  <Route path="/profile/edit" element={<ProfileEdit/>}/>
+                  <Route path="/myDates" element={<EventView/>}/>
+                  <Route path="/createClub" element={<Suspense><ClubView/></Suspense>} />
+                  <Route path={"/noteManagement/authors"} element={
+                      <Suspense>
+                          <AuthorLazyLoad/>
+                      </Suspense>
+                  }/>
+                  <Route path={"/noteManagement/folders"} element={
+                        <Suspense>
+                                <FolderViewLazyLoad/>
+                        </Suspense>}
+                  />
+                  <Route path={"/noteManagement/notes"} element={
+                      <Suspense>
+                        <SearchElementViewLazyLoad/>
+                      </Suspense>
+                  }
+                  />
+                  <Route path={"/noteManagement/concerts"} element={
+                      <Suspense>
+                          <ConcertViewLazyLoad/>
+                      </Suspense>
+                  }/>
+                  <Route path={"/noteManagement/io"} element={
+                      <Suspense>
+                          <ImportExportViewLazyLoad/>
+                      </Suspense>
+                  }/>
+                  <Route path={"/noteManagement/notes/:id"} element={
+                        <Suspense>
+                            <NoteDetailView/>
+                        </Suspense>
+                    }/>
+              </Route>
+          </Routes>
       </BrowserRouter>
   )
 }

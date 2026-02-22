@@ -121,11 +121,16 @@
   * {
     @apply border-border outline-ring/50;
   }
+  html,
+  body,
+  body {
+    overflow: hidden;
+  }
   body {
     @apply bg-background text-foreground;
   }
 }
 
 .avatar-hover:hover i {
-  @apply text-black;
+  @apply text-foreground;
 }
