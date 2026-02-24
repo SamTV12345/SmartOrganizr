@@ -5,7 +5,7 @@ go 1.25.0
 require (
 	codeberg.org/go-pdf/fpdf v0.11.1
 	github.com/Nerzal/gocloak/v13 v13.9.0
-	github.com/arran4/golang-ical v0.3.2
+	github.com/arran4/golang-ical v0.3.3
 	github.com/coreos/go-oidc/v3 v3.17.0
 	github.com/docker/go-connections v0.6.0
 	github.com/go-faker/faker/v4 v4.7.0
