@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo } from "react";
 import axios from "axios";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
@@ -121,7 +121,7 @@ export function UpdateFolderOrNote({
     /* ------------------------------------------------------------------ */
     /* Default values mapper (IMPORTANT)                                  */
     /* ------------------------------------------------------------------ */
-    const form = useForm({
+    const form = useForm<FormValues>({
         resolver: standardSchemaResolver(schema)
     });
 
