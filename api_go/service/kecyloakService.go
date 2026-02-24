@@ -7,6 +7,7 @@ import (
 	"context"
 	"github.com/Nerzal/gocloak/v13"
 	"go.uber.org/zap"
+	"strings"
 )
 
 type KeycloakService struct {
@@ -71,4 +72,41 @@ func (kc *KeycloakService) UpdateUser(user models.User) error {
 		return err
 	}
 	return nil
+}
+
+func (kc *KeycloakService) CreateInvitedUser(email string, password string, firstname string, lastname string) (string, error) {
+	kc.Token.Mu.Lock()
+	defer kc.Token.Mu.Unlock()
+
+	enabled := true
+	emailVerified := true
+	credentialType := "password"
+	username := strings.ToLower(strings.TrimSpace(email))
+	credentials := []gocloak.CredentialRepresentation{
+		{
+			Type:      gocloak.StringP(credentialType),
+			Value:     gocloak.StringP(password),
+			Temporary: gocloak.BoolP(false),
+		},
+	}
+
+	userID, err := kc.Client.CreateUser(kc.context, kc.Token.Jwt.AccessToken, kc.Realm, gocloak.User{
+		Username:      gocloak.StringP(username),
+		Email:         gocloak.StringP(email),
+		FirstName:     gocloak.StringP(strings.TrimSpace(firstname)),
+		LastName:      gocloak.StringP(strings.TrimSpace(lastname)),
+		Enabled:       gocloak.BoolP(enabled),
+		EmailVerified: gocloak.BoolP(emailVerified),
+		Credentials:   &credentials,
+	})
+	if err != nil {
+		return "", err
+	}
+	return userID, nil
+}
+
+func (kc *KeycloakService) DeleteUser(userID string) error {
+	kc.Token.Mu.Lock()
+	defer kc.Token.Mu.Unlock()
+	return kc.Client.DeleteUser(kc.context, kc.Token.Jwt.AccessToken, kc.Realm, userID)
 }

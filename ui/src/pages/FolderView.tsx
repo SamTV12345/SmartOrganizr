@@ -5,6 +5,8 @@ import {FileUploadModal} from "../components/modals/FileUploadModal";
 import {CreateFolderOrNote} from "@/src/components/CreateFolderOrNote";
 import {useQuery} from "@tanstack/react-query";
 import {FolderItem} from "@/src/models/Folder";
+import {Card, CardContent, CardHeader, CardTitle} from "@/components/ui/card";
+import {Loader2} from "lucide-react";
 
 export const FolderView = ()=>{
     const {data, isLoading} = useQuery<FolderItem[]>({
@@ -21,18 +23,20 @@ export const FolderView = ()=>{
 
     if (isLoading || !data) {
         return <div className="flex justify-center items-center h-screen">
-            <i className="fa fa-spinner fa-spin fa-3x"/>
+            <Loader2 className="size-8 animate-spin text-muted-foreground"/>
         </div>
     }
 
-    return <div>
+    return <main className="mx-auto w-full max-w-6xl space-y-6 px-4 py-6 md:px-6 md:py-10">
         <CreateFolderOrNote/>
         <FileUploadModal/>
-        <div className="h-12"></div>
-        <div className="border-0 w-full md:w-8/12  table-fixed md:mx-auto md:mt-8 md:mb-4 bg-gray-800 text-white p-6">
-        <div className="mx-auto">
-           <TreeElement data={data} />
-        </div>
-    </div>
-    </div>
+        <Card className="mx-auto w-full md:w-10/12">
+            <CardHeader>
+                <CardTitle>Ordnerstruktur</CardTitle>
+            </CardHeader>
+            <CardContent>
+                <TreeElement data={data} />
+            </CardContent>
+        </Card>
+    </main>
 }

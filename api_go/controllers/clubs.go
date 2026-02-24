@@ -240,6 +240,44 @@ func AcceptClubInvitation(c *fiber.Ctx) error {
 	return c.SendStatus(fiber.StatusNoContent)
 }
 
+func CompletePublicClubInvitation(c *fiber.Ctx) error {
+	clubInvitationService := GetLocal[service.ClubInvitationService](c, constants.ClubInvitationService)
+	clubService := GetLocal[service.ClubService](c, constants.ClubService)
+	userService := GetLocal[service.UserService](c, constants.UserService)
+	keycloakService := GetLocal[service.KeycloakService](c, constants.KeycloakService)
+	token := c.Params("token")
+
+	var completeDto dto.ClubInvitationCompleteDto
+	if err := c.BodyParser(&completeDto); err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, err.Error())
+	}
+
+	password := strings.TrimSpace(completeDto.Password)
+	confirmPassword := strings.TrimSpace(completeDto.ConfirmPassword)
+	if password == "" {
+		return fiber.NewError(fiber.StatusBadRequest, "password is required")
+	}
+	if len(password) < 8 {
+		return fiber.NewError(fiber.StatusBadRequest, "password must be at least 8 characters")
+	}
+	if password != confirmPassword {
+		return fiber.NewError(fiber.StatusBadRequest, "password confirmation does not match")
+	}
+
+	if err := clubInvitationService.CompleteInvitationWithPassword(
+		token,
+		password,
+		completeDto.Firstname,
+		completeDto.Lastname,
+		clubService,
+		userService,
+		keycloakService,
+	); err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, err.Error())
+	}
+	return c.SendStatus(fiber.StatusNoContent)
+}
+
 func handleInviteForEmails(c *fiber.Ctx, emails []string) (dto.ClubInviteResultDto, error) {
 	clubService := GetLocal[service.ClubService](c, constants.ClubService)
 	clubMemberService := GetLocal[service.ClubMemberService](c, constants.ClubMemberService)

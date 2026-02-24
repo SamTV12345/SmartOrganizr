@@ -30,7 +30,10 @@ func (m *MailService) SendClubInvitationEmail(to string, clubName string, invite
 		fmt.Sprintf("Subject: %s\r\n\r\n", subject) +
 		htmlBody)
 
-	auth := smtp.PlainAuth("", m.smtpConfig.Username, m.smtpConfig.Password, m.smtpConfig.Host)
+	var auth smtp.Auth
+	if strings.TrimSpace(m.smtpConfig.Username) != "" || strings.TrimSpace(m.smtpConfig.Password) != "" {
+		auth = smtp.PlainAuth("", m.smtpConfig.Username, m.smtpConfig.Password, m.smtpConfig.Host)
+	}
 	addr := fmt.Sprintf("%s:%d", m.smtpConfig.Host, m.smtpConfig.Port)
 	return smtp.SendMail(addr, auth, m.smtpConfig.FromAddress, []string{to}, message)
 }

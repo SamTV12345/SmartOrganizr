@@ -12,6 +12,7 @@ import (
 	"api_go/ui"
 	"context"
 	"net/http"
+	"strings"
 	"sync"
 	"time"
 
@@ -51,6 +52,9 @@ func SetupRouter(queries *db.Queries, config config.AppConfig, logger *zap.Sugar
 			panic(err)
 		}
 		profile = app.Group("api", keyauth.New(keyauth.Config{
+			Next: func(c *fiber.Ctx) bool {
+				return strings.HasPrefix(c.Path(), "/api/public")
+			},
 			Validator: jwtValidator,
 		}))
 		go func() {
@@ -131,6 +135,7 @@ func SetupRouter(queries *db.Queries, config config.AppConfig, logger *zap.Sugar
 	var clubInvitationService = service.NewClubInvitationService(queries, mailService, config.App.URL)
 
 	var clubMemberService = service.NewClubMemberService(queries, clubService)
+	var messageService = service.NewMessageService(queries)
 
 	noteService.FolderService = &folderService
 
@@ -154,6 +159,7 @@ func SetupRouter(queries *db.Queries, config config.AppConfig, logger *zap.Sugar
 		SetLocal[service.ClubService](c, constants.ClubService, clubService)
 		SetLocal[service.ClubMemberService](c, constants.ClubMemberService, clubMemberService)
 		SetLocal[service.ClubInvitationService](c, constants.ClubInvitationService, clubInvitationService)
+		SetLocal[service.MessageService](c, constants.MessageService, messageService)
 
 		return c.Next()
 	})
@@ -172,6 +178,7 @@ func SetupRouter(queries *db.Queries, config config.AppConfig, logger *zap.Sugar
 	app.Get("/public/users/:userId/:image.png", controllers.GetUserImage)
 	app.Get("/public/:folderId/export", controllers.ExportPDFFromNotes)
 	app.Get("/api/public/invitations/:token", controllers.GetPublicClubInvitation)
+	app.Post("/api/public/invitations/:token/complete", controllers.CompletePublicClubInvitation)
 
 	// Serve the React ui
 	app.Use("/ui", filesystem.New(filesystem.Config{
@@ -232,6 +239,11 @@ func SetupRouter(queries *db.Queries, config config.AppConfig, logger *zap.Sugar
 		r.Get("/:clubId/members/export", controllers.ExportClubMembersCSV)
 		r.Post("/:clubId/members/import", controllers.ImportClubMembersCSV)
 		r.Post("/:clubId/members/invite", controllers.InviteClubMembers)
+		r.Get("/:clubId/messages/candidates", controllers.GetClubMessageCandidates)
+		r.Get("/:clubId/messages/chats", controllers.GetClubChats)
+		r.Post("/:clubId/messages/chats", controllers.CreateClubChat)
+		r.Get("/:clubId/messages/chats/:chatId", controllers.GetClubChatMessages)
+		r.Post("/:clubId/messages/chats/:chatId", controllers.PostClubChatMessage)
 	})
 
 	profile.Route("v1/invitations", func(r fiber.Router) {

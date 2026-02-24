@@ -270,7 +270,29 @@ export const ClubDetailView: FC = () => {
                         })}
                     </div>
 
-                    {activeSection.id !== "rollen" && activeSection.id !== "mitglieder" && (
+                    {activeSection.id === "nachrichten" && (
+                        <Card className="border-dashed">
+                            <CardHeader>
+                                <CardTitle className="flex items-center gap-2 text-xl">
+                                    <MessagesSquare className="size-5 text-accentDark" />
+                                    Nachrichten
+                                </CardTitle>
+                                <CardDescription>Direkte Kommunikation im Verein.</CardDescription>
+                            </CardHeader>
+                            <CardContent className="flex flex-wrap gap-3">
+                                <Button onClick={() => navigate(`/myMessages?clubId=${club.id}`)} disabled={!club.members_can_send_messages}>
+                                    Nachrichten öffnen
+                                </Button>
+                                {!club.members_can_send_messages && (
+                                    <p className="w-full text-sm text-muted-foreground">
+                                        In diesem Verein ist `members_can_send_messages` deaktiviert.
+                                    </p>
+                                )}
+                            </CardContent>
+                        </Card>
+                    )}
+
+                    {activeSection.id !== "rollen" && activeSection.id !== "mitglieder" && activeSection.id !== "nachrichten" && (
                         <Card className="border-dashed">
                             <CardHeader>
                                 <CardTitle className="flex items-center gap-2 text-xl">
@@ -438,4 +460,3 @@ export const ClubDetailView: FC = () => {
         </div>
     );
 };
-

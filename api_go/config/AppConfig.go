@@ -78,8 +78,11 @@ func ReadConfig() (AppConfig, error) {
 	viper.SetDefault(SSOFrontendClientID, "smartorganizr-frontend")
 	viper.SetDefault(SSORealm, "smartOrganizr")
 	viper.SetDefault(SSORefreshInternal, 250) // in seconds
-	viper.SetDefault(SMTPEnabled, false)
-	viper.SetDefault(SMTPPort, 587)
+	viper.SetDefault(SMTPEnabled, true)
+	viper.SetDefault(SMTPHost, "localhost")
+	viper.SetDefault(SMTPPort, 1025)
+	viper.SetDefault(SMTPUsername, "")
+	viper.SetDefault(SMTPPassword, "")
 	viper.SetDefault(SMTPFromAddress, "noreply@smartorganizr.local")
 
 	var config = AppConfig{

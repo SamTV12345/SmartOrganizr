@@ -114,3 +114,69 @@ func (s *ClubInvitationService) AcceptInvitation(token string, userID string, us
 		Token:      token,
 	})
 }
+
+func (s *ClubInvitationService) CompleteInvitationWithPassword(
+	token string,
+	password string,
+	firstname string,
+	lastname string,
+	clubService ClubService,
+	userService UserService,
+	keycloakService KeycloakService,
+) error {
+	invitation, err := s.queries.FindClubInvitationByToken(s.ctx, token)
+	if err != nil {
+		return err
+	}
+
+	if invitation.AcceptedAt.Valid {
+		return errors.New("invitation already accepted")
+	}
+	if invitation.ExpiresAt.Valid && invitation.ExpiresAt.Time.Before(time.Now()) {
+		return errors.New("invitation expired")
+	}
+
+	normalizedEmail := strings.ToLower(strings.TrimSpace(invitation.InvitedEmail))
+	if normalizedEmail == "" {
+		return errors.New("invitation email is invalid")
+	}
+
+	_, userLookupErr := s.queries.FindUserByEmail(s.ctx, db.NewSQLNullString(normalizedEmail))
+	if userLookupErr == nil {
+		return errors.New("user for invitation email already exists, please login")
+	}
+	if userLookupErr != sql.ErrNoRows {
+		return userLookupErr
+	}
+
+	userID, err := keycloakService.CreateInvitedUser(normalizedEmail, password, firstname, lastname)
+	if err != nil {
+		return err
+	}
+
+	createdUser := &models.User{
+		UserId:           userID,
+		Username:         normalizedEmail,
+		SideBarCollapsed: false,
+		Email:            normalizedEmail,
+		Firstname:        strings.TrimSpace(firstname),
+		Lastname:         strings.TrimSpace(lastname),
+	}
+
+	if err := userService.SaveUser(createdUser); err != nil {
+		_ = keycloakService.DeleteUser(userID)
+		return err
+	}
+	if err := userService.UpdateFromEndpoint(createdUser); err != nil {
+		_ = keycloakService.DeleteUser(userID)
+		return err
+	}
+	if err := clubService.AddUserToClub(invitation.ClubID, userID, models.Member); err != nil {
+		return err
+	}
+
+	return s.queries.MarkClubInvitationAccepted(s.ctx, db.MarkClubInvitationAcceptedParams{
+		AcceptedAt: sql.NullTime{Time: time.Now(), Valid: true},
+		Token:      token,
+	})
+}

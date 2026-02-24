@@ -22,6 +22,7 @@ import {EventView} from "@/src/pages/EventView";
 import {ClubView} from "@/src/pages/ClubView";
 import {ClubDetailView} from "@/src/pages/ClubDetailView";
 import {InviteAcceptView} from "@/src/pages/InviteAcceptView";
+import {MyMessagesView} from "@/src/pages/MyMessagesView";
 
 function RootLayout() {
     return (
@@ -63,6 +64,7 @@ function App() {
                   <Route path={"/noteManagement"} element={<MyManagement/>}/>
                   <Route path="/profile/edit" element={<ProfileEdit/>}/>
                   <Route path="/myDates" element={<EventView/>}/>
+                  <Route path="/myMessages" element={<MyMessagesView/>}/>
                   <Route path="/createClub" element={<Suspense><ClubView/></Suspense>} />
                   <Route path="/clubs/:clubId" element={<Suspense><ClubDetailView/></Suspense>} />
                   <Route path={"/noteManagement/authors"} element={
