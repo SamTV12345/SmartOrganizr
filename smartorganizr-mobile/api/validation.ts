@@ -13,7 +13,7 @@ export const ConfigModelValidation = z.object({
     realm: z.string().min(1),
     _links: z.record(z.object({
         href: z.string().url()
-    }))
+    })).optional()
 })
 
 export const DiscoveryDocumentValidation = z.object({

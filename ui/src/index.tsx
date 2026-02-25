@@ -74,7 +74,7 @@ const renderApp= (keycloak: Keycloak)=>
             <QueryClientProvider client={queryClient}>
                 <I18nextProvider i18n={i18n}>
                 <Provider store={store}>
-                <KeycloakContext.Provider value={keycloak as Keycloak}>
+                <KeycloakContext.Provider value={keycloak}>
                 <App/>
                 </KeycloakContext.Provider>
                 </Provider>
@@ -91,7 +91,7 @@ const bootstrapApp = async () => {
                 setLinks(resp.data._links)
                 accountURL = resp.data.url+"/realms/"+resp.data.realm+"/account"
                 setKeycloak(resp.data.clientId,resp.data.realm, resp.data.url)
-                initKeycloak(keycloak).then(()=>renderApp(keycloak as Keycloak))
+                initKeycloak(keycloak).then(()=>renderApp(keycloak))
             })
     }
 }
