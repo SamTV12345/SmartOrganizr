@@ -1,0 +1,55 @@
+name: mobile-android-apk
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "smartorganizr-mobile/**"
+      - ".github/workflows/mobile-android-native.yaml"
+
+jobs:
+  build-apk:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: smartorganizr-mobile
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+          cache-dependency-path: smartorganizr-mobile/pnpm-lock.yaml
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Generate Android native project
+        run: pnpm exec expo prebuild --platform android --non-interactive
+
+      - name: Build release APK
+        run: |
+          cd android
+          ./gradlew assembleRelease --no-daemon
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-release-apk
+          path: smartorganizr-mobile/android/app/build/outputs/apk/release/app-release.apk
+          retention-days: 7
