@@ -325,7 +325,7 @@ export const ClubDetailView: FC = () => {
                                             </div>
                                             <Select
                                                 value={member.role}
-                                                onValueChange={(newRole) => roleMutation.mutate({ memberUserId: member.user_id, role: newRole })}
+                                                onValueChange={(newRole) => newRole && roleMutation.mutate({ memberUserId: member.user_id, role: newRole })}
                                                 disabled={!permissions?.can_manage_roles}
                                             >
                                                 <SelectTrigger className="w-full">
@@ -434,7 +434,7 @@ export const ClubDetailView: FC = () => {
                                             </div>
                                             <Select
                                                 value={member.role}
-                                                onValueChange={(newRole) => roleMutation.mutate({ memberUserId: member.user_id, role: newRole })}
+                                                onValueChange={(newRole) => newRole && roleMutation.mutate({ memberUserId: member.user_id, role: newRole })}
                                                 disabled={!permissions?.can_manage_roles}
                                             >
                                                 <SelectTrigger className="w-full">

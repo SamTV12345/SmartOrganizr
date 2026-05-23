@@ -51,7 +51,7 @@ export const ImportExportView = () => {
                 <CardContent className="space-y-4">
                     <div className="grid gap-2">
                         <Label>Ordner</Label>
-                        <Select value={selectedFolder} onValueChange={setSelectedFolder}>
+                        <Select value={selectedFolder} onValueChange={(v) => setSelectedFolder(v ?? undefined)}>
                             <SelectTrigger className="w-full">
                                 <SelectValue placeholder="Ordner auswählen"/>
                             </SelectTrigger>

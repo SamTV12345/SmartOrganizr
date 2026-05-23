@@ -127,7 +127,7 @@ export const MyMessagesView: FC = () => {
                 <CardContent className="grid gap-3 md:grid-cols-[1.5fr_1fr]">
                     <div className="grid gap-2">
                         <Label htmlFor="messages-club-select">Verein</Label>
-                        <Select value={selectedClubId} onValueChange={(value) => setSelectedClubId(value)}>
+                        <Select value={selectedClubId} onValueChange={(value) => setSelectedClubId(value ?? "")}>
                             <SelectTrigger id="messages-club-select">
                                 <SelectValue placeholder="Verein wählen" />
                             </SelectTrigger>
@@ -158,7 +158,7 @@ export const MyMessagesView: FC = () => {
                         <CardContent className="space-y-3">
                             <div className="grid gap-2">
                                 <Label htmlFor="new-chat-recipient">Empfänger</Label>
-                                <Select value={newChatRecipient} onValueChange={setNewChatRecipient}>
+                                <Select value={newChatRecipient} onValueChange={(v) => setNewChatRecipient(v ?? "")}>
                                     <SelectTrigger id="new-chat-recipient">
                                         <SelectValue placeholder="Mitglied wählen" />
                                     </SelectTrigger>

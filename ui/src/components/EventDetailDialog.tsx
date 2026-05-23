@@ -73,10 +73,12 @@ export const EventDetailDialog = ({ event, open, onOpenChange }: EventDetailDial
                                 </div>
 
                                 {event.url ? (
-                                    <Button asChild variant="outline" className="mt-2 w-full">
-                                        <a href={event.url} target="_blank" rel="noreferrer">
-                                            Event-Link öffnen
-                                        </a>
+                                    <Button
+                                        render={<a href={event.url} target="_blank" rel="noreferrer" />}
+                                        variant="outline"
+                                        className="mt-2 w-full"
+                                    >
+                                        Event-Link öffnen
                                     </Button>
                                 ) : null}
                             </div>
@@ -90,10 +92,12 @@ export const EventDetailDialog = ({ event, open, onOpenChange }: EventDetailDial
                                             className="h-72 w-full rounded-md border"
                                             loading="lazy"
                                         />
-                                        <Button asChild variant="secondary" className="w-full">
-                                            <a href={createOsmLink(lat, lon)} target="_blank" rel="noreferrer">
-                                                In OpenStreetMap öffnen
-                                            </a>
+                                        <Button
+                                            render={<a href={createOsmLink(lat, lon)} target="_blank" rel="noreferrer" />}
+                                            variant="secondary"
+                                            className="w-full"
+                                        >
+                                            In OpenStreetMap öffnen
                                         </Button>
                                     </>
                                 ) : (

@@ -99,10 +99,8 @@ export function DataTableDemo<TData, TValue>({
                     className="max-w-sm"
                 />
                 <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                        <Button variant="outline" className="ml-auto">
-                            Columns <ChevronDown />
-                        </Button>
+                    <DropdownMenuTrigger render={<Button variant="outline" className="ml-auto" />}>
+                        Columns <ChevronDown />
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
                         {table

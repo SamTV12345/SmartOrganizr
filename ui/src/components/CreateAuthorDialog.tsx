@@ -63,8 +63,8 @@ export function CreateAuthorDialog() {
     return (
 
         <Dialog>
-            <DialogTrigger asChild>
-                <Button variant="outline" className="float-right mr-5 mt-5"><PlusIcon/></Button>
+            <DialogTrigger render={<Button variant="outline" className="float-right mr-5 mt-5" />}>
+                <PlusIcon/>
             </DialogTrigger>
             <DialogContent className="sm:max-w-[425px]">
                 <FormProvider {...form}>

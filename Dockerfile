@@ -10,7 +10,7 @@ RUN npm install -g pnpm@latest
 COPY ./ui/package.json .
 COPY ./ui/pnpm-lock.yaml .
 COPY ./ui/pnpm-workspace.yaml .
-COPY ./ui/.npmrc .
+
 RUN pnpm install
 
 # Copy the rest of the files

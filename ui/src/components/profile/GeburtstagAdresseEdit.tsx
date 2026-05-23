@@ -51,25 +51,27 @@ export const GeburtstagAdresseEdit = ()=>{
                                 <FormItem   className="grid-cols-2">
                                     <FormLabel>{t('birthday')}</FormLabel>
                                     <Popover>
-                                        <PopoverTrigger asChild>
-                                            <FormControl>
-                                                <Button
-                                                    variant={"outline"}
-                                                    className={cn(
-                                                        " bg-transparent pl-3 text-left font-normal",
-                                                        !field.value && "text-muted-foreground"
-                                                    )}
-                                                >
-                                                    {field.value ? (
-                                                        format(field.value, "PPP", {
-                                                            locale: de
-                                                        })
-                                                    ) : (
-                                                        <span>{t('birthday')}</span>
-                                                    )}
-                                                    <CalendarIcon className="ml-auto opacity-50" />
-                                                </Button>
-                                            </FormControl>
+                                        <PopoverTrigger
+                                            render={
+                                                <FormControl>
+                                                    <Button
+                                                        variant={"outline"}
+                                                        className={cn(
+                                                            " bg-transparent pl-3 text-left font-normal",
+                                                            !field.value && "text-muted-foreground"
+                                                        )}
+                                                    />
+                                                </FormControl>
+                                            }
+                                        >
+                                            {field.value ? (
+                                                format(field.value, "PPP", {
+                                                    locale: de
+                                                })
+                                            ) : (
+                                                <span>{t('birthday')}</span>
+                                            )}
+                                            <CalendarIcon className="ml-auto opacity-50" />
                                         </PopoverTrigger>
                                         <PopoverContent className="w-auto p-0" align="start">
                                             <Calendar
