@@ -3,7 +3,7 @@ import {AuthorEmbeddedContainer} from "../models/AuthorEmbeddedContainer";
 import {Author} from "../models/Author";
 import {Page} from "../models/Page";
 import axios from "axios";
-import {apiURL, links} from "../Keycloak";
+import {apiURL} from "../Keycloak";
 import {useTranslation} from "react-i18next";
 import {CreateAuthorDialog} from "@/src/components/CreateAuthorDialog";
 import {InfiniteData, useInfiniteQuery, useMutation, useQueryClient} from "@tanstack/react-query";
@@ -26,16 +26,14 @@ import {useDebounce} from "@/src/utils/DebounceHook";
 import {useAPIStore} from "@/src/store/zustand";
 
 
-const createNextLink = ({pageParam}: {pageParam: number}, link: string, searchParams:  URLSearchParams) => {
-    const url = new URL(link)
-    if (pageParam) {
-        url.searchParams.set('page', pageParam.toString())
+const buildAuthorsUrl = (pageParam: number, searchParams: URLSearchParams) => {
+    const params = new URLSearchParams()
+    params.set('page', pageParam.toString())
+    const name = searchParams.get('name')
+    if (name) {
+        params.set('name', name)
     }
-    if (searchParams.get('name')) {
-        url.searchParams.set('name', searchParams.get('name')!)
-    }
-
-    return url.toString()
+    return `${apiURL}/v1/authors?${params.toString()}`
 }
 
 export const AuthorView = ()=> {
@@ -48,15 +46,15 @@ export const AuthorView = ()=> {
         queryKey: ['authors'],
         initialPageParam: 0,
         queryFn: async ({pageParam}) => {
-            // @ts-ignore
-            const response = await axios.get(createNextLink({pageParam}, links.author.href, searchParams))
+            const response = await axios.get(buildAuthorsUrl(pageParam as number, searchParams))
             return response.data
         },
         getNextPageParam: (lastPage) => {
-            if (lastPage._links && lastPage._links.next) {
-                return new URL(lastPage._links.next.href).searchParams.get("page")
+            const {number, size, totalElements} = lastPage.page
+            if ((number + 1) * size >= totalElements) {
+                return undefined
             }
-            return undefined
+            return number + 1
         },
         enabled: true
     })

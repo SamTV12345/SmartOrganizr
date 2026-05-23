@@ -9,8 +9,7 @@ export const mergeAuthors = (oldAuthorList: Page<AuthorEmbeddedContainer<Author>
             page:newAuthorList.page,
             _embedded:{
                 authorRepresentationModelList: authorList
-            } ,
-            _links:newAuthorList._links
+            },
         } as Page<AuthorEmbeddedContainer<Author>>
     }
 
@@ -22,7 +21,6 @@ export const mergeAuthorInList = (authorList: Page<AuthorEmbeddedContainer<Autho
         _embedded: {
             authorRepresentationModelList: newAuthorList
         },
-        _links: authorList._links
     } as Page<AuthorEmbeddedContainer<Author>>
 }
 
@@ -51,7 +49,6 @@ export const mergeNewAuthorInList = (authorList: Page<AuthorEmbeddedContainer<Au
             _embedded: {
                 authorRepresentationModelList: newAuthorList
             },
-            _links: authorList._links
         } as Page<AuthorEmbeddedContainer<Author>>
     }
     return authorList
@@ -63,7 +60,6 @@ export const removeAuthor = (authorList: Page<AuthorEmbeddedContainer<Author>>, 
             page: authorList.page,
             _embedded:{
                 authorRepresentationModelList: newAuthorList
-            } ,
-            _links: authorList._links
+            },
         } satisfies Page<AuthorEmbeddedContainer<Author>>
     }

@@ -1,4 +1,3 @@
-import {ApiLink} from "./ApiLink";
 import {ElementItem} from "./ElementItem";
 import {User} from "@/src/models/User";
 
@@ -10,7 +9,6 @@ export type FolderItem = {
     description: string,
     creator: User,
     elements: ElementItem[]
-    links: ApiLink[]
     type: 'folder'
 }
 

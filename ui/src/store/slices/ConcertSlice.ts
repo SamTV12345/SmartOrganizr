@@ -1,6 +1,5 @@
 import {createSlice, PayloadAction} from "@reduxjs/toolkit";
 import {ConcertDto} from "../../models/ConcertDto";
-import exp from "constants";
 
 interface ConcertSliceProps {
     concerts: ConcertDto[],

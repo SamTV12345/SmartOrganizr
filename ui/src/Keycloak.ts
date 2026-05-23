@@ -1,14 +1,10 @@
 import Keycloak from "keycloak-js";
 import {isLocalhost} from "./utils/Utilities";
-import {ApiLink} from "./models/ApiLink";
 
 export let keycloak:Keycloak = undefined as unknown as Keycloak
 
 export let apiURL=''
 export let uiURL=''
-export let links = {
-    author: {} as ApiLink
-}
 
 export const waitTime = 1000
 
@@ -30,7 +26,4 @@ export const setLoadedKeycloak = (loadedKeycloak:Keycloak)=>{
     keycloak  = loadedKeycloak
 }
 
-export const setLinks = (linksInParam: any)=>{
-    links = linksInParam
-}
 export default setKeycloak;

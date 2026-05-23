@@ -2,7 +2,7 @@ import React from 'react'
 import ReactDOM from 'react-dom/client'
 import App from './App'
 import './index.css'
-import setKeycloak, {apiURL, keycloak, setLinks, setLoadedKeycloak} from "./Keycloak";
+import setKeycloak, {apiURL, keycloak, setLoadedKeycloak} from "./Keycloak";
 import Keycloak from "keycloak-js";
 import {KeycloakContext} from './Keycloak/useKeycloak';
 import {store} from "./store/store";
@@ -88,7 +88,6 @@ const bootstrapApp = async () => {
     if(keycloak === undefined){
         axios.get("/../public")
             .then(resp=>{
-                setLinks(resp.data._links)
                 accountURL = resp.data.url+"/realms/"+resp.data.realm+"/account"
                 setKeycloak(resp.data.clientId,resp.data.realm, resp.data.url)
                 initKeycloak(keycloak).then(()=>renderApp(keycloak))

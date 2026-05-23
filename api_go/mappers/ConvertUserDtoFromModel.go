@@ -3,8 +3,9 @@ package mappers
 import (
 	"api_go/controllers/dto"
 	"api_go/models"
-	"github.com/gofiber/fiber/v2"
 	"strconv"
+
+	"github.com/gofiber/fiber/v2"
 )
 
 func ConvertUserDtoFromModel(user models.User, c *fiber.Ctx) dto.User {
@@ -15,7 +16,7 @@ func ConvertUserDtoFromModel(user models.User, c *fiber.Ctx) dto.User {
 	}
 
 	if len(user.ProfilePic) > 0 {
-		link := CreateHyperlink(c, "/public/users/"+user.UserId+"/"+strconv.Itoa(len(user.ProfilePic))+".png")
+		link := "/public/users/" + user.UserId + "/" + strconv.Itoa(len(user.ProfilePic)) + ".png"
 		dtoUser.ProfilePicUrl = &link
 	}
 	return dtoUser

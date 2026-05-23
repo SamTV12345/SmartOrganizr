@@ -55,3 +55,10 @@ config.yml
 rsa.private.key
 rsa.public.key
 api_go/config.env
+
+# Local environment overrides (loaded by api_go/config/AppConfig.go via gotenv)
+.env
+.env.local
+.env.*.local
+api_go/.env
+api_go/.env.local

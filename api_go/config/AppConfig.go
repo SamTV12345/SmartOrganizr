@@ -2,9 +2,11 @@ package config
 
 import (
 	"log"
+	"os"
 	"strings"
 
 	"github.com/spf13/viper"
+	"github.com/subosito/gotenv"
 )
 
 type AppConfigDatabase struct {
@@ -51,17 +53,26 @@ type AppConfig struct {
 }
 
 func ReadConfig() (AppConfig, error) {
-	viper.SetConfigName("config") // Config file name without extension
-	viper.SetConfigType("env")    // Config file type
-	viper.AddConfigPath(".")      // Look for the config file in the current directory
+	// Optionally load a .env file into the process environment so AutomaticEnv() picks
+	// it up. Lookup order:
+	//   1. SMARTORGANIZR_ENV_FILE (explicit override)
+	//   2. ./.env
+	//   3. ./api_go/.env (when run from the repo root)
+	// Real environment variables always take precedence — gotenv.Load does not override them.
+	loadEnvFile()
+
+	viper.SetConfigName("config") // Legacy config.env in viper's dotted-key format
+	viper.SetConfigType("env")
+	viper.AddConfigPath(".")
 
 	viper.AutomaticEnv()
 	viper.SetEnvPrefix("smartorganizr")                    // will be uppercased automatically
 	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_")) // this is useful e.g. want to use . in Get() calls, but environmental variables to use _ delimiters (e.g. app.port -> APP_PORT)
-	// Read the config file
-	err := viper.ReadInConfig()
-	if err != nil {
-		log.Printf("Error reading config file, %s\n", err)
+	// Read the legacy config file — absence is fine when configuration comes from env vars or a .env file.
+	if err := viper.ReadInConfig(); err != nil {
+		if _, notFound := err.(viper.ConfigFileNotFoundError); !notFound {
+			log.Printf("Error reading config file, %s\n", err)
+		}
 	}
 
 	viper.SetDefault(DatabaseHost, "localhost")
@@ -122,4 +133,27 @@ func ReadConfig() (AppConfig, error) {
 	}
 
 	return config, nil
+}
+
+func loadEnvFile() {
+	if explicit := os.Getenv("SMARTORGANIZR_ENV_FILE"); explicit != "" {
+		if err := gotenv.Load(explicit); err != nil {
+			log.Printf("Error loading env file %s: %s\n", explicit, err)
+			return
+		}
+		log.Printf("Loaded env file: %s\n", explicit)
+		return
+	}
+
+	for _, candidate := range []string{".env", "api_go/.env"} {
+		if _, err := os.Stat(candidate); err != nil {
+			continue
+		}
+		if err := gotenv.Load(candidate); err != nil {
+			log.Printf("Error loading env file %s: %s\n", candidate, err)
+			continue
+		}
+		log.Printf("Loaded env file: %s\n", candidate)
+		return
+	}
 }

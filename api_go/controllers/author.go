@@ -40,9 +40,6 @@ func GetAuthors(c *fiber.Ctx) error {
 		}
 
 		authorPage = dto.PagedAuthorRepresentationModelList{
-			Page: struct {
-				Size int `json:"size"`
-			}{Size: constants.CurrentPageSize},
 			Embedded: struct {
 				AuthorRepresentationModelList []dto.Author `json:"authorRepresentationModelList"`
 			}{AuthorRepresentationModelList: authorDto},
@@ -55,21 +52,13 @@ func GetAuthors(c *fiber.Ctx) error {
 		}
 		count, _ = authorService.CountFindAllByCreator(userId)
 		authorPage = dto.PagedAuthorRepresentationModelList{
-			Page: struct {
-				Size int `json:"size"`
-			}{Size: constants.CurrentPageSize},
 			Embedded: struct {
 				AuthorRepresentationModelList []dto.Author `json:"authorRepresentationModelList"`
 			}{AuthorRepresentationModelList: authorDto},
 		}
 	}
 
-	if *count > (page+1)*constants.CurrentPageSize {
-		authorPage.Links = make(map[string]dto.Link)
-		authorPage.Links["next"] = dto.Link{
-			Href: mappers.CreateHyperlink(c, "/api/v1/authors?page="+strconv.Itoa(page+1)+"&name="+nameStr),
-		}
-	}
+	authorPage.Page = newPage(page, *count)
 
 	return c.JSON(authorPage)
 }

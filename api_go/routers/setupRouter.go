@@ -150,7 +150,6 @@ func SetupRouter(queries *db.Queries, config config.AppConfig, logger *zap.Sugar
 		SetLocal[service.FolderService](c, constants.FolderService, folderService)
 		SetLocal[service.NoteService](c, constants.NoteService, noteService)
 		SetLocal[service.KeycloakService](c, constants.KeycloakService, keycloakService)
-		SetLocal[string](c, constants.BaseURL, config.App.URL)
 		SetLocal[service.AuthorService](c, constants.AuthorService, authorService)
 		SetLocal[service.ConcertService](c, constants.ConcertService, concertService)
 		SetLocal[*validator.Validate](c, constants.Validator, validate)
@@ -169,7 +168,6 @@ func SetupRouter(queries *db.Queries, config config.AppConfig, logger *zap.Sugar
 			ClientId: config.SSO.FrontendClientID,
 			Url:      config.SSO.Url,
 			Realm:    config.SSO.Realm,
-			Links:    make(map[string]dto.Link),
 		})
 		return c.Next()
 	})

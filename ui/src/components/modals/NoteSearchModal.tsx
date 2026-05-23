@@ -2,7 +2,6 @@ import {useTranslation} from "react-i18next";
 import {ElementSearchBar} from "../searchBars/ElementSearchBar";
 import {useAppDispatch, useAppSelector} from "../../store/hooks";
 import {Waypoint} from "react-waypoint";
-import {fixProtocol} from "../../utils/Utilities";
 import {Page} from "../../models/Page";
 import {ElementEmbeddedContainer} from "../../models/ElementEmbeddedContainer";
 import {NoteItem} from "../../models/NoteItem";
@@ -19,6 +18,7 @@ import {NoteSearchModalTD} from "./NoteSearchModalTD";
 export const NoteSearchModal = () => {
     const {t} = useTranslation()
     const searchedElements = useAppSelector(state => state.commonReducer.elementsSearched)
+    const searchText = useAppSelector(state => state.commonReducer.noteSearchText)
     const dispatch = useAppDispatch()
     const [selectedNotes, setSelectedNotes] = useState<string[]>([])
     const concerts = useAppSelector(state=>state.concertReducer.concerts)
@@ -41,9 +41,22 @@ export const NoteSearchModal = () => {
                     noteRepresentationModelList: [...searchedElements._embedded.noteRepresentationModelList, ...notesInPage._embedded.noteRepresentationModelList]
                 },
                 page: notesInPage.page,
-                _links: notesInPage._links
             } satisfies Page<ElementEmbeddedContainer<NoteItem>>))
         }
+    }
+
+    const hasNextPage = (p?: Page<ElementEmbeddedContainer<NoteItem>>) => {
+        if (!p) return false
+        return (p.page.number + 1) * p.page.size < p.page.totalElements
+    }
+
+    const buildNextPageUrl = (p: Page<ElementEmbeddedContainer<NoteItem>>) => {
+        const params = new URLSearchParams()
+        params.set('page', (p.page.number + 1).toString())
+        if (searchText) {
+            params.set('noteName', searchText)
+        }
+        return `${apiURL}/v1/elements/notes?${params.toString()}`
     }
 
     const updateConcert = ()=>{
@@ -113,10 +126,9 @@ export const NoteSearchModal = () => {
                     <NoteSearchModalTD children={element.author.name}/>
                     <NoteSearchModalTD children={element.description}/>
                     <NoteSearchModalTD children={element.parent.name}
-                                       {...(searchedElements.page.size - index < 5) && searchedElements._links && searchedElements._links.next
-                                           && searchedElements._links.next.href
+                                       {...(searchedElements.page.size - index < 5) && hasNextPage(searchedElements)
                                            && <Waypoint onEnter={() => {
-                                               loadNotes(fixProtocol(searchedElements._links.next.href));
+                                               loadNotes(buildNextPageUrl(searchedElements));
                                            }}/>
                                        }
                     />

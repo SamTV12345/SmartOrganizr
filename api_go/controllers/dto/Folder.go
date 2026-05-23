@@ -13,6 +13,5 @@ type Folder struct {
 	Description  string           `json:"description"`
 	Creator      User             `json:"creator"`
 	Elements     []models.Element `json:"elements"`
-	Links        []Link           `json:"links"`
 	Type         string           `json:"type"`
 }

@@ -88,21 +88,11 @@ func GetNotes(c *fiber.Ctx) error {
 		notesDto = append(notesDto, *mappers.ConvertNoteDtoFromModel(&note, c))
 	}
 
-	var links = make(map[string]dto.Link)
-	if totalCount > (page+1)*constants.CurrentPageSize {
-		links["next"] = dto.Link{
-			Href: mappers.CreateHyperlink(c, "/api/v1/elements/notes?page="+strconv.Itoa(page+1)),
-		}
-	}
-
 	var pagedNotes = dto.PagedNoteRepresentationModelList{
 		Embedded: struct {
 			NoteRepresentationModelList []dto.Note `json:"noteRepresentationModelList"`
 		}{NoteRepresentationModelList: notesDto},
-		Page: struct {
-			Size int `json:"size"`
-		}{Size: constants.CurrentPageSize},
-		Links: links,
+		Page: newPage(page, totalCount),
 	}
 
 	return c.JSON(pagedNotes)
@@ -170,15 +160,6 @@ func SearchFolders(c *fiber.Ctx) error {
 	}
 
 	var totalFolders, _ = folderService.CountFolders(userId, search)
-	remaningItems := totalFolders - (page+1)*constants.CurrentPageSize
-
-	links := make(map[string]dto.Link)
-
-	if remaningItems > 0 {
-		links["next"] = dto.Link{
-			Href: mappers.CreateHyperlink(c, "/api/v1/folders?page="+strconv.Itoa(page+1)+"&folderName="+search),
-		}
-	}
 
 	var folderDtos = make([]dto.Folder, 0)
 	for _, fdto := range folders {
@@ -186,10 +167,7 @@ func SearchFolders(c *fiber.Ctx) error {
 	}
 
 	var paged = dto.PagedFolderRepresentationModelList{
-		Page: struct {
-			Size int `json:"size"`
-		}{Size: constants.CurrentPageSize},
-		Links: links,
+		Page: newPage(page, totalFolders),
 		Embedded: struct {
 			ElementRepresentationModelList []dto.Folder `json:"elementRepresentationModelList"`
 		}{ElementRepresentationModelList: folderDtos},

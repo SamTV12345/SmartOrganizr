@@ -2,7 +2,6 @@ import React, { FC, useMemo, useState } from "react";
 import "./Tree.css";
 import { ElementItem, isNote } from "../models/ElementItem";
 import axios, { AxiosResponse } from "axios";
-import { fixProtocol } from "../utils/Utilities";
 import { setLoadedFolders } from "../store/CommonSlice";
 import { useAppDispatch, useAppSelector } from "../store/hooks";
 import { apiURL } from "../Keycloak";
@@ -63,7 +62,7 @@ export const TreeElement: FC<TreeProps> = ({ data }) => {
         if (!loadedFolders.includes(event.id)) {
             dispatch(setLoadedFolders(event.id));
             try {
-                const response = await axios.get<ElementItem[]>(fixProtocol(event.links[0].href));
+                const response = await axios.get<ElementItem[]>(`${apiURL}/v1/elements/${event.id}/children`);
                 const newItems = handleNewElements(event, response.data);
                 const eventWithChildren = { ...event, elements: newItems };
                 queryClient.setQueryData(["folders"], (loadedNodes: ElementItem[]) =>

@@ -18,7 +18,7 @@ func GetEvents(c *fiber.Ctx) error {
 			Message: "You are not allowed to access other users events",
 		}
 	}
-	eventService := mappers.GetLocal[service.EventService](c, constants.EventService)
+	eventService := GetLocal[service.EventService](c, constants.EventService)
 	var sinceDate = c.Query("since", time.Now().Format(time.RFC3339))
 	// 2025-06-02T08:44:02.589Z
 	parsedSinceDate, err := time.Parse(time.RFC3339, sinceDate)

@@ -6,8 +6,8 @@ import (
 	"api_go/logger"
 	"api_go/routers"
 	"context"
-	"github.com/docker/go-connections/nat"
 	"github.com/gofiber/fiber/v2"
+	"github.com/moby/moby/api/types/network"
 	mysql2 "github.com/testcontainers/testcontainers-go/modules/mysql"
 	"net/http"
 	"os"
@@ -31,7 +31,7 @@ func TestMain(m *testing.M) {
 }
 
 var mysqlInstance *mysql2.MySQLContainer = nil
-var port nat.Port
+var port network.Port
 
 func SetupTest(t *testing.T) *fiber.App {
 	ctx := context.Background()
@@ -54,7 +54,7 @@ func SetupTest(t *testing.T) *fiber.App {
 		Database: config.AppConfigDatabase{
 			Database: "test",
 			Host:     host,
-			Port:     port.Int(),
+			Port:     int(port.Num()),
 			Password: "test",
 			User:     "test",
 		},
