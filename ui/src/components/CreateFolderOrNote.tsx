@@ -10,12 +10,13 @@ import {
 import { Camera, Loader, PlusIcon, ScanText } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { z } from "zod";
-import { useRef, useState, type ChangeEvent } from "react";
+import { useEffect, useRef, useState, type ChangeEvent } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { http as axios, parentDecksQueryKey } from "@/src/api/client";
 import { apiURL } from "@/src/Keycloak";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
     Form,
     FormControl,
@@ -96,6 +97,24 @@ const NOTE_DEFAULTS: Extract<FormValues, { type: "note" }> = {
     extraInformation: "",
 };
 
+const CREATE_ANOTHER_STORAGE_KEY = "createAnother:elements";
+
+const readCreateAnother = (): boolean => {
+    try {
+        return localStorage.getItem(CREATE_ANOTHER_STORAGE_KEY) === "true";
+    } catch {
+        return false;
+    }
+};
+
+const writeCreateAnother = (value: boolean): void => {
+    try {
+        localStorage.setItem(CREATE_ANOTHER_STORAGE_KEY, String(value));
+    } catch {
+        // localStorage unavailable (privacy mode, SSR) — silently ignore
+    }
+};
+
 /* ------------------------------------------------------------------ */
 /* API helpers (module-level)                                          */
 /* ------------------------------------------------------------------ */
@@ -155,6 +174,24 @@ export function CreateFolderOrNote() {
     const [isScanning, setIsScanning] = useState(false);
     const [scanError, setScanError] = useState<string | null>(null);
     const [scannedPdfContent, setScannedPdfContent] = useState("");
+    const [createAnother, setCreateAnotherState] = useState<boolean>(readCreateAnother);
+    const [justSaved, setJustSaved] = useState(false);
+    const justSavedTimerRef = useRef<number | null>(null);
+    const nameInputRef = useRef<HTMLInputElement | null>(null);
+
+    const setCreateAnother = (value: boolean) => {
+        setCreateAnotherState(value);
+        writeCreateAnother(value);
+    };
+
+    useEffect(() => {
+        return () => {
+            if (justSavedTimerRef.current !== null) {
+                window.clearTimeout(justSavedTimerRef.current);
+            }
+        };
+    }, []);
+
     const cameraInputRef = useRef<HTMLInputElement | null>(null);
 
     const form = useForm<FormValues>({
