@@ -218,25 +218,32 @@ export function CreateFolderOrNote() {
         resetDispatch();
     };
 
-    const resetForNextEntry = (createdType: "folder" | "note") => {
-        const parentId = form.getValues("parentId");
+    const flashJustSaved = () => {
+        setJustSaved(true);
+        if (justSavedTimerRef.current !== null) {
+            window.clearTimeout(justSavedTimerRef.current);
+        }
+        justSavedTimerRef.current = window.setTimeout(() => {
+            setJustSaved(false);
+            justSavedTimerRef.current = null;
+        }, 1500);
+    };
+
+    const handlePostSubmit = () => {
         setScanError(null);
         setScannedPdfContent("");
 
-        if (createdType === "folder") {
-            form.reset({ ...FOLDER_DEFAULTS, parentId: parentId ?? "" });
-        } else {
-            const currentValues = form.getValues() as Extract<
-                FormValues,
-                { type: "note" }
-            >;
-            form.reset({
-                ...NOTE_DEFAULTS,
-                parentId: parentId ?? "",
-                authorId: currentValues.authorId ?? "",
-                authorName: currentValues.authorName ?? "",
-            });
+        if (createAnother) {
+            flashJustSaved();
+            // Form-Werte bleiben unverändert. Fokus aufs Name-Feld + Selektion.
+            window.setTimeout(() => {
+                nameInputRef.current?.focus();
+                nameInputRef.current?.select();
+            }, 0);
+            return;
         }
+
+        closeAndResetForm();
     };
 
     /* ------------------------------------------------------------------ */
@@ -258,7 +265,7 @@ export function CreateFolderOrNote() {
             mutationFn: createFolder,
             onSuccess: (data) => {
                 updateCache(data);
-                resetForNextEntry("folder");
+                handlePostSubmit();
             },
         }
     );
@@ -267,7 +274,7 @@ export function CreateFolderOrNote() {
         mutationFn: createNote,
         onSuccess: (data) => {
             updateCache(data);
-            resetForNextEntry("note");
+            handlePostSubmit();
         },
     });
 
