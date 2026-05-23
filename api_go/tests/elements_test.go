@@ -16,7 +16,7 @@ func TestCreateParentFolder(t *testing.T) {
 	app := SetupTest(t)
 	folderPost := builders.CreateParentFolderPostDto()
 	bytesEncoded, _ := json.Marshal(folderPost)
-	request, _ := http.NewRequest("POST", "/api/v1/elements/folders", bytes.NewBuffer(bytesEncoded))
+	request, _ := http.NewRequest("POST", "http://localhost/api/v1/elements/folders", bytes.NewBuffer(bytesEncoded))
 	request.Header.Set("Content-Type", "application/json")
 	response, err := app.Test(request)
 	if err != nil {
@@ -52,7 +52,7 @@ func TestCreateSubFolderWithNoParent(t *testing.T) {
 	parentUUID := faker.UUIDHyphenated()
 	subfolder := builders.CreateSubFolderPostDto(parentUUID)
 	bytesEncoded, _ := json.Marshal(subfolder)
-	request, _ := http.NewRequest("POST", "/api/v1/elements/folders", bytes.NewBuffer(bytesEncoded))
+	request, _ := http.NewRequest("POST", "http://localhost/api/v1/elements/folders", bytes.NewBuffer(bytesEncoded))
 	request.Header.Set("Content-Type", "application/json")
 	response, _ := app.Test(request)
 	if response.StatusCode != http.StatusConflict {
@@ -64,7 +64,7 @@ func TestCreateSubFolder(t *testing.T) {
 	app := SetupTest(t)
 	folderPost := builders.CreateParentFolderPostDto()
 	bytesEncoded, _ := json.Marshal(folderPost)
-	request, _ := http.NewRequest("POST", "/api/v1/elements/folders", bytes.NewBuffer(bytesEncoded))
+	request, _ := http.NewRequest("POST", "http://localhost/api/v1/elements/folders", bytes.NewBuffer(bytesEncoded))
 	request.Header.Set("Content-Type", "application/json")
 	response, err := app.Test(request)
 	if err != nil {
@@ -81,7 +81,7 @@ func TestCreateSubFolder(t *testing.T) {
 	encodingHelper.Decode(readBytes, &folderDto)
 	subfolder := builders.CreateSubFolderPostDto(folderDto.Id)
 	bytesEncoded, _ = json.Marshal(subfolder)
-	request, _ = http.NewRequest("POST", "/api/v1/elements/folders", bytes.NewBuffer(bytesEncoded))
+	request, _ = http.NewRequest("POST", "http://localhost/api/v1/elements/folders", bytes.NewBuffer(bytesEncoded))
 	request.Header.Set("Content-Type", "application/json")
 	response, err = app.Test(request)
 	if err != nil {

@@ -5,12 +5,12 @@ import (
 	"api_go/controllers/dto"
 	"api_go/mappers"
 	"api_go/service"
-	"github.com/gofiber/fiber/v2"
-	"github.com/gofiber/fiber/v2/log"
+	"github.com/gofiber/fiber/v3"
+	"github.com/gofiber/fiber/v3/log"
 	"strconv"
 )
 
-func GetAuthors(c *fiber.Ctx) error {
+func GetAuthors(c fiber.Ctx) error {
 	var pageStr = c.Query("page")
 	var nameStr = c.Query("name")
 	if pageStr == "" {
@@ -63,13 +63,13 @@ func GetAuthors(c *fiber.Ctx) error {
 	return c.JSON(authorPage)
 }
 
-func UpdateAuthor(c *fiber.Ctx) error {
+func UpdateAuthor(c fiber.Ctx) error {
 	var authorService = GetLocal[service.AuthorService](c, constants.AuthorService)
 	var userId = GetLocal[string](c, "userId")
 	var authorId = c.Params("authorId")
 	var authorPatchDto dto.AuthorPatchDto
 
-	if err := c.BodyParser(&authorPatchDto); err != nil {
+	if err := c.Bind().Body(&authorPatchDto); err != nil {
 		return err
 	}
 	author, err := authorService.UpdateAuthor(authorPatchDto, userId, authorId)
@@ -82,7 +82,7 @@ func UpdateAuthor(c *fiber.Ctx) error {
 	return c.JSON(authorDto)
 }
 
-func DeleteAuthor(c *fiber.Ctx) error {
+func DeleteAuthor(c fiber.Ctx) error {
 	var authorId = c.Params("authorId")
 	var authorService = GetLocal[service.AuthorService](c, constants.AuthorService)
 	var userService = GetLocal[service.UserService](c, constants.UserService)
@@ -107,9 +107,9 @@ func DeleteAuthor(c *fiber.Ctx) error {
 	return c.SendStatus(204)
 }
 
-func CreateAuthor(c *fiber.Ctx) error {
+func CreateAuthor(c fiber.Ctx) error {
 	var authorDto dto.AuthorCreateDto
-	if err := c.BodyParser(&authorDto); err != nil {
+	if err := c.Bind().Body(&authorDto); err != nil {
 		return err
 	}
 	var authorService = GetLocal[service.AuthorService](c, constants.AuthorService)
@@ -124,7 +124,7 @@ func CreateAuthor(c *fiber.Ctx) error {
 	return c.Status(200).JSON(mappers.ConvertAuthorDtoFromModel(createdAuthor))
 }
 
-func GetNotesOfAuthor(c *fiber.Ctx) error {
+func GetNotesOfAuthor(c fiber.Ctx) error {
 	var authorId = c.Params("authorId")
 	var authorService = GetLocal[service.AuthorService](c, constants.AuthorService)
 	var userId = GetLocal[string](c, constants.UserId)

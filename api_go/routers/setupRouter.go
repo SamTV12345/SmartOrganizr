@@ -11,17 +11,17 @@ import (
 	"api_go/service"
 	"api_go/ui"
 	"context"
-	"net/http"
+	"io/fs"
 	"strings"
 	"sync"
 	"time"
 
 	"github.com/Nerzal/gocloak/v13"
 	"github.com/go-playground/validator/v10"
-	"github.com/gofiber/fiber/v2"
-	"github.com/gofiber/fiber/v2/middleware/cors"
-	"github.com/gofiber/fiber/v2/middleware/filesystem"
-	"github.com/gofiber/fiber/v2/middleware/keyauth"
+	"github.com/gofiber/fiber/v3"
+	"github.com/gofiber/fiber/v3/middleware/cors"
+	"github.com/gofiber/fiber/v3/middleware/keyauth"
+	"github.com/gofiber/fiber/v3/middleware/static"
 	"go.uber.org/zap"
 )
 
@@ -31,8 +31,8 @@ func SetupRouter(queries *db.Queries, config config.AppConfig, logger *zap.Sugar
 	validate := validator.New(validator.WithRequiredStructEnabled())
 
 	app.Use(cors.New(cors.Config{
-		AllowOrigins: "*",
-		AllowHeaders: "*",
+		AllowOrigins: []string{"*"},
+		AllowHeaders: []string{"*"},
 	}))
 
 	var token = &models.MutexedKeycloakToken{
@@ -41,7 +41,7 @@ func SetupRouter(queries *db.Queries, config config.AppConfig, logger *zap.Sugar
 	}
 	var client = gocloak.NewClient(config.SSO.Url)
 
-	app.Get("/health", func(c *fiber.Ctx) error {
+	app.Get("/health", func(c fiber.Ctx) error {
 		return c.SendString("OK")
 	})
 
@@ -52,7 +52,7 @@ func SetupRouter(queries *db.Queries, config config.AppConfig, logger *zap.Sugar
 			panic(err)
 		}
 		profile = app.Group("api", keyauth.New(keyauth.Config{
-			Next: func(c *fiber.Ctx) bool {
+			Next: func(c fiber.Ctx) bool {
 				return strings.HasPrefix(c.Path(), "/api/public")
 			},
 			Validator: jwtValidator,
@@ -76,7 +76,7 @@ func SetupRouter(queries *db.Queries, config config.AppConfig, logger *zap.Sugar
 
 	} else {
 		profile = app.Group("api")
-		app.Use(func(c *fiber.Ctx) error {
+		app.Use(func(c fiber.Ctx) error {
 			c.Locals("claims", &auth.Claims{
 				Username:   "test",
 				Email:      "test@test.com",
@@ -145,7 +145,7 @@ func SetupRouter(queries *db.Queries, config config.AppConfig, logger *zap.Sugar
 		NoteService: noteService,
 	}
 
-	app.Use(func(c *fiber.Ctx) error {
+	app.Use(func(c fiber.Ctx) error {
 		SetLocal[service.UserService](c, constants.UserService, userService)
 		SetLocal[service.FolderService](c, constants.FolderService, folderService)
 		SetLocal[service.NoteService](c, constants.NoteService, noteService)
@@ -163,7 +163,7 @@ func SetupRouter(queries *db.Queries, config config.AppConfig, logger *zap.Sugar
 		return c.Next()
 	})
 
-	app.Use(func(c *fiber.Ctx) error {
+	app.Use(func(c fiber.Ctx) error {
 		SetLocal[dto.KeycloakModel](c, "keycloak", dto.KeycloakModel{
 			ClientId: config.SSO.FrontendClientID,
 			Url:      config.SSO.Url,
@@ -179,14 +179,14 @@ func SetupRouter(queries *db.Queries, config config.AppConfig, logger *zap.Sugar
 	app.Post("/api/public/invitations/:token/complete", controllers.CompletePublicClubInvitation)
 
 	// Serve the React ui
-	app.Use("/ui", filesystem.New(filesystem.Config{
-		Root:       http.FS(ui.Web),
-		PathPrefix: "dist",
-		Browse:     false,
+	uiFS, _ := fs.Sub(ui.Web, "dist")
+	app.Use("/ui", static.New("", static.Config{
+		FS:     uiFS,
+		Browse: false,
 	}))
 
 	// Fallback to index.html
-	app.Use("/ui", func(c *fiber.Ctx) error {
+	app.Use("/ui", func(c fiber.Ctx) error {
 		file, err := ui.Web.Open("dist/index.html")
 		if err != nil {
 			return c.Status(fiber.StatusNotFound).SendString("404 Not Found")
@@ -269,6 +269,6 @@ func SetupRouter(queries *db.Queries, config config.AppConfig, logger *zap.Sugar
 	return app
 }
 
-func SetLocal[T any](c *fiber.Ctx, key string, value T) {
+func SetLocal[T any](c fiber.Ctx, key string, value T) {
 	c.Locals(key, value)
 }

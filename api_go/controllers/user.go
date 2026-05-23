@@ -8,10 +8,10 @@ import (
 	"api_go/models"
 	"api_go/service"
 	"github.com/go-playground/validator/v10"
-	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v3"
 )
 
-func SyncUser(c *fiber.Ctx) error {
+func SyncUser(c fiber.Ctx) error {
 	var userService = GetLocal[service.UserService](c, "userService")
 	var userId = GetLocal[string](c, "userId")
 	var claims = GetLocal[*auth.Claims](c, "claims")
@@ -44,7 +44,7 @@ func SyncUser(c *fiber.Ctx) error {
 	return c.SendStatus(200)
 }
 
-func GetUser(c *fiber.Ctx) error {
+func GetUser(c fiber.Ctx) error {
 	var userId = GetLocal[string](c, "userId")
 	var userService = GetLocal[service.UserService](c, "userService")
 	var user, err = userService.LoadUser(userId)
@@ -56,7 +56,7 @@ func GetUser(c *fiber.Ctx) error {
 	return c.JSON(mappers.ConvertUserDtoFromModel(*user, c))
 }
 
-func UploadProfile(c *fiber.Ctx) error {
+func UploadProfile(c fiber.Ctx) error {
 	var userService = GetLocal[service.UserService](c, "userService")
 	var userId = GetLocal[string](c, "userId")
 	var profileData = c.BodyRaw()
@@ -76,7 +76,7 @@ func UploadProfile(c *fiber.Ctx) error {
 	return c.JSON(mappers.ConvertUserDtoFromModel(*loadedUser, c))
 }
 
-func DeleteProfilePic(c *fiber.Ctx) error {
+func DeleteProfilePic(c fiber.Ctx) error {
 	var userService = GetLocal[service.UserService](c, "userService")
 	var userId = GetLocal[string](c, "userId")
 	var loadedUser, err = userService.LoadUser(userId)
@@ -94,7 +94,7 @@ func DeleteProfilePic(c *fiber.Ctx) error {
 	}
 	return c.JSON(mappers.ConvertUserDtoFromModel(*loadedUser, c))
 }
-func GetUserProfile(c *fiber.Ctx) error {
+func GetUserProfile(c fiber.Ctx) error {
 	var userId = GetLocal[string](c, "userId")
 	var userService = GetLocal[service.UserService](c, "userService")
 	var loadedUser, err = userService.LoadUser(userId)
@@ -107,7 +107,7 @@ func GetUserProfile(c *fiber.Ctx) error {
 	return c.JSON(convertedDto)
 }
 
-func GetUserImage(c *fiber.Ctx) error {
+func GetUserImage(c fiber.Ctx) error {
 	var userId = c.Params("userId")
 	var userService = GetLocal[service.UserService](c, "userService")
 	var loadedUser, err = userService.LoadUser(userId)
@@ -125,7 +125,7 @@ func GetUserImage(c *fiber.Ctx) error {
 	return c.Send(image)
 }
 
-func GetOfflineData(c *fiber.Ctx) error {
+func GetOfflineData(c fiber.Ctx) error {
 	var folderService = GetLocal[service.FolderService](c, "folderService")
 	var authorService = GetLocal[service.AuthorService](c, "authorService")
 	var noteService = GetLocal[service.NoteService](c, "noteService")
@@ -148,7 +148,7 @@ func GetOfflineData(c *fiber.Ctx) error {
 	return c.JSON(dataExporter)
 }
 
-func UpdateUser(c *fiber.Ctx) error {
+func UpdateUser(c fiber.Ctx) error {
 	var userId = GetLocal[string](c, "userId")
 	var userService = GetLocal[service.UserService](c, constants.UserService)
 	var keycloakService = GetLocal[service.KeycloakService](c, constants.KeycloakService)
@@ -159,7 +159,7 @@ func UpdateUser(c *fiber.Ctx) error {
 		})
 	}
 	var userDto dto.UserPatchDto
-	if err := c.BodyParser(&userDto); err != nil {
+	if err := c.Bind().Body(&userDto); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"error": err.Error(),
 		})
@@ -185,7 +185,7 @@ func UpdateUser(c *fiber.Ctx) error {
 	return c.JSON(mappers.ConvertUserDtoFromModel(*loadedUser, c))
 }
 
-func GetKonzertmeisterUrl(c *fiber.Ctx) error {
+func GetKonzertmeisterUrl(c fiber.Ctx) error {
 	var userId = GetLocal[string](c, "userId")
 	var icalSyncService = GetLocal[service.IcalSyncService](c, constants.IcalSyncService)
 
@@ -205,13 +205,13 @@ func GetKonzertmeisterUrl(c *fiber.Ctx) error {
 	return c.JSON(mappers.ConvertIcalSyncFromModelToDto(*icalSyncModel))
 }
 
-func SetKonzertmeisterUrl(c *fiber.Ctx) error {
+func SetKonzertmeisterUrl(c fiber.Ctx) error {
 	var userId = GetLocal[string](c, "userId")
 	var icalSyncService = GetLocal[service.IcalSyncService](c, constants.IcalSyncService)
 	var validatorToUse = GetLocal[*validator.Validate](c, constants.Validator)
 
 	var icalSync dto.IcalSyncDto
-	if err := c.BodyParser(&icalSync); err != nil {
+	if err := c.Bind().Body(&icalSync); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"error": err.Error(),
 		})
@@ -240,7 +240,7 @@ func SetKonzertmeisterUrl(c *fiber.Ctx) error {
 	return c.JSON(mappers.ConvertIcalSyncFromModelToDto(*icalSyncModel))
 }
 
-func SyncKonzertmeisterUrl(c *fiber.Ctx) error {
+func SyncKonzertmeisterUrl(c fiber.Ctx) error {
 	var userId = GetLocal[string](c, "userId")
 	var icalSyncService = GetLocal[service.IcalSyncService](c, constants.IcalSyncService)
 

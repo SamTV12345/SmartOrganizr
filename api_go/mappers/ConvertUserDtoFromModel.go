@@ -5,10 +5,10 @@ import (
 	"api_go/models"
 	"strconv"
 
-	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v3"
 )
 
-func ConvertUserDtoFromModel(user models.User, c *fiber.Ctx) dto.User {
+func ConvertUserDtoFromModel(user models.User, c fiber.Ctx) dto.User {
 	var dtoUser = dto.User{
 		UserId:           user.UserId,
 		Username:         user.Username,

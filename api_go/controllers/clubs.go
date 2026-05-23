@@ -11,13 +11,13 @@ import (
 	"encoding/csv"
 	"errors"
 	"fmt"
-	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v3"
 	"io"
 	"strings"
 	"time"
 )
 
-func GetAllClubsForMe(c *fiber.Ctx) error {
+func GetAllClubsForMe(c fiber.Ctx) error {
 	userId := GetLocal[string](c, "userId")
 	clubService := GetLocal[service.ClubService](c, constants.ClubService)
 	result, err := clubService.GetAllClubsForMyId(&userId)
@@ -32,11 +32,11 @@ func GetAllClubsForMe(c *fiber.Ctx) error {
 	return c.JSON(clubDtos)
 }
 
-func PostClub(c *fiber.Ctx) error {
+func PostClub(c fiber.Ctx) error {
 	userId := GetLocal[string](c, "userId")
 	clubService := GetLocal[service.ClubService](c, constants.ClubService)
 	var club dto.ClubPostDto
-	if err := c.BodyParser(&club); err != nil {
+	if err := c.Bind().Body(&club); err != nil {
 		return fiber.NewError(fiber.StatusBadRequest, err.Error())
 	}
 
@@ -50,7 +50,7 @@ func PostClub(c *fiber.Ctx) error {
 	return c.JSON(mappers.ConvertClubFromModelToDto(*savedClub))
 }
 
-func InviteClubMembers(c *fiber.Ctx) error {
+func InviteClubMembers(c fiber.Ctx) error {
 	emails, parseErr := parseInviteEmailsFromRequest(c)
 	if parseErr != nil {
 		return fiber.NewError(fiber.StatusBadRequest, parseErr.Error())
@@ -62,7 +62,7 @@ func InviteClubMembers(c *fiber.Ctx) error {
 	return c.JSON(result)
 }
 
-func ImportClubMembersCSV(c *fiber.Ctx) error {
+func ImportClubMembersCSV(c fiber.Ctx) error {
 	emails, parseErr := parseInviteEmailsFromRequest(c)
 	if parseErr != nil {
 		return fiber.NewError(fiber.StatusBadRequest, parseErr.Error())
@@ -74,7 +74,7 @@ func ImportClubMembersCSV(c *fiber.Ctx) error {
 	return c.JSON(result)
 }
 
-func ExportClubMembersCSV(c *fiber.Ctx) error {
+func ExportClubMembersCSV(c fiber.Ctx) error {
 	clubMemberService := GetLocal[service.ClubMemberService](c, constants.ClubMemberService)
 	requesterId := GetLocal[string](c, "userId")
 	clubId := c.Params("clubId")
@@ -132,7 +132,7 @@ func ExportClubMembersCSV(c *fiber.Ctx) error {
 	return c.Send(buffer.Bytes())
 }
 
-func GetClubMembers(c *fiber.Ctx) error {
+func GetClubMembers(c fiber.Ctx) error {
 	clubMemberService := GetLocal[service.ClubMemberService](c, constants.ClubMemberService)
 	requesterId := GetLocal[string](c, "userId")
 	clubId := c.Params("clubId")
@@ -161,14 +161,14 @@ func GetClubMembers(c *fiber.Ctx) error {
 	return c.JSON(memberDtos)
 }
 
-func PatchClubMemberRole(c *fiber.Ctx) error {
+func PatchClubMemberRole(c fiber.Ctx) error {
 	clubMemberService := GetLocal[service.ClubMemberService](c, constants.ClubMemberService)
 	requesterId := GetLocal[string](c, "userId")
 	clubId := c.Params("clubId")
 	memberUserID := c.Params("memberUserId")
 
 	var rolePatch dto.ClubMemberRolePatchDto
-	if err := c.BodyParser(&rolePatch); err != nil {
+	if err := c.Bind().Body(&rolePatch); err != nil {
 		return fiber.NewError(fiber.StatusBadRequest, err.Error())
 	}
 
@@ -178,7 +178,7 @@ func PatchClubMemberRole(c *fiber.Ctx) error {
 	return c.SendStatus(fiber.StatusNoContent)
 }
 
-func GetMyClubPermissions(c *fiber.Ctx) error {
+func GetMyClubPermissions(c fiber.Ctx) error {
 	clubMemberService := GetLocal[service.ClubMemberService](c, constants.ClubMemberService)
 	requesterId := GetLocal[string](c, "userId")
 	clubId := c.Params("clubId")
@@ -191,7 +191,7 @@ func GetMyClubPermissions(c *fiber.Ctx) error {
 	return c.JSON(buildPermissionsDto(role))
 }
 
-func GetPublicClubInvitation(c *fiber.Ctx) error {
+func GetPublicClubInvitation(c fiber.Ctx) error {
 	clubInvitationService := GetLocal[service.ClubInvitationService](c, constants.ClubInvitationService)
 	token := c.Params("token")
 
@@ -212,7 +212,7 @@ func GetPublicClubInvitation(c *fiber.Ctx) error {
 	})
 }
 
-func AcceptClubInvitation(c *fiber.Ctx) error {
+func AcceptClubInvitation(c fiber.Ctx) error {
 	clubInvitationService := GetLocal[service.ClubInvitationService](c, constants.ClubInvitationService)
 	clubService := GetLocal[service.ClubService](c, constants.ClubService)
 	userService := GetLocal[service.UserService](c, constants.UserService)
@@ -240,7 +240,7 @@ func AcceptClubInvitation(c *fiber.Ctx) error {
 	return c.SendStatus(fiber.StatusNoContent)
 }
 
-func CompletePublicClubInvitation(c *fiber.Ctx) error {
+func CompletePublicClubInvitation(c fiber.Ctx) error {
 	clubInvitationService := GetLocal[service.ClubInvitationService](c, constants.ClubInvitationService)
 	clubService := GetLocal[service.ClubService](c, constants.ClubService)
 	userService := GetLocal[service.UserService](c, constants.UserService)
@@ -248,7 +248,7 @@ func CompletePublicClubInvitation(c *fiber.Ctx) error {
 	token := c.Params("token")
 
 	var completeDto dto.ClubInvitationCompleteDto
-	if err := c.BodyParser(&completeDto); err != nil {
+	if err := c.Bind().Body(&completeDto); err != nil {
 		return fiber.NewError(fiber.StatusBadRequest, err.Error())
 	}
 
@@ -278,7 +278,7 @@ func CompletePublicClubInvitation(c *fiber.Ctx) error {
 	return c.SendStatus(fiber.StatusNoContent)
 }
 
-func handleInviteForEmails(c *fiber.Ctx, emails []string) (dto.ClubInviteResultDto, error) {
+func handleInviteForEmails(c fiber.Ctx, emails []string) (dto.ClubInviteResultDto, error) {
 	clubService := GetLocal[service.ClubService](c, constants.ClubService)
 	clubMemberService := GetLocal[service.ClubMemberService](c, constants.ClubMemberService)
 	clubInvitationService := GetLocal[service.ClubInvitationService](c, constants.ClubInvitationService)
@@ -322,9 +322,9 @@ func handleInviteForEmails(c *fiber.Ctx, emails []string) (dto.ClubInviteResultD
 	}, nil
 }
 
-func parseInviteEmailsFromRequest(c *fiber.Ctx) ([]string, error) {
+func parseInviteEmailsFromRequest(c fiber.Ctx) ([]string, error) {
 	var inviteDto dto.ClubInvitePostDto
-	if err := c.BodyParser(&inviteDto); err == nil && len(inviteDto.Emails) > 0 {
+	if err := c.Bind().Body(&inviteDto); err == nil && len(inviteDto.Emails) > 0 {
 		return normalizeEmailList(inviteDto.Emails), nil
 	}
 

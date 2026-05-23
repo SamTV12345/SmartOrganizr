@@ -5,11 +5,11 @@ import (
 	"api_go/controllers/dto"
 	"api_go/mappers"
 	"api_go/service"
-	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v3"
 	"time"
 )
 
-func GetEvents(c *fiber.Ctx) error {
+func GetEvents(c fiber.Ctx) error {
 	userIdToRequest := c.Params("userId")
 	var keycloakId = GetLocal[string](c, "userId")
 	if userIdToRequest != keycloakId {

@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	"github.com/coreos/go-oidc/v3/oidc"
-	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v3"
 	"github.com/golang-jwt/jwt/v5"
 	"go.uber.org/zap"
 )
@@ -20,7 +20,7 @@ type Claims struct {
 	Email      string `json:"email"`
 }
 
-func NewKeycloakJWTValidator(issuerUrl, clientId string, logger *zap.SugaredLogger) (func(*fiber.Ctx, string) (bool, error), error) {
+func NewKeycloakJWTValidator(issuerUrl, clientId string, logger *zap.SugaredLogger) (func(fiber.Ctx, string) (bool, error), error) {
 	ctx := context.Background()
 	provider, err := oidc.NewProvider(ctx, issuerUrl)
 	if err != nil {
@@ -31,8 +31,8 @@ func NewKeycloakJWTValidator(issuerUrl, clientId string, logger *zap.SugaredLogg
 		ClientID:          clientId,
 		SkipClientIDCheck: true,
 	})
-	return func(c *fiber.Ctx, key string) (bool, error) {
-		var ctx = c.UserContext()
+	return func(c fiber.Ctx, key string) (bool, error) {
+		var ctx = c.Context()
 		_, err := verifier.Verify(ctx, key)
 		if err != nil {
 			logger.Warnf("Failed to authenticate with smartorganizr: %v", err)

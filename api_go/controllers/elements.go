@@ -10,10 +10,10 @@ import (
 	"errors"
 	"strconv"
 
-	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v3"
 )
 
-func GetParentDecks(c *fiber.Ctx) error {
+func GetParentDecks(c fiber.Ctx) error {
 	var userId = GetLocal[string](c, "userId")
 	var folderService = GetLocal[service.FolderService](c, "folderService")
 	var folders, err = folderService.FindAllParentDeckFolders(userId)
@@ -29,7 +29,7 @@ func GetParentDecks(c *fiber.Ctx) error {
 	return c.JSON(folderDtos)
 }
 
-func DeleteElement(c *fiber.Ctx) error {
+func DeleteElement(c fiber.Ctx) error {
 	var userId = GetLocal[string](c, "userId")
 	var elementId = c.Params("elementId")
 
@@ -57,7 +57,7 @@ func DeleteElement(c *fiber.Ctx) error {
 	return c.SendStatus(fiber.StatusNoContent)
 }
 
-func GetNotes(c *fiber.Ctx) error {
+func GetNotes(c fiber.Ctx) error {
 	var pageArg *int
 	var page, errConv = strconv.Atoi(c.Query("page"))
 	var nameStr *string
@@ -98,11 +98,11 @@ func GetNotes(c *fiber.Ctx) error {
 	return c.JSON(pagedNotes)
 }
 
-func CreateFolder(c *fiber.Ctx) error {
+func CreateFolder(c fiber.Ctx) error {
 	var userId = GetLocal[string](c, "userId")
 	var folderService = GetLocal[service.FolderService](c, "folderService")
 	var folderPostDto dto.FolderPostDto
-	err := c.BodyParser(&folderPostDto)
+	err := c.Bind().Body(&folderPostDto)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"error": err.Error(),
@@ -125,7 +125,7 @@ func CreateFolder(c *fiber.Ctx) error {
 	return c.JSON(folderDto)
 }
 
-func FindNextChildren(c *fiber.Ctx) error {
+func FindNextChildren(c fiber.Ctx) error {
 	var userId = GetLocal[string](c, "userId")
 	var folderService = GetLocal[service.FolderService](c, "folderService")
 	var folderId = c.Params("folderId")
@@ -142,7 +142,7 @@ func FindNextChildren(c *fiber.Ctx) error {
 	return c.JSON(elementDto)
 }
 
-func SearchFolders(c *fiber.Ctx) error {
+func SearchFolders(c fiber.Ctx) error {
 	var userId = GetLocal[string](c, "userId")
 	var folderService = GetLocal[service.FolderService](c, "folderService")
 	var search = c.Query("folderName")
@@ -176,9 +176,9 @@ func SearchFolders(c *fiber.Ctx) error {
 	return c.JSON(paged)
 }
 
-func CreateNote(c *fiber.Ctx) error {
+func CreateNote(c fiber.Ctx) error {
 	var notePostDto dto.NotePostDto
-	if err := c.BodyParser(&notePostDto); err != nil {
+	if err := c.Bind().Body(&notePostDto); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"error": err.Error(),
 		})
@@ -195,13 +195,13 @@ func CreateNote(c *fiber.Ctx) error {
 	return c.JSON(note)
 }
 
-func UpdateFolder(c *fiber.Ctx) error {
+func UpdateFolder(c fiber.Ctx) error {
 	var folderId = c.Params("folderId")
 	var userId = GetLocal[string](c, "userId")
 	var folderService = GetLocal[service.FolderService](c, "folderService")
 	var folderPatch dto.FolderPatchDto
 
-	if err := c.BodyParser(&folderPatch); err != nil {
+	if err := c.Bind().Body(&folderPatch); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"error": err.Error(),
 		})
@@ -235,7 +235,7 @@ func UpdateFolder(c *fiber.Ctx) error {
 	return c.JSON(folderDto)
 }
 
-func UpdateNote(c *fiber.Ctx) error {
+func UpdateNote(c fiber.Ctx) error {
 	var noteId = c.Params("noteId")
 	var userId = GetLocal[string](c, "userId")
 	var noteService = GetLocal[service.NoteService](c, "noteService")
@@ -246,7 +246,7 @@ func UpdateNote(c *fiber.Ctx) error {
 		})
 	}
 	var notePostDto dto.NotePostDto
-	err = c.BodyParser(&notePostDto)
+	err = c.Bind().Body(&notePostDto)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"error": err.Error(),
@@ -266,7 +266,7 @@ func UpdateNote(c *fiber.Ctx) error {
 	return c.JSON(noteDto)
 }
 
-func GetParentOfNote(c *fiber.Ctx) error {
+func GetParentOfNote(c fiber.Ctx) error {
 	var userId = GetLocal[string](c, "userId")
 	var noteId = c.Params("noteId")
 	var folderService = GetLocal[service.FolderService](c, "noteService")
@@ -280,7 +280,7 @@ func GetParentOfNote(c *fiber.Ctx) error {
 	return c.SendString(element.Id)
 }
 
-func GetNoteasPDF(c *fiber.Ctx) error {
+func GetNoteasPDF(c fiber.Ctx) error {
 	var userId = GetLocal[string](c, "userId")
 	var noteId = c.Params("noteId")
 	var noteService = GetLocal[service.NoteService](c, "noteService")
@@ -293,7 +293,7 @@ func GetNoteasPDF(c *fiber.Ctx) error {
 	return c.Send(note.PDFContent)
 }
 
-func UpdatePDFOfNote(c *fiber.Ctx) error {
+func UpdatePDFOfNote(c fiber.Ctx) error {
 	var userId = GetLocal[string](c, "userId")
 	var noteId = c.Params("noteId")
 	var noteService = GetLocal[service.NoteService](c, "noteService")
@@ -315,7 +315,7 @@ func UpdatePDFOfNote(c *fiber.Ctx) error {
 	return c.JSON(noteDto)
 }
 
-func ExportPDFFromNotes(c *fiber.Ctx) error {
+func ExportPDFFromNotes(c fiber.Ctx) error {
 	folderservice := GetLocal[service.FolderService](c, constants.FolderService)
 	userservice := GetLocal[service.UserService](c, constants.UserService)
 
@@ -332,7 +332,7 @@ func ExportPDFFromNotes(c *fiber.Ctx) error {
 	return c.Send(pdfContent)
 }
 
-func GetNodeByID(c *fiber.Ctx) error {
+func GetNodeByID(c fiber.Ctx) error {
 	var userId = GetLocal[string](c, "userId")
 	var noteService = GetLocal[service.NoteService](c, "noteService")
 	var noteId = c.Params("noteId")
@@ -354,7 +354,7 @@ func GetNodeByID(c *fiber.Ctx) error {
 	return c.JSON(noteDetailDto)
 }
 
-func MoveToFolder(c *fiber.Ctx) error {
+func MoveToFolder(c fiber.Ctx) error {
 	var userId = GetLocal[string](c, "userId")
 	var folderService = GetLocal[service.FolderService](c, "folderService")
 	var firstElement = c.Params("firstElement")

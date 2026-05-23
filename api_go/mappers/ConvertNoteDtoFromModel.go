@@ -3,10 +3,10 @@ package mappers
 import (
 	"api_go/controllers/dto"
 	"api_go/models"
-	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v3"
 )
 
-func ConvertNoteDtoFromModel(model *models.Note, c *fiber.Ctx) *dto.Note {
+func ConvertNoteDtoFromModel(model *models.Note, c fiber.Ctx) *dto.Note {
 	if model == nil {
 		return nil
 	}

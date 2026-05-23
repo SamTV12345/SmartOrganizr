@@ -2,10 +2,10 @@ package mappers
 
 import (
 	"api_go/models"
-	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v3"
 )
 
-func ConvertElementDtoFromModel(model models.Element, c *fiber.Ctx) interface{} {
+func ConvertElementDtoFromModel(model models.Element, c fiber.Ctx) interface{} {
 	switch model.Type() {
 	case "NOTE":
 		{

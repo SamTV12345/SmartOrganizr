@@ -7,7 +7,7 @@ import (
 
 func TestGetUser(t *testing.T) {
 	app := SetupTest(t)
-	req, _ := http.NewRequest("GET", "/api/v1/users/token", nil)
+	req, _ := http.NewRequest("GET", "http://localhost/api/v1/users/token", nil)
 	userFromAPI, _ := app.Test(req)
 
 	if userFromAPI.StatusCode != http.StatusOK {

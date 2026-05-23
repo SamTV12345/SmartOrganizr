@@ -5,11 +5,11 @@ import (
 	"api_go/controllers/dto"
 	"api_go/models"
 	"api_go/service"
-	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v3"
 	"time"
 )
 
-func GetClubMessageCandidates(c *fiber.Ctx) error {
+func GetClubMessageCandidates(c fiber.Ctx) error {
 	messageService := GetLocal[service.MessageService](c, constants.MessageService)
 	requesterID := GetLocal[string](c, "userId")
 	clubID := c.Params("clubId")
@@ -30,7 +30,7 @@ func GetClubMessageCandidates(c *fiber.Ctx) error {
 	return c.JSON(result)
 }
 
-func GetClubChats(c *fiber.Ctx) error {
+func GetClubChats(c fiber.Ctx) error {
 	messageService := GetLocal[service.MessageService](c, constants.MessageService)
 	requesterID := GetLocal[string](c, "userId")
 	clubID := c.Params("clubId")
@@ -42,13 +42,13 @@ func GetClubChats(c *fiber.Ctx) error {
 	return c.JSON(mapChatSummaries(chats))
 }
 
-func CreateClubChat(c *fiber.Ctx) error {
+func CreateClubChat(c fiber.Ctx) error {
 	messageService := GetLocal[service.MessageService](c, constants.MessageService)
 	requesterID := GetLocal[string](c, "userId")
 	clubID := c.Params("clubId")
 
 	var chatCreate dto.ClubChatCreateDto
-	if err := c.BodyParser(&chatCreate); err != nil {
+	if err := c.Bind().Body(&chatCreate); err != nil {
 		return fiber.NewError(fiber.StatusBadRequest, err.Error())
 	}
 
@@ -59,7 +59,7 @@ func CreateClubChat(c *fiber.Ctx) error {
 	return c.JSON(dto.ClubChatCreatedDto{ChatID: chatID})
 }
 
-func GetClubChatMessages(c *fiber.Ctx) error {
+func GetClubChatMessages(c fiber.Ctx) error {
 	messageService := GetLocal[service.MessageService](c, constants.MessageService)
 	requesterID := GetLocal[string](c, "userId")
 	clubID := c.Params("clubId")
@@ -72,14 +72,14 @@ func GetClubChatMessages(c *fiber.Ctx) error {
 	return c.JSON(mapChatMessages(messages))
 }
 
-func PostClubChatMessage(c *fiber.Ctx) error {
+func PostClubChatMessage(c fiber.Ctx) error {
 	messageService := GetLocal[service.MessageService](c, constants.MessageService)
 	requesterID := GetLocal[string](c, "userId")
 	clubID := c.Params("clubId")
 	chatID := c.Params("chatId")
 
 	var postMessage dto.ClubChatPostMessageDto
-	if err := c.BodyParser(&postMessage); err != nil {
+	if err := c.Bind().Body(&postMessage); err != nil {
 		return fiber.NewError(fiber.StatusBadRequest, err.Error())
 	}
 

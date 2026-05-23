@@ -7,7 +7,7 @@ import (
 
 func TestGetHealth(t *testing.T) {
 	app := SetupTest(t)
-	request, _ := http.NewRequest("GET", "/health", nil)
+	request, _ := http.NewRequest("GET", "http://localhost/health", nil)
 	res, err := app.Test(request)
 	if err != nil {
 		t.Fatalf("failed to make request: %v", err)

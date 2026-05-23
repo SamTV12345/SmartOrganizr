@@ -8,7 +8,7 @@ import (
 
 func TestGetClubs0Clubs(t *testing.T) {
 	app := SetupTest(t)
-	request, _ := http.NewRequest("GET", "/api/v1/clubs/123", nil)
+	request, _ := http.NewRequest("GET", "http://localhost/api/v1/clubs/123", nil)
 	res, err := app.Test(request)
 	if err != nil {
 		t.Fatalf("failed to make request: %v", err)
@@ -24,7 +24,7 @@ func TestGetClubs0Clubs(t *testing.T) {
 
 func TestGetclubs1Clubs(t *testing.T) {
 	app := SetupTest(t)
-	request, _ := http.NewRequest("GET", "/api/v1/clubs/123", nil)
+	request, _ := http.NewRequest("GET", "http://localhost/api/v1/clubs/123", nil)
 	res, err := app.Test(request)
 	if err != nil {
 		t.Fatalf("failed to make request: %v", err)

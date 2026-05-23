@@ -9,7 +9,7 @@ import (
 	"context"
 	"database/sql"
 
-	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v3"
 	"github.com/google/uuid"
 )
 

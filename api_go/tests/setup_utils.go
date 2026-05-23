@@ -6,7 +6,7 @@ import (
 	"api_go/logger"
 	"api_go/routers"
 	"context"
-	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v3"
 	"github.com/moby/moby/api/types/network"
 	mysql2 "github.com/testcontainers/testcontainers-go/modules/mysql"
 	"net/http"
@@ -67,7 +67,7 @@ func SetupTest(t *testing.T) *fiber.App {
 	var db, rawDB = db2.Setup(appconfig.Database)
 	setupLogger := logger.SetupLogger()
 	var app = routers.SetupRouter(db, appconfig, setupLogger)
-	var syncUser, _ = http.NewRequest("PUT", "/api/v1/users/", nil)
+	var syncUser, _ = http.NewRequest("PUT", "http://localhost/api/v1/users/", nil)
 	app.Test(syncUser)
 	if app == nil {
 		t.Fatalf("failed to setup router")

@@ -13,7 +13,7 @@ import (
 
 func TestGetAuthors0Users(t *testing.T) {
 	app := SetupTest(t)
-	request, _ := http.NewRequest("GET", "/api/v1/authors?page=0", nil)
+	request, _ := http.NewRequest("GET", "http://localhost/api/v1/authors?page=0", nil)
 	res, err := app.Test(request)
 	if err != nil {
 		t.Fatalf("failed to make request: %v", err)
@@ -37,7 +37,7 @@ func TestAddAuthorAndRetrieveFirst(t *testing.T) {
 		t.Fatalf("failed to encode authorDto: %v", err)
 	}
 	// Add an author
-	requestToCreateAuthor, _ := http.NewRequest("POST", "/api/v1/authors", bytes.NewBuffer(encoded))
+	requestToCreateAuthor, _ := http.NewRequest("POST", "http://localhost/api/v1/authors", bytes.NewBuffer(encoded))
 	requestToCreateAuthor.Header.Set("Content-Type", "application/json")
 
 	response, err := app.Test(requestToCreateAuthor)
@@ -49,7 +49,7 @@ func TestAddAuthorAndRetrieveFirst(t *testing.T) {
 		t.Fatalf("expected status code 200, got %d", response.StatusCode)
 	}
 
-	request, _ := http.NewRequest("GET", "/api/v1/authors?page=0", nil)
+	request, _ := http.NewRequest("GET", "http://localhost/api/v1/authors?page=0", nil)
 	res, err := app.Test(request)
 	if err != nil {
 		t.Fatalf("failed to make request: %v", err)
@@ -75,7 +75,7 @@ func TestUpdateAuthorAndRetrieveFirst(t *testing.T) {
 		t.Fatalf("failed to encode authorDto: %v", err)
 	}
 	// Add an author
-	requestToCreateAuthor, _ := http.NewRequest("POST", "/api/v1/authors", bytes.NewBuffer(encoded))
+	requestToCreateAuthor, _ := http.NewRequest("POST", "http://localhost/api/v1/authors", bytes.NewBuffer(encoded))
 	requestToCreateAuthor.Header.Set("Content-Type", "application/json")
 
 	response, err := app.Test(requestToCreateAuthor)
@@ -92,7 +92,7 @@ func TestUpdateAuthorAndRetrieveFirst(t *testing.T) {
 	var patchDtoToUpdate = builders.CreateAuthorUpdateDto()
 	var updatedAuthorDto = encodingHelper.EncodeAuthorPatchDtoWithModel(t, patchDtoToUpdate)
 
-	requestToUpdateAuthor, _ := http.NewRequest("PATCH", "/api/v1/authors/"+createdAuthor.ID, bytes.NewBuffer(updatedAuthorDto))
+	requestToUpdateAuthor, _ := http.NewRequest("PATCH", "http://localhost/api/v1/authors/"+createdAuthor.ID, bytes.NewBuffer(updatedAuthorDto))
 	requestToUpdateAuthor.Header.Set("Content-Type", "application/json")
 
 	response, err = app.Test(requestToUpdateAuthor)
@@ -109,7 +109,7 @@ func TestUpdateAuthorAndRetrieveFirst(t *testing.T) {
 	if updatedAuthor.ExtraInformation != patchDtoToUpdate.ExtraInformation {
 		t.Fatalf("expected author extra information to be %s, got %s", authorDto.ExtraInformation, updatedAuthor.ExtraInformation)
 	}
-	request, _ := http.NewRequest("GET", "/api/v1/authors?page=0", nil)
+	request, _ := http.NewRequest("GET", "http://localhost/api/v1/authors?page=0", nil)
 	response, err = app.Test(request)
 	if err != nil {
 		t.Fatalf("failed to make request: %v", err)
@@ -128,7 +128,7 @@ func TestAddAuthorAndRetrieveSpecificAuthor(t *testing.T) {
 	app := SetupTest(t)
 	encoded := encodingHelper.EncodeAuthorDto(t)
 
-	requestToCreateAuthor, _ := http.NewRequest("POST", "/api/v1/authors", bytes.NewBuffer(encoded))
+	requestToCreateAuthor, _ := http.NewRequest("POST", "http://localhost/api/v1/authors", bytes.NewBuffer(encoded))
 
 	// Add an author
 	requestToCreateAuthor.Header.Set("Content-Type", "application/json")
@@ -151,7 +151,7 @@ func TestAddAuthorAndRetrieveSpecificAuthor(t *testing.T) {
 
 	json.Unmarshal(bytes, &createdAuthor)
 
-	request, _ := http.NewRequest("DELETE", "/api/v1/authors/"+createdAuthor.ID, nil)
+	request, _ := http.NewRequest("DELETE", "http://localhost/api/v1/authors/"+createdAuthor.ID, nil)
 	request.Header.Set("Content-Type", "application/json")
 
 	response, err = app.Test(request)
