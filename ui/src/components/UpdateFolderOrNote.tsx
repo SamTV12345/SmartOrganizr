@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo } from "react";
-import { http as axios } from "@/src/api/client";
+import { http as axios, parentDecksQueryKey } from "@/src/api/client";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
@@ -193,7 +193,7 @@ export function UpdateFolderOrNote({
         mutationFn: updateFolder,
         onSuccess: (data) => {
             queryClient.setQueryData(
-                ["folders"],
+                parentDecksQueryKey,
                 (nodes: ElementItem[] = []) =>
                     replaceFolder(data, nodes)
             );
@@ -208,7 +208,7 @@ export function UpdateFolderOrNote({
         mutationFn: updateNote,
         onSuccess: (data) => {
             queryClient.setQueryData(
-                ["folders"],
+                parentDecksQueryKey,
                 (nodes: ElementItem[] = []) =>
                     replaceNote(data, nodes)
             );
@@ -256,7 +256,7 @@ export function UpdateFolderOrNote({
 
     return (
         <Dialog>
-            <DialogTrigger asChild>{trigger}</DialogTrigger>
+            <DialogTrigger render={trigger as React.ReactElement} />
 
             <DialogContent>
                 <DialogTitle className="border-b pb-2 text-3xl font-semibold">
@@ -337,17 +337,19 @@ export function UpdateFolderOrNote({
                         <DialogFooter>
                             {isFolder(element) && (
                                 <AlertDialog>
-                                    <AlertDialogTrigger asChild>
-                                        <Button
-                                            type="button"
-                                            variant="destructive"
-                                            disabled={deleteMutation.isPending}
-                                        >
-                                            {deleteMutation.isPending && (
-                                                <Loader className="mr-2 animate-spin" />
-                                            )}
-                                            {t("deleteFolder")}
-                                        </Button>
+                                    <AlertDialogTrigger
+                                        render={
+                                            <Button
+                                                type="button"
+                                                variant="destructive"
+                                                disabled={deleteMutation.isPending}
+                                            />
+                                        }
+                                    >
+                                        {deleteMutation.isPending && (
+                                            <Loader className="mr-2 animate-spin" />
+                                        )}
+                                        {t("deleteFolder")}
                                     </AlertDialogTrigger>
                                     <AlertDialogContent>
                                         <AlertDialogHeader>
@@ -374,10 +376,8 @@ export function UpdateFolderOrNote({
                                     </AlertDialogContent>
                                 </AlertDialog>
                             )}
-                            <DialogClose asChild>
-                                <Button variant="secondary">
-                                    {t("cancel")}
-                                </Button>
+                            <DialogClose render={<Button variant="secondary" />}>
+                                {t("cancel")}
                             </DialogClose>
 
                             <Button type="submit">

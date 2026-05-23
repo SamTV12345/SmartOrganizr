@@ -16,6 +16,11 @@ apiFetch.use({
 
 export const $api = createQueryClient(apiFetch);
 
+export const parentDecksQueryKey = $api.queryOptions(
+    "get",
+    "/v1/elements/parentDecks",
+).queryKey;
+
 // authFetch is a thin wrapper around native fetch that adds the Keycloak bearer token.
 // Use it for endpoints that aren't (yet) part of the typed OpenAPI schema — e.g. file
 // uploads with FormData, blob downloads, or legacy paths the backend doesn't expose

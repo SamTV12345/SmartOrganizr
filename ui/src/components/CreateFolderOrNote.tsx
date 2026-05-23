@@ -12,7 +12,7 @@ import { useTranslation } from "react-i18next";
 import { z } from "zod";
 import { useRef, useState, type ChangeEvent } from "react";
 import { useForm, useWatch } from "react-hook-form";
-import { http as axios } from "@/src/api/client";
+import { http as axios, parentDecksQueryKey } from "@/src/api/client";
 import { apiURL } from "@/src/Keycloak";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -208,7 +208,7 @@ export function CreateFolderOrNote() {
 
     const updateCache = (data: FolderItem | NoteItem) => {
         queryClient.setQueryData(
-            ["folders"],
+            parentDecksQueryKey,
             (nodes: ElementItem[] = []) =>
                 data.parent
                     ? addChild(data, nodes, data.parent.id)
@@ -423,10 +423,8 @@ export function CreateFolderOrNote() {
                 setOpen(nextOpen);
             }}
         >
-            <DialogTrigger asChild>
-                <Button variant="outline" className="float-right mr-5 mt-5">
-                    <PlusIcon />
-                </Button>
+            <DialogTrigger render={<Button variant="outline" className="float-right mr-5 mt-5" />}>
+                <PlusIcon />
             </DialogTrigger>
 
             <DialogContent>
@@ -605,14 +603,16 @@ export function CreateFolderOrNote() {
                         {watchType === "note" && <NoteAuthorCreateSearchBar />}
 
                         <DialogFooter>
-                            <DialogClose asChild>
-                                <Button
-                                    type="button"
-                                    variant="secondary"
-                                    onClick={closeAndResetForm}
-                                >
-                                    {t("cancel")}
-                                </Button>
+                            <DialogClose
+                                render={
+                                    <Button
+                                        type="button"
+                                        variant="secondary"
+                                        onClick={closeAndResetForm}
+                                    />
+                                }
+                            >
+                                {t("cancel")}
                             </DialogClose>
 
                             <Button type="submit" disabled={isPending}>

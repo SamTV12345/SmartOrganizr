@@ -1,7 +1,7 @@
 import React, { FC, useMemo, useState } from "react";
 import "./Tree.css";
 import { ElementItem, isNote } from "../models/ElementItem";
-import { http as axios } from "@/src/api/client";
+import { http as axios, parentDecksQueryKey } from "@/src/api/client";
 import { setLoadedFolders } from "../store/CommonSlice";
 import { useAppDispatch, useAppSelector } from "../store/hooks";
 import { apiURL } from "../Keycloak";
@@ -65,7 +65,7 @@ export const TreeElement: FC<TreeProps> = ({ data }) => {
                 const response = await axios.get<ElementItem[]>(`${apiURL}/v1/elements/${event.id}/children`);
                 const newItems = handleNewElements(event, response.data);
                 const eventWithChildren = { ...event, elements: newItems };
-                queryClient.setQueryData(["folders"], (loadedNodes: ElementItem[]) =>
+                queryClient.setQueryData(parentDecksQueryKey, (loadedNodes: ElementItem[] = []) =>
                     traverseTree(eventWithChildren, loadedNodes)
                 );
             } catch (error) {
@@ -130,7 +130,7 @@ const TreeNode: FC<TreeNodeProps> = ({
             axios
                 .patch(apiURL + `/v1/elements/${element.id}/${keyNum}`)
                 .then(() => {
-                    queryClient.setQueryData(["folders"], (folders: ElementItem[]) => {
+                    queryClient.setQueryData(parentDecksQueryKey, (folders: ElementItem[] = []) => {
                         return addChild(
                             element,
                             deleteChild(element.id, folders),
@@ -203,7 +203,7 @@ const TreeNode: FC<TreeNodeProps> = ({
                 >
                     <UpdateFolderOrNote
                         onDelete={(elementId) => {
-                            queryClient.setQueryData(["folders"], (folders: ElementItem[]) => {
+                            queryClient.setQueryData(parentDecksQueryKey, (folders: ElementItem[] = []) => {
                                 return deleteChild(elementId, folders);
                             });
                         }}
