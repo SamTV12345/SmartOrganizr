@@ -22,6 +22,12 @@ func Setup(config config.AppConfigDatabase) (*Queries, *sql.DB) {
 		DBName:               config.Database,
 		AllowNativePasswords: true,
 		ParseTime:            true,
+		// All migrations create tables with utf8mb4_general_ci. MySQL 8 servers
+		// otherwise default the connection charset to utf8mb4_0900_ai_ci, which
+		// makes `WHERE col = ?` crash with "Illegal mix of collations" because
+		// the literal adopts the connection collation. Pinning the connection
+		// to match the table collation avoids the mismatch.
+		Collation: "utf8mb4_general_ci",
 	}
 	println(configMysql.FormatDSN())
 	open, err := sql.Open("mysql", configMysql.FormatDSN())
