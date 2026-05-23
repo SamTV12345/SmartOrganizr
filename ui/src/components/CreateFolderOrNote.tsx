@@ -639,25 +639,35 @@ export function CreateFolderOrNote() {
 
                         {watchType === "note" && <NoteAuthorCreateSearchBar />}
 
-                        <DialogFooter>
-                            <DialogClose
-                                render={
-                                    <Button
-                                        type="button"
-                                        variant="secondary"
-                                        onClick={closeAndResetForm}
-                                    />
-                                }
-                            >
-                                {t("cancel")}
-                            </DialogClose>
+                        <DialogFooter className="sm:justify-between">
+                            <label className="flex items-center gap-2 text-sm">
+                                <Checkbox
+                                    checked={createAnother}
+                                    onCheckedChange={(checked) => setCreateAnother(checked === true)}
+                                />
+                                Weitere erstellen
+                            </label>
 
-                            <Button type="submit" disabled={isPending}>
-                                {isPending && (
-                                    <Loader className="mr-2 animate-spin" />
-                                )}
-                                {t("save")}
-                            </Button>
+                            <div className="flex gap-2">
+                                <DialogClose
+                                    render={
+                                        <Button
+                                            type="button"
+                                            variant="secondary"
+                                            onClick={closeAndResetForm}
+                                        />
+                                    }
+                                >
+                                    {t("cancel")}
+                                </DialogClose>
+
+                                <Button type="submit" disabled={isPending}>
+                                    {isPending && (
+                                        <Loader className="mr-2 animate-spin" />
+                                    )}
+                                    {justSaved ? "✓ Gespeichert" : t("save")}
+                                </Button>
+                            </div>
                         </DialogFooter>
                     </form>
                 </Form>
