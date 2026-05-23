@@ -9,6 +9,7 @@ RUN npm install -g pnpm@latest
 # Copy the package.json and install the dependencies
 COPY ./ui/package.json .
 COPY ./ui/pnpm-lock.yaml .
+COPY ./ui/pnpm-workspace.yaml .
 COPY ./ui/.npmrc .
 RUN pnpm install
 
