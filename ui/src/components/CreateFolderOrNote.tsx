@@ -211,6 +211,11 @@ export function CreateFolderOrNote() {
     };
 
     const closeAndResetForm = () => {
+        if (justSavedTimerRef.current !== null) {
+            window.clearTimeout(justSavedTimerRef.current);
+            justSavedTimerRef.current = null;
+        }
+        setJustSaved(false);
         setOpen(false);
         setScanError(null);
         setScannedPdfContent("");
