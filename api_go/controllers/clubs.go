@@ -17,6 +17,13 @@ import (
 	"time"
 )
 
+// GetAllClubsForMe godoc
+// @Summary  List clubs the current user belongs to
+// @Tags     clubs
+// @Produce  json
+// @Param    userId  path  string  true  "User ID"
+// @Success  200  {array}  dto.ClubDto
+// @Router   /v1/clubs/{userId} [get]
 func GetAllClubsForMe(c fiber.Ctx) error {
 	userId := GetLocal[string](c, "userId")
 	clubService := GetLocal[service.ClubService](c, constants.ClubService)
@@ -32,6 +39,14 @@ func GetAllClubsForMe(c fiber.Ctx) error {
 	return c.JSON(clubDtos)
 }
 
+// PostClub godoc
+// @Summary  Create a new club (with the current user as admin)
+// @Tags     clubs
+// @Accept   json
+// @Produce  json
+// @Param    body  body  dto.ClubPostDto  true  "Club payload"
+// @Success  200   {object} dto.ClubDto
+// @Router   /v1/clubs [post]
 func PostClub(c fiber.Ctx) error {
 	userId := GetLocal[string](c, "userId")
 	clubService := GetLocal[service.ClubService](c, constants.ClubService)
@@ -50,6 +65,15 @@ func PostClub(c fiber.Ctx) error {
 	return c.JSON(mappers.ConvertClubFromModelToDto(*savedClub))
 }
 
+// InviteClubMembers godoc
+// @Summary  Invite users by email to a club
+// @Tags     clubs
+// @Accept   json
+// @Produce  json
+// @Param    clubId  path  string                true  "Club ID"
+// @Param    body    body  dto.ClubInvitePostDto true  "Email payload"
+// @Success  200     {object} dto.ClubInviteResultDto
+// @Router   /v1/clubs/{clubId}/members/invite [post]
 func InviteClubMembers(c fiber.Ctx) error {
 	emails, parseErr := parseInviteEmailsFromRequest(c)
 	if parseErr != nil {
@@ -62,6 +86,14 @@ func InviteClubMembers(c fiber.Ctx) error {
 	return c.JSON(result)
 }
 
+// ImportClubMembersCSV godoc
+// @Summary  Invite club members from a CSV upload (multipart "file")
+// @Tags     clubs
+// @Accept   multipart/form-data
+// @Produce  json
+// @Param    clubId  path  string  true  "Club ID"
+// @Success  200     {object} dto.ClubInviteResultDto
+// @Router   /v1/clubs/{clubId}/members/import [post]
 func ImportClubMembersCSV(c fiber.Ctx) error {
 	emails, parseErr := parseInviteEmailsFromRequest(c)
 	if parseErr != nil {
@@ -74,6 +106,13 @@ func ImportClubMembersCSV(c fiber.Ctx) error {
 	return c.JSON(result)
 }
 
+// ExportClubMembersCSV godoc
+// @Summary  Download club members as CSV
+// @Tags     clubs
+// @Produce  text/csv
+// @Param    clubId  path  string  true  "Club ID"
+// @Success  200     {file} file
+// @Router   /v1/clubs/{clubId}/members/export [get]
 func ExportClubMembersCSV(c fiber.Ctx) error {
 	clubMemberService := GetLocal[service.ClubMemberService](c, constants.ClubMemberService)
 	requesterId := GetLocal[string](c, "userId")
@@ -132,6 +171,13 @@ func ExportClubMembersCSV(c fiber.Ctx) error {
 	return c.Send(buffer.Bytes())
 }
 
+// GetClubMembers godoc
+// @Summary  List members of a club
+// @Tags     clubs
+// @Produce  json
+// @Param    clubId  path  string  true  "Club ID"
+// @Success  200     {array}  dto.ClubMemberDto
+// @Router   /v1/clubs/{clubId}/members [get]
 func GetClubMembers(c fiber.Ctx) error {
 	clubMemberService := GetLocal[service.ClubMemberService](c, constants.ClubMemberService)
 	requesterId := GetLocal[string](c, "userId")
@@ -161,6 +207,15 @@ func GetClubMembers(c fiber.Ctx) error {
 	return c.JSON(memberDtos)
 }
 
+// PatchClubMemberRole godoc
+// @Summary  Change a club member's role
+// @Tags     clubs
+// @Accept   json
+// @Param    clubId        path  string                      true  "Club ID"
+// @Param    memberUserId  path  string                      true  "Member user ID"
+// @Param    body          body  dto.ClubMemberRolePatchDto  true  "Role payload"
+// @Success  204
+// @Router   /v1/clubs/{clubId}/members/{memberUserId}/role [patch]
 func PatchClubMemberRole(c fiber.Ctx) error {
 	clubMemberService := GetLocal[service.ClubMemberService](c, constants.ClubMemberService)
 	requesterId := GetLocal[string](c, "userId")
@@ -178,6 +233,13 @@ func PatchClubMemberRole(c fiber.Ctx) error {
 	return c.SendStatus(fiber.StatusNoContent)
 }
 
+// GetMyClubPermissions godoc
+// @Summary  Get the current user's permissions inside a club
+// @Tags     clubs
+// @Produce  json
+// @Param    clubId  path  string  true  "Club ID"
+// @Success  200     {object} dto.ClubPermissionsDto
+// @Router   /v1/clubs/{clubId}/me/permissions [get]
 func GetMyClubPermissions(c fiber.Ctx) error {
 	clubMemberService := GetLocal[service.ClubMemberService](c, constants.ClubMemberService)
 	requesterId := GetLocal[string](c, "userId")
@@ -191,6 +253,13 @@ func GetMyClubPermissions(c fiber.Ctx) error {
 	return c.JSON(buildPermissionsDto(role))
 }
 
+// GetPublicClubInvitation godoc
+// @Summary  Get a public club invitation by token
+// @Tags     public
+// @Produce  json
+// @Param    token  path  string  true  "Invitation token"
+// @Success  200    {object} dto.ClubInvitationPublicDto
+// @Router   /public/invitations/{token} [get]
 func GetPublicClubInvitation(c fiber.Ctx) error {
 	clubInvitationService := GetLocal[service.ClubInvitationService](c, constants.ClubInvitationService)
 	token := c.Params("token")
@@ -212,6 +281,12 @@ func GetPublicClubInvitation(c fiber.Ctx) error {
 	})
 }
 
+// AcceptClubInvitation godoc
+// @Summary  Authenticated accept of a club invitation
+// @Tags     invitations
+// @Param    token  path  string  true  "Invitation token"
+// @Success  204
+// @Router   /v1/invitations/{token}/accept [post]
 func AcceptClubInvitation(c fiber.Ctx) error {
 	clubInvitationService := GetLocal[service.ClubInvitationService](c, constants.ClubInvitationService)
 	clubService := GetLocal[service.ClubService](c, constants.ClubService)
@@ -240,6 +315,14 @@ func AcceptClubInvitation(c fiber.Ctx) error {
 	return c.SendStatus(fiber.StatusNoContent)
 }
 
+// CompletePublicClubInvitation godoc
+// @Summary  Set password and complete a public invitation
+// @Tags     public
+// @Accept   json
+// @Param    token  path  string                          true  "Invitation token"
+// @Param    body   body  dto.ClubInvitationCompleteDto   true  "Completion payload"
+// @Success  204
+// @Router   /public/invitations/{token}/complete [post]
 func CompletePublicClubInvitation(c fiber.Ctx) error {
 	clubInvitationService := GetLocal[service.ClubInvitationService](c, constants.ClubInvitationService)
 	clubService := GetLocal[service.ClubService](c, constants.ClubService)

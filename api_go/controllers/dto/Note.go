@@ -3,14 +3,14 @@ package dto
 import "time"
 
 type Note struct {
-	Author        Author    `json:"author"`
-	NumberOfPages int       `json:"numberOfPages"`
-	PdfAvailable  bool      `json:"pdfAvailable"`
-	CreationDate  time.Time `json:"creationDate"`
-	Id            string    `json:"id"`
-	Name          string    `json:"name"`
+	Author        Author    `json:"author"        validate:"required"`
+	NumberOfPages int       `json:"numberOfPages" validate:"required"`
+	PdfAvailable  bool      `json:"pdfAvailable"  validate:"required"`
+	CreationDate  time.Time `json:"creationDate"  validate:"required"`
+	Id            string    `json:"id"            validate:"required"`
+	Name          string    `json:"name"          validate:"required"`
 	Parent        *Folder   `json:"parent"`
-	Description   string    `json:"description"`
-	Creator       User      `json:"creator"`
-	Type          string    `json:"type"`
+	Description   string    `json:"description"   validate:"required"`
+	Creator       User      `json:"creator"       validate:"required"`
+	Type          string    `json:"type"          validate:"required" enums:"note"`
 }

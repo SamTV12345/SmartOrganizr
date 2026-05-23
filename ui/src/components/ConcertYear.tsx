@@ -2,7 +2,7 @@ import {FC} from "react";
 import {useTranslation} from "react-i18next";
 import {TrashIcon} from "./icons/TrashIcon";
 import {apiURL} from "../Keycloak";
-import axios from "axios";
+import { http as axios } from "@/src/api/client";
 import {concertActions} from "../store/slices/ConcertSlice";
 import {useAppDispatch} from "../store/hooks";
 

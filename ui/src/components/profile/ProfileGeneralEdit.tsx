@@ -1,6 +1,6 @@
 import {useMutation, useQueryClient} from "@tanstack/react-query";
 import {User, UserPatchDto} from "@/src/models/User";
-import axios from "axios";
+import { http as axios } from "@/src/api/client";
 import {apiURL} from "@/src/Keycloak";
 import {z} from "zod";
 import {FormProvider, useForm} from "react-hook-form";
@@ -22,11 +22,12 @@ export const ProfileGeneralEdit = ()=>{
     const updateUser = useMutation<User, Error, UserPatchDto>({
         mutationKey: ['updateUser'],
         mutationFn: async (user) => {
-            return await axios.patch(apiURL + `/v1/users/${keycloak.subject}`, user, {
+            const response = await axios.patch<User>(apiURL + `/v1/users/${keycloak.subject}`, user, {
                 headers: {
                     'Content-Type': 'application/json',
                 },
             });
+            return response.data;
         },
         onSuccess: async () => {
             queryClient.setQueryData(['user'], (oldData: User) => {
@@ -41,7 +42,14 @@ export const ProfileGeneralEdit = ()=>{
 
     const onSubmitOfUser = (values: z.infer<typeof formSchemaUser>)=>{
         console.log("Submitting user form", values)
-        updateUser.mutate(values)
+        updateUser.mutate({
+            firstname: values.firstname,
+            lastname: values.lastname,
+            email: values.email,
+            username: values.username,
+            telephoneNumber: values.telephoneNumber ?? "",
+            sideBarCollapsed: false,
+        })
     }
 
 

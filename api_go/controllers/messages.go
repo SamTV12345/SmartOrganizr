@@ -9,6 +9,13 @@ import (
 	"time"
 )
 
+// GetClubMessageCandidates godoc
+// @Summary  List members who can be chatted with
+// @Tags     messages
+// @Produce  json
+// @Param    clubId  path  string  true  "Club ID"
+// @Success  200     {array}  dto.ClubMessageCandidateDto
+// @Router   /v1/clubs/{clubId}/messages/candidates [get]
 func GetClubMessageCandidates(c fiber.Ctx) error {
 	messageService := GetLocal[service.MessageService](c, constants.MessageService)
 	requesterID := GetLocal[string](c, "userId")
@@ -30,6 +37,13 @@ func GetClubMessageCandidates(c fiber.Ctx) error {
 	return c.JSON(result)
 }
 
+// GetClubChats godoc
+// @Summary  List the user's chats in a club
+// @Tags     messages
+// @Produce  json
+// @Param    clubId  path  string  true  "Club ID"
+// @Success  200     {array}  dto.ClubChatSummaryDto
+// @Router   /v1/clubs/{clubId}/messages/chats [get]
 func GetClubChats(c fiber.Ctx) error {
 	messageService := GetLocal[service.MessageService](c, constants.MessageService)
 	requesterID := GetLocal[string](c, "userId")
@@ -42,6 +56,15 @@ func GetClubChats(c fiber.Ctx) error {
 	return c.JSON(mapChatSummaries(chats))
 }
 
+// CreateClubChat godoc
+// @Summary  Start a new chat with a recipient
+// @Tags     messages
+// @Accept   json
+// @Produce  json
+// @Param    clubId  path  string                   true  "Club ID"
+// @Param    body    body  dto.ClubChatCreateDto    true  "New chat payload"
+// @Success  200     {object} dto.ClubChatCreatedDto
+// @Router   /v1/clubs/{clubId}/messages/chats [post]
 func CreateClubChat(c fiber.Ctx) error {
 	messageService := GetLocal[service.MessageService](c, constants.MessageService)
 	requesterID := GetLocal[string](c, "userId")
@@ -59,6 +82,14 @@ func CreateClubChat(c fiber.Ctx) error {
 	return c.JSON(dto.ClubChatCreatedDto{ChatID: chatID})
 }
 
+// GetClubChatMessages godoc
+// @Summary  List messages in a chat
+// @Tags     messages
+// @Produce  json
+// @Param    clubId  path  string  true  "Club ID"
+// @Param    chatId  path  string  true  "Chat ID"
+// @Success  200     {array}  dto.ClubChatMessageDto
+// @Router   /v1/clubs/{clubId}/messages/chats/{chatId} [get]
 func GetClubChatMessages(c fiber.Ctx) error {
 	messageService := GetLocal[service.MessageService](c, constants.MessageService)
 	requesterID := GetLocal[string](c, "userId")
@@ -72,6 +103,15 @@ func GetClubChatMessages(c fiber.Ctx) error {
 	return c.JSON(mapChatMessages(messages))
 }
 
+// PostClubChatMessage godoc
+// @Summary  Append a message to a chat
+// @Tags     messages
+// @Accept   json
+// @Param    clubId  path  string                       true  "Club ID"
+// @Param    chatId  path  string                       true  "Chat ID"
+// @Param    body    body  dto.ClubChatPostMessageDto   true  "Message payload"
+// @Success  204
+// @Router   /v1/clubs/{clubId}/messages/chats/{chatId} [post]
 func PostClubChatMessage(c fiber.Ctx) error {
 	messageService := GetLocal[service.MessageService](c, constants.MessageService)
 	requesterID := GetLocal[string](c, "userId")

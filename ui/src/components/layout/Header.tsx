@@ -8,7 +8,7 @@ import {Avatar, AvatarFallback, AvatarImage} from "@/components/ui/avatar";
 import {cn} from "@/src/lib/utils";
 import {useKeycloak} from "@/src/Keycloak/useKeycloak";
 import {useQuery} from "@tanstack/react-query";
-import axios from "axios";
+import { http as axios } from "@/src/api/client";
 import {User} from "@/src/models/User";
 import {useNavigate} from "react-router-dom";
 import {Button} from "@/components/ui/button";

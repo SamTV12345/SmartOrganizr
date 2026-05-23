@@ -3,10 +3,16 @@ package dto
 import "time"
 
 type ConcertDto struct {
-	Id             string    `json:"id"`
-	Title          string    `json:"title"`
-	Description    string    `json:"description"`
-	DueDate        time.Time `json:"dueDate"`
-	Location       string    `json:"location"`
-	NoteInConcerts string    `json:"noteInConcerts"`
+	Id             string             `json:"id"             validate:"required"`
+	Title          string             `json:"title"          validate:"required"`
+	Description    string             `json:"description"    validate:"required"`
+	DueDate        time.Time          `json:"dueDate"        validate:"required"`
+	Location       string             `json:"location"       validate:"required"`
+	Hints          string             `json:"hints"          validate:"required"`
+	NoteInConcerts []NoteInConcertDto `json:"noteInConcerts" validate:"required"`
+}
+
+type NoteInConcertDto struct {
+	NoteInConcert  Note  `json:"noteInConcert"   validate:"required"`
+	PlaceInConcert int32 `json:"placeInConcert"  validate:"required"`
 }

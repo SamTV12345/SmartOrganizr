@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "rsbuild dev",
     "build": "rsbuild build",
-    "preview": "rsbuild preview"
+    "preview": "rsbuild preview",
+    "gen:api": "swagger2openapi ../api_go/docs/swagger.json -o ../api_go/docs/openapi.json && openapi-typescript ../api_go/docs/openapi.json -o src/api/schema.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.5.0",
@@ -32,7 +33,6 @@
     "@tanstack/react-query": "^5.100.13",
     "@tanstack/react-table": "^8.21.3",
     "@uidotdev/usehooks": "^2.4.1",
-    "axios": "^1.16.1",
     "babel-plugin-react-compiler": "1.0.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
@@ -43,6 +43,8 @@
     "i18next-browser-languagedetector": "^8.2.1",
     "keycloak-js": "^26.2.4",
     "lucide-react": "^1.16.0",
+    "openapi-fetch": "^0.17.0",
+    "openapi-react-query": "^0.5.4",
     "radix-ui": "^1.4.3",
     "react": "^19.2.6",
     "react-day-picker": "^10.0.1",
@@ -65,6 +67,8 @@
     "@types/node": "^25.9.1",
     "@types/react": "^19.2.15",
     "@types/react-dom": "^19.2.3",
+    "openapi-typescript": "^7.13.0",
+    "swagger2openapi": "^7.0.8",
     "tailwindcss": "^4.3.0",
     "typescript": "^6.0.3"
   }

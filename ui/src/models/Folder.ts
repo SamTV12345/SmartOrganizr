@@ -1,20 +1,2 @@
-import {ElementItem} from "./ElementItem";
-import {User} from "@/src/models/User";
-
-export type FolderItem = {
-    creationDate: Date,
-    id: string,
-    name: string,
-    parent?: FolderItem,
-    description: string,
-    creator: User,
-    elements: ElementItem[]
-    type: 'folder'
-}
-
-
-export type FolderPostDto = {
-    name: string
-    description?: string
-    parentId?: string
-}
+// Re-export of the schema-derived shape. Schema is the single source of truth now.
+export type { Folder as FolderItem, FolderPostDto } from "@/src/api/types";

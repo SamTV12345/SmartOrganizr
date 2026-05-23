@@ -7,7 +7,7 @@ import {setModalOpen} from "../ModalSlice";
 import {Accordeon} from "./layout/Accordeon";
 import {FormInput} from "./form/FormInput";
 import {apiURL} from "../Keycloak";
-import axios from "axios";
+import { http as axios } from "@/src/api/client";
 import {AccordeonItem} from "./layout/AccordeonItem";
 import {TrashIcon} from "./icons/TrashIcon";
 import {FormTextArea} from "./form/FormTextArea";

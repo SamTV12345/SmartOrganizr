@@ -2,7 +2,7 @@ import {Modal} from "./Modal";
 import {AddModal} from "./AddModal";
 import {useState} from "react";
 import {FormInput} from "../form/FormInput";
-import axios from "axios";
+import { http as axios } from "@/src/api/client";
 import {apiURL} from "../../Keycloak";
 import {ConcertDto} from "../../models/ConcertDto";
 import {ConcertPutDto} from "../../models/ConcertPutDto";

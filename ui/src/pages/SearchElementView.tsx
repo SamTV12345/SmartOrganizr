@@ -4,7 +4,7 @@ import {useAppDispatch, useAppSelector} from "../store/hooks";
 import {Page} from "../models/Page";
 import {ElementEmbeddedContainer} from "../models/ElementEmbeddedContainer";
 import {NoteItem} from "../models/NoteItem";
-import axios from "axios";
+import { http as axios } from "@/src/api/client";
 import {setNotesSearched} from "../store/CommonSlice";
 import {apiURL} from "../Keycloak";
 import {Waypoint} from "react-waypoint";

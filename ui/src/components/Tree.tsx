@@ -1,7 +1,7 @@
 import React, { FC, useMemo, useState } from "react";
 import "./Tree.css";
 import { ElementItem, isNote } from "../models/ElementItem";
-import axios, { AxiosResponse } from "axios";
+import { http as axios } from "@/src/api/client";
 import { setLoadedFolders } from "../store/CommonSlice";
 import { useAppDispatch, useAppSelector } from "../store/hooks";
 import { apiURL } from "../Keycloak";
@@ -224,8 +224,8 @@ const TreeNode: FC<TreeNodeProps> = ({
                             className="fa-solid fa-eye ml-2"
                             onClick={() => {
                                 axios
-                                    .get(apiURL + `/v1/elements/${element.id}/pdf`)
-                                    .then((response: AxiosResponse<string>) => {
+                                    .get<string>(apiURL + `/v1/elements/${element.id}/pdf`)
+                                    .then((response) => {
                                         openPDFInNewTab(response.data);
                                     })
                                     .catch((error) => {

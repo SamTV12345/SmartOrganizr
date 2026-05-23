@@ -12,7 +12,7 @@ import { useTranslation } from "react-i18next";
 import { z } from "zod";
 import { useRef, useState, type ChangeEvent } from "react";
 import { useForm, useWatch } from "react-hook-form";
-import axios from "axios";
+import { http as axios } from "@/src/api/client";
 import { apiURL } from "@/src/Keycloak";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -278,7 +278,7 @@ export function CreateFolderOrNote() {
 
             createNoteMutation.mutate({
                 name: values.name,
-                description: values.description,
+                description: values.description ?? "",
                 numberOfPages: values.numberOfPages,
                 parentId: values.parentId,
                 authorId: resolvedAuthorId,

@@ -1,8 +1,5 @@
-import {useEffect, useMemo, useState} from "react";
-import {apiURL} from "../Keycloak";
-import axios from "axios";
-import {Page as Paging} from "../models/Page";
-import {FolderEmbeddedContainer} from "../models/FolderEmbeddedContainer";
+import {useMemo, useState} from "react";
+import {$api} from "@/src/api/client";
 import {FolderItem} from "@/src/models/Folder";
 import {Card, CardContent, CardDescription, CardHeader, CardTitle} from "@/components/ui/card";
 import {Button} from "@/components/ui/button";
@@ -12,12 +9,10 @@ import {Download, FolderOpen} from "lucide-react";
 
 export const ImportExportView = () => {
     const [selectedFolder, setSelectedFolder] = useState<string>()
-    const [loadedFolders, setLoadedFolders] = useState<Paging<FolderEmbeddedContainer<FolderItem>>>()
 
-    useEffect(() => {
-        axios.get(apiURL + "/v1/elements/folders" + "?page=0")
-            .then(resp => setLoadedFolders(resp.data))
-    }, [])
+    const { data: loadedFolders } = $api.useQuery("get", "/v1/elements/folders", {
+        params: { query: { page: 0 } },
+    })
 
     const folders = useMemo(() => {
         return loadedFolders?._embedded?.elementRepresentationModelList ?? []

@@ -2,7 +2,7 @@ import {setElementParentName} from "../../ElementCreateSlice";
 import {useMemo, useState} from "react";
 import {Page} from "../../models/Page";
 import {FolderEmbeddedContainer} from "../../models/FolderEmbeddedContainer";
-import axios from "axios";
+import { http as axios } from "@/src/api/client";
 import {useDebounce} from "../../utils/DebounceHook";
 import {apiURL} from "../../Keycloak";
 import {useAppDispatch, useAppSelector} from "../../store/hooks";

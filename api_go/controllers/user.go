@@ -11,6 +11,11 @@ import (
 	"github.com/gofiber/fiber/v3"
 )
 
+// SyncUser godoc
+// @Summary  Sync the authenticated user from Keycloak claims (creates if missing)
+// @Tags     users
+// @Success  200
+// @Router   /v1/users [put]
 func SyncUser(c fiber.Ctx) error {
 	var userService = GetLocal[service.UserService](c, "userService")
 	var userId = GetLocal[string](c, "userId")
@@ -44,6 +49,13 @@ func SyncUser(c fiber.Ctx) error {
 	return c.SendStatus(200)
 }
 
+// GetUser godoc
+// @Summary  Get the currently authenticated user (by token)
+// @Tags     users
+// @Produce  json
+// @Success  200  {object} dto.User
+// @Failure  404  {object} map[string]string
+// @Router   /v1/users/token [get]
 func GetUser(c fiber.Ctx) error {
 	var userId = GetLocal[string](c, "userId")
 	var userService = GetLocal[service.UserService](c, "userService")
@@ -56,6 +68,15 @@ func GetUser(c fiber.Ctx) error {
 	return c.JSON(mappers.ConvertUserDtoFromModel(*user, c))
 }
 
+// UploadProfile godoc
+// @Summary  Upload a profile picture (raw image body)
+// @Tags     users
+// @Accept   octet-stream
+// @Produce  json
+// @Param    userId  path  string  true  "User ID"
+// @Success  200  {object} dto.User
+// @Failure  404  {object} map[string]string
+// @Router   /v1/users/{userId}/profile [post]
 func UploadProfile(c fiber.Ctx) error {
 	var userService = GetLocal[service.UserService](c, "userService")
 	var userId = GetLocal[string](c, "userId")
@@ -76,6 +97,13 @@ func UploadProfile(c fiber.Ctx) error {
 	return c.JSON(mappers.ConvertUserDtoFromModel(*loadedUser, c))
 }
 
+// DeleteProfilePic godoc
+// @Summary  Delete the profile picture of a user
+// @Tags     users
+// @Param    userId  path  string  true  "User ID"
+// @Produce  json
+// @Success  200  {object} dto.User
+// @Router   /v1/users/{userId}/profile [delete]
 func DeleteProfilePic(c fiber.Ctx) error {
 	var userService = GetLocal[service.UserService](c, "userService")
 	var userId = GetLocal[string](c, "userId")
@@ -94,6 +122,12 @@ func DeleteProfilePic(c fiber.Ctx) error {
 	}
 	return c.JSON(mappers.ConvertUserDtoFromModel(*loadedUser, c))
 }
+// GetUserProfile godoc
+// @Summary  Get current user's profile
+// @Tags     users
+// @Produce  json
+// @Success  200  {object} dto.User
+// @Router   /v1/users/me [get]
 func GetUserProfile(c fiber.Ctx) error {
 	var userId = GetLocal[string](c, "userId")
 	var userService = GetLocal[service.UserService](c, "userService")
@@ -107,6 +141,14 @@ func GetUserProfile(c fiber.Ctx) error {
 	return c.JSON(convertedDto)
 }
 
+// GetUserImage godoc
+// @Summary  Public access to a user's profile image
+// @Tags     public
+// @Produce  png
+// @Param    userId  path  string  true  "User ID"
+// @Param    image   path  string  true  "Image identifier"
+// @Success  200  {file} file
+// @Router   /public/users/{userId}/{image}.png [get]
 func GetUserImage(c fiber.Ctx) error {
 	var userId = c.Params("userId")
 	var userService = GetLocal[service.UserService](c, "userService")
@@ -125,6 +167,12 @@ func GetUserImage(c fiber.Ctx) error {
 	return c.Send(image)
 }
 
+// GetOfflineData godoc
+// @Summary  Bulk download of all folders, authors and notes for offline use
+// @Tags     users
+// @Produce  json
+// @Success  200  {object} map[string]interface{}
+// @Router   /v1/users/offline [get]
 func GetOfflineData(c fiber.Ctx) error {
 	var folderService = GetLocal[service.FolderService](c, "folderService")
 	var authorService = GetLocal[service.AuthorService](c, "authorService")
@@ -148,6 +196,18 @@ func GetOfflineData(c fiber.Ctx) error {
 	return c.JSON(dataExporter)
 }
 
+// UpdateUser godoc
+// @Summary  Update the current user's profile fields
+// @Tags     users
+// @Accept   json
+// @Produce  json
+// @Param    userId  path  string                true  "User ID"
+// @Param    body    body  dto.UserPatchDto      true  "User patch payload"
+// @Success  200     {object} dto.User
+// @Failure  400     {object} map[string]string
+// @Failure  404     {object} map[string]string
+// @Failure  500     {object} map[string]string
+// @Router   /v1/users/{userId} [patch]
 func UpdateUser(c fiber.Ctx) error {
 	var userId = GetLocal[string](c, "userId")
 	var userService = GetLocal[service.UserService](c, constants.UserService)
@@ -185,6 +245,15 @@ func UpdateUser(c fiber.Ctx) error {
 	return c.JSON(mappers.ConvertUserDtoFromModel(*loadedUser, c))
 }
 
+// GetKonzertmeisterUrl godoc
+// @Summary  Get the configured Konzertmeister iCal URL
+// @Tags     users
+// @Produce  json
+// @Param    userId  path  string  true  "User ID"
+// @Success  200     {object} dto.IcalSyncDto
+// @Failure  404     {object} map[string]string
+// @Failure  500     {object} map[string]string
+// @Router   /v1/users/{userId}/konzertmeister-url [get]
 func GetKonzertmeisterUrl(c fiber.Ctx) error {
 	var userId = GetLocal[string](c, "userId")
 	var icalSyncService = GetLocal[service.IcalSyncService](c, constants.IcalSyncService)
@@ -205,6 +274,17 @@ func GetKonzertmeisterUrl(c fiber.Ctx) error {
 	return c.JSON(mappers.ConvertIcalSyncFromModelToDto(*icalSyncModel))
 }
 
+// SetKonzertmeisterUrl godoc
+// @Summary  Save the Konzertmeister iCal URL
+// @Tags     users
+// @Accept   json
+// @Produce  json
+// @Param    userId  path  string             true  "User ID"
+// @Param    body    body  dto.IcalSyncDto    true  "iCal URL payload"
+// @Success  200     {object} dto.IcalSyncDto
+// @Failure  400     {object} map[string]string
+// @Failure  500     {object} map[string]string
+// @Router   /v1/users/{userId}/konzertmeister-url [post]
 func SetKonzertmeisterUrl(c fiber.Ctx) error {
 	var userId = GetLocal[string](c, "userId")
 	var icalSyncService = GetLocal[service.IcalSyncService](c, constants.IcalSyncService)
@@ -240,6 +320,14 @@ func SetKonzertmeisterUrl(c fiber.Ctx) error {
 	return c.JSON(mappers.ConvertIcalSyncFromModelToDto(*icalSyncModel))
 }
 
+// SyncKonzertmeisterUrl godoc
+// @Summary  Trigger iCal sync for the configured Konzertmeister URL
+// @Tags     users
+// @Produce  json
+// @Param    userId  path  string  true  "User ID"
+// @Success  200     {object} map[string]int
+// @Failure  500     {object} map[string]string
+// @Router   /v1/users/{userId}/konzertmeister-url/sync [post]
 func SyncKonzertmeisterUrl(c fiber.Ctx) error {
 	var userId = GetLocal[string](c, "userId")
 	var icalSyncService = GetLocal[service.IcalSyncService](c, constants.IcalSyncService)

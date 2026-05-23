@@ -16,7 +16,7 @@ import {FormProvider, useForm} from "react-hook-form";
 import {zodResolver} from "@hookform/resolvers/zod";
 import {FormControl, FormField, FormItem, FormLabel, FormMessage} from "@/components/ui/form";
 import {Author, AuthorPostDto} from "@/src/models/Author";
-import axios from "axios";
+import { http as axios } from "@/src/api/client";
 import {apiURL} from "@/src/Keycloak";
 import {setAuthorPage} from "@/src/store/CommonSlice";
 import {mergeAuthorInList} from "@/src/utils/AuthorUtilList";
@@ -45,7 +45,7 @@ export function CreateAuthorDialog() {
             .string()
             .min(1, { message: t("fieldRequired")! }),
 
-        extraInformation: z.string().optional(),
+        extraInformation: z.string(),
     });
 
     const form = useForm<z.infer<typeof formSchema>>({

@@ -1,8 +1,1 @@
-export interface Author {
-    id: string,
-    name: string,
-    extraInformation?: string | undefined,
-}
-
-
-export type AuthorPostDto =  Omit<Author, "id">;
+export type { Author, AuthorCreateDto as AuthorPostDto } from "@/src/api/types";

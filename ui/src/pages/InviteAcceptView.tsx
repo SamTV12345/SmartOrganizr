@@ -1,8 +1,7 @@
 import { FC, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { useMutation, useQuery } from "@tanstack/react-query";
-import axios from "axios";
-import { apiURL, keycloak } from "@/src/Keycloak";
+import { $api } from "@/src/api/client";
+import { keycloak } from "@/src/Keycloak";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -31,33 +30,26 @@ export const InviteAcceptView: FC = () => {
     const [password, setPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
 
-    const { data, isLoading, refetch } = useQuery({
-        queryKey: ["public-invite", token],
-        queryFn: async () => axios.get<PublicInvitation>(`${apiURL}/public/invitations/${token}`),
-        enabled: !!token,
-    });
+    const { data, isLoading, refetch } = $api.useQuery(
+        "get",
+        "/public/invitations/{token}",
+        { params: { path: { token: token ?? "" } } },
+        { enabled: !!token }
+    );
 
-    const acceptMutation = useMutation({
-        mutationFn: async () => axios.post(`${apiURL}/v1/invitations/${token}/accept`),
+    const acceptMutation = $api.useMutation("post", "/v1/invitations/{token}/accept", {
         onSuccess: async () => {
             await refetch();
         },
     });
 
-    const completeMutation = useMutation({
-        mutationFn: async () =>
-            axios.post(`${apiURL}/public/invitations/${token}/complete`, {
-                firstname,
-                lastname,
-                password,
-                confirm_password: confirmPassword,
-            }),
+    const completeMutation = $api.useMutation("post", "/public/invitations/{token}/complete", {
         onSuccess: async () => {
             await refetch();
         },
     });
 
-    const invitation = data?.data;
+    const invitation = data as PublicInvitation | undefined;
     const invitedEmail = String(invitation?.invited_email || "");
     const isEmailMatch = invitedEmail !== "" && loggedInEmail !== "" && invitedEmail.toLowerCase() === loggedInEmail.toLowerCase();
 
@@ -99,7 +91,15 @@ export const InviteAcceptView: FC = () => {
                                     </div>
                                     <div className="flex flex-wrap gap-2">
                                         <Button
-                                            onClick={() => completeMutation.mutate()}
+                                            onClick={() => completeMutation.mutate({
+                                                params: { path: { token: token ?? "" } },
+                                                body: {
+                                                    firstname,
+                                                    lastname,
+                                                    password,
+                                                    confirm_password: confirmPassword,
+                                                } as never,
+                                            })}
                                             disabled={
                                                 completeMutation.isPending ||
                                                 password.length < 8 ||
@@ -137,7 +137,7 @@ export const InviteAcceptView: FC = () => {
                                         </p>
                                     )}
                                     <div className="flex flex-wrap gap-2">
-                                        <Button onClick={() => acceptMutation.mutate()} disabled={acceptMutation.isPending || !isEmailMatch}>
+                                        <Button onClick={() => acceptMutation.mutate({ params: { path: { token: token ?? "" } } })} disabled={acceptMutation.isPending || !isEmailMatch}>
                                             Einladung annehmen
                                         </Button>
                                         <Button

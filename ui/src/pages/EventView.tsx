@@ -1,6 +1,4 @@
-import { useQuery } from "@tanstack/react-query"
-import { apiURL } from "../Keycloak"
-import axios from "axios"
+import { $api } from "@/src/api/client";
 import {useKeycloak} from "@/src/Keycloak/useKeycloak";
 import {EventModel, StatusModel} from "@/src/models/EventModel";
 import {useTranslation} from "react-i18next";
@@ -14,20 +12,15 @@ export const EventView = ()=> {
   const {t} = useTranslation()
   const [selectedEvent, setSelectedEvent] = useState<EventModel | null>(null)
   const [detailOpen, setDetailOpen] = useState(false)
-  const getEvents = async ()=>{
-    return await axios.get<EventModel[]>(apiURL+'/v1/events/' + user.subject, {
-      params: {
-        since: new Date().toISOString()
-      }
-    })
-  }
 
-  const {data} = useQuery({
-    queryKey: ['events'],
-    queryFn: getEvents
+  const {data} = $api.useQuery("get", "/v1/events/{userId}", {
+    params: {
+      path: { userId: user.subject ?? "" },
+      query: { since: new Date().toISOString() },
+    },
   })
 
-  const events = (data?.data ?? []).slice().sort((a, b) => {
+  const events = ((data as EventModel[] | undefined) ?? []).slice().sort((a, b) => {
     const aTime = a.startDate ? new Date(a.startDate).getTime() : Number.MAX_SAFE_INTEGER
     const bTime = b.startDate ? new Date(b.startDate).getTime() : Number.MAX_SAFE_INTEGER
     return aTime - bTime

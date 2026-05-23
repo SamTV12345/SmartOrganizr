@@ -7,7 +7,7 @@ import {FormProvider, useForm} from "react-hook-form";
 import {zodResolver} from "@hookform/resolvers/zod";
 import {Button} from "@/components/ui/button";
 import {useMutation, useQuery} from "@tanstack/react-query";
-import axios from "axios";
+import { http as axios } from "@/src/api/client";
 import {apiURL} from "@/src/Keycloak";
 import {useKeycloak} from "@/src/Keycloak/useKeycloak";
 import {Skeleton} from "@/components/ui/skeleton";

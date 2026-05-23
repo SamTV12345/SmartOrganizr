@@ -1,6 +1,6 @@
 import {useAppDispatch, useAppSelector} from "../../store/hooks";
 import {NoteItem} from "../../models/NoteItem";
-import axios from "axios";
+import { http as axios } from "@/src/api/client";
 import {apiURL} from "../../Keycloak";
 import {setAuthorExtraInformation, setAuthorName, setSelectedAuthorNotes} from "../../ModalSlice";
 import React, {useEffect} from "react";

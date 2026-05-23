@@ -5,7 +5,7 @@ import {AuthorEmbeddedContainer} from "../../models/AuthorEmbeddedContainer";
 import {Author} from "../../models/Author";
 import {useDebounce} from "../../utils/DebounceHook";
 import {apiURL} from "../../Keycloak";
-import axios from "axios";
+import { http as axios } from "@/src/api/client";
 import {setElementSelectedAuthorName} from "../../ElementCreateSlice";
 import {useTranslation} from "react-i18next";
 import {FormControl, FormField, FormItem, FormLabel, FormMessage} from "@/components/ui/form";

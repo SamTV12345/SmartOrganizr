@@ -1,11 +1,9 @@
 import { useMemo } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
-import axios from "axios";
+import { $api } from "@/src/api/client";
 import { ArrowLeft, ChevronLeft, ChevronRight, FileMusic, Loader2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
-import { apiURL } from "@/src/Keycloak";
 import { NoteDetail } from "@/src/models/NoteDetail";
 
 import {
@@ -23,15 +21,14 @@ export const NoteDetailView = () => {
     const navigate = useNavigate();
     const { t } = useTranslation();
 
-    const { data, isLoading } = useQuery({
-        queryKey: ["note", id],
-        queryFn: async () => {
-            const response = await axios.get<NoteDetail>(`${apiURL}/v1/elements/notes/${id}`);
-            return response.data;
-        },
-        enabled: !!id,
-    });
+    const { data: rawData, isLoading } = $api.useQuery(
+        "get",
+        "/v1/elements/notes/{noteId}",
+        { params: { path: { noteId: id ?? "" } } },
+        { enabled: !!id }
+    );
 
+    const data = rawData as NoteDetail | undefined;
     const currentNote = data?.currentNote;
     const previousNote = data?.previousNote;
     const nextNote = data?.nextNote;

@@ -3,11 +3,18 @@ package main
 import (
 	"api_go/config"
 	db2 "api_go/db"
+	_ "api_go/docs"
 	"api_go/logger"
 	"api_go/reoccuring"
 	"api_go/routers"
 	"strconv"
 )
+
+// @title          SmartOrganizr API
+// @version        1.0
+// @description    Backend API for SmartOrganizr.
+// @BasePath       /api
+// @schemes        https http
 
 func main() {
 

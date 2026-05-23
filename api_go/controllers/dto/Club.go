@@ -1,21 +1,21 @@
 package dto
 
 type BaseClubFields struct {
-	Name                     string `json:"name"`
-	ClubType                 string `json:"club_type"`
-	Street                   string `json:"street"`
-	HouseNumber              string `json:"house_number"`
-	Location                 string `json:"location"`
-	PostalCode               string `json:"postal_code"`
-	Country                  string `json:"country"`
-	DatesVisibleForAllMember bool   `json:"dates_visible_for_all_members"`
-	MembersCanSendMessages   bool   `json:"members_can_send_messages"`
-	FeedbackVisibility       string `json:"feedback_visibility"`
-	ReasonVisibility         string `json:"reason_visibility"`
-	ConfirmedRepresentative  bool   `json:"confirmed_representative"`
+	Name                     string `json:"name"                          validate:"required"`
+	ClubType                 string `json:"club_type"                     validate:"required"`
+	Street                   string `json:"street"                        validate:"required"`
+	HouseNumber              string `json:"house_number"                  validate:"required"`
+	Location                 string `json:"location"                      validate:"required"`
+	PostalCode               string `json:"postal_code"                   validate:"required"`
+	Country                  string `json:"country"                       validate:"required"`
+	DatesVisibleForAllMember bool   `json:"dates_visible_for_all_members" validate:"required"`
+	MembersCanSendMessages   bool   `json:"members_can_send_messages"     validate:"required"`
+	FeedbackVisibility       string `json:"feedback_visibility"           validate:"required"`
+	ReasonVisibility         string `json:"reason_visibility"             validate:"required"`
+	ConfirmedRepresentative  bool   `json:"confirmed_representative"      validate:"required"`
 }
 
 type ClubDto struct {
 	BaseClubFields
-	ID string `json:"id"`
+	ID string `json:"id" validate:"required"`
 }

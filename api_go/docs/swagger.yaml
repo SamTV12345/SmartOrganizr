@@ -1,0 +1,1894 @@
+basePath: /api
+definitions:
+  dto.Author:
+    properties:
+      extraInformation:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+    required:
+    - extraInformation
+    - id
+    - name
+    type: object
+  dto.AuthorCreateDto:
+    properties:
+      extraInformation:
+        type: string
+      name:
+        type: string
+    required:
+    - extraInformation
+    - name
+    type: object
+  dto.AuthorPatchDto:
+    properties:
+      extraInformation:
+        type: string
+      name:
+        type: string
+    required:
+    - extraInformation
+    - name
+    type: object
+  dto.ClubChatCreateDto:
+    properties:
+      content:
+        type: string
+      recipient_user_id:
+        type: string
+    required:
+    - content
+    - recipient_user_id
+    type: object
+  dto.ClubChatCreatedDto:
+    properties:
+      chat_id:
+        type: string
+    required:
+    - chat_id
+    type: object
+  dto.ClubChatMessageDto:
+    properties:
+      chat_id:
+        type: string
+      content:
+        type: string
+      created_at:
+        type: string
+      id:
+        type: string
+      sender_display_name:
+        type: string
+      sender_email:
+        type: string
+      sender_user_id:
+        type: string
+    required:
+    - chat_id
+    - content
+    - created_at
+    - id
+    - sender_display_name
+    - sender_email
+    - sender_user_id
+    type: object
+  dto.ClubChatPostMessageDto:
+    properties:
+      content:
+        type: string
+    required:
+    - content
+    type: object
+  dto.ClubChatSummaryDto:
+    properties:
+      chat_id:
+        type: string
+      club_id:
+        type: string
+      last_message:
+        type: string
+      last_message_at:
+        type: string
+      last_sender_user_id:
+        type: string
+      other_display_name:
+        type: string
+      other_email:
+        type: string
+      other_user_id:
+        type: string
+    required:
+    - chat_id
+    - club_id
+    - last_message
+    - last_message_at
+    - last_sender_user_id
+    - other_display_name
+    - other_email
+    - other_user_id
+    type: object
+  dto.ClubDto:
+    properties:
+      club_type:
+        type: string
+      confirmed_representative:
+        type: boolean
+      country:
+        type: string
+      dates_visible_for_all_members:
+        type: boolean
+      feedback_visibility:
+        type: string
+      house_number:
+        type: string
+      id:
+        type: string
+      location:
+        type: string
+      members_can_send_messages:
+        type: boolean
+      name:
+        type: string
+      postal_code:
+        type: string
+      reason_visibility:
+        type: string
+      street:
+        type: string
+    required:
+    - club_type
+    - confirmed_representative
+    - country
+    - dates_visible_for_all_members
+    - feedback_visibility
+    - house_number
+    - id
+    - location
+    - members_can_send_messages
+    - name
+    - postal_code
+    - reason_visibility
+    - street
+    type: object
+  dto.ClubInvitationCompleteDto:
+    properties:
+      confirm_password:
+        type: string
+      firstname:
+        type: string
+      lastname:
+        type: string
+      password:
+        type: string
+    required:
+    - confirm_password
+    - firstname
+    - lastname
+    - password
+    type: object
+  dto.ClubInvitationPublicDto:
+    properties:
+      club_id:
+        type: string
+      club_name:
+        type: string
+      expires_at:
+        type: string
+      invited_email:
+        type: string
+      is_accepted:
+        type: boolean
+      is_expired:
+        type: boolean
+      token:
+        type: string
+    required:
+    - club_id
+    - club_name
+    - expires_at
+    - invited_email
+    - is_accepted
+    - is_expired
+    - token
+    type: object
+  dto.ClubInvitePostDto:
+    properties:
+      emails:
+        items:
+          type: string
+        type: array
+    required:
+    - emails
+    type: object
+  dto.ClubInviteResultDto:
+    properties:
+      added_emails:
+        items:
+          type: string
+        type: array
+      failed_emails:
+        items:
+          type: string
+        type: array
+      invited_emails:
+        items:
+          type: string
+        type: array
+    required:
+    - added_emails
+    - failed_emails
+    - invited_emails
+    type: object
+  dto.ClubMemberDto:
+    properties:
+      email:
+        type: string
+      firstname:
+        type: string
+      lastname:
+        type: string
+      role:
+        type: string
+      user_id:
+        type: string
+      username:
+        type: string
+    required:
+    - email
+    - firstname
+    - lastname
+    - role
+    - user_id
+    - username
+    type: object
+  dto.ClubMemberRolePatchDto:
+    properties:
+      role:
+        type: string
+    required:
+    - role
+    type: object
+  dto.ClubMessageCandidateDto:
+    properties:
+      display_name:
+        type: string
+      email:
+        type: string
+      user_id:
+        type: string
+    required:
+    - display_name
+    - email
+    - user_id
+    type: object
+  dto.ClubPermissionsDto:
+    properties:
+      can_invite_members:
+        type: boolean
+      can_manage_roles:
+        type: boolean
+      role:
+        type: string
+      section_write:
+        additionalProperties:
+          type: boolean
+        type: object
+    required:
+    - can_invite_members
+    - can_manage_roles
+    - role
+    - section_write
+    type: object
+  dto.ClubPostDto:
+    properties:
+      club_type:
+        type: string
+      confirmed_representative:
+        type: boolean
+      country:
+        type: string
+      dates_visible_for_all_members:
+        type: boolean
+      feedback_visibility:
+        type: string
+      house_number:
+        type: string
+      location:
+        type: string
+      members_can_send_messages:
+        type: boolean
+      name:
+        type: string
+      postal_code:
+        type: string
+      reason_visibility:
+        type: string
+      street:
+        type: string
+    required:
+    - club_type
+    - confirmed_representative
+    - country
+    - dates_visible_for_all_members
+    - feedback_visibility
+    - house_number
+    - location
+    - members_can_send_messages
+    - name
+    - postal_code
+    - reason_visibility
+    - street
+    type: object
+  dto.ConcertDto:
+    properties:
+      description:
+        type: string
+      dueDate:
+        type: string
+      hints:
+        type: string
+      id:
+        type: string
+      location:
+        type: string
+      noteInConcerts:
+        items:
+          $ref: '#/definitions/dto.NoteInConcertDto'
+        type: array
+      title:
+        type: string
+    required:
+    - description
+    - dueDate
+    - hints
+    - id
+    - location
+    - noteInConcerts
+    - title
+    type: object
+  dto.ConcertPostDto:
+    properties:
+      description:
+        type: string
+      dueDate:
+        type: string
+      hints:
+        type: string
+      location:
+        type: string
+      title:
+        type: string
+    required:
+    - description
+    - dueDate
+    - hints
+    - location
+    - title
+    type: object
+  dto.Event:
+    properties:
+      description:
+        type: string
+      endDate:
+        type: string
+      geoDateX:
+        type: number
+      geoDateY:
+        type: number
+      location:
+        type: string
+      startDate:
+        type: string
+      status:
+        type: integer
+      summary:
+        type: string
+      tzId:
+        type: string
+      uid:
+        type: string
+      url:
+        type: string
+    required:
+    - status
+    - summary
+    - uid
+    - url
+    type: object
+  dto.Folder:
+    properties:
+      creationDate:
+        type: string
+      creator:
+        $ref: '#/definitions/dto.User'
+      description:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      parent:
+        $ref: '#/definitions/dto.Folder'
+      type:
+        enum:
+        - folder
+        type: string
+    required:
+    - creationDate
+    - creator
+    - description
+    - id
+    - name
+    - type
+    type: object
+  dto.FolderPatchDto:
+    properties:
+      description:
+        type: string
+      name:
+        type: string
+      parentId:
+        type: string
+    required:
+    - description
+    - name
+    type: object
+  dto.FolderPostDto:
+    properties:
+      description:
+        type: string
+      name:
+        type: string
+      parentId:
+        type: string
+    required:
+    - description
+    - name
+    type: object
+  dto.IcalSyncDto:
+    properties:
+      id:
+        type: string
+      url:
+        type: string
+    required:
+    - id
+    - url
+    type: object
+  dto.KeycloakModel:
+    properties:
+      clientId:
+        type: string
+      realm:
+        type: string
+      url:
+        type: string
+    required:
+    - clientId
+    - realm
+    - url
+    type: object
+  dto.Note:
+    properties:
+      author:
+        $ref: '#/definitions/dto.Author'
+      creationDate:
+        type: string
+      creator:
+        $ref: '#/definitions/dto.User'
+      description:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      numberOfPages:
+        type: integer
+      parent:
+        $ref: '#/definitions/dto.Folder'
+      pdfAvailable:
+        type: boolean
+      type:
+        enum:
+        - note
+        type: string
+    required:
+    - author
+    - creationDate
+    - creator
+    - description
+    - id
+    - name
+    - numberOfPages
+    - pdfAvailable
+    - type
+    type: object
+  dto.NoteDetailResponse:
+    properties:
+      currentNote:
+        $ref: '#/definitions/dto.Note'
+      index:
+        type: integer
+      nextNote:
+        $ref: '#/definitions/dto.Note'
+      previousNote:
+        $ref: '#/definitions/dto.Note'
+    required:
+    - index
+    type: object
+  dto.NoteInConcertDto:
+    properties:
+      noteInConcert:
+        $ref: '#/definitions/dto.Note'
+      placeInConcert:
+        type: integer
+    required:
+    - noteInConcert
+    - placeInConcert
+    type: object
+  dto.NotePostDto:
+    properties:
+      authorId:
+        type: string
+      description:
+        type: string
+      name:
+        type: string
+      numberOfPages:
+        type: integer
+      parentId:
+        type: string
+      pdfContent:
+        type: string
+    required:
+    - authorId
+    - description
+    - name
+    - numberOfPages
+    - parentId
+    type: object
+  dto.Page:
+    properties:
+      number:
+        type: integer
+      size:
+        type: integer
+      totalElements:
+        type: integer
+      totalPages:
+        type: integer
+    required:
+    - number
+    - size
+    - totalElements
+    - totalPages
+    type: object
+  dto.PagedAuthorRepresentationModelList:
+    properties:
+      _embedded:
+        properties:
+          authorRepresentationModelList:
+            items:
+              $ref: '#/definitions/dto.Author'
+            type: array
+        required:
+        - authorRepresentationModelList
+        type: object
+      page:
+        $ref: '#/definitions/dto.Page'
+    required:
+    - _embedded
+    - page
+    type: object
+  dto.PagedFolderRepresentationModelList:
+    properties:
+      _embedded:
+        properties:
+          elementRepresentationModelList:
+            items:
+              $ref: '#/definitions/dto.Folder'
+            type: array
+        required:
+        - elementRepresentationModelList
+        type: object
+      page:
+        $ref: '#/definitions/dto.Page'
+    required:
+    - _embedded
+    - page
+    type: object
+  dto.PagedNoteRepresentationModelList:
+    properties:
+      _embedded:
+        properties:
+          noteRepresentationModelList:
+            items:
+              $ref: '#/definitions/dto.Note'
+            type: array
+        required:
+        - noteRepresentationModelList
+        type: object
+      page:
+        $ref: '#/definitions/dto.Page'
+    required:
+    - _embedded
+    - page
+    type: object
+  dto.User:
+    properties:
+      email:
+        type: string
+      firstname:
+        type: string
+      lastname:
+        type: string
+      profilePicUrl:
+        type: string
+      sideBarCollapsed:
+        type: boolean
+      telephoneNumber:
+        type: string
+      userId:
+        type: string
+      username:
+        type: string
+    required:
+    - email
+    - firstname
+    - lastname
+    - sideBarCollapsed
+    - telephoneNumber
+    - userId
+    - username
+    type: object
+  dto.UserPatchDto:
+    properties:
+      email:
+        type: string
+      firstname:
+        type: string
+      lastname:
+        type: string
+      sideBarCollapsed:
+        type: boolean
+      telephoneNumber:
+        type: string
+      username:
+        type: string
+    required:
+    - email
+    - firstname
+    - lastname
+    - sideBarCollapsed
+    - telephoneNumber
+    - username
+    type: object
+  models.Author:
+    properties:
+      extraInformation:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      user:
+        $ref: '#/definitions/models.User'
+    type: object
+  models.Folder:
+    properties:
+      creationDate:
+        type: string
+      creator:
+        $ref: '#/definitions/models.User'
+      description:
+        type: string
+      elements:
+        items: {}
+        type: array
+      id:
+        type: string
+      name:
+        type: string
+      parent:
+        $ref: '#/definitions/models.Folder'
+    type: object
+  models.Note:
+    properties:
+      author:
+        $ref: '#/definitions/models.Author'
+      creationDate:
+        type: string
+      creator:
+        $ref: '#/definitions/models.User'
+      description:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      numberOfPages:
+        type: integer
+      parent:
+        $ref: '#/definitions/models.Folder'
+      pdfAvailable:
+        type: boolean
+      pdfContent:
+        items:
+          type: integer
+        type: array
+    type: object
+  models.User:
+    properties:
+      email:
+        type: string
+      firstname:
+        type: string
+      lastname:
+        type: string
+      profilePicUrl:
+        items:
+          type: integer
+        type: array
+      sideBarCollapsed:
+        type: boolean
+      telephoneNumber:
+        type: string
+      userId:
+        type: string
+      username:
+        type: string
+    type: object
+info:
+  contact: {}
+  description: Backend API for SmartOrganizr.
+  title: SmartOrganizr API
+  version: "1.0"
+paths:
+  /public:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.KeycloakModel'
+      summary: Public configuration (Keycloak realm/client)
+      tags:
+      - public
+  /public/invitations/{token}:
+    get:
+      parameters:
+      - description: Invitation token
+        in: path
+        name: token
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.ClubInvitationPublicDto'
+      summary: Get a public club invitation by token
+      tags:
+      - public
+  /public/invitations/{token}/complete:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Invitation token
+        in: path
+        name: token
+        required: true
+        type: string
+      - description: Completion payload
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.ClubInvitationCompleteDto'
+      responses:
+        "204":
+          description: No Content
+      summary: Set password and complete a public invitation
+      tags:
+      - public
+  /public/users/{userId}/{image}.png:
+    get:
+      parameters:
+      - description: User ID
+        in: path
+        name: userId
+        required: true
+        type: string
+      - description: Image identifier
+        in: path
+        name: image
+        required: true
+        type: string
+      produces:
+      - image/png
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: file
+      summary: Public access to a user's profile image
+      tags:
+      - public
+  /v1/authors:
+    get:
+      parameters:
+      - description: Page index (0-based)
+        in: query
+        name: page
+        required: true
+        type: integer
+      - description: Optional name filter
+        in: query
+        name: name
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.PagedAuthorRepresentationModelList'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: List authors for the current user
+      tags:
+      - authors
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: New author payload
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.AuthorCreateDto'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.Author'
+      summary: Create an author
+      tags:
+      - authors
+  /v1/authors/{authorId}:
+    delete:
+      parameters:
+      - description: Author ID
+        in: path
+        name: authorId
+        required: true
+        type: string
+      responses:
+        "204":
+          description: No Content
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Delete an author
+      tags:
+      - authors
+    patch:
+      consumes:
+      - application/json
+      parameters:
+      - description: Author ID
+        in: path
+        name: authorId
+        required: true
+        type: string
+      - description: Author patch payload
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.AuthorPatchDto'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.Author'
+      summary: Update an author
+      tags:
+      - authors
+  /v1/authors/{authorId}/notes:
+    get:
+      parameters:
+      - description: Author ID
+        in: path
+        name: authorId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.Note'
+            type: array
+      summary: List notes belonging to an author
+      tags:
+      - authors
+  /v1/clubs:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Club payload
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.ClubPostDto'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.ClubDto'
+      summary: Create a new club (with the current user as admin)
+      tags:
+      - clubs
+  /v1/clubs/{clubId}/me/permissions:
+    get:
+      parameters:
+      - description: Club ID
+        in: path
+        name: clubId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.ClubPermissionsDto'
+      summary: Get the current user's permissions inside a club
+      tags:
+      - clubs
+  /v1/clubs/{clubId}/members:
+    get:
+      parameters:
+      - description: Club ID
+        in: path
+        name: clubId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/dto.ClubMemberDto'
+            type: array
+      summary: List members of a club
+      tags:
+      - clubs
+  /v1/clubs/{clubId}/members/{memberUserId}/role:
+    patch:
+      consumes:
+      - application/json
+      parameters:
+      - description: Club ID
+        in: path
+        name: clubId
+        required: true
+        type: string
+      - description: Member user ID
+        in: path
+        name: memberUserId
+        required: true
+        type: string
+      - description: Role payload
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.ClubMemberRolePatchDto'
+      responses:
+        "204":
+          description: No Content
+      summary: Change a club member's role
+      tags:
+      - clubs
+  /v1/clubs/{clubId}/members/export:
+    get:
+      parameters:
+      - description: Club ID
+        in: path
+        name: clubId
+        required: true
+        type: string
+      produces:
+      - text/csv
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: file
+      summary: Download club members as CSV
+      tags:
+      - clubs
+  /v1/clubs/{clubId}/members/import:
+    post:
+      consumes:
+      - multipart/form-data
+      parameters:
+      - description: Club ID
+        in: path
+        name: clubId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.ClubInviteResultDto'
+      summary: Invite club members from a CSV upload (multipart "file")
+      tags:
+      - clubs
+  /v1/clubs/{clubId}/members/invite:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Club ID
+        in: path
+        name: clubId
+        required: true
+        type: string
+      - description: Email payload
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.ClubInvitePostDto'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.ClubInviteResultDto'
+      summary: Invite users by email to a club
+      tags:
+      - clubs
+  /v1/clubs/{clubId}/messages/candidates:
+    get:
+      parameters:
+      - description: Club ID
+        in: path
+        name: clubId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/dto.ClubMessageCandidateDto'
+            type: array
+      summary: List members who can be chatted with
+      tags:
+      - messages
+  /v1/clubs/{clubId}/messages/chats:
+    get:
+      parameters:
+      - description: Club ID
+        in: path
+        name: clubId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/dto.ClubChatSummaryDto'
+            type: array
+      summary: List the user's chats in a club
+      tags:
+      - messages
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Club ID
+        in: path
+        name: clubId
+        required: true
+        type: string
+      - description: New chat payload
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.ClubChatCreateDto'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.ClubChatCreatedDto'
+      summary: Start a new chat with a recipient
+      tags:
+      - messages
+  /v1/clubs/{clubId}/messages/chats/{chatId}:
+    get:
+      parameters:
+      - description: Club ID
+        in: path
+        name: clubId
+        required: true
+        type: string
+      - description: Chat ID
+        in: path
+        name: chatId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/dto.ClubChatMessageDto'
+            type: array
+      summary: List messages in a chat
+      tags:
+      - messages
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Club ID
+        in: path
+        name: clubId
+        required: true
+        type: string
+      - description: Chat ID
+        in: path
+        name: chatId
+        required: true
+        type: string
+      - description: Message payload
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.ClubChatPostMessageDto'
+      responses:
+        "204":
+          description: No Content
+      summary: Append a message to a chat
+      tags:
+      - messages
+  /v1/clubs/{userId}:
+    get:
+      parameters:
+      - description: User ID
+        in: path
+        name: userId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/dto.ClubDto'
+            type: array
+      summary: List clubs the current user belongs to
+      tags:
+      - clubs
+  /v1/concerts:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/dto.ConcertDto'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: List concerts for the current user
+      tags:
+      - concerts
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Concert payload
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.ConcertPostDto'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.ConcertDto'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Create a new concert
+      tags:
+      - concerts
+  /v1/concerts/{concertId}:
+    delete:
+      parameters:
+      - description: Concert ID
+        in: path
+        name: concertId
+        required: true
+        type: string
+      responses:
+        "204":
+          description: No Content
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Delete a concert
+      tags:
+      - concerts
+    get:
+      parameters:
+      - description: Concert ID
+        in: path
+        name: concertId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.ConcertDto'
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get a single concert
+      tags:
+      - concerts
+  /v1/elements/{elementid}:
+    delete:
+      parameters:
+      - description: Element ID
+        in: path
+        name: elementid
+        required: true
+        type: string
+      responses:
+        "204":
+          description: No Content
+      summary: Delete a folder or note by id
+      tags:
+      - elements
+  /v1/elements/{firstElement}/{lastElement}:
+    patch:
+      parameters:
+      - description: Element ID to move
+        in: path
+        name: firstElement
+        required: true
+        type: string
+      - description: Target parent ID
+        in: path
+        name: lastElement
+        required: true
+        type: string
+      responses:
+        "204":
+          description: No Content
+      summary: Move an element to a different parent
+      tags:
+      - elements
+  /v1/elements/{folderId}/children:
+    get:
+      parameters:
+      - description: Parent folder ID
+        in: path
+        name: folderId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items: {}
+            type: array
+      summary: List children (folders + notes) of a folder
+      tags:
+      - elements
+  /v1/elements/{folderId}/export:
+    get:
+      parameters:
+      - description: Folder ID
+        in: path
+        name: folderId
+        required: true
+        type: string
+      produces:
+      - application/pdf
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: file
+      summary: Generate a combined PDF for all notes in a folder
+      tags:
+      - elements
+  /v1/elements/{noteId}/parent:
+    get:
+      parameters:
+      - description: Note ID
+        in: path
+        name: noteId
+        required: true
+        type: string
+      produces:
+      - text/plain
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+      summary: Get the parent folder ID of a note
+      tags:
+      - elements
+  /v1/elements/{noteId}/pdf:
+    get:
+      parameters:
+      - description: Note ID
+        in: path
+        name: noteId
+        required: true
+        type: string
+      produces:
+      - application/pdf
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: file
+      summary: Download the PDF attached to a note
+      tags:
+      - elements
+    post:
+      consumes:
+      - application/pdf
+      parameters:
+      - description: Note ID
+        in: path
+        name: noteId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.Note'
+      summary: Replace the PDF for a note (raw body)
+      tags:
+      - elements
+  /v1/elements/folders:
+    get:
+      parameters:
+      - description: Page index (0-based)
+        in: query
+        name: page
+        required: true
+        type: integer
+      - description: Folder name filter
+        in: query
+        name: folderName
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.PagedFolderRepresentationModelList'
+      summary: Search folders (paginated)
+      tags:
+      - elements
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Folder payload
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.FolderPostDto'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.Folder'
+      summary: Create a folder
+      tags:
+      - elements
+  /v1/elements/folders/{folderId}:
+    patch:
+      consumes:
+      - application/json
+      parameters:
+      - description: Folder ID
+        in: path
+        name: folderId
+        required: true
+        type: string
+      - description: Patch payload
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.FolderPatchDto'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.Folder'
+      summary: Update a folder
+      tags:
+      - elements
+  /v1/elements/notes:
+    get:
+      parameters:
+      - description: Page index (0-based)
+        in: query
+        name: page
+        type: integer
+      - description: Optional name filter
+        in: query
+        name: noteName
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.PagedNoteRepresentationModelList'
+      summary: Paginated list of notes for the current user
+      tags:
+      - elements
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Note payload
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.NotePostDto'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Note'
+      summary: Create a note
+      tags:
+      - elements
+  /v1/elements/notes/{noteId}:
+    get:
+      parameters:
+      - description: Note ID
+        in: path
+        name: noteId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.NoteDetailResponse'
+      summary: Get a note plus prev/next siblings
+      tags:
+      - elements
+    patch:
+      consumes:
+      - application/json
+      parameters:
+      - description: Note ID
+        in: path
+        name: noteId
+        required: true
+        type: string
+      - description: Note payload
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.NotePostDto'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.Note'
+      summary: Update a note
+      tags:
+      - elements
+  /v1/elements/parentDecks:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/dto.Folder'
+            type: array
+      summary: List all top-level folders for the user
+      tags:
+      - elements
+  /v1/events/{userId}:
+    get:
+      parameters:
+      - description: User ID (must match authenticated user)
+        in: path
+        name: userId
+        required: true
+        type: string
+      - description: Earliest event date (RFC3339)
+        in: query
+        name: since
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/dto.Event'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: List events for a user since a given date
+      tags:
+      - events
+  /v1/invitations/{token}/accept:
+    post:
+      parameters:
+      - description: Invitation token
+        in: path
+        name: token
+        required: true
+        type: string
+      responses:
+        "204":
+          description: No Content
+      summary: Authenticated accept of a club invitation
+      tags:
+      - invitations
+  /v1/users:
+    put:
+      responses:
+        "200":
+          description: OK
+      summary: Sync the authenticated user from Keycloak claims (creates if missing)
+      tags:
+      - users
+  /v1/users/{userId}:
+    patch:
+      consumes:
+      - application/json
+      parameters:
+      - description: User ID
+        in: path
+        name: userId
+        required: true
+        type: string
+      - description: User patch payload
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.UserPatchDto'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.User'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Update the current user's profile fields
+      tags:
+      - users
+  /v1/users/{userId}/konzertmeister-url:
+    get:
+      parameters:
+      - description: User ID
+        in: path
+        name: userId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.IcalSyncDto'
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get the configured Konzertmeister iCal URL
+      tags:
+      - users
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: User ID
+        in: path
+        name: userId
+        required: true
+        type: string
+      - description: iCal URL payload
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.IcalSyncDto'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.IcalSyncDto'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Save the Konzertmeister iCal URL
+      tags:
+      - users
+  /v1/users/{userId}/konzertmeister-url/sync:
+    post:
+      parameters:
+      - description: User ID
+        in: path
+        name: userId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: integer
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Trigger iCal sync for the configured Konzertmeister URL
+      tags:
+      - users
+  /v1/users/{userId}/profile:
+    delete:
+      parameters:
+      - description: User ID
+        in: path
+        name: userId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.User'
+      summary: Delete the profile picture of a user
+      tags:
+      - users
+    post:
+      consumes:
+      - application/octet-stream
+      parameters:
+      - description: User ID
+        in: path
+        name: userId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.User'
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Upload a profile picture (raw image body)
+      tags:
+      - users
+  /v1/users/me:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.User'
+      summary: Get current user's profile
+      tags:
+      - users
+  /v1/users/offline:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Bulk download of all folders, authors and notes for offline use
+      tags:
+      - users
+  /v1/users/token:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.User'
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get the currently authenticated user (by token)
+      tags:
+      - users
+schemes:
+- https
+- http
+swagger: "2.0"

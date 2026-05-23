@@ -1,7 +1,7 @@
 import { ChangeEvent, FC, useMemo, useState } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import axios from "axios";
+import { http as axios } from "@/src/api/client";
 import {
     CalendarDays,
     CalendarRange,

@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo } from "react";
-import axios from "axios";
+import { http as axios } from "@/src/api/client";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
@@ -98,14 +98,14 @@ export function UpdateFolderOrNote({
     const folderSchema = z.object({
         type: z.literal("folder"),
         name: z.string().min(1, { message: t("fieldRequired")! }),
-        description: z.string().optional(),
+        description: z.string(),
         parentId: z.string().optional(),
     });
 
     const noteSchema = z.object({
         type: z.literal("note"),
         name: z.string().min(1, { message: t("fieldRequired")! }),
-        description: z.string().optional(),
+        description: z.string(),
         numberOfPages: z.number(),
         authorId: z.string().min(1, { message: t("fieldRequired")! }),
         parentId: z.string()
@@ -221,9 +221,19 @@ export function UpdateFolderOrNote({
 
     const onSubmit = (values: FormValues) => {
         if (values.type === "folder") {
-            updateFolderMutation.mutate(values);
+            updateFolderMutation.mutate({
+                name: values.name,
+                description: values.description,
+                parentId: values.parentId,
+            });
         } else {
-            updateNoteMutation.mutate(values);
+            updateNoteMutation.mutate({
+                name: values.name,
+                description: values.description,
+                numberOfPages: values.numberOfPages,
+                authorId: values.authorId,
+                parentId: values.parentId,
+            });
         }
     };
 

@@ -1,24 +1,18 @@
 import {TreeElement} from "../components/Tree";
-import axios from "axios";
-import {apiURL} from "../Keycloak";
+import {$api} from "@/src/api/client";
 import {FileUploadModal} from "../components/modals/FileUploadModal";
 import {CreateFolderOrNote} from "@/src/components/CreateFolderOrNote";
-import {useQuery} from "@tanstack/react-query";
 import {FolderItem} from "@/src/models/Folder";
 import {Card, CardContent, CardHeader, CardTitle} from "@/components/ui/card";
 import {Loader2} from "lucide-react";
 
 export const FolderView = ()=>{
-    const {data, isLoading} = useQuery<FolderItem[]>({
-        enabled: true,
-        queryKey: ['folders'],
-        queryFn: async () => {
-            const response = await axios.get(apiURL + "/v1/elements/parentDecks")
-            return response.data
-        },
+    const {data, isLoading} = $api.useQuery("get", "/v1/elements/parentDecks", undefined, {
         staleTime: 1000 * 60 * 10,
-        refetchOnMount: false
+        refetchOnMount: false,
     })
+
+    const folders = data ?? []
 
 
     if (isLoading || !data) {
@@ -35,7 +29,7 @@ export const FolderView = ()=>{
                 <CardTitle>Ordnerstruktur</CardTitle>
             </CardHeader>
             <CardContent>
-                <TreeElement data={data} />
+                <TreeElement data={folders} />
             </CardContent>
         </Card>
     </main>

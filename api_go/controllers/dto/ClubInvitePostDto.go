@@ -1,5 +1,5 @@
 package dto
 
 type ClubInvitePostDto struct {
-	Emails []string `json:"emails"`
+	Emails []string `json:"emails" validate:"required"`
 }

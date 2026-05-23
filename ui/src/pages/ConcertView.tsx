@@ -1,5 +1,5 @@
 import {apiURL} from "../Keycloak";
-import axios from "axios";
+import { http as axios } from "@/src/api/client";
 import {useAppDispatch, useAppSelector} from "../store/hooks";
 import {ConcertDto} from "../models/ConcertDto";
 import {useEffect, useState} from "react";
@@ -24,7 +24,7 @@ export const ConcertView = ()=>{
 
 
     const retrieveConcertsOfUser = ()=>{
-        axios.get(apiURL+"/v1/concerts")
+        axios.get<ConcertDto[]>(apiURL+"/v1/concerts")
             .then(resp=>
                 dispatch(concertActions.setConcerts(resp.data)))
             .catch(error=>console.log(error))

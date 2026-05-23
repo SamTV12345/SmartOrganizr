@@ -9,6 +9,16 @@ import (
 	"time"
 )
 
+// GetEvents godoc
+// @Summary  List events for a user since a given date
+// @Tags     events
+// @Produce  json
+// @Param    userId  path   string  true   "User ID (must match authenticated user)"
+// @Param    since   query  string  false  "Earliest event date (RFC3339)"
+// @Success  200     {array}  dto.Event
+// @Failure  400     {object} map[string]string
+// @Failure  403     {object} map[string]string
+// @Router   /v1/events/{userId} [get]
 func GetEvents(c fiber.Ctx) error {
 	userIdToRequest := c.Params("userId")
 	var keycloakId = GetLocal[string](c, "userId")

@@ -9,7 +9,7 @@ import {store} from "./store/store";
 import {Provider} from "react-redux";
 import {I18nextProvider} from "react-i18next";
 import i18n from "./language/i18n";
-import axios from "axios";
+import { http as axios } from "@/src/api/client";
 import { QueryClientProvider } from "@tanstack/react-query";
 import {queryClient} from "@/src/utils/QueryClient";
 import { applyTheme, getInitialTheme } from "@/src/utils/ThemeUtils";
@@ -27,10 +27,7 @@ const initKeycloak = (keycloak: Keycloak) => {
         keycloak.init({onLoad: onLoadMode, silentCheckSsoFallback: true, checkLoginIframe: false })
             .then((res) => {
                 setLoadedKeycloak(keycloak)
-                if (keycloak.token) {
-                    axios.defaults.headers["Authorization"] = `Bearer ${keycloak.token}`
-                }
-                axios.defaults.headers['Content-Type']  = 'application/json'
+                // Auth header injection is handled centrally by api/client.ts (authFetch reads keycloak.token).
                 if (keycloak.authenticated) {
                     syncUser()
                 }
@@ -41,10 +38,8 @@ const initKeycloak = (keycloak: Keycloak) => {
                         return
                     }
                     keycloak.updateToken(30)
-                        .then((refreshed)=>{
-                            if(refreshed){
-                                axios.defaults.headers["Authorization"] = `Bearer ${keycloak.token}`
-                            }
+                        .then((_refreshed)=>{
+                            // token refresh handled by keycloak; api/client.ts reads it on each request.
                         }).catch((reason)=>{
                             console.log("Reason is", reason)
                     })

@@ -3,7 +3,7 @@ import {Avatar, AvatarFallback, AvatarImage} from "@/components/ui/avatar";
 import {Button} from "@/components/ui/button";
 import {useMutation, useQuery, useQueryClient} from "@tanstack/react-query";
 import {User} from "@/src/models/User";
-import axios from "axios";
+import { http as axios } from "@/src/api/client";
 import {apiURL} from "@/src/Keycloak";
 import {useMemo, useRef} from "react";
 import {useKeycloak} from "@/src/Keycloak/useKeycloak";
@@ -15,11 +15,12 @@ export const ProfileUploadEdit = ()=>{
     const uploadFile = useMutation<User, Error, ArrayBuffer>({
         mutationKey: ['uploadFile'],
         mutationFn: async (file) => {
-            return await axios.post(apiURL + `/v1/users/${keycloak.subject}/profile`, file, {
+            const response = await axios.post<User>(apiURL + `/v1/users/${keycloak.subject}/profile`, file, {
                 headers: {
                     'Content-Type': 'application/octet-stream',
                 },
             });
+            return response.data;
         },
         onSuccess: async (result) => {
             queryClient.setQueryData(['user'], (oldData: User) => {
@@ -60,7 +61,8 @@ export const ProfileUploadEdit = ()=>{
     const deleteImage = useMutation<User, Error, void>({
         mutationKey: ['deleteImage'],
         mutationFn: async () => {
-            return await axios.delete(apiURL + `/v1/users/${keycloak.subject}/profile`);
+            const response = await axios.delete<User>(apiURL + `/v1/users/${keycloak.subject}/profile`);
+            return response.data;
         },
         onSuccess: async () => {
             await queryClient.invalidateQueries({

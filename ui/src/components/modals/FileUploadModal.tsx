@@ -3,7 +3,7 @@ import {useAppDispatch, useAppSelector} from "../../store/hooks";
 import {FC, useEffect, useRef, useState} from "react";
 import {setNotePDFUploadOpen, setOpenAddModal} from "../../ModalSlice";
 import {Trans, useTranslation} from "react-i18next";
-import axios from "axios";
+import { http as axios } from "@/src/api/client";
 import {apiURL} from "../../Keycloak";
 
 type FileUploadModalProps = {

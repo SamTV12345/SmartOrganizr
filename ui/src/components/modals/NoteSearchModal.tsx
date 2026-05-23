@@ -5,7 +5,7 @@ import {Waypoint} from "react-waypoint";
 import {Page} from "../../models/Page";
 import {ElementEmbeddedContainer} from "../../models/ElementEmbeddedContainer";
 import {NoteItem} from "../../models/NoteItem";
-import axios from "axios";
+import { http as axios } from "@/src/api/client";
 import {setNotesSearched} from "../../store/CommonSlice";
 import {useState} from "react";
 import {ConcertDto} from "../../models/ConcertDto";
@@ -125,7 +125,7 @@ export const NoteSearchModal = () => {
                     <NoteSearchModalTD children={element.name}/>
                     <NoteSearchModalTD children={element.author.name}/>
                     <NoteSearchModalTD children={element.description}/>
-                    <NoteSearchModalTD children={element.parent.name}
+                    <NoteSearchModalTD children={element.parent?.name ?? ""}
                                        {...(searchedElements.page.size - index < 5) && hasNextPage(searchedElements)
                                            && <Waypoint onEnter={() => {
                                                loadNotes(buildNextPageUrl(searchedElements));

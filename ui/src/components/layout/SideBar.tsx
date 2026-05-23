@@ -4,7 +4,7 @@ import { SideBarItem } from "./SideBarItem";
 import { SidebarHeading } from "@/src/components/layout/SidebarHeading";
 import { useKeycloak } from "@/src/Keycloak/useKeycloak";
 import { useQuery } from "@tanstack/react-query";
-import axios from "axios";
+import { http as axios } from "@/src/api/client";
 import { apiURL } from "@/src/Keycloak";
 import { Club } from "@/src/models/Club";
 import {

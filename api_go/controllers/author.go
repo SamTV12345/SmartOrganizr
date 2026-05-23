@@ -10,6 +10,15 @@ import (
 	"strconv"
 )
 
+// GetAuthors godoc
+// @Summary  List authors for the current user
+// @Tags     authors
+// @Produce  json
+// @Param    page  query  int     true   "Page index (0-based)"
+// @Param    name  query  string  false  "Optional name filter"
+// @Success  200   {object}  dto.PagedAuthorRepresentationModelList
+// @Failure  400   {object}  map[string]string
+// @Router   /v1/authors [get]
 func GetAuthors(c fiber.Ctx) error {
 	var pageStr = c.Query("page")
 	var nameStr = c.Query("name")
@@ -41,7 +50,7 @@ func GetAuthors(c fiber.Ctx) error {
 
 		authorPage = dto.PagedAuthorRepresentationModelList{
 			Embedded: struct {
-				AuthorRepresentationModelList []dto.Author `json:"authorRepresentationModelList"`
+				AuthorRepresentationModelList []dto.Author `json:"authorRepresentationModelList" validate:"required"`
 			}{AuthorRepresentationModelList: authorDto},
 		}
 	} else {
@@ -53,7 +62,7 @@ func GetAuthors(c fiber.Ctx) error {
 		count, _ = authorService.CountFindAllByCreator(userId)
 		authorPage = dto.PagedAuthorRepresentationModelList{
 			Embedded: struct {
-				AuthorRepresentationModelList []dto.Author `json:"authorRepresentationModelList"`
+				AuthorRepresentationModelList []dto.Author `json:"authorRepresentationModelList" validate:"required"`
 			}{AuthorRepresentationModelList: authorDto},
 		}
 	}
@@ -63,6 +72,15 @@ func GetAuthors(c fiber.Ctx) error {
 	return c.JSON(authorPage)
 }
 
+// UpdateAuthor godoc
+// @Summary  Update an author
+// @Tags     authors
+// @Accept   json
+// @Produce  json
+// @Param    authorId  path  string                   true  "Author ID"
+// @Param    body      body  dto.AuthorPatchDto       true  "Author patch payload"
+// @Success  200       {object}  dto.Author
+// @Router   /v1/authors/{authorId} [patch]
 func UpdateAuthor(c fiber.Ctx) error {
 	var authorService = GetLocal[service.AuthorService](c, constants.AuthorService)
 	var userId = GetLocal[string](c, "userId")
@@ -82,6 +100,13 @@ func UpdateAuthor(c fiber.Ctx) error {
 	return c.JSON(authorDto)
 }
 
+// DeleteAuthor godoc
+// @Summary  Delete an author
+// @Tags     authors
+// @Param    authorId  path  string  true  "Author ID"
+// @Success  204
+// @Failure  404       {object}  map[string]string
+// @Router   /v1/authors/{authorId} [delete]
 func DeleteAuthor(c fiber.Ctx) error {
 	var authorId = c.Params("authorId")
 	var authorService = GetLocal[service.AuthorService](c, constants.AuthorService)
@@ -107,6 +132,14 @@ func DeleteAuthor(c fiber.Ctx) error {
 	return c.SendStatus(204)
 }
 
+// CreateAuthor godoc
+// @Summary  Create an author
+// @Tags     authors
+// @Accept   json
+// @Produce  json
+// @Param    body  body  dto.AuthorCreateDto  true  "New author payload"
+// @Success  200   {object}  dto.Author
+// @Router   /v1/authors [post]
 func CreateAuthor(c fiber.Ctx) error {
 	var authorDto dto.AuthorCreateDto
 	if err := c.Bind().Body(&authorDto); err != nil {
@@ -124,6 +157,13 @@ func CreateAuthor(c fiber.Ctx) error {
 	return c.Status(200).JSON(mappers.ConvertAuthorDtoFromModel(createdAuthor))
 }
 
+// GetNotesOfAuthor godoc
+// @Summary  List notes belonging to an author
+// @Tags     authors
+// @Produce  json
+// @Param    authorId  path  string  true  "Author ID"
+// @Success  200       {array}  models.Note
+// @Router   /v1/authors/{authorId}/notes [get]
 func GetNotesOfAuthor(c fiber.Ctx) error {
 	var authorId = c.Params("authorId")
 	var authorService = GetLocal[service.AuthorService](c, constants.AuthorService)

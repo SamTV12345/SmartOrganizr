@@ -1,7 +1,7 @@
 import {Page} from "../../models/Page";
 import {AuthorEmbeddedContainer} from "../../models/AuthorEmbeddedContainer";
 import {Author} from "../../models/Author";
-import axios from "axios";
+import { http as axios } from "@/src/api/client";
 import {setAuthorPage, setAuthorSearchText} from "../../store/CommonSlice";
 import {useAppDispatch, useAppSelector} from "../../store/hooks";
 import {useDebounce} from "../../utils/DebounceHook";

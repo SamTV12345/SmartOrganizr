@@ -1,30 +1,8 @@
-import {Author} from "./Author";
-import {FolderItem} from "@/src/models/Folder";
+import type { Note, NotePostDto } from "@/src/api/types";
 
-export interface NoteItem {
-    type: 'note',
-    name: string,
-    author: Author,
-    numberOfPages: number
-    parent:FolderItem,
-    description?: string,
-    pdfAvailable: boolean,
-    id: string
-    creationDate: Date,
-}
+export type NoteItem = Note;
+export type { NotePostDto };
 
-
-export type NotePostDto = {
-    authorId: string
-    description?: string
-    numberOfPages: number
-    parentId: string
-    name: string
-    pdfContent?: string
-}
-
-
-export type NotePutDto = Omit<NoteItem, 'id'| 'parent'| 'author'| 'pdfAvailable' |'creationDate'> & {
-    authorId: string
-    parentId: string
-}
+// The backend's UpdateNote endpoint accepts the same shape as CreateNote
+// (dto.NotePostDto), so NotePutDto is just an alias here.
+export type NotePutDto = NotePostDto;

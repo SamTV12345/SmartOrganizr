@@ -1,12 +1,9 @@
 import React, {useCallback, useEffect, useMemo, useRef} from "react";
-import {AuthorEmbeddedContainer} from "../models/AuthorEmbeddedContainer";
 import {Author} from "../models/Author";
-import {Page} from "../models/Page";
-import axios from "axios";
-import {apiURL} from "../Keycloak";
 import {useTranslation} from "react-i18next";
 import {CreateAuthorDialog} from "@/src/components/CreateAuthorDialog";
-import {InfiniteData, useInfiniteQuery, useMutation, useQueryClient} from "@tanstack/react-query";
+import {InfiniteData, useQueryClient} from "@tanstack/react-query";
+import {$api} from "@/src/api/client";
 import {Loader, Loader2, Trash} from "lucide-react";
 import {Checkbox} from "@/components/ui/checkbox";
 import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow,} from "@/components/ui/table"
@@ -26,61 +23,57 @@ import {useDebounce} from "@/src/utils/DebounceHook";
 import {useAPIStore} from "@/src/store/zustand";
 
 
-const buildAuthorsUrl = (pageParam: number, searchParams: URLSearchParams) => {
-    const params = new URLSearchParams()
-    params.set('page', pageParam.toString())
-    const name = searchParams.get('name')
-    if (name) {
-        params.set('name', name)
-    }
-    return `${apiURL}/v1/authors?${params.toString()}`
-}
-
 export const AuthorView = ()=> {
     const {t} = useTranslation()
     const [selected, setSelected] = React.useState<{ [key: string]: boolean }>({})
     const queryClient = useQueryClient()
     const allChecked = Object.keys(selected).map(key => selected[key]).every(value => value)
     const atLeastOneChecked = Object.keys(selected).map(key => selected[key]).some(value => value)
-    const {data,  isLoading, fetchNextPage, isFetching, hasNextPage, refetch } = useInfiniteQuery<Page<AuthorEmbeddedContainer<Author>>>({
-        queryKey: ['authors'],
-        initialPageParam: 0,
-        queryFn: async ({pageParam}) => {
-            const response = await axios.get(buildAuthorsUrl(pageParam as number, searchParams))
-            return response.data
-        },
-        getNextPageParam: (lastPage) => {
-            const {number, size, totalElements} = lastPage.page
-            if ((number + 1) * size >= totalElements) {
-                return undefined
-            }
-            return number + 1
-        },
-        enabled: true
-    })
-    const removeAuthorQuery = useMutation({
-        mutationFn: (author: Author) => {
-            queryClient.setQueryData(['authors'], (oldData: InfiniteData<Page<AuthorEmbeddedContainer<Author>>, unknown>) => {
-                return {
-                    ...oldData,
-                    pages: oldData.pages.map((page) => {
-                        return {
-                            ...page,
-                            _embedded: {
-                                ...page._embedded,
-                                authorRepresentationModelList: page._embedded.authorRepresentationModelList.filter((a) => a.id !== author.id)
-                            }
-                        }
-                    })
-                }
-            })
-            return axios.delete(`${apiURL}/v1/authors/${author.id}`)
-        },
-    })
 
     const [searchParams, setSearchParams] = useSearchParams();
-
     const authorName = searchParams.get('name')
+
+    const {data,  isLoading, fetchNextPage, isFetching, hasNextPage, refetch } = $api.useInfiniteQuery(
+        "get",
+        "/v1/authors",
+        { params: { query: { page: 0, ...(authorName ? { name: authorName } : {}) } } },
+        {
+            initialPageParam: 0,
+            pageParamName: "page",
+            getNextPageParam: (lastPage) => {
+                const p = lastPage.page
+                if (!p || p.number === undefined || p.size === undefined || p.totalElements === undefined) return undefined
+                const next = p.number + 1
+                return next * p.size >= p.totalElements ? undefined : next
+            },
+        }
+    )
+
+    type AuthorsQueryKey = ["get", "/v1/authors", { params: { query: { page: number; name?: string } } }]
+    type AuthorsPage = NonNullable<typeof data>["pages"][number]
+
+    const removeAuthorQuery = $api.useMutation("delete", "/v1/authors/{authorId}", {
+        onMutate: ({ params: { path: { authorId } } }) => {
+            const key: AuthorsQueryKey = [
+                "get",
+                "/v1/authors",
+                { params: { query: { page: 0, ...(authorName ? { name: authorName } : {}) } } },
+            ]
+            queryClient.setQueryData<InfiniteData<AuthorsPage>>(key, (oldData) => {
+                if (!oldData) return oldData
+                return {
+                    ...oldData,
+                    pages: oldData.pages.map((page) => ({
+                        ...page,
+                        _embedded: {
+                            ...page._embedded,
+                            authorRepresentationModelList: page._embedded?.authorRepresentationModelList?.filter((a) => a.id !== authorId) ?? [],
+                        },
+                    })),
+                }
+            })
+        },
+    })
 
     useDebounce(()=>{
         searchParams.get("name")
@@ -95,9 +88,9 @@ export const AuthorView = ()=> {
         if (data === undefined) {
             return []
         }
-        return data?.pages.reduce((acc, page) => {
-            return [...acc, ...page._embedded.authorRepresentationModelList];
-        }, [] as Author[]);
+        return data?.pages.reduce<Author[]>((acc, page) => {
+            return [...acc, ...(page._embedded?.authorRepresentationModelList ?? []) as Author[]];
+        }, []);
     }, [data]);
 
 
@@ -166,7 +159,7 @@ export const AuthorView = ()=> {
                             <AlertDialogAction className="bg-red-600 hover:bg-red-900" onClick={()=>{
                                 Object.keys(selected).forEach(key => {
                                     if (selected[key]) {
-                                        removeAuthorQuery.mutate(authors!.find(author => author.id === key) as Author)
+                                        removeAuthorQuery.mutate({ params: { path: { authorId: key } } })
                                     }
                                 })
                             }}>{t('continue')}</AlertDialogAction>

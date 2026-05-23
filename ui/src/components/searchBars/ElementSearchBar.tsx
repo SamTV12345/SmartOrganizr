@@ -1,7 +1,7 @@
 import {setNotesSearched, setNotesSearchText} from "../../store/CommonSlice";
 import {useAppDispatch, useAppSelector} from "../../store/hooks";
 import {Page} from "../../models/Page";
-import axios from "axios";
+import { http as axios } from "@/src/api/client";
 import {ElementEmbeddedContainer} from "../../models/ElementEmbeddedContainer";
 import {NoteItem} from "../../models/NoteItem";
 import {useDebounce} from "../../utils/DebounceHook";

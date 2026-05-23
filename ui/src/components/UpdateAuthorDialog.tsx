@@ -15,7 +15,7 @@ import {FormProvider, useForm} from "react-hook-form";
 import {zodResolver} from "@hookform/resolvers/zod";
 import {FormControl, FormField, FormItem, FormLabel, FormMessage} from "@/components/ui/form";
 import {Author} from "@/src/models/Author";
-import axios from "axios";
+import { http as axios } from "@/src/api/client";
 import {apiURL} from "@/src/Keycloak";
 import {InfiniteData, useMutation, useQueryClient} from "@tanstack/react-query";
 import {AuthorPatchDto} from "@/src/models/AuthorPatchDto";
@@ -71,7 +71,7 @@ export function UpdateAuthorDialog() {
             .string()
             .min(1, { message: t("fieldRequired")! }),
 
-        extraInformation: z.string().optional(),
+        extraInformation: z.string(),
     });
 
     const form = useForm<z.infer<typeof formSchema>>({

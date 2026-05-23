@@ -24,7 +24,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
-import axios from "axios";
+import { http as axios } from "@/src/api/client";
 import { apiURL } from "@/src/Keycloak";
 import { Club } from "@/src/models/Club";
 

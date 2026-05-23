@@ -1,8 +1,8 @@
 package dto
 
 type Page struct {
-	Size          int `json:"size"`
-	Number        int `json:"number"`
-	TotalElements int `json:"totalElements"`
-	TotalPages    int `json:"totalPages"`
+	Size          int `json:"size"          validate:"required"`
+	Number        int `json:"number"        validate:"required"`
+	TotalElements int `json:"totalElements" validate:"required"`
+	TotalPages    int `json:"totalPages"    validate:"required"`
 }

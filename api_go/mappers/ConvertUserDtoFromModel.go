@@ -13,6 +13,10 @@ func ConvertUserDtoFromModel(user models.User, c fiber.Ctx) dto.User {
 		UserId:           user.UserId,
 		Username:         user.Username,
 		SideBarCollapsed: user.SideBarCollapsed,
+		Email:            user.Email,
+		Firstname:        user.Firstname,
+		Lastname:         user.Lastname,
+		TelephoneNumber:  user.TelephoneNumber,
 	}
 
 	if len(user.ProfilePic) > 0 {

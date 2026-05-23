@@ -1,7 +1,7 @@
 import { FC, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import axios from "axios";
+import { http as axios } from "@/src/api/client";
 import { apiURL } from "@/src/Keycloak";
 import { useKeycloak } from "@/src/Keycloak/useKeycloak";
 import { Club } from "@/src/models/Club";
