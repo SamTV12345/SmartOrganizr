@@ -18,19 +18,19 @@ export const traverseTree = (event: TreeData, nodes: TreeData[]): TreeData[] =>
         node.id === event.id ? event
             : isNote(node) ? node
                 : {
-                    ...node, children: traverseTree(event, node.elements)
+                    ...node, elements: traverseTree(event, node.elements ?? [])
                 })
 
 export const replaceNote = (event: TreeData, nodes: TreeData[]): TreeData[] =>
     nodes.map(node => {
             return node.id === event.id ? event : isNote(node) ?
-                node : {...node, children: replaceNote(event, node.elements)};
+                node : {...node, elements: replaceNote(event, node.elements ?? [])};
         }
     )
 
 export const replaceFolder = (event: TreeData, nodes: TreeData[]): TreeData[] =>
     nodes.map(node => node.id === event.id ? event : isNote(node) ?
-            node : {...node, children: replaceNote(event, node.elements)}
+            node : {...node, elements: replaceNote(event, node.elements ?? [])}
     )
 
 
@@ -41,14 +41,14 @@ export const addChild = (event: TreeData, nodes: TreeData[], parentId: string|un
         if (node.id === parentId && isFolder(node)) {
             return {
                 ...node,
-                elements: [...node.elements, event].sort((c1, c2) => c1.name.localeCompare(c2.name))
+                elements: [...(node.elements ?? []), event].sort((c1, c2) => c1.name.localeCompare(c2.name))
             } satisfies TreeData
         }
         // if not other children are in this folder
         else if (node.id === parentId && !node.id && isFolder(node)) {
             return {...node, elements: [event]} satisfies TreeData
         } else if (isFolder(node)) {
-            return {...node, elements: addChild(event, node.elements || [], parentId)} satisfies TreeData
+            return {...node, elements: addChild(event, node.elements ?? [], parentId)} satisfies TreeData
         }
         return node
     })
