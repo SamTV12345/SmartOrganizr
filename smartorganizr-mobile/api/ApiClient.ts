@@ -9,7 +9,9 @@ import {
   NOTES_CACHE_UPDATED_AT,
   PUBLIC_CONFIG_KEY,
 } from "@/api/constants";
-import { ConfigModel, Folder, FolderResponse, Note, NoteDetail, NoteResponse } from "@/api/types";
+import { ConfigModel, Folder, FolderResponse, Note, NoteDetail, NoteResponse, PageInfo } from "@/api/types";
+
+const hasNextPage = (p: PageInfo) => (p.number + 1) * p.size < p.totalElements;
 import { ConfigModelValidation } from "@/api/validation";
 import { ensureValidAccessToken } from "@/api/auth";
 import { buildApiUrl, normalizeBaseUrl } from "@/api/url";
@@ -45,6 +47,9 @@ const makeResponse = (notes: Note[]): NoteResponse => ({
   },
   page: {
     size: notes.length,
+    number: 0,
+    totalElements: notes.length,
+    totalPages: 1,
   },
 });
 
@@ -162,6 +167,12 @@ export class ApiClient {
     return response.json();
   }
 
+  private async fetchNotesPage(page: number): Promise<NoteResponse> {
+    const url = new URL(buildApiUrl(this.baseUrl, "/api/v1/elements/notes"));
+    url.searchParams.append("page", String(page));
+    return this.fetchNotesFromUrl(url.toString());
+  }
+
   async syncNotesOfflineCache() {
     const online = await getNetworkStateAsync();
     if (!online.isConnected) {
@@ -169,13 +180,16 @@ export class ApiClient {
     }
 
     const notes: Note[] = [];
-    let nextUrl: string | null = buildApiUrl(this.baseUrl, "/api/v1/elements/notes");
+    let page = 0;
 
-    while (nextUrl) {
-      const response = await this.fetchNotesFromUrl(nextUrl);
-      notes.push(...(response._embedded?.noteRepresentationModelList ?? []));
-      const next = response._links?.next?.href;
-      nextUrl = next ? new URL(next, this.baseUrl).toString() : null;
+    while (true) {
+      const response = await this.fetchNotesPage(page);
+      const batch = response._embedded?.noteRepresentationModelList ?? [];
+      notes.push(...batch);
+      if (!hasNextPage(response.page) || batch.length === 0) {
+        break;
+      }
+      page += 1;
     }
 
     await writeCachedNotes(mergeById([], notes));
@@ -195,8 +209,7 @@ export class ApiClient {
       const response = await this.fetchFoldersPage(page);
       const batch = response._embedded?.elementRepresentationModelList ?? [];
       folders.push(...batch);
-      const hasNext = !!response._links?.next?.href;
-      if (!hasNext || batch.length === 0) {
+      if (!hasNextPage(response.page) || batch.length === 0) {
         break;
       }
       page += 1;

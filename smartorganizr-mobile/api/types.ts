@@ -2,7 +2,6 @@ export type ConfigModel = {
     clientId : string,
     url: string
     realm: string
-    _links?: Record<string, Href>
 }
 
 export type Author = {
@@ -27,15 +26,18 @@ export type Folder = {
     creator: User
 }
 
+export type PageInfo = {
+    size: number
+    number: number
+    totalElements: number
+    totalPages: number
+}
+
 export type PagedEmbeddedResponse<T> = {
     _embedded: {
         noteRepresentationModelList: T[]
     },
-    _links?: Record<string, Href>,
-    page: {
-        size: number
-        // ggf. weitere Felder wie totalElements, totalPages, number etc.
-    }
+    page: PageInfo
 }
 
 export type NoteResponse = PagedEmbeddedResponse<Note>;
@@ -43,10 +45,7 @@ export type FolderResponse = {
     _embedded: {
         elementRepresentationModelList: Folder[]
     },
-    _links?: Record<string, Href>,
-    page: {
-        size: number
-    }
+    page: PageInfo
 }
 
 export type Note = {
@@ -64,8 +63,4 @@ export type NoteDetail = {
     previousNote?: Note
     nextNote?: Note
     index: number
-}
-
-export type Href = {
-    href: string
 }

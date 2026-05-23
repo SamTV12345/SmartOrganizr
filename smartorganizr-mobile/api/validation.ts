@@ -1,23 +1,13 @@
 import * as z from "zod";
 
-
-/*
-    clientId : string,
-    url: string
-    realm: string
-    links: Record<string, Href>
- */
 export const ConfigModelValidation = z.object({
     clientId: z.string().min(1),
-    url: z.string().url(),
+    url: z.url(),
     realm: z.string().min(1),
-    _links: z.record(z.object({
-        href: z.string().url()
-    })).optional()
 })
 
 export const DiscoveryDocumentValidation = z.object({
-    authorizationEndpoint: z.string().url(),
-    tokenEndpoint: z.string().url(),
-    revocationEndpoint: z.string().url().optional(),
+    authorizationEndpoint: z.url(),
+    tokenEndpoint: z.url(),
+    revocationEndpoint: z.url().optional(),
 })
