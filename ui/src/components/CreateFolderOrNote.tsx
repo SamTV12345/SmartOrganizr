@@ -518,7 +518,13 @@ export function CreateFolderOrNote() {
                                 <FormItem>
                                     <FormLabel>{t("name")}</FormLabel>
                                     <FormControl>
-                                        <Input {...field} />
+                                        <Input
+                                            {...field}
+                                            ref={(el) => {
+                                                field.ref(el);
+                                                nameInputRef.current = el;
+                                            }}
+                                        />
                                     </FormControl>
                                     <FormMessage />
                                 </FormItem>
