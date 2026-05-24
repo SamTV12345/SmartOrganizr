@@ -69,6 +69,9 @@ type Author struct {
 	ExtraInformation sql.NullString
 	Name             sql.NullString
 	UserIDFk         sql.NullString
+	WikidataID       sql.NullString
+	BirthYear        sql.NullInt16
+	DeathYear        sql.NullInt16
 }
 
 type Club struct {
@@ -110,16 +113,20 @@ type Concert struct {
 }
 
 type Element struct {
-	Type          string
-	ID            string
-	CreationDate  sql.NullTime
-	Description   sql.NullString
-	Name          sql.NullString
-	NumberOfPages sql.NullInt32
-	UserIDFk      sql.NullString
-	Parent        sql.NullString
-	AuthorIDFk    sql.NullString
-	PdfContent    sql.NullString
+	Type            string
+	ID              string
+	CreationDate    sql.NullTime
+	Description     sql.NullString
+	Name            sql.NullString
+	NumberOfPages   sql.NullInt32
+	UserIDFk        sql.NullString
+	Parent          sql.NullString
+	PdfContent      sql.NullString
+	WikidataID      sql.NullString
+	CompositionYear sql.NullInt16
+	Genre           sql.NullString
+	ComposerIDFk    sql.NullString
+	ArrangerIDFk    sql.NullString
 }
 
 type Event struct {

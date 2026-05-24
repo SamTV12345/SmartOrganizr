@@ -7,12 +7,13 @@ CREATE TABLE address(
                         location VARCHAR(255) NOT NULL,
                         postal_code VARCHAR(255) NOT NULL,
                         country VARCHAR(255) NOT NULL
-) collate = utf8mb4_general_ci;;
+) collate = utf8mb4_general_ci;
 
 CREATE TABLE clubs (
     id VARCHAR(255) NOT NULL PRIMARY KEY ,
     name VARCHAR(255) NOT NULL,
-    address_id VARCHAR(255) NOT NULL REFERENCES address(id)
-) collate = utf8mb4_general_ci;;
+    address_id VARCHAR(255) NOT NULL,
+    FOREIGN KEY (address_id) REFERENCES address(id)
+) collate = utf8mb4_general_ci;
 
 

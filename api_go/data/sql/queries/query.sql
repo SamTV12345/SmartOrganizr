@@ -31,13 +31,16 @@ SELECT COUNT(*) FROM authors a WHERE a.name<? ORDER BY a.name,a.id;
 SELECT * FROM authors WHERE id = ? and user_id_fk = ?;
 
 -- name: UpdateAuthor :exec
-UPDATE authors SET name = ?, extra_information = ? WHERE id = ? AND user_id_fk = ?;
+UPDATE authors
+SET name = ?, extra_information = ?, wikidata_id = ?, birth_year = ?, death_year = ?
+WHERE id = ? AND user_id_fk = ?;
 
 -- name: DeleteAuthor :exec
 DELETE FROM authors WHERE id = ? AND user_id_fk = ?;
 
 -- name: CreateAuthor :execlastid
-INSERT INTO authors (id, name, extra_information, user_id_fk) VALUES (?, ?, ?, ?);
+INSERT INTO authors (id, name, extra_information, user_id_fk, wikidata_id, birth_year, death_year)
+VALUES (?, ?, ?, ?, ?, ?, ?);
 
 
 -- name: FindUserById :one
@@ -50,7 +53,10 @@ SELECT * FROM user WHERE email = ?;
 
 
 -- name: FindAllNotesByAuthor :many
-SELECT * FROM elements WHERE type ='note' AND author_id_fk = ? AND user_id_fk = ? ORDER BY name;
+SELECT * FROM elements
+WHERE type ='note' AND user_id_fk = ?
+  AND (composer_id_fk = ? OR arranger_id_fk = ?)
+ORDER BY name;
 
 
 -- name: CreateUser :execlastid
@@ -71,22 +77,74 @@ SELECT * FROM elements as folders WHERE type ='folder' AND user_id_fk = ? ORDER 
 
 
 -- name: FindAllSubElements :many
-SELECT sqlc.embed(elements), authors.* FROM elements LEFT JOIN authors ON elements.author_id_fk = authors.id WHERE parent = ? AND elements.user_id_fk = ? ORDER BY elements.name;
+SELECT
+  sqlc.embed(elements),
+  sqlc.embed(composer),
+  sqlc.embed(arranger)
+FROM elements
+LEFT JOIN authors composer ON elements.composer_id_fk = composer.id
+LEFT JOIN authors arranger ON elements.arranger_id_fk = arranger.id
+WHERE parent = ? AND elements.user_id_fk = ?
+ORDER BY elements.name;
 
 -- name: FindAllNotesByCreatorPaged :many
-SELECT sqlc.embed(note), sqlc.embed(a), sqlc.embed(p) FROM elements as note JOIN authors a on a.id = note.author_id_fk JOIN elements p ON p.id = note.parent WHERE note.type ='note' AND a.user_id_fk = ? ORDER BY note.name LIMIT ? OFFSET ?;
+SELECT
+  sqlc.embed(note),
+  sqlc.embed(composer),
+  sqlc.embed(arranger),
+  sqlc.embed(p)
+FROM elements as note
+LEFT JOIN authors composer ON note.composer_id_fk = composer.id
+LEFT JOIN authors arranger ON note.arranger_id_fk = arranger.id
+JOIN elements p ON p.id = note.parent
+WHERE note.type ='note' AND note.user_id_fk = ?
+ORDER BY note.name LIMIT ? OFFSET ?;
 
 -- name: FindAllNotesByCreator :many
-SELECT sqlc.embed(note), sqlc.embed(a), sqlc.embed(p) FROM elements as note JOIN authors a on a.id = note.author_id_fk JOIN elements p ON p.id = note.parent  WHERE note.type ='note' AND a.user_id_fk = ? ORDER BY note.name;
+SELECT
+  sqlc.embed(note),
+  sqlc.embed(composer),
+  sqlc.embed(arranger),
+  sqlc.embed(p)
+FROM elements as note
+LEFT JOIN authors composer ON note.composer_id_fk = composer.id
+LEFT JOIN authors arranger ON note.arranger_id_fk = arranger.id
+JOIN elements p ON p.id = note.parent
+WHERE note.type ='note' AND note.user_id_fk = ?
+ORDER BY note.name;
 
 -- name: CountFindAllNotesByCreator :one
 SELECT COUNT(*) FROM elements as note WHERE note.type ='note' AND note.user_id_fk = ?;
 
 -- name: FindAllNotesByCreatorPagedWithSearch :many
-SELECT sqlc.embed(note), sqlc.embed(a), sqlc.embed(p) FROM elements as note JOIN authors a on a.id = note.author_id_fk JOIN elements p ON p.id = note.parent WHERE note.type ='note' and note.name LIKE CONCAT('%',?,'%') AND a.user_id_fk = ? ORDER BY note.name LIMIT ? OFFSET ?;
+SELECT
+  sqlc.embed(note),
+  sqlc.embed(composer),
+  sqlc.embed(arranger),
+  sqlc.embed(p)
+FROM elements as note
+LEFT JOIN authors composer ON note.composer_id_fk = composer.id
+LEFT JOIN authors arranger ON note.arranger_id_fk = arranger.id
+JOIN elements p ON p.id = note.parent
+WHERE note.type ='note'
+  AND note.name LIKE CONCAT('%',?,'%')
+  AND note.user_id_fk = ?
+ORDER BY note.name LIMIT ? OFFSET ?;
 
 -- name: FindAllNotesByCreatorWithSearch :many
-SELECT sqlc.embed(note), sqlc.embed(a), sqlc.embed(p) FROM elements as note JOIN authors a on a.id = note.author_id_fk JOIN elements p ON p.id = note.parent  WHERE note.type ='note' and note.name LIKE CONCAT('%',?,'%') AND a.user_id_fk = ? ORDER BY note.name;
+SELECT
+  sqlc.embed(note),
+  sqlc.embed(composer),
+  sqlc.embed(arranger),
+  sqlc.embed(p)
+FROM elements as note
+LEFT JOIN authors composer ON note.composer_id_fk = composer.id
+LEFT JOIN authors arranger ON note.arranger_id_fk = arranger.id
+JOIN elements p ON p.id = note.parent
+WHERE note.type ='note'
+  AND note.name LIKE CONCAT('%',?,'%')
+  AND note.user_id_fk = ?
+ORDER BY note.name;
 
 -- name: CountFindAllNotesByCreatorWithSearch :one
 SELECT COUNT(*) FROM elements as note WHERE note.type ='note' and note.name LIKE CONCAT('%',?,'%') AND note.user_id_fk = ?;
@@ -134,7 +192,7 @@ SELECT * FROM elements WHERE parent IS NULL AND type = 'folder' AND user_id_fk =
 INSERT INTO elements (id, type, name, description, user_id_fk, parent) VALUES (?,'folder', ?, ?, ?, ?);
 
 -- name: CreateNote :execlastid
-INSERT INTO elements (id, type, name, description, user_id_fk, parent, author_id_fk, number_of_pages, pdf_content) VALUES (?,'note', ?, ?, ?, ?, ?, ?, ?);
+INSERT INTO elements (id, type, name, description, user_id_fk, parent, composer_id_fk, number_of_pages, pdf_content) VALUES (?,'note', ?, ?, ?, ?, ?, ?, ?);
 
 -- name: FindFolderById :one
 SELECT * FROM elements WHERE id = ? and user_id_fk = ?;
@@ -153,7 +211,7 @@ SELECT COUNT(*) FROM elements WHERE name LIKE CONCAT('%', ?, '%') and type = 'fo
 DELETE FROM elements WHERE id = ? AND user_id_fk = ?;
 
 -- name: UpdateNote :exec
-UPDATE elements SET name = ?, description = ?, author_id_fk = ?, number_of_pages = ?, pdf_content = ? WHERE id = ?;
+UPDATE elements SET name = ?, description = ?, composer_id_fk = ?, number_of_pages = ?, pdf_content = ? WHERE id = ?;
 
 -- name: UpdateFolder :exec
 UPDATE elements SET name=?, description = ?, parent = ? WHERE id = ? and user_id_fk = ?;
@@ -328,3 +386,30 @@ WHERE token = ?;
 
 -- name: DeleteFolderCasCade :exec
 DELETE FROM elements WHERE id = ? AND user_id_fk = ? and type = 'folder';
+
+-- name: FindAuthorByUserAndWikidataId :one
+SELECT * FROM authors WHERE user_id_fk = ? AND wikidata_id = ?;
+
+-- name: FindAuthorsByUserAndExactName :many
+SELECT * FROM authors WHERE user_id_fk = ? AND name = ?;
+
+-- name: FindAuthorsByUserAndNameLike :many
+SELECT * FROM authors
+WHERE user_id_fk = ? AND name LIKE CONCAT('%', ?, '%')
+ORDER BY name LIMIT 10;
+
+-- name: FindElementsByUserAndNameLike :many
+SELECT * FROM elements
+WHERE user_id_fk = ? AND type = 'note' AND name LIKE CONCAT('%', ?, '%')
+ORDER BY name LIMIT 10;
+
+-- name: CreateNoteWithWikidata :execlastid
+INSERT INTO elements (
+  type, id, creation_date, description, name, number_of_pages,
+  user_id_fk, parent, composer_id_fk, arranger_id_fk,
+  wikidata_id, composition_year, genre
+) VALUES (
+  'note', ?, NOW(), ?, ?, ?,
+  ?, ?, ?, ?,
+  ?, ?, ?
+);

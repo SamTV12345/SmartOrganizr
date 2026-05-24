@@ -137,6 +137,11 @@ func SetupRouter(queries *db.Queries, config config.AppConfig, logger *zap.Sugar
 	var clubMemberService = service.NewClubMemberService(queries, clubService)
 	var messageService = service.NewMessageService(queries)
 
+	var wikidataService = service.NewWikidataService(
+		"https://query.wikidata.org/sparql",
+		"SmartOrganizr/1.0 (https://github.com/SamTV12345/SmartOrganizr)",
+	)
+
 	noteService.FolderService = &folderService
 
 	var concertService = service.ConcertService{
@@ -159,6 +164,7 @@ func SetupRouter(queries *db.Queries, config config.AppConfig, logger *zap.Sugar
 		SetLocal[service.ClubMemberService](c, constants.ClubMemberService, clubMemberService)
 		SetLocal[service.ClubInvitationService](c, constants.ClubInvitationService, clubInvitationService)
 		SetLocal[service.MessageService](c, constants.MessageService, messageService)
+		SetLocal[*service.WikidataService](c, constants.WikidataService, wikidataService)
 
 		return c.Next()
 	})
@@ -246,6 +252,15 @@ func SetupRouter(queries *db.Queries, config config.AppConfig, logger *zap.Sugar
 
 	profile.Route("v1/invitations", func(r fiber.Router) {
 		r.Post("/:token/accept", controllers.AcceptClubInvitation)
+	})
+
+	profile.Route("v1/autocomplete", func(r fiber.Router) {
+		r.Get("/works", controllers.GetWorksAutocomplete)
+		r.Get("/authors", controllers.GetAuthorsAutocomplete)
+	})
+
+	profile.Route("v1/works", func(r fiber.Router) {
+		r.Post("/from-wikidata", controllers.PostWorkFromWikidata)
 	})
 
 	profile.Route("v1/elements", func(r fiber.Router) {

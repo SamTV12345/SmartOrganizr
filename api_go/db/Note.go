@@ -6,16 +6,20 @@ import (
 )
 
 type Note struct {
-	CreationDate  sql.NullTime
-	ID            string
-	Name          sql.NullString
-	Parent        sql.NullString
-	Description   sql.NullString
-	UserIDFk      sql.NullString
-	AuthorIDFk    sql.NullString
-	NumberOfPages sql.NullInt32
-	PdfContent    sql.RawBytes
-	PdfAvailable  bool
+	CreationDate    sql.NullTime
+	ID              string
+	Name            sql.NullString
+	Parent          sql.NullString
+	Description     sql.NullString
+	UserIDFk        sql.NullString
+	ComposerIDFk    sql.NullString
+	ArrangerIDFk    sql.NullString
+	NumberOfPages   sql.NullInt32
+	PdfContent      sql.RawBytes
+	PdfAvailable    bool
+	WikidataID      sql.NullString
+	CompositionYear sql.NullInt16
+	Genre           sql.NullString
 }
 
 func (n Note) GetCreationDate() time.Time {

@@ -48,6 +48,15 @@ import {
 import { Author } from "@/src/models/Author";
 import { Page } from "@/src/models/Page";
 import { AuthorEmbeddedContainer } from "@/src/models/AuthorEmbeddedContainer";
+import { WorkAutocompleteInput } from "@/src/components/searchBars/WorkAutocompleteInput";
+import { AuthorConflictDialog } from "@/src/components/AuthorConflictDialog";
+import { InlineAuthorCreateDialog } from "@/src/components/InlineAuthorCreateDialog";
+import { createWorkFromWikidata } from "@/src/api/autocomplete";
+import type {
+    AutocompleteAuthor,
+    AutocompleteWork,
+    WorkFromWikidataConflict,
+} from "@/src/models/Autocomplete";
 
 /* ------------------------------------------------------------------ */
 /* Zod schemas (module-level, never recreated)                         */
@@ -179,6 +188,13 @@ export function CreateFolderOrNote() {
     const justSavedTimerRef = useRef<number | null>(null);
     const nameInputRef = useRef<HTMLInputElement | null>(null);
 
+    // Wikidata flow state. pendingWikidata holds the original external pick so
+    // the conflict-resolution buttons can retry the same work.
+    const [conflict, setConflict] = useState<WorkFromWikidataConflict | null>(null);
+    const [pendingWikidata, setPendingWikidata] = useState<AutocompleteWork | null>(null);
+    const [wikidataError, setWikidataError] = useState<string | null>(null);
+    const [authorCreateOpen, setAuthorCreateOpen] = useState(false);
+
     const setCreateAnother = (value: boolean) => {
         setCreateAnotherState(value);
         writeCreateAnother(value);
@@ -287,6 +303,100 @@ export function CreateFolderOrNote() {
         createFolderMutation.isPending || createNoteMutation.isPending;
 
     /* ------------------------------------------------------------------ */
+    /* Wikidata external-pick flow                                         */
+    /* ------------------------------------------------------------------ */
+
+    // Picking a Wikidata entry only PRE-FILLS the form. The actual POST runs
+    // on submit (see onSubmit). pendingWikidata acts as the "submit-via-
+    // wikidata" flag — present means submit will POST /works/from-wikidata
+    // instead of POST /elements/notes.
+    const handleWikidataPick = (work: AutocompleteWork) => {
+        setWikidataError(null);
+        setPendingWikidata(work);
+        form.setValue("name", work.name);
+        if (work.description) {
+            form.setValue("description", work.description);
+        }
+        if (work.composer?.name) {
+            form.setValue("authorName", work.composer.name);
+            dispatch(setElementSelectedAuthorName(work.composer.name));
+        }
+    };
+
+    // submitWikidataPick performs the actual POST. Called from onSubmit and
+    // from the conflict-resolution buttons (which need to retry after a
+    // PATCH or with forceNewAuthor=true).
+    const submitWikidataPick = async (
+        work: AutocompleteWork,
+        opts: { forceNewAuthor?: boolean } = {},
+    ) => {
+        setWikidataError(null);
+        const parentId = form.getValues("parentId");
+        if (!parentId) {
+            setWikidataError(t("wikidata.parentRequired", "Bitte zuerst einen übergeordneten Ordner wählen.") as string);
+            return;
+        }
+        try {
+            const result = await createWorkFromWikidata({
+                wikidataId: work.wikidataId!,
+                parentId,
+                forceNewAuthor: opts.forceNewAuthor,
+            });
+            if ("conflict" in result) {
+                setConflict(result.conflict);
+                return;
+            }
+            updateCache(result.note);
+            setConflict(null);
+            setPendingWikidata(null);
+            handlePostSubmit();
+        } catch (err) {
+            console.error(err);
+            const e = err as { response?: { status: number; data: { error?: string } } };
+            if (e.response?.data?.error?.includes("Duplicate entry")) {
+                setWikidataError(
+                    t(
+                        "wikidata.alreadyExists",
+                        "Dieses Werk hast du bereits in deiner Sammlung.",
+                    ) as string,
+                );
+            } else {
+                setWikidataError(t("wikidata.createFailed", "Werk konnte nicht angelegt werden.") as string);
+            }
+        }
+    };
+
+    const handleConflictLinkExisting = async (candidate: AutocompleteAuthor) => {
+        if (!conflict || !pendingWikidata || !candidate.id) return;
+        try {
+            await axios.patch(`${apiURL}/v1/authors/${candidate.id}`, {
+                name: candidate.name,
+                extraInformation: "",
+                wikidataId: conflict.incoming.wikidataId,
+                birthYear: conflict.incoming.birthYear,
+                deathYear: conflict.incoming.deathYear,
+            });
+        } catch (err) {
+            console.error(err);
+            setWikidataError(t("wikidata.linkFailed", "Verknüpfen fehlgeschlagen.") as string);
+            return;
+        }
+        setConflict(null);
+        submitWikidataPick(pendingWikidata);
+    };
+
+    const handleConflictCreateNew = () => {
+        if (!pendingWikidata) return;
+        setConflict(null);
+        submitWikidataPick(pendingWikidata, { forceNewAuthor: true });
+    };
+
+    const handleConflictCancel = () => {
+        setConflict(null);
+        setPendingWikidata(null);
+    };
+
+    /* ------------------------------------------------------------------ */
     /* Submit                                                              */
     /* ------------------------------------------------------------------ */
 
@@ -297,7 +407,15 @@ export function CreateFolderOrNote() {
             authorId: values.type === "note" ? values.authorId : undefined,
             authorName: values.type === "note" ? values.authorName : undefined,
             name: values.name,
+            wikidata: pendingWikidata?.wikidataId,
         });
+
+        // Wikidata branch: short-circuit the normal create path. The backend
+        // resolves the composer (and may return 409 -> conflict dialog).
+        if (values.type === "note" && pendingWikidata) {
+            await submitWikidataPick(pendingWikidata);
+            return;
+        }
 
         if (values.type === "folder") {
             createFolderMutation.mutate(values);
@@ -530,14 +648,50 @@ export function CreateFolderOrNote() {
                                 <FormItem>
                                     <FormLabel>{t("name")}</FormLabel>
                                     <FormControl>
-                                        <Input
-                                            {...field}
-                                            ref={(el) => {
-                                                field.ref(el);
-                                                nameInputRef.current = el;
-                                            }}
-                                        />
+                                        {watchType === "note" ? (
+                                            <WorkAutocompleteInput
+                                                value={field.value ?? ""}
+                                                onChange={(v) => {
+                                                    field.onChange(v);
+                                                    // User edited the name after picking a
+                                                    // Wikidata entry — drop the pick so submit
+                                                    // takes the normal create path.
+                                                    if (pendingWikidata && v !== pendingWikidata.name) {
+                                                        setPendingWikidata(null);
+                                                    }
+                                                }}
+                                                onPickLocal={(w) => {
+                                                    // Local hit: fill name + author from
+                                                    // composer if present. Don't auto-submit.
+                                                    form.setValue("name", w.name);
+                                                    if (w.composer) {
+                                                        if (w.composer.id) {
+                                                            form.setValue("authorId", w.composer.id);
+                                                        }
+                                                        if (w.composer.name) {
+                                                            form.setValue("authorName", w.composer.name);
+                                                            dispatch(setElementSelectedAuthorName(w.composer.name));
+                                                        }
+                                                    }
+                                                }}
+                                                onPickExternal={(w) => handleWikidataPick(w)}
+                                                placeholder={t("name") as string}
+                                            />
+                                        ) : (
+                                            <Input
+                                                {...field}
+                                                ref={(el) => {
+                                                    field.ref(el);
+                                                    nameInputRef.current = el;
+                                                }}
+                                            />
+                                        )}
                                     </FormControl>
+                                    {wikidataError && watchType === "note" && (
+                                        <p className="text-sm text-destructive">
+                                            {wikidataError}
+                                        </p>
+                                    )}
                                     <FormMessage />
                                 </FormItem>
                             )}
@@ -655,7 +809,20 @@ export function CreateFolderOrNote() {
 
                         <ParentFolderSearchBar />
 
-                        {watchType === "note" && <NoteAuthorCreateSearchBar />}
+                        {watchType === "note" && (
+                            <div className="space-y-1">
+                                <NoteAuthorCreateSearchBar />
+                                <Button
+                                    type="button"
+                                    variant="link"
+                                    size="sm"
+                                    className="h-auto px-0 text-xs"
+                                    onClick={() => setAuthorCreateOpen(true)}
+                                >
+                                    + {t("author.createInline", "Neuen Autor anlegen")}
+                                </Button>
+                            </div>
+                        )}
 
                         <DialogFooter className="sm:justify-between">
                             <label className="flex items-center gap-2 text-sm">
@@ -690,6 +857,22 @@ export function CreateFolderOrNote() {
                     </form>
                 </Form>
             </DialogContent>
+            <AuthorConflictDialog
+                conflict={conflict}
+                onLinkExisting={handleConflictLinkExisting}
+                onCreateNew={handleConflictCreateNew}
+                onCancel={handleConflictCancel}
+            />
+            <InlineAuthorCreateDialog
+                open={authorCreateOpen}
+                onOpenChange={setAuthorCreateOpen}
+                initialName={form.getValues("type") === "note" ? (form.getValues("authorName") ?? "") : ""}
+                onCreated={(author) => {
+                    form.setValue("authorId", author.id, { shouldDirty: true, shouldValidate: true });
+                    form.setValue("authorName", author.name, { shouldDirty: true, shouldValidate: true });
+                    dispatch(setElementSelectedAuthorName(author.name));
+                }}
+            />
         </Dialog>
     );
 }

@@ -5,16 +5,20 @@ import (
 )
 
 type Note struct {
-	Author        Author    `json:"author"`
-	NumberOfPages int       `json:"numberOfPages"`
-	PdfAvailable  bool      `json:"pdfAvailable"`
-	PDFContent    []byte    `json:"pdfContent"`
-	CreationDate  time.Time `json:"creationDate"`
-	Id            string    `json:"id"`
-	Name          string    `json:"name"`
-	Parent        *Folder   `json:"parent"`
-	Description   string    `json:"description"`
-	Creator       User      `json:"creator"`
+	Author          Author    `json:"author"`
+	Arranger        *Author   `json:"arranger,omitempty"`
+	NumberOfPages   int       `json:"numberOfPages"`
+	PdfAvailable    bool      `json:"pdfAvailable"`
+	PDFContent      []byte    `json:"pdfContent"`
+	CreationDate    time.Time `json:"creationDate"`
+	Id              string    `json:"id"`
+	Name            string    `json:"name"`
+	Parent          *Folder   `json:"parent"`
+	Description     string    `json:"description"`
+	Creator         User      `json:"creator"`
+	WikidataID      string    `json:"wikidataId,omitempty"`
+	CompositionYear *int16    `json:"compositionYear,omitempty"`
+	Genre           string    `json:"genre,omitempty"`
 }
 
 func (note Note) Type() ElementName {

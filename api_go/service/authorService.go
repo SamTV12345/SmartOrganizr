@@ -118,6 +118,9 @@ func (a *AuthorService) CreateAuthor(author dto.AuthorCreateDto, userId string) 
 		ExtraInformation: db.NewSQLNullString(author.ExtraInformation),
 		UserIDFk:         db.NewSQLNullString(userId),
 		ID:               authorId.String(),
+		WikidataID:       db.NewNullableSQLString(author.WikidataID),
+		BirthYear:        nullInt16FromPtr(author.BirthYear),
+		DeathYear:        nullInt16FromPtr(author.DeathYear),
 	})
 	if err != nil {
 		return models.Author{}, err
@@ -158,8 +161,8 @@ func (a *AuthorService) DeleteAuthor(authorId string, userId string) error {
 
 func (a *AuthorService) FindAllNotesByAuthor(userId string, authorId string) (*[]models.Note, error) {
 	var notes, err = a.Queries.FindAllNotesByAuthor(context.Background(), db.FindAllNotesByAuthorParams{
-		UserIDFk:   db.NewSQLNullString(userId),
-		AuthorIDFk: db.NewSQLNullString(authorId),
+		UserIDFk:     db.NewSQLNullString(userId),
+		ComposerIDFk: db.NewSQLNullString(authorId),
 	})
 
 	if err != nil {
@@ -201,12 +204,22 @@ func (a *AuthorService) FindAuthorByIdAndUser(authorId string, userId string) (m
 	return authorModel, nil
 }
 
+func nullInt16FromPtr(v *int16) sql.NullInt16 {
+	if v == nil {
+		return sql.NullInt16{}
+	}
+	return sql.NullInt16{Int16: *v, Valid: true}
+}
+
 func (a *AuthorService) UpdateAuthor(authorPatchDto dto.AuthorPatchDto, userId string, authorId string) (models.Author, error) {
 	err := a.Queries.UpdateAuthor(context.Background(), db.UpdateAuthorParams{
 		ID:               authorId,
 		ExtraInformation: db.NewSQLNullString(authorPatchDto.ExtraInformation),
 		Name:             db.NewSQLNullString(authorPatchDto.Name),
 		UserIDFk:         db.NewSQLNullString(userId),
+		WikidataID:       db.NewNullableSQLString(authorPatchDto.WikidataID),
+		BirthYear:        nullInt16FromPtr(authorPatchDto.BirthYear),
+		DeathYear:        nullInt16FromPtr(authorPatchDto.DeathYear),
 	})
 	if err != nil {
 		return models.Author{}, err
@@ -220,4 +233,61 @@ func (a *AuthorService) UpdateAuthor(authorPatchDto dto.AuthorPatchDto, userId s
 	}
 	var authorModel = mappers.ConvertAuthorFromEntity(author)
 	return authorModel, nil
+}
+
+// AutocompleteLocalAuthors returns the user's authors whose name contains the
+// term. Results are intentionally bounded (LIMIT 10 in SQL) so the response is
+// small enough for a debounced live dropdown.
+func (a *AuthorService) AutocompleteLocalAuthors(userId, term string) []dto.AutocompleteAuthor {
+	rows, err := a.Queries.FindAuthorsByUserAndNameLike(a.Ctx, db.FindAuthorsByUserAndNameLikeParams{
+		UserIDFk: db.NewSQLNullString(userId),
+		Term:     term,
+	})
+	if err != nil {
+		return []dto.AutocompleteAuthor{}
+	}
+	out := make([]dto.AutocompleteAuthor, 0, len(rows))
+	for _, r := range rows {
+		ac := dto.AutocompleteAuthor{
+			ID:         r.ID,
+			Name:       r.Name.String,
+			WikidataID: r.WikidataID.String,
+		}
+		if r.BirthYear.Valid {
+			v := r.BirthYear.Int16
+			ac.BirthYear = &v
+		}
+		if r.DeathYear.Valid {
+			v := r.DeathYear.Int16
+			ac.DeathYear = &v
+		}
+		out = append(out, ac)
+	}
+	return out
+}
+
+// LinkWikidataIdToAuthor patches an existing author with a Wikidata QID
+// (and the wikidata-sourced lifespan fields). Used by the conflict-resolution
+// "Link existing" flow after the user confirms two records are the same person.
+func (a *AuthorService) LinkWikidataIdToAuthor(userId, authorId string, w WikidataAuthor) (models.Author, error) {
+	existing, err := a.LoadAuthorById(authorId, userId)
+	if err != nil {
+		return models.Author{}, err
+	}
+	if existing.WikidataID == "" {
+		existing.WikidataID = w.WikidataID
+	}
+	if existing.BirthYear == nil {
+		existing.BirthYear = w.BirthYear
+	}
+	if existing.DeathYear == nil {
+		existing.DeathYear = w.DeathYear
+	}
+	return a.UpdateAuthor(dto.AuthorPatchDto{
+		Name:             existing.Name,
+		ExtraInformation: existing.ExtraInformation,
+		WikidataID:       existing.WikidataID,
+		BirthYear:        existing.BirthYear,
+		DeathYear:        existing.DeathYear,
+	}, userId, authorId)
 }
