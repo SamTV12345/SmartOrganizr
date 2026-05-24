@@ -18,16 +18,25 @@ func ConvertNoteDtoFromModel(model *models.Note, c fiber.Ctx) *dto.Note {
 		parentDto := ConvertFolderDtoFromModel(*model.Parent, nil)
 		parent = &parentDto
 	}
+	var arranger *dto.Author
+	if model.Arranger != nil {
+		a := ConvertAuthorDtoFromModel(*model.Arranger)
+		arranger = &a
+	}
 	return &dto.Note{
-		Id:            model.Id,
-		CreationDate:  model.CreationDate,
-		Creator:       user,
-		Description:   model.Description,
-		Name:          model.Name,
-		Author:        author,
-		PdfAvailable:  model.PdfAvailable,
-		NumberOfPages: model.NumberOfPages,
-		Type:          "note",
-		Parent:        parent,
+		Id:              model.Id,
+		CreationDate:    model.CreationDate,
+		Creator:         user,
+		Description:     model.Description,
+		Name:            model.Name,
+		Author:          author,
+		Arranger:        arranger,
+		PdfAvailable:    model.PdfAvailable,
+		NumberOfPages:   model.NumberOfPages,
+		Type:            "note",
+		Parent:          parent,
+		WikidataID:      model.WikidataID,
+		CompositionYear: model.CompositionYear,
+		Genre:           model.Genre,
 	}
 }
