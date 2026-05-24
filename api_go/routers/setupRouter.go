@@ -137,6 +137,11 @@ func SetupRouter(queries *db.Queries, config config.AppConfig, logger *zap.Sugar
 	var clubMemberService = service.NewClubMemberService(queries, clubService)
 	var messageService = service.NewMessageService(queries)
 
+	var wikidataService = service.NewWikidataService(
+		"https://query.wikidata.org/sparql",
+		"SmartOrganizr/1.0 (https://github.com/SamTV12345/SmartOrganizr)",
+	)
+
 	noteService.FolderService = &folderService
 
 	var concertService = service.ConcertService{
@@ -159,6 +164,7 @@ func SetupRouter(queries *db.Queries, config config.AppConfig, logger *zap.Sugar
 		SetLocal[service.ClubMemberService](c, constants.ClubMemberService, clubMemberService)
 		SetLocal[service.ClubInvitationService](c, constants.ClubInvitationService, clubInvitationService)
 		SetLocal[service.MessageService](c, constants.MessageService, messageService)
+		SetLocal[*service.WikidataService](c, constants.WikidataService, wikidataService)
 
 		return c.Next()
 	})
