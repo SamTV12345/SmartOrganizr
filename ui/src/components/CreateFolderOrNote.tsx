@@ -632,16 +632,9 @@ export function CreateFolderOrNote() {
             const id = await identifyMusicFromImage({ imageBase64: base64, mimeType });
             setAiSuggestion({ title: id.title, composer: id.composer, arranger: id.arranger, confidence: id.confidence });
 
-            // Below this threshold the model is essentially guessing and the
-            // proposed title is often a description like "Unknown cover".
-            // Show the suggestion box for transparency, but don't poison the
-            // form with bogus values.
-            const CONFIDENCE_THRESHOLD = 0.4;
-            if (id.confidence < CONFIDENCE_THRESHOLD) {
-                return;
-            }
-
             // Pre-fill form fields. Don't overwrite anything the user already typed.
+            // User reviews fields anyway, so even low-confidence guesses are
+            // useful as a starting point.
             const cur = form.getValues() as Extract<FormValues, { type: "note" }>;
             if (!cur.name && id.title) {
                 form.setValue("name", id.title, { shouldDirty: true });
@@ -1041,7 +1034,7 @@ export function CreateFolderOrNote() {
                                             <div>{aiSuggestion.title}{aiSuggestion.composer && <> · {aiSuggestion.composer}</>}{aiSuggestion.arranger && <> (arr. {aiSuggestion.arranger})</>}</div>
                                             <div className="mt-1 text-muted-foreground">
                                                 {aiSuggestion.confidence < 0.4
-                                                    ? t("ai.lowConfidence", "Confidence zu niedrig — Felder wurden nicht vorbefüllt. Bitte manuell eingeben oder erneut fotografieren.")
+                                                    ? t("ai.lowConfidenceHint", "Felder vorbefüllt, aber KI war unsicher — bitte gut prüfen.")
                                                     : t("ai.suggestionHint", "Felder vorbefüllt — bitte prüfen und ggf. aus Wikidata bestätigen.")}
                                             </div>
                                         </div>
