@@ -50,6 +50,7 @@ import { Page } from "@/src/models/Page";
 import { AuthorEmbeddedContainer } from "@/src/models/AuthorEmbeddedContainer";
 import { WorkAutocompleteInput } from "@/src/components/searchBars/WorkAutocompleteInput";
 import { AuthorConflictDialog } from "@/src/components/AuthorConflictDialog";
+import { InlineAuthorCreateDialog } from "@/src/components/InlineAuthorCreateDialog";
 import { createWorkFromWikidata } from "@/src/api/autocomplete";
 import type {
     AutocompleteAuthor,
@@ -192,6 +193,7 @@ export function CreateFolderOrNote() {
     const [conflict, setConflict] = useState<WorkFromWikidataConflict | null>(null);
     const [pendingWikidata, setPendingWikidata] = useState<AutocompleteWork | null>(null);
     const [wikidataError, setWikidataError] = useState<string | null>(null);
+    const [authorCreateOpen, setAuthorCreateOpen] = useState(false);
 
     const setCreateAnother = (value: boolean) => {
         setCreateAnotherState(value);
@@ -807,7 +809,20 @@ export function CreateFolderOrNote() {
 
                         <ParentFolderSearchBar />
 
-                        {watchType === "note" && <NoteAuthorCreateSearchBar />}
+                        {watchType === "note" && (
+                            <div className="space-y-1">
+                                <NoteAuthorCreateSearchBar />
+                                <Button
+                                    type="button"
+                                    variant="link"
+                                    size="sm"
+                                    className="h-auto px-0 text-xs"
+                                    onClick={() => setAuthorCreateOpen(true)}
+                                >
+                                    + {t("author.createInline", "Neuen Autor anlegen")}
+                                </Button>
+                            </div>
+                        )}
 
                         <DialogFooter className="sm:justify-between">
                             <label className="flex items-center gap-2 text-sm">
@@ -847,6 +862,16 @@ export function CreateFolderOrNote() {
                 onLinkExisting={handleConflictLinkExisting}
                 onCreateNew={handleConflictCreateNew}
                 onCancel={handleConflictCancel}
+            />
+            <InlineAuthorCreateDialog
+                open={authorCreateOpen}
+                onOpenChange={setAuthorCreateOpen}
+                initialName={form.getValues("type") === "note" ? (form.getValues("authorName") ?? "") : ""}
+                onCreated={(author) => {
+                    form.setValue("authorId", author.id, { shouldDirty: true, shouldValidate: true });
+                    form.setValue("authorName", author.name, { shouldDirty: true, shouldValidate: true });
+                    dispatch(setElementSelectedAuthorName(author.name));
+                }}
             />
         </Dialog>
     );
