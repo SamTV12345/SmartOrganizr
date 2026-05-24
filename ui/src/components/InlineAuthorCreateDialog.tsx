@@ -105,13 +105,22 @@ export function InlineAuthorCreateDialog({
 
         try {
             const resp = await axios.post<Author>(`${apiURL}/v1/authors`, payload);
+            // Backend used to return 200 with {error: "..."} on failure; even
+            // though that's fixed to 4xx now, defend against missing id so a
+            // stale backend can't poison the form with undefined.
+            if (!resp.data?.id) {
+                console.error("author create returned no id:", resp.data);
+                setError(t("author.createFailed", "Autor konnte nicht angelegt werden.") as string);
+                setIsSaving(false);
+                return;
+            }
             onCreated(resp.data);
             resetState();
             onOpenChange(false);
         } catch (err) {
             console.error(err);
-            const e = err as { response?: { data: { error?: string } } };
-            if (e.response?.data?.error?.includes("Duplicate entry")) {
+            const e = err as { response?: { status: number; data: { error?: string } } };
+            if (e.response?.status === 409 || e.response?.data?.error?.includes("Duplicate entry")) {
                 setError(t("author.duplicateWikidata", "Du hast diesen Autor (gleiche Wikidata-ID) schon angelegt.") as string);
             } else {
                 setError(t("author.createFailed", "Autor konnte nicht angelegt werden.") as string);
