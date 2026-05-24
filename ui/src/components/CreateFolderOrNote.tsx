@@ -48,6 +48,14 @@ import {
 import { Author } from "@/src/models/Author";
 import { Page } from "@/src/models/Page";
 import { AuthorEmbeddedContainer } from "@/src/models/AuthorEmbeddedContainer";
+import { WorkAutocompleteInput } from "@/src/components/searchBars/WorkAutocompleteInput";
+import { AuthorConflictDialog } from "@/src/components/AuthorConflictDialog";
+import { createWorkFromWikidata } from "@/src/api/autocomplete";
+import type {
+    AutocompleteAuthor,
+    AutocompleteWork,
+    WorkFromWikidataConflict,
+} from "@/src/models/Autocomplete";
 
 /* ------------------------------------------------------------------ */
 /* Zod schemas (module-level, never recreated)                         */
@@ -179,6 +187,12 @@ export function CreateFolderOrNote() {
     const justSavedTimerRef = useRef<number | null>(null);
     const nameInputRef = useRef<HTMLInputElement | null>(null);
 
+    // Wikidata flow state. pendingWikidata holds the original external pick so
+    // the conflict-resolution buttons can retry the same work.
+    const [conflict, setConflict] = useState<WorkFromWikidataConflict | null>(null);
+    const [pendingWikidata, setPendingWikidata] = useState<AutocompleteWork | null>(null);
+    const [wikidataError, setWikidataError] = useState<string | null>(null);
+
     const setCreateAnother = (value: boolean) => {
         setCreateAnotherState(value);
         writeCreateAnother(value);
@@ -285,6 +299,80 @@ export function CreateFolderOrNote() {
 
     const isPending =
         createFolderMutation.isPending || createNoteMutation.isPending;
+
+    /* ------------------------------------------------------------------ */
+    /* Wikidata external-pick flow                                         */
+    /* ------------------------------------------------------------------ */
+
+    // submitWikidataPick is the actual POST. Pulled out so the conflict
+    // resolution buttons can call it with forceNewAuthor / after PATCH.
+    const submitWikidataPick = async (
+        work: AutocompleteWork,
+        opts: { forceNewAuthor?: boolean } = {},
+    ) => {
+        setWikidataError(null);
+        const parentId = form.getValues("parentId");
+        if (!parentId) {
+            setWikidataError(t("wikidata.parentRequired", "Bitte zuerst einen übergeordneten Ordner wählen.") as string);
+            return;
+        }
+        try {
+            const result = await createWorkFromWikidata({
+                wikidataId: work.wikidataId!,
+                parentId,
+                forceNewAuthor: opts.forceNewAuthor,
+            });
+            if ("conflict" in result) {
+                setConflict(result.conflict);
+                setPendingWikidata(work);
+                return;
+            }
+            // Success: refresh the tree cache like createNoteMutation does
+            // and run the same post-submit reset/flash logic.
+            updateCache(result.note);
+            setConflict(null);
+            setPendingWikidata(null);
+            handlePostSubmit();
+        } catch (err) {
+            console.error(err);
+            setWikidataError(t("wikidata.createFailed", "Werk konnte nicht angelegt werden.") as string);
+        }
+    };
+
+    const handleWikidataPick = (work: AutocompleteWork) => {
+        setPendingWikidata(work);
+        submitWikidataPick(work);
+    };
+
+    const handleConflictLinkExisting = async (candidate: AutocompleteAuthor) => {
+        if (!conflict || !pendingWikidata || !candidate.id) return;
+        try {
+            await axios.patch(`${apiURL}/v1/authors/${candidate.id}`, {
+                name: candidate.name,
+                extraInformation: "",
+                wikidataId: conflict.incoming.wikidataId,
+                birthYear: conflict.incoming.birthYear,
+                deathYear: conflict.incoming.deathYear,
+            });
+        } catch (err) {
+            console.error(err);
+            setWikidataError(t("wikidata.linkFailed", "Verknüpfen fehlgeschlagen.") as string);
+            return;
+        }
+        setConflict(null);
+        submitWikidataPick(pendingWikidata);
+    };
+
+    const handleConflictCreateNew = () => {
+        if (!pendingWikidata) return;
+        setConflict(null);
+        submitWikidataPick(pendingWikidata, { forceNewAuthor: true });
+    };
+
+    const handleConflictCancel = () => {
+        setConflict(null);
+        setPendingWikidata(null);
+    };
 
     /* ------------------------------------------------------------------ */
     /* Submit                                                              */
@@ -530,14 +618,42 @@ export function CreateFolderOrNote() {
                                 <FormItem>
                                     <FormLabel>{t("name")}</FormLabel>
                                     <FormControl>
-                                        <Input
-                                            {...field}
-                                            ref={(el) => {
-                                                field.ref(el);
-                                                nameInputRef.current = el;
-                                            }}
-                                        />
+                                        {watchType === "note" ? (
+                                            <WorkAutocompleteInput
+                                                value={field.value ?? ""}
+                                                onChange={(v) => field.onChange(v)}
+                                                onPickLocal={(w) => {
+                                                    // Local hit: fill name + author from
+                                                    // composer if present. Don't auto-submit.
+                                                    form.setValue("name", w.name);
+                                                    if (w.composer) {
+                                                        if (w.composer.id) {
+                                                            form.setValue("authorId", w.composer.id);
+                                                        }
+                                                        if (w.composer.name) {
+                                                            form.setValue("authorName", w.composer.name);
+                                                            dispatch(setElementSelectedAuthorName(w.composer.name));
+                                                        }
+                                                    }
+                                                }}
+                                                onPickExternal={(w) => handleWikidataPick(w)}
+                                                placeholder={t("name") as string}
+                                            />
+                                        ) : (
+                                            <Input
+                                                {...field}
+                                                ref={(el) => {
+                                                    field.ref(el);
+                                                    nameInputRef.current = el;
+                                                }}
+                                            />
+                                        )}
                                     </FormControl>
+                                    {wikidataError && watchType === "note" && (
+                                        <p className="text-sm text-destructive">
+                                            {wikidataError}
+                                        </p>
+                                    )}
                                     <FormMessage />
                                 </FormItem>
                             )}
@@ -690,6 +806,12 @@ export function CreateFolderOrNote() {
                     </form>
                 </Form>
             </DialogContent>
+            <AuthorConflictDialog
+                conflict={conflict}
+                onLinkExisting={handleConflictLinkExisting}
+                onCreateNew={handleConflictCreateNew}
+                onCancel={handleConflictCancel}
+            />
         </Dialog>
     );
 }
