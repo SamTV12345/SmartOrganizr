@@ -153,7 +153,7 @@ func (n NoteService) LoadNote(noteId string, userId string) (models.Note, error)
 		return models.Note{}, err
 	}
 
-	author, err := n.AuthorService.LoadAuthorById(noteDB.Element.AuthorIDFk.String, userId)
+	author, err := n.AuthorService.LoadAuthorById(noteDB.Element.ComposerIDFk.String, userId)
 
 	if err != nil {
 		return models.Note{}, err
@@ -243,7 +243,7 @@ func (n NoteService) CreateNote(userId string, note dto.NotePostDto) (*models.No
 		Name:          db.NewSQLNullString(note.Name),
 		Description:   db.NewSQLNullString(note.Description),
 		UserIDFk:      db.NewSQLNullString(userId),
-		AuthorIDFk:    db.NewSQLNullString(note.AuthorId),
+		ComposerIDFk:  db.NewSQLNullString(note.AuthorId),
 		Parent:        db.NewSQLNullString(note.ParentId),
 		NumberOfPages: db.NewSQLNullInt(note.NumberOfPages),
 		PdfContent:    pdfContent,
@@ -286,7 +286,7 @@ func (n NoteService) UpdateNote(userId string, note models.Note) (models.Note, e
 		NumberOfPages: db.NewSQLNullInt(note.NumberOfPages),
 		PdfContent:    pdfContent,
 		Name:          db.NewSQLNullString(note.Name),
-		AuthorIDFk:    db.NewSQLNullString(note.Author.ID),
+		ComposerIDFk:  db.NewSQLNullString(note.Author.ID),
 	})
 
 	if err != nil {

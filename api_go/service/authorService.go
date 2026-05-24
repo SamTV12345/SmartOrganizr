@@ -158,8 +158,8 @@ func (a *AuthorService) DeleteAuthor(authorId string, userId string) error {
 
 func (a *AuthorService) FindAllNotesByAuthor(userId string, authorId string) (*[]models.Note, error) {
 	var notes, err = a.Queries.FindAllNotesByAuthor(context.Background(), db.FindAllNotesByAuthorParams{
-		UserIDFk:   db.NewSQLNullString(userId),
-		AuthorIDFk: db.NewSQLNullString(authorId),
+		UserIDFk:     db.NewSQLNullString(userId),
+		ComposerIDFk: db.NewSQLNullString(authorId),
 	})
 
 	if err != nil {

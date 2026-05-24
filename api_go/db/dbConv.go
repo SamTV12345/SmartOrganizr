@@ -25,16 +25,20 @@ func ConvertListElementEntityToDBVersion(elements []Element) []IElement {
 
 func ConvertNoteEntityToDBVersion(element Element) Note {
 	return Note{
-		UserIDFk:      element.UserIDFk,
-		Description:   element.Description,
-		Parent:        element.Parent,
-		Name:          element.Name,
-		ID:            element.ID,
-		AuthorIDFk:    element.AuthorIDFk,
-		NumberOfPages: element.NumberOfPages,
-		PdfAvailable:  element.PdfContent.Valid,
-		CreationDate:  element.CreationDate,
-		PdfContent:    sql.RawBytes(element.PdfContent.String),
+		UserIDFk:        element.UserIDFk,
+		Description:     element.Description,
+		Parent:          element.Parent,
+		Name:            element.Name,
+		ID:              element.ID,
+		ComposerIDFk:    element.ComposerIDFk,
+		ArrangerIDFk:    element.ArrangerIDFk,
+		NumberOfPages:   element.NumberOfPages,
+		PdfAvailable:    element.PdfContent.Valid,
+		CreationDate:    element.CreationDate,
+		PdfContent:      sql.RawBytes(element.PdfContent.String),
+		WikidataID:      element.WikidataID,
+		CompositionYear: element.CompositionYear,
+		Genre:           element.Genre,
 	}
 }
 
