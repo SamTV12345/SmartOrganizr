@@ -50,6 +50,7 @@ import { Page } from "@/src/models/Page";
 import { AuthorEmbeddedContainer } from "@/src/models/AuthorEmbeddedContainer";
 import { WorkAutocompleteInput } from "@/src/components/searchBars/WorkAutocompleteInput";
 import { AuthorConflictDialog } from "@/src/components/AuthorConflictDialog";
+import { AuthorDisambiguationDialog } from "@/src/components/AuthorDisambiguationDialog";
 import { InlineAuthorCreateDialog } from "@/src/components/InlineAuthorCreateDialog";
 import { createWorkFromWikidata } from "@/src/api/autocomplete";
 import { identifyMusicFromImage } from "@/src/api/identifyMusic";
@@ -148,18 +149,22 @@ const normalizeAuthorName = (authorName: string): string =>
     authorName.replace(/\s+/g, " ").trim();
 
 const findAuthorByName = async (authorName: string): Promise<Author | null> => {
+    const matches = await findAllAuthorsByExactName(authorName);
+    return matches[0] ?? null;
+};
+
+// findAllAuthorsByExactName returns every local author whose normalized name
+// matches the needle. Used by the disambiguation flow: 0 -> create new,
+// 1 -> reuse silently, 2+ -> ask the user which one is meant.
+const findAllAuthorsByExactName = async (authorName: string): Promise<Author[]> => {
     const response = await axios.get<Page<AuthorEmbeddedContainer<Author>>>(
         `${apiURL}/v1/authors?page=0&name=${encodeURIComponent(authorName)}`
     );
-
     const authors = response.data._embedded?.authorRepresentationModelList ?? [];
-    const normalizedNeedle = normalizeAuthorName(authorName).toLocaleLowerCase();
-
-    const exactMatch = authors.find(
-        (author) => normalizeAuthorName(author.name).toLocaleLowerCase() === normalizedNeedle
+    const needle = normalizeAuthorName(authorName).toLocaleLowerCase();
+    return authors.filter(
+        (a) => normalizeAuthorName(a.name).toLocaleLowerCase() === needle
     );
-
-    return exactMatch ?? null;
 };
 
 const findOrCreateAuthorId = async (authorName: string): Promise<string> => {
@@ -197,6 +202,11 @@ export function CreateFolderOrNote() {
     const [pendingWikidata, setPendingWikidata] = useState<AutocompleteWork | null>(null);
     const [wikidataError, setWikidataError] = useState<string | null>(null);
     const [authorCreateOpen, setAuthorCreateOpen] = useState(false);
+    const [authorDisambig, setAuthorDisambig] = useState<{
+        name: string;
+        candidates: Author[];
+        pendingValues: Extract<FormValues, { type: "note" }>;
+    } | null>(null);
     const [isAIScanning, setIsAIScanning] = useState(false);
     const [aiScanError, setAiScanError] = useState<string | null>(null);
     const [aiSuggestion, setAiSuggestion] = useState<{ title: string; composer: string; arranger?: string; confidence: number } | null>(null);
@@ -466,29 +476,108 @@ export function CreateFolderOrNote() {
                 return;
             }
 
-            let resolvedAuthorId = values.authorId;
-            if (!resolvedAuthorId) {
-                try {
-                    resolvedAuthorId = await findOrCreateAuthorId(normalizedAuthorName);
-                } catch (error) {
-                    console.error(error);
-                    form.setError("authorName", {
-                        type: "manual",
-                        message: t("authorResolveFailed") as string,
-                    });
-                    return;
-                }
+            // If the user already picked an author from the combobox, that
+            // ID is authoritative — skip the name-based disambiguation
+            // dance and submit directly.
+            if (values.authorId) {
+                submitNoteWithAuthorId(values.authorId, values);
+                return;
             }
 
-            createNoteMutation.mutate({
-                name: values.name,
-                description: values.description ?? "",
-                numberOfPages: values.numberOfPages,
-                parentId: values.parentId,
-                authorId: resolvedAuthorId,
-                pdfContent: scannedPdfContent || undefined,
+            // No explicit pick: look up all local authors with this exact
+            // name. 0 -> create new. 1 -> reuse silently. 2+ -> ask which.
+            let matches: Author[];
+            try {
+                matches = await findAllAuthorsByExactName(normalizedAuthorName);
+            } catch (error) {
+                console.error(error);
+                form.setError("authorName", {
+                    type: "manual",
+                    message: t("authorResolveFailed") as string,
+                });
+                return;
+            }
+
+            if (matches.length > 1) {
+                setAuthorDisambig({
+                    name: normalizedAuthorName,
+                    candidates: matches,
+                    pendingValues: values,
+                });
+                return;
+            }
+            if (matches.length === 1) {
+                submitNoteWithAuthorId(matches[0].id, values);
+                return;
+            }
+            // No match: fall through to create-and-link.
+            try {
+                const newId = await findOrCreateAuthorId(normalizedAuthorName);
+                submitNoteWithAuthorId(newId, values);
+            } catch (error) {
+                console.error(error);
+                form.setError("authorName", {
+                    type: "manual",
+                    message: t("authorResolveFailed") as string,
+                });
+            }
+        }
+    };
+
+    // Helper used by both onSubmit and the disambiguation dialog callbacks
+    // so the mutation payload stays in one place.
+    const submitNoteWithAuthorId = (
+        authorId: string,
+        values: Extract<FormValues, { type: "note" }>,
+    ) => {
+        createNoteMutation.mutate({
+            name: values.name,
+            description: values.description ?? "",
+            numberOfPages: values.numberOfPages,
+            parentId: values.parentId,
+            authorId,
+            pdfContent: scannedPdfContent || undefined,
+        });
+    };
+
+    const handleDisambigPickExisting = (author: Author) => {
+        if (!authorDisambig) return;
+        const { pendingValues } = authorDisambig;
+        setAuthorDisambig(null);
+        submitNoteWithAuthorId(author.id, pendingValues);
+    };
+
+    const handleDisambigCreateNew = async () => {
+        if (!authorDisambig) return;
+        const { name, pendingValues } = authorDisambig;
+        setAuthorDisambig(null);
+        try {
+            // POST directly so we get back a fresh ID for the new same-name
+            // author — findOrCreateAuthorId would just hand us one of the
+            // existing ones again.
+            const resp = await axios.post<Author>(`${apiURL}/v1/authors`, {
+                name,
+                extraInformation: "",
+            });
+            if (!resp.data?.id) {
+                form.setError("authorName", {
+                    type: "manual",
+                    message: t("authorResolveFailed") as string,
+                });
+                return;
+            }
+            submitNoteWithAuthorId(resp.data.id, pendingValues);
+        } catch (error) {
+            console.error(error);
+            form.setError("authorName", {
+                type: "manual",
+                message: t("authorResolveFailed") as string,
             });
         }
+    };
+
+    const handleDisambigCancel = () => {
+        setAuthorDisambig(null);
     };
 
     /* ------------------------------------------------------------------ */
@@ -1041,6 +1130,13 @@ export function CreateFolderOrNote() {
                     form.setValue("authorName", author.name, { shouldDirty: true, shouldValidate: true });
                     dispatch(setElementSelectedAuthorName(author.name));
                 }}
+            />
+            <AuthorDisambiguationDialog
+                name={authorDisambig?.name ?? null}
+                candidates={authorDisambig?.candidates ?? []}
+                onPickExisting={handleDisambigPickExisting}
+                onCreateNew={handleDisambigCreateNew}
+                onCancel={handleDisambigCancel}
             />
         </Dialog>
     );
