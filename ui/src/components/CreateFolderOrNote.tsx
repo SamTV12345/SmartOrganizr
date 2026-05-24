@@ -323,6 +323,17 @@ export function CreateFolderOrNote() {
             updateCache(data);
             handlePostSubmit();
         },
+        onError: (err) => {
+            // Surface backend errors instead of failing silently — without
+            // this the user saw the button briefly return to 'Save' with no
+            // explanation when, e.g., the description was too long for the
+            // old VARCHAR(255) column.
+            const e = err as Error & { response?: { status: number; data?: { error?: string } } };
+            console.error("createNote failed:", e.response?.status, e.response?.data, err);
+            const msg = e.response?.data?.error
+                ?? (e.response?.status ? `Server-Fehler ${e.response.status}` : err.message);
+            form.setError("name", { type: "manual", message: msg });
+        },
     });
 
     const isPending =
