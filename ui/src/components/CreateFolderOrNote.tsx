@@ -276,25 +276,11 @@ export function CreateFolderOrNote() {
         setWikidataError(null);
 
         if (createAnother) {
-            // For notes, clear the piece-specific fields so the user can
-            // immediately enter the next one in the same folder. Keeping
-            // those values stale would also block AI/OCR prefill since
-            // those skip non-empty fields by design.
-            const current = form.getValues();
-            if (current.type === "note") {
-                form.reset({
-                    type: "note",
-                    name: "",
-                    description: "",
-                    numberOfPages: 1,
-                    authorId: "",
-                    authorName: "",
-                    parentId: current.parentId,
-                    extraInformation: "",
-                });
-                dispatch(setElementSelectedAuthorName(""));
-            }
             flashJustSavedFocus();
+            // Form-Werte bleiben unverändert — der Reset für AI-getriebene
+            // neue Einträge passiert in triggerAIScan, sodass manuelle
+            // Folge-Einträge (gleicher Komponist, ähnlicher Titel) ihre
+            // Werte behalten dürfen.
             return;
         }
 
@@ -500,6 +486,26 @@ export function CreateFolderOrNote() {
     const triggerAIScan = () => {
         setAiScanError(null);
         setAiSuggestion(null);
+        setPendingWikidata(null);
+        setWikidataError(null);
+        // Clearing piece-specific fields now means the AI's identification
+        // is what populates them — no fighting with stale values from a
+        // previous entry. Pages + parent folder are kept because they're
+        // usually the same for a batch of notes the user is digitising.
+        const current = form.getValues();
+        if (current.type === "note") {
+            form.reset({
+                type: "note",
+                name: "",
+                description: "",
+                numberOfPages: current.numberOfPages,
+                authorId: "",
+                authorName: "",
+                parentId: current.parentId,
+                extraInformation: "",
+            });
+            dispatch(setElementSelectedAuthorName(""));
+        }
         aiCameraInputRef.current?.click();
     };
 
