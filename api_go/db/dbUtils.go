@@ -12,6 +12,16 @@ func NewSQLNullString(value string) sql.NullString {
 	}
 }
 
+// NewNullableSQLString writes a string as NULL when empty. Use this for columns
+// that are part of a UNIQUE key — MySQL treats two empty strings as a collision
+// but allows multiple NULLs. Example: authors.wikidata_id, elements.wikidata_id.
+func NewNullableSQLString(value string) sql.NullString {
+	if value == "" {
+		return sql.NullString{}
+	}
+	return sql.NullString{String: value, Valid: true}
+}
+
 func NewSQLNullStringNullValue(value *string) sql.NullString {
 	if value == nil {
 		return sql.NullString{

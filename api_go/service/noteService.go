@@ -345,7 +345,7 @@ func (n *NoteService) CreateNoteFromWikidata(userId, parentId string, work Wikid
 		Parent:          db.NewSQLNullString(parentId),
 		ComposerIDFk:    composerIdFk,
 		ArrangerIDFk:    sql.NullString{},
-		WikidataID:      db.NewSQLNullString(work.WikidataID),
+		WikidataID:      db.NewNullableSQLString(work.WikidataID),
 		CompositionYear: compYear,
 		Genre:           db.NewSQLNullString(work.Genre),
 	})
