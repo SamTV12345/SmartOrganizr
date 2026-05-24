@@ -62,3 +62,8 @@ api_go/config.env
 .env.*.local
 api_go/.env
 api_go/.env.local
+
+# Debug screenshots dropped in the repo root during dev sessions
+img.png
+img-*.png
+screenshot*.png
