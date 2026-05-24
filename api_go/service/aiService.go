@@ -55,33 +55,37 @@ type MusicIdentification struct {
 	Notes      string  `json:"notes,omitempty"`
 }
 
-const identifyMusicPrompt = `Du analysierst ein Foto eines Notenblatts, Noten-Covers oder Musik-Booklets.
-Identifiziere den Werkstitel und den Hauptkomponisten bzw. Hauptarrangeur.
+const identifyMusicPrompt = `Du bist ein OCR-System für Notenblätter. Lies AUSSCHLIESSLICH den Text ab, der auf dem Foto sichtbar ist. Rate NICHT aus deinem Weltwissen.
 
-Antworte ausschliesslich als JSON-Objekt mit dem Schema:
+Antworte ausschliesslich als JSON-Objekt:
 {
   "title": string,
   "composer": string,
   "arranger": string,
   "confidence": number zwischen 0 und 1,
-  "notes": string mit Hintergrund zur Entstehung des Werks
+  "notes": string
 }
 
-WICHTIG für composer und arranger:
-- Genau EIN Name pro Feld (Vor- und Nachname, ggf. nur Bandname bei Pop/Rock).
-- KEINE Klammern, KEINE Anmerkungen, KEINE Mehrfachnennungen, KEIN Komma.
-- KEIN Array. composer und arranger sind IMMER strings, niemals Listen.
-- Bei Medleys/Tributes/Arrangements mehrerer Werke: nenne den prominentesten ursprünglichen Komponisten (z.B. "Amy Winehouse" statt "Amy Winehouse, Mark Ronson, Sean Payne"). Details kommen in das notes-Feld.
-- Bei Klassik: vollständiger Name des Komponisten ("Wolfgang Amadeus Mozart" nicht "Mozart").
+REGELN (extrem wichtig):
+- title: der Werktitel, GENAU wie auf dem Blatt gedruckt.
+- composer: der Komponisten-/Urheber-Name, GENAU wie auf dem Blatt gedruckt (typisch oben rechts, manchmal unter dem Titel, mit Worten wie "von", "Musik:", "Music by", "Composed by"). NICHT raten wer das Stück geschrieben hat wenn der Name nicht draufsteht!
+- arranger: der Arrangeur-/Bearbeiter-Name, GENAU wie gedruckt (typisch mit "arr.", "arrangiert von", "Arrangement:", "Bearbeitung:", "Satz:"). Leer lassen wenn nicht erkennbar.
+- Wenn am Blatt KEIN Komponistenname gedruckt ist: composer leer lassen und confidence unter 0.3 setzen. Lieber leer als falsch.
+- KEINE Klammern, KEINE Mehrfachnennungen, KEIN Komma — genau ein Name pro Feld.
+- KEIN Array. composer/arranger sind IMMER einzelne strings.
+- Bei mehreren Komponisten am Blatt: den prominentesten (grösste Schrift / zuerst genannten) nehmen.
 
-Für das notes-Feld:
-- 2-4 Sätze über den Hintergrund der Entstehung: Jahr/Epoche, Anlass, Album/Werk-Kontext, ursprüngliche Besetzung, ggf. bekannte Anekdote.
-- Bei Arrangements/Medleys: kurz erwähnen welche ursprünglichen Stücke enthalten sind.
-- NUR was du sicher weisst. Wenn unsicher: kurz fassen oder leer lassen. Keine Erfindungen.
-- Auf Deutsch.
+Für confidence:
+- 0.9+ : Titel UND Komponist klar lesbar am Blatt.
+- 0.5-0.8 : Eines von beiden gut lesbar, das andere unsicher.
+- < 0.3 : Nichts oder kaum was lesbar, oder du musstest raten.
 
-Wenn du das Werk nicht eindeutig identifizieren kannst, setze confidence niedrig (z.B. 0.2).
-Lass arranger leer wenn nicht erkennbar. Antworte ausschliesslich mit dem JSON, kein Markdown, kein Fliesstext drumherum.`
+Für notes:
+- 1-3 Sätze auf Deutsch zum Werk-Hintergrund (Jahr, Album, Anlass) — NUR wenn du das Werk sicher anhand der GEDRUCKTEN Angaben (Titel + Komponist) identifizieren konntest.
+- Bei niedriger confidence: notes leer lassen.
+- Keine Spekulation, keine Erfindungen.
+
+Antworte ausschliesslich mit dem JSON, kein Markdown, kein Fliesstext drumherum.`
 
 // IdentifyMusicFromImage sends a base64-encoded image plus an identification
 // prompt to the configured vision model and parses the LLM response as a
