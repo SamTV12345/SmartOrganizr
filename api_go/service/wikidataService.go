@@ -58,6 +58,20 @@ type sparqlResponse struct {
 }
 
 func (s *WikidataService) runQuery(sparql string) (*sparqlResponse, error) {
+	// Wikidata's public endpoint sporadically returns 502/503 for a few seconds
+	// during load spikes. One quick retry catches most of these without making
+	// the user re-type. Anything beyond a single retry is the user's problem
+	// to recover from (or we'd need real backoff + cache, which is YAGNI here).
+	resp, err := s.doSparqlRequest(sparql)
+	if shouldRetry(resp, err) {
+		log.Printf("wikidata transient failure, retrying once after 500ms")
+		time.Sleep(500 * time.Millisecond)
+		resp, err = s.doSparqlRequest(sparql)
+	}
+	return resp, err
+}
+
+func (s *WikidataService) doSparqlRequest(sparql string) (*sparqlResponse, error) {
 	form := url.Values{}
 	form.Set("query", sparql)
 	form.Set("format", "json")
@@ -76,7 +90,7 @@ func (s *WikidataService) runQuery(sparql string) (*sparqlResponse, error) {
 	if resp.StatusCode != 200 {
 		body, _ := io.ReadAll(resp.Body)
 		log.Printf("wikidata returned %d: %s", resp.StatusCode, string(body))
-		return nil, fmt.Errorf("wikidata returned %d: %s", resp.StatusCode, string(body))
+		return nil, &wikidataHTTPError{Status: resp.StatusCode, Body: string(body)}
 	}
 	var parsed sparqlResponse
 	if err := json.NewDecoder(resp.Body).Decode(&parsed); err != nil {
@@ -84,6 +98,37 @@ func (s *WikidataService) runQuery(sparql string) (*sparqlResponse, error) {
 		return nil, err
 	}
 	return &parsed, nil
+}
+
+type wikidataHTTPError struct {
+	Status int
+	Body   string
+}
+
+func (e *wikidataHTTPError) Error() string {
+	return fmt.Sprintf("wikidata returned %d: %s", e.Status, e.Body)
+}
+
+func shouldRetry(_ *sparqlResponse, err error) bool {
+	if err == nil {
+		return false
+	}
+	var httpErr *wikidataHTTPError
+	if errAs(err, &httpErr) {
+		return httpErr.Status >= 500 && httpErr.Status < 600
+	}
+	// Network-level errors (timeouts, DNS failures) are also worth one retry.
+	return true
+}
+
+// errAs is errors.As without the import cycle headache — keeps this file's
+// imports small.
+func errAs(err error, target **wikidataHTTPError) bool {
+	if e, ok := err.(*wikidataHTTPError); ok {
+		*target = e
+		return true
+	}
+	return false
 }
 
 func qidFromURI(uri string) string {
