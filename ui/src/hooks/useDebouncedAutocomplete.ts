@@ -9,7 +9,7 @@ import { useEffect, useRef, useState } from "react";
 export function useDebouncedAutocomplete<T>(
     query: string,
     fetcher: (q: string) => Promise<T>,
-    delayMs = 300,
+    delayMs = 2000,
     minLen = 2,
 ): { data: T | null; loading: boolean; error: Error | null } {
     const [data, setData] = useState<T | null>(null);
