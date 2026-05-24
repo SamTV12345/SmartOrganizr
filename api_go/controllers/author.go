@@ -8,6 +8,7 @@ import (
 	"github.com/gofiber/fiber/v3"
 	"github.com/gofiber/fiber/v3/log"
 	"strconv"
+	"strings"
 )
 
 // GetAuthors godoc
@@ -150,7 +151,13 @@ func CreateAuthor(c fiber.Ctx) error {
 
 	var createdAuthor, err = authorService.CreateAuthor(authorDto, userId)
 	if err != nil {
-		return c.JSON(fiber.Map{
+		// Surface duplicate-key violations as 409 so the frontend can show a
+		// friendly "already exists" message; everything else is 500.
+		status := 500
+		if strings.Contains(err.Error(), "Duplicate entry") {
+			status = 409
+		}
+		return c.Status(status).JSON(fiber.Map{
 			"error": err.Error(),
 		})
 	}
