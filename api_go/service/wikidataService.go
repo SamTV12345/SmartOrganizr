@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -74,10 +75,12 @@ func (s *WikidataService) runQuery(sparql string) (*sparqlResponse, error) {
 	defer resp.Body.Close()
 	if resp.StatusCode != 200 {
 		body, _ := io.ReadAll(resp.Body)
+		log.Printf("wikidata returned %d: %s", resp.StatusCode, string(body))
 		return nil, fmt.Errorf("wikidata returned %d: %s", resp.StatusCode, string(body))
 	}
 	var parsed sparqlResponse
 	if err := json.NewDecoder(resp.Body).Decode(&parsed); err != nil {
+		log.Printf("wikidata json decode error: %v", err)
 		return nil, err
 	}
 	return &parsed, nil
@@ -117,13 +120,21 @@ func sanitizeTerm(t string) string {
 	return strings.ReplaceAll(strings.ReplaceAll(t, `"`, ""), `\`, "")
 }
 
-// SearchWorks returns up to 10 musical works whose label or alias contains the term.
+// SearchWorks returns up to 10 musical works whose label or alias matches the
+// term. Uses Wikidata's MWAPI EntitySearch (full-text indexed, fast) and then
+// filters to entities that have a composer (P86) — a reliable "is a work"
+// proxy without paying for a P31/P279* subclass walk over the whole graph.
 func (s *WikidataService) SearchWorks(term string) ([]WikidataWork, error) {
 	sparql := `SELECT ?work ?workLabel ?workDescription ?composer ?composerLabel ?year WHERE {
-	  ?work rdfs:label|skos:altLabel ?label .
-	  FILTER(CONTAINS(LCASE(?label), LCASE("` + sanitizeTerm(term) + `"))) .
-	  ?work wdt:P31/wdt:P279* wd:Q2188189 .
-	  OPTIONAL { ?work wdt:P86 ?composer . }
+	  SERVICE wikibase:mwapi {
+	    bd:serviceParam wikibase:api "EntitySearch" .
+	    bd:serviceParam wikibase:endpoint "www.wikidata.org" .
+	    bd:serviceParam mwapi:search "` + sanitizeTerm(term) + `" .
+	    bd:serviceParam mwapi:language "de" .
+	    bd:serviceParam mwapi:limit "20" .
+	    ?work wikibase:apiOutputItem mwapi:item .
+	  }
+	  ?work wdt:P86 ?composer .
 	  OPTIONAL { ?work wdt:P571 ?inception . BIND(YEAR(?inception) AS ?inceptionYear) }
 	  OPTIONAL { ?work wdt:P577 ?pubDate . BIND(YEAR(?pubDate) AS ?pubYear) }
 	  BIND(COALESCE(?inceptionYear, ?pubYear) AS ?year)
@@ -132,8 +143,10 @@ func (s *WikidataService) SearchWorks(term string) ([]WikidataWork, error) {
 
 	resp, err := s.runQuery(sparql)
 	if err != nil {
+		log.Printf("wikidata SearchWorks(%q) failed: %v", term, err)
 		return nil, err
 	}
+	log.Printf("wikidata SearchWorks(%q): %d results", term, len(resp.Results.Bindings))
 	works := make([]WikidataWork, 0, len(resp.Results.Bindings))
 	for _, row := range resp.Results.Bindings {
 		work := WikidataWork{
@@ -154,10 +167,17 @@ func (s *WikidataService) SearchWorks(term string) ([]WikidataWork, error) {
 }
 
 // SearchAuthors returns up to 10 people active as composer / arranger / lyricist.
+// Same MWAPI EntitySearch approach as SearchWorks.
 func (s *WikidataService) SearchAuthors(term string) ([]WikidataAuthor, error) {
 	sparql := `SELECT ?person ?personLabel ?personDescription ?birth ?death WHERE {
-	  ?person rdfs:label|skos:altLabel ?label .
-	  FILTER(CONTAINS(LCASE(?label), LCASE("` + sanitizeTerm(term) + `"))) .
+	  SERVICE wikibase:mwapi {
+	    bd:serviceParam wikibase:api "EntitySearch" .
+	    bd:serviceParam wikibase:endpoint "www.wikidata.org" .
+	    bd:serviceParam mwapi:search "` + sanitizeTerm(term) + `" .
+	    bd:serviceParam mwapi:language "de" .
+	    bd:serviceParam mwapi:limit "20" .
+	    ?person wikibase:apiOutputItem mwapi:item .
+	  }
 	  ?person wdt:P106 ?occupation .
 	  VALUES ?occupation { wd:Q36834 wd:Q486748 wd:Q488205 }
 	  OPTIONAL { ?person wdt:P569 ?birth . }
@@ -167,8 +187,10 @@ func (s *WikidataService) SearchAuthors(term string) ([]WikidataAuthor, error) {
 
 	resp, err := s.runQuery(sparql)
 	if err != nil {
+		log.Printf("wikidata SearchAuthors(%q) failed: %v", term, err)
 		return nil, err
 	}
+	log.Printf("wikidata SearchAuthors(%q): %d results", term, len(resp.Results.Bindings))
 	authors := make([]WikidataAuthor, 0, len(resp.Results.Bindings))
 	for _, row := range resp.Results.Bindings {
 		a := WikidataAuthor{
