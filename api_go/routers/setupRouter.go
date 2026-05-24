@@ -142,6 +142,12 @@ func SetupRouter(queries *db.Queries, config config.AppConfig, logger *zap.Sugar
 		"SmartOrganizr/1.0 (https://github.com/SamTV12345/SmartOrganizr)",
 	)
 
+	var aiService = service.NewAIService(
+		config.AI.BaseURL,
+		config.AI.Token,
+		config.AI.Model,
+	)
+
 	noteService.FolderService = &folderService
 
 	var concertService = service.ConcertService{
@@ -165,6 +171,7 @@ func SetupRouter(queries *db.Queries, config config.AppConfig, logger *zap.Sugar
 		SetLocal[service.ClubInvitationService](c, constants.ClubInvitationService, clubInvitationService)
 		SetLocal[service.MessageService](c, constants.MessageService, messageService)
 		SetLocal[*service.WikidataService](c, constants.WikidataService, wikidataService)
+		SetLocal[*service.AIService](c, constants.AIService, aiService)
 
 		return c.Next()
 	})
@@ -261,6 +268,10 @@ func SetupRouter(queries *db.Queries, config config.AppConfig, logger *zap.Sugar
 
 	profile.Route("v1/works", func(r fiber.Router) {
 		r.Post("/from-wikidata", controllers.PostWorkFromWikidata)
+	})
+
+	profile.Route("v1/ai", func(r fiber.Router) {
+		r.Post("/identify-music", controllers.PostIdentifyMusic)
 	})
 
 	profile.Route("v1/elements", func(r fiber.Router) {

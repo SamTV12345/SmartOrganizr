@@ -40,6 +40,12 @@ type AppConfigSMTP struct {
 	Enabled     bool
 }
 
+type AppConfigAI struct {
+	BaseURL string
+	Token   string
+	Model   string
+}
+
 func (c AppConfigDatabase) GetDSN() string {
 	return c.User + ":" + c.Password + "@tcp(" + c.Host + ":" + string(rune(c.Port)) + ")/smartorganizr"
 }
@@ -50,6 +56,7 @@ type AppConfig struct {
 	SSO      AppConfigSSO
 	App      AppParameters
 	SMTP     AppConfigSMTP
+	AI       AppConfigAI
 }
 
 func ReadConfig() (AppConfig, error) {
@@ -95,6 +102,9 @@ func ReadConfig() (AppConfig, error) {
 	viper.SetDefault(SMTPUsername, "")
 	viper.SetDefault(SMTPPassword, "")
 	viper.SetDefault(SMTPFromAddress, "noreply@smartorganizr.local")
+	viper.SetDefault(AIBaseURL, "https://api.mistral.ai/v1")
+	viper.SetDefault(AIToken, "")
+	viper.SetDefault(AIModel, "pixtral-12b-2409")
 
 	var config = AppConfig{
 		Database: struct {
@@ -129,6 +139,11 @@ func ReadConfig() (AppConfig, error) {
 			Password:    viper.GetString(SMTPPassword),
 			FromAddress: viper.GetString(SMTPFromAddress),
 			Enabled:     viper.GetBool(SMTPEnabled),
+		},
+		AI: AppConfigAI{
+			BaseURL: viper.GetString(AIBaseURL),
+			Token:   viper.GetString(AIToken),
+			Model:   viper.GetString(AIModel),
 		},
 	}
 

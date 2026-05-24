@@ -50,8 +50,12 @@ import { Page } from "@/src/models/Page";
 import { AuthorEmbeddedContainer } from "@/src/models/AuthorEmbeddedContainer";
 import { WorkAutocompleteInput } from "@/src/components/searchBars/WorkAutocompleteInput";
 import { AuthorConflictDialog } from "@/src/components/AuthorConflictDialog";
+import { AuthorDisambiguationDialog } from "@/src/components/AuthorDisambiguationDialog";
 import { InlineAuthorCreateDialog } from "@/src/components/InlineAuthorCreateDialog";
 import { createWorkFromWikidata } from "@/src/api/autocomplete";
+import { identifyMusicFromImage } from "@/src/api/identifyMusic";
+import { compressImageForAI } from "@/src/utils/ImageUtils";
+import { Sparkles } from "lucide-react";
 import type {
     AutocompleteAuthor,
     AutocompleteWork,
@@ -145,18 +149,22 @@ const normalizeAuthorName = (authorName: string): string =>
     authorName.replace(/\s+/g, " ").trim();
 
 const findAuthorByName = async (authorName: string): Promise<Author | null> => {
+    const matches = await findAllAuthorsByExactName(authorName);
+    return matches[0] ?? null;
+};
+
+// findAllAuthorsByExactName returns every local author whose normalized name
+// matches the needle. Used by the disambiguation flow: 0 -> create new,
+// 1 -> reuse silently, 2+ -> ask the user which one is meant.
+const findAllAuthorsByExactName = async (authorName: string): Promise<Author[]> => {
     const response = await axios.get<Page<AuthorEmbeddedContainer<Author>>>(
         `${apiURL}/v1/authors?page=0&name=${encodeURIComponent(authorName)}`
     );
-
     const authors = response.data._embedded?.authorRepresentationModelList ?? [];
-    const normalizedNeedle = normalizeAuthorName(authorName).toLocaleLowerCase();
-
-    const exactMatch = authors.find(
-        (author) => normalizeAuthorName(author.name).toLocaleLowerCase() === normalizedNeedle
+    const needle = normalizeAuthorName(authorName).toLocaleLowerCase();
+    return authors.filter(
+        (a) => normalizeAuthorName(a.name).toLocaleLowerCase() === needle
     );
-
-    return exactMatch ?? null;
 };
 
 const findOrCreateAuthorId = async (authorName: string): Promise<string> => {
@@ -194,6 +202,15 @@ export function CreateFolderOrNote() {
     const [pendingWikidata, setPendingWikidata] = useState<AutocompleteWork | null>(null);
     const [wikidataError, setWikidataError] = useState<string | null>(null);
     const [authorCreateOpen, setAuthorCreateOpen] = useState(false);
+    const [authorDisambig, setAuthorDisambig] = useState<{
+        name: string;
+        candidates: Author[];
+        pendingValues: Extract<FormValues, { type: "note" }>;
+    } | null>(null);
+    const [isAIScanning, setIsAIScanning] = useState(false);
+    const [aiScanError, setAiScanError] = useState<string | null>(null);
+    const [aiSuggestion, setAiSuggestion] = useState<{ title: string; composer: string; arranger?: string; confidence: number } | null>(null);
+    const aiCameraInputRef = useRef<HTMLInputElement | null>(null);
 
     const setCreateAnother = (value: boolean) => {
         setCreateAnotherState(value);
@@ -250,17 +267,30 @@ export function CreateFolderOrNote() {
         }, 1500);
     };
 
+    const flashJustSavedFocus = () => {
+        flashJustSaved();
+        window.setTimeout(() => {
+            nameInputRef.current?.focus();
+            nameInputRef.current?.select();
+        }, 0);
+    };
+
     const handlePostSubmit = () => {
         setScanError(null);
         setScannedPdfContent("");
+        // AI / Wikidata state is per-piece — discard so the next entry
+        // starts fresh and the next KI-Scan can re-prefill empty fields.
+        setAiSuggestion(null);
+        setAiScanError(null);
+        setPendingWikidata(null);
+        setWikidataError(null);
 
         if (createAnother) {
-            flashJustSaved();
-            // Form-Werte bleiben unverändert. Fokus aufs Name-Feld + Selektion.
-            window.setTimeout(() => {
-                nameInputRef.current?.focus();
-                nameInputRef.current?.select();
-            }, 0);
+            flashJustSavedFocus();
+            // Form-Werte bleiben unverändert — der Reset für AI-getriebene
+            // neue Einträge passiert in triggerAIScan, sodass manuelle
+            // Folge-Einträge (gleicher Komponist, ähnlicher Titel) ihre
+            // Werte behalten dürfen.
             return;
         }
 
@@ -279,6 +309,12 @@ export function CreateFolderOrNote() {
                     ? addChild(data, nodes, data.parent.id)
                     : addAsParent(data, nodes)
         );
+        // Belt + suspenders: if the optimistic setQueryData above doesn't
+        // propagate (e.g. stale cache, race with another query, mobile
+        // Safari being weird), an explicit invalidate forces a fresh
+        // GET /v1/elements/parentDecks so the tree always reflects reality
+        // after a save.
+        queryClient.invalidateQueries({ queryKey: parentDecksQueryKey });
     };
 
     const createFolderMutation = useMutation<FolderItem, Error, FolderPostDto>(
@@ -296,6 +332,17 @@ export function CreateFolderOrNote() {
         onSuccess: (data) => {
             updateCache(data);
             handlePostSubmit();
+        },
+        onError: (err) => {
+            // Surface backend errors instead of failing silently — without
+            // this the user saw the button briefly return to 'Save' with no
+            // explanation when, e.g., the description was too long for the
+            // old VARCHAR(255) column.
+            const e = err as Error & { response?: { status: number; data?: { error?: string } } };
+            console.error("createNote failed:", e.response?.status, e.response?.data, err);
+            const msg = e.response?.data?.error
+                ?? (e.response?.status ? `Server-Fehler ${e.response.status}` : err.message);
+            form.setError("name", { type: "manual", message: msg });
         },
     });
 
@@ -429,29 +476,108 @@ export function CreateFolderOrNote() {
                 return;
             }
 
-            let resolvedAuthorId = values.authorId;
-            if (!resolvedAuthorId) {
-                try {
-                    resolvedAuthorId = await findOrCreateAuthorId(normalizedAuthorName);
-                } catch (error) {
-                    console.error(error);
-                    form.setError("authorName", {
-                        type: "manual",
-                        message: t("authorResolveFailed") as string,
-                    });
-                    return;
-                }
+            // If the user already picked an author from the combobox, that
+            // ID is authoritative — skip the name-based disambiguation
+            // dance and submit directly.
+            if (values.authorId) {
+                submitNoteWithAuthorId(values.authorId, values);
+                return;
             }
 
-            createNoteMutation.mutate({
-                name: values.name,
-                description: values.description ?? "",
-                numberOfPages: values.numberOfPages,
-                parentId: values.parentId,
-                authorId: resolvedAuthorId,
-                pdfContent: scannedPdfContent || undefined,
+            // No explicit pick: look up all local authors with this exact
+            // name. 0 -> create new. 1 -> reuse silently. 2+ -> ask which.
+            let matches: Author[];
+            try {
+                matches = await findAllAuthorsByExactName(normalizedAuthorName);
+            } catch (error) {
+                console.error(error);
+                form.setError("authorName", {
+                    type: "manual",
+                    message: t("authorResolveFailed") as string,
+                });
+                return;
+            }
+
+            if (matches.length > 1) {
+                setAuthorDisambig({
+                    name: normalizedAuthorName,
+                    candidates: matches,
+                    pendingValues: values,
+                });
+                return;
+            }
+            if (matches.length === 1) {
+                submitNoteWithAuthorId(matches[0].id, values);
+                return;
+            }
+            // No match: fall through to create-and-link.
+            try {
+                const newId = await findOrCreateAuthorId(normalizedAuthorName);
+                submitNoteWithAuthorId(newId, values);
+            } catch (error) {
+                console.error(error);
+                form.setError("authorName", {
+                    type: "manual",
+                    message: t("authorResolveFailed") as string,
+                });
+            }
+        }
+    };
+
+    // Helper used by both onSubmit and the disambiguation dialog callbacks
+    // so the mutation payload stays in one place.
+    const submitNoteWithAuthorId = (
+        authorId: string,
+        values: Extract<FormValues, { type: "note" }>,
+    ) => {
+        createNoteMutation.mutate({
+            name: values.name,
+            description: values.description ?? "",
+            numberOfPages: values.numberOfPages,
+            parentId: values.parentId,
+            authorId,
+            pdfContent: scannedPdfContent || undefined,
+        });
+    };
+
+    const handleDisambigPickExisting = (author: Author) => {
+        if (!authorDisambig) return;
+        const { pendingValues } = authorDisambig;
+        setAuthorDisambig(null);
+        submitNoteWithAuthorId(author.id, pendingValues);
+    };
+
+    const handleDisambigCreateNew = async () => {
+        if (!authorDisambig) return;
+        const { name, pendingValues } = authorDisambig;
+        setAuthorDisambig(null);
+        try {
+            // POST directly so we get back a fresh ID for the new same-name
+            // author — findOrCreateAuthorId would just hand us one of the
+            // existing ones again.
+            const resp = await axios.post<Author>(`${apiURL}/v1/authors`, {
+                name,
+                extraInformation: "",
+            });
+            if (!resp.data?.id) {
+                form.setError("authorName", {
+                    type: "manual",
+                    message: t("authorResolveFailed") as string,
+                });
+                return;
+            }
+            submitNoteWithAuthorId(resp.data.id, pendingValues);
+        } catch (error) {
+            console.error(error);
+            form.setError("authorName", {
+                type: "manual",
+                message: t("authorResolveFailed") as string,
             });
         }
+    };
+
+    const handleDisambigCancel = () => {
+        setAuthorDisambig(null);
     };
 
     /* ------------------------------------------------------------------ */
@@ -461,6 +587,86 @@ export function CreateFolderOrNote() {
     const triggerCameraScan = () => {
         setScanError(null);
         cameraInputRef.current?.click();
+    };
+
+    const triggerAIScan = () => {
+        setAiScanError(null);
+        setAiSuggestion(null);
+        setPendingWikidata(null);
+        setWikidataError(null);
+        // Clearing piece-specific fields now means the AI's identification
+        // is what populates them — no fighting with stale values from a
+        // previous entry. Pages + parent folder are kept because they're
+        // usually the same for a batch of notes the user is digitising.
+        const current = form.getValues();
+        if (current.type === "note") {
+            form.reset({
+                type: "note",
+                name: "",
+                description: "",
+                numberOfPages: current.numberOfPages,
+                authorId: "",
+                authorName: "",
+                parentId: current.parentId,
+                extraInformation: "",
+            });
+            dispatch(setElementSelectedAuthorName(""));
+        }
+        aiCameraInputRef.current?.click();
+    };
+
+    // After the user picks a photo for AI identification, compress it, send
+    // it to /v1/ai/identify-music, pre-fill name + author, and then nudge
+    // the WorkAutocomplete to look up the title in Wikidata. The user still
+    // confirms with the regular Save button.
+    const handleAIScanFileChange = async (event: ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0];
+        // Reset the input so the same file can be picked again later.
+        if (event.target) event.target.value = "";
+        if (!file) return;
+
+        setIsAIScanning(true);
+        setAiScanError(null);
+        try {
+            const { base64, mimeType } = await compressImageForAI(file);
+            const id = await identifyMusicFromImage({ imageBase64: base64, mimeType });
+            setAiSuggestion({ title: id.title, composer: id.composer, arranger: id.arranger, confidence: id.confidence });
+
+            // Pre-fill form fields. Don't overwrite anything the user already typed.
+            // User reviews fields anyway, so even low-confidence guesses are
+            // useful as a starting point.
+            const cur = form.getValues() as Extract<FormValues, { type: "note" }>;
+            if (!cur.name && id.title) {
+                form.setValue("name", id.title, { shouldDirty: true });
+            }
+            if (!cur.authorName && id.composer) {
+                form.setValue("authorName", id.composer, {
+                    shouldDirty: true,
+                    shouldValidate: true,
+                });
+                form.setValue("authorId", "", { shouldDirty: true });
+                dispatch(setElementSelectedAuthorName(id.composer));
+            }
+            if (id.notes) {
+                const existing = cur.description ?? "";
+                const next = existing
+                    ? `${existing}\n\n${id.notes}`
+                    : id.notes;
+                form.setValue("description", next, { shouldDirty: true });
+            }
+        } catch (err) {
+            console.error(err);
+            const e = err as { response?: { status: number; data?: { error?: string } } };
+            if (e.response?.status === 503) {
+                setAiScanError(t("ai.notConfigured", "KI-Erkennung ist auf diesem Server nicht eingerichtet.") as string);
+            } else if (e.response?.status === 502) {
+                setAiScanError(t("ai.upstreamError", "KI-Dienst nicht erreichbar. Versuche es später erneut.") as string);
+            } else {
+                setAiScanError(t("ai.scanFailed", "Erkennung fehlgeschlagen.") as string);
+            }
+        } finally {
+            setIsAIScanning(false);
+        }
     };
 
     const readFileAsDataUrl = (file: File): Promise<string> =>
@@ -758,11 +964,19 @@ export function CreateFolderOrNote() {
                                         className="hidden"
                                         onChange={handleCameraFileChange}
                                     />
+                                    <input
+                                        ref={aiCameraInputRef}
+                                        type="file"
+                                        accept="image/*"
+                                        capture="environment"
+                                        className="hidden"
+                                        onChange={handleAIScanFileChange}
+                                    />
                                     <Button
                                         type="button"
                                         variant="outline"
                                         onClick={triggerCameraScan}
-                                        disabled={isScanning}
+                                        disabled={isScanning || isAIScanning}
                                         className="w-full"
                                     >
                                         {isScanning ? (
@@ -778,6 +992,25 @@ export function CreateFolderOrNote() {
                                             </>
                                         )}
                                     </Button>
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        onClick={triggerAIScan}
+                                        disabled={isScanning || isAIScanning}
+                                        className="w-full"
+                                    >
+                                        {isAIScanning ? (
+                                            <>
+                                                <Loader className="mr-2 animate-spin" />
+                                                {t("ai.scanning", "KI analysiert…")}
+                                            </>
+                                        ) : (
+                                            <>
+                                                <Sparkles className="mr-2" />
+                                                {t("ai.scanWithCamera", "Mit KI erkennen")}
+                                            </>
+                                        )}
+                                    </Button>
                                     {scanError && (
                                         <p className="text-sm text-destructive">
                                             {scanError}
@@ -787,6 +1020,24 @@ export function CreateFolderOrNote() {
                                         <p className="text-sm text-emerald-600">
                                             {t("scanImageWillBeUploaded")}
                                         </p>
+                                    )}
+                                    {aiScanError && (
+                                        <p className="text-sm text-destructive">
+                                            {aiScanError}
+                                        </p>
+                                    )}
+                                    {aiSuggestion && !aiScanError && (
+                                        <div className={`rounded-md px-3 py-2 text-xs ${aiSuggestion.confidence < 0.4 ? "bg-amber-50 dark:bg-amber-950/30" : "bg-muted/50"}`}>
+                                            <div className="font-medium">
+                                                {t("ai.suggestion", "KI-Vorschlag")} ({Math.round(aiSuggestion.confidence * 100)}%)
+                                            </div>
+                                            <div>{aiSuggestion.title}{aiSuggestion.composer && <> · {aiSuggestion.composer}</>}{aiSuggestion.arranger && <> (arr. {aiSuggestion.arranger})</>}</div>
+                                            <div className="mt-1 text-muted-foreground">
+                                                {aiSuggestion.confidence < 0.4
+                                                    ? t("ai.lowConfidenceHint", "Felder vorbefüllt, aber KI war unsicher — bitte gut prüfen.")
+                                                    : t("ai.suggestionHint", "Felder vorbefüllt — bitte prüfen und ggf. aus Wikidata bestätigen.")}
+                                            </div>
+                                        </div>
                                     )}
                                 </div>
 
@@ -872,6 +1123,13 @@ export function CreateFolderOrNote() {
                     form.setValue("authorName", author.name, { shouldDirty: true, shouldValidate: true });
                     dispatch(setElementSelectedAuthorName(author.name));
                 }}
+            />
+            <AuthorDisambiguationDialog
+                name={authorDisambig?.name ?? null}
+                candidates={authorDisambig?.candidates ?? []}
+                onPickExisting={handleDisambigPickExisting}
+                onCreateNew={handleDisambigCreateNew}
+                onCancel={handleDisambigCancel}
             />
         </Dialog>
     );
