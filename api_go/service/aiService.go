@@ -64,7 +64,7 @@ Antworte ausschliesslich als JSON-Objekt mit dem Schema:
   "composer": string,
   "arranger": string,
   "confidence": number zwischen 0 und 1,
-  "notes": string mit optionalen Beobachtungen
+  "notes": string mit Hintergrund zur Entstehung des Werks
 }
 
 WICHTIG für composer und arranger:
@@ -73,6 +73,12 @@ WICHTIG für composer und arranger:
 - KEIN Array. composer und arranger sind IMMER strings, niemals Listen.
 - Bei Medleys/Tributes/Arrangements mehrerer Werke: nenne den prominentesten ursprünglichen Komponisten (z.B. "Amy Winehouse" statt "Amy Winehouse, Mark Ronson, Sean Payne"). Details kommen in das notes-Feld.
 - Bei Klassik: vollständiger Name des Komponisten ("Wolfgang Amadeus Mozart" nicht "Mozart").
+
+Für das notes-Feld:
+- 2-4 Sätze über den Hintergrund der Entstehung: Jahr/Epoche, Anlass, Album/Werk-Kontext, ursprüngliche Besetzung, ggf. bekannte Anekdote.
+- Bei Arrangements/Medleys: kurz erwähnen welche ursprünglichen Stücke enthalten sind.
+- NUR was du sicher weisst. Wenn unsicher: kurz fassen oder leer lassen. Keine Erfindungen.
+- Auf Deutsch.
 
 Wenn du das Werk nicht eindeutig identifizieren kannst, setze confidence niedrig (z.B. 0.2).
 Lass arranger leer wenn nicht erkennbar. Antworte ausschliesslich mit dem JSON, kein Markdown, kein Fliesstext drumherum.`
