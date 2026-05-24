@@ -15,7 +15,7 @@ func ConvertNoteFromEntity(entity db.Note, user models.User, author models.Autho
 }
 
 func convertNote(entity db.Note, user models.User, author models.Author, parentFolder *models.Folder) models.Note {
-	return models.Note{
+	n := models.Note{
 		Id:            entity.GetId(),
 		CreationDate:  entity.GetCreationDate(),
 		Creator:       user,
@@ -26,7 +26,14 @@ func convertNote(entity db.Note, user models.User, author models.Author, parentF
 		PdfAvailable:  entity.PdfAvailable,
 		PDFContent:    entity.PdfContent,
 		Parent:        parentFolder,
+		WikidataID:    entity.WikidataID.String,
+		Genre:         entity.Genre.String,
 	}
+	if entity.CompositionYear.Valid {
+		v := entity.CompositionYear.Int16
+		n.CompositionYear = &v
+	}
+	return n
 }
 
 func ConvertNoteFromEntityWithFolderModel(entity db.Note, user models.User, author models.Author, parent *models.Folder) models.Note {

@@ -10,5 +10,8 @@ func ConvertAuthorDtoFromModel(author models.Author) dto.Author {
 		ID:               author.ID,
 		Name:             author.Name,
 		ExtraInformation: author.ExtraInformation,
+		WikidataID:       author.WikidataID,
+		BirthYear:        author.BirthYear,
+		DeathYear:        author.DeathYear,
 	}
 }

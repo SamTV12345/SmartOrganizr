@@ -118,6 +118,9 @@ func (a *AuthorService) CreateAuthor(author dto.AuthorCreateDto, userId string) 
 		ExtraInformation: db.NewSQLNullString(author.ExtraInformation),
 		UserIDFk:         db.NewSQLNullString(userId),
 		ID:               authorId.String(),
+		WikidataID:       db.NewSQLNullString(author.WikidataID),
+		BirthYear:        nullInt16FromPtr(author.BirthYear),
+		DeathYear:        nullInt16FromPtr(author.DeathYear),
 	})
 	if err != nil {
 		return models.Author{}, err
@@ -201,12 +204,22 @@ func (a *AuthorService) FindAuthorByIdAndUser(authorId string, userId string) (m
 	return authorModel, nil
 }
 
+func nullInt16FromPtr(v *int16) sql.NullInt16 {
+	if v == nil {
+		return sql.NullInt16{}
+	}
+	return sql.NullInt16{Int16: *v, Valid: true}
+}
+
 func (a *AuthorService) UpdateAuthor(authorPatchDto dto.AuthorPatchDto, userId string, authorId string) (models.Author, error) {
 	err := a.Queries.UpdateAuthor(context.Background(), db.UpdateAuthorParams{
 		ID:               authorId,
 		ExtraInformation: db.NewSQLNullString(authorPatchDto.ExtraInformation),
 		Name:             db.NewSQLNullString(authorPatchDto.Name),
 		UserIDFk:         db.NewSQLNullString(userId),
+		WikidataID:       db.NewSQLNullString(authorPatchDto.WikidataID),
+		BirthYear:        nullInt16FromPtr(authorPatchDto.BirthYear),
+		DeathYear:        nullInt16FromPtr(authorPatchDto.DeathYear),
 	})
 	if err != nil {
 		return models.Author{}, err
