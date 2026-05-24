@@ -299,6 +299,12 @@ export function CreateFolderOrNote() {
                     ? addChild(data, nodes, data.parent.id)
                     : addAsParent(data, nodes)
         );
+        // Belt + suspenders: if the optimistic setQueryData above doesn't
+        // propagate (e.g. stale cache, race with another query, mobile
+        // Safari being weird), an explicit invalidate forces a fresh
+        // GET /v1/elements/parentDecks so the tree always reflects reality
+        // after a save.
+        queryClient.invalidateQueries({ queryKey: parentDecksQueryKey });
     };
 
     const createFolderMutation = useMutation<FolderItem, Error, FolderPostDto>(
