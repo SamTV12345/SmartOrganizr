@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"strings"
 	"time"
+	"unicode"
 )
 
 // AIService talks to any OpenAI-compatible chat completions endpoint. Used
@@ -193,10 +194,11 @@ func parseIdentificationJSON(raw string) (*MusicIdentification, error) {
 //   "Amy Winehouse (You Know I'm No Good, Rehab)"
 //   "Andersson, Ulvaeus"
 //   "Amy Winehouse / Mark Ronson"
+//   "JOHANNES BRAHMS"
 //
-// We want just "Amy Winehouse" — the first name token, parentheses stripped.
-// Everything past the first separator gets dropped (the user can recover
-// detail from the AI 'notes' field if needed).
+// We want just "Amy Winehouse" — the first name token, parentheses stripped,
+// title-cased. Everything past the first separator gets dropped (the user
+// can recover detail from the AI 'notes' field if needed).
 func normalizePersonName(name string) string {
 	if name == "" {
 		return ""
@@ -212,7 +214,38 @@ func normalizePersonName(name string) string {
 			break
 		}
 	}
-	return strings.TrimSpace(name)
+	return titleCaseName(strings.TrimSpace(name))
+}
+
+// titleCaseName normalises capitalisation: first letter of each word
+// upper, rest lower. Handles hyphens, apostrophes, dots and other
+// separators by capitalising the letter immediately after them too —
+// so "j.s. bach" becomes "J.S. Bach" and "JEAN-BAPTISTE" becomes
+// "Jean-Baptiste". Unicode-aware: "MÜLLER" -> "Müller".
+//
+// Note: this lower-cases everything that isn't the first letter of a
+// run, which means "ABBA" -> "Abba". The user asked for that explicitly.
+func titleCaseName(s string) string {
+	if s == "" {
+		return ""
+	}
+	var b strings.Builder
+	b.Grow(len(s))
+	capitalizeNext := true
+	for _, r := range s {
+		if unicode.IsLetter(r) {
+			if capitalizeNext {
+				b.WriteRune(unicode.ToUpper(r))
+				capitalizeNext = false
+			} else {
+				b.WriteRune(unicode.ToLower(r))
+			}
+		} else {
+			b.WriteRune(r)
+			capitalizeNext = true
+		}
+	}
+	return b.String()
 }
 
 // flattenStringOrArray accepts a raw JSON value that should be a string but

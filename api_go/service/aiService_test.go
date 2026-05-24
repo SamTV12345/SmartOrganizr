@@ -71,6 +71,15 @@ func TestNormalizePersonName(t *testing.T) {
 		"Sondheim; Bernstein":                                 "Sondheim",
 		"Reed and Jenkins":                                    "Reed",
 		"  Peter Kleine Schaars  ":                            "Peter Kleine Schaars",
+		// Capitalization normalisation
+		"JOHANNES BRAHMS":                                     "Johannes Brahms",
+		"johannes brahms":                                     "Johannes Brahms",
+		"DIE TOTEN HOSEN":                                     "Die Toten Hosen",
+		"ABBA":                                                "Abba",
+		"j.s. bach":                                           "J.S. Bach",
+		"jean-baptiste lully":                                 "Jean-Baptiste Lully",
+		"o'brien":                                             "O'Brien",
+		"MÜLLER":                                              "Müller",
 	}
 	for in, want := range cases {
 		if got := normalizePersonName(in); got != want {
