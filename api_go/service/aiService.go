@@ -9,44 +9,44 @@ import (
 	"log"
 	"net/http"
 	"strings"
-	"sync"
 	"time"
 )
 
-// EuriaService talks to Infomaniak's AI Tools (Euria), which exposes an
-// OpenAI-compatible chat completions endpoint. Auth uses a static Bearer
-// token created in the Infomaniak Manager; do not confuse it with the SSO
-// client credentials. The first request lazily resolves the account's
-// product_id via GET /1/ai when one isn't pre-configured.
-type EuriaService struct {
-	BaseURL   string
-	Token     string
-	Model     string
-	Client    *http.Client
-
-	productMu  sync.Mutex
-	productID  string
+// AIService talks to any OpenAI-compatible chat completions endpoint. Used
+// for the photo-based music identification flow. Designed to work with
+// Mistral La Plateforme (the default) but works equally with OpenAI, Groq,
+// Ollama, vLLM, OpenRouter, Infomaniak AI Tools etc. — set BaseURL and
+// Token accordingly.
+//
+// Required env vars (with Mistral defaults shown):
+//   SMARTORGANIZR_AI_BASE_URL  = https://api.mistral.ai/v1
+//   SMARTORGANIZR_AI_TOKEN     = <api_key from console.mistral.ai>
+//   SMARTORGANIZR_AI_MODEL     = pixtral-12b-2409
+type AIService struct {
+	BaseURL string
+	Token   string
+	Model   string
+	Client  *http.Client
 }
 
-func NewEuriaService(baseURL, token, productID, model string) *EuriaService {
-	return &EuriaService{
-		BaseURL:   strings.TrimRight(baseURL, "/"),
-		Token:     token,
-		Model:     model,
-		productID: productID,
-		Client:    &http.Client{Timeout: 60 * time.Second},
+func NewAIService(baseURL, token, model string) *AIService {
+	return &AIService{
+		BaseURL: strings.TrimRight(baseURL, "/"),
+		Token:   token,
+		Model:   model,
+		Client:  &http.Client{Timeout: 60 * time.Second},
 	}
 }
 
 // IsConfigured returns true when the service has the bare minimum (a token)
 // to make API calls. Endpoints should 503 when this is false.
-func (s *EuriaService) IsConfigured() bool {
+func (s *AIService) IsConfigured() bool {
 	return s.Token != ""
 }
 
-// MusicIdentification is the structured response returned by IdentifyMusicFromImage.
-// Fields are populated best-effort from the LLM's free-text JSON output;
-// callers must treat them as user input (display + confirm, never trust).
+// MusicIdentification is the structured response returned by
+// IdentifyMusicFromImage. Fields are populated best-effort from the LLM's
+// free-text JSON output; callers must treat them as user input.
 type MusicIdentification struct {
 	Title      string  `json:"title"`
 	Composer   string  `json:"composer"`
@@ -73,23 +73,17 @@ Lass arranger leer wenn nicht erkennbar. Antworte ausschliesslich mit dem JSON, 
 // IdentifyMusicFromImage sends a base64-encoded image plus an identification
 // prompt to the configured vision model and parses the LLM response as a
 // MusicIdentification. mimeType should be "image/jpeg" or "image/png".
-func (s *EuriaService) IdentifyMusicFromImage(imageB64, mimeType string) (*MusicIdentification, error) {
+func (s *AIService) IdentifyMusicFromImage(imageB64, mimeType string) (*MusicIdentification, error) {
 	if !s.IsConfigured() {
-		return nil, errors.New("euria service is not configured (INFOMANIAK_AI_TOKEN missing)")
+		return nil, errors.New("AI service is not configured (SMARTORGANIZR_AI_TOKEN missing)")
 	}
-	productID, err := s.resolveProductID()
-	if err != nil {
-		return nil, fmt.Errorf("resolve product_id: %w", err)
-	}
-
 	mime := mimeType
 	if mime == "" {
 		mime = "image/jpeg"
 	}
 
-	// OpenAI vision message format: content is an array where each item is
-	// either {type: "text", text: ...} or {type: "image_url", image_url: {url: ...}}.
-	// Data URLs are the standard way to pass base64 inline.
+	// OpenAI vision message format: content is an array of typed parts.
+	// Mistral and most clones accept the same shape.
 	payload := map[string]any{
 		"model": s.Model,
 		"messages": []map[string]any{
@@ -106,8 +100,7 @@ func (s *EuriaService) IdentifyMusicFromImage(imageB64, mimeType string) (*Music
 		"temperature": 0.1, // low — we want consistent JSON, not creativity
 	}
 
-	url := fmt.Sprintf("%s/2/ai/%s/openai/v1/chat/completions", s.BaseURL, productID)
-	body, err := s.postJSON(url, payload)
+	body, err := s.postChatCompletions(payload)
 	if err != nil {
 		return nil, err
 	}
@@ -123,7 +116,7 @@ func (s *EuriaService) IdentifyMusicFromImage(imageB64, mimeType string) (*Music
 		return nil, fmt.Errorf("decode chat response: %w", err)
 	}
 	if len(parsed.Choices) == 0 || parsed.Choices[0].Message.Content == "" {
-		return nil, fmt.Errorf("euria returned empty content")
+		return nil, fmt.Errorf("AI returned empty content")
 	}
 	return parseIdentificationJSON(parsed.Choices[0].Message.Content)
 }
@@ -163,61 +156,20 @@ func extractJSONObject(s string) string {
 	return ""
 }
 
-// resolveProductID returns the cached product_id when set, otherwise looks
-// it up via GET /1/ai once and caches it for the lifetime of the service.
-func (s *EuriaService) resolveProductID() (string, error) {
-	s.productMu.Lock()
-	defer s.productMu.Unlock()
-	if s.productID != "" {
-		return s.productID, nil
-	}
-	url := s.BaseURL + "/1/ai"
-	body, err := s.getJSON(url)
-	if err != nil {
-		return "", err
-	}
-	// Response shape: {"result": "success", "data": [{"product_id": ..., ...}, ...]}
-	var listed struct {
-		Data []struct {
-			ProductID int    `json:"product_id"`
-			Name      string `json:"name"`
-		} `json:"data"`
-	}
-	if err := json.Unmarshal(body, &listed); err != nil {
-		return "", fmt.Errorf("decode /1/ai: %w (body: %q)", err, string(body))
-	}
-	if len(listed.Data) == 0 {
-		return "", fmt.Errorf("/1/ai returned no products — is the AI Tools service enabled on this account?")
-	}
-	s.productID = fmt.Sprintf("%d", listed.Data[0].ProductID)
-	log.Printf("euria: resolved product_id=%s (%s)", s.productID, listed.Data[0].Name)
-	return s.productID, nil
-}
-
-func (s *EuriaService) getJSON(url string) ([]byte, error) {
-	req, err := http.NewRequest("GET", url, nil)
-	if err != nil {
-		return nil, err
-	}
-	return s.doAuthed(req)
-}
-
-func (s *EuriaService) postJSON(url string, payload any) ([]byte, error) {
+func (s *AIService) postChatCompletions(payload any) ([]byte, error) {
 	buf, err := json.Marshal(payload)
 	if err != nil {
 		return nil, err
 	}
+	url := s.BaseURL + "/chat/completions"
 	req, err := http.NewRequest("POST", url, bytes.NewReader(buf))
 	if err != nil {
 		return nil, err
 	}
 	req.Header.Set("Content-Type", "application/json")
-	return s.doAuthed(req)
-}
-
-func (s *EuriaService) doAuthed(req *http.Request) ([]byte, error) {
 	req.Header.Set("Authorization", "Bearer "+s.Token)
 	req.Header.Set("Accept", "application/json")
+
 	resp, err := s.Client.Do(req)
 	if err != nil {
 		return nil, err
@@ -225,8 +177,8 @@ func (s *EuriaService) doAuthed(req *http.Request) ([]byte, error) {
 	defer resp.Body.Close()
 	body, _ := io.ReadAll(resp.Body)
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
-		log.Printf("euria %s %s -> %d: %s", req.Method, req.URL.Path, resp.StatusCode, truncate(string(body), 500))
-		return nil, fmt.Errorf("infomaniak AI %s %s returned %d", req.Method, req.URL.Path, resp.StatusCode)
+		log.Printf("ai POST %s -> %d: %s", url, resp.StatusCode, truncate(string(body), 500))
+		return nil, fmt.Errorf("AI provider returned %d", resp.StatusCode)
 	}
 	return body, nil
 }

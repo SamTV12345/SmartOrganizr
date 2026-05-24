@@ -142,11 +142,10 @@ func SetupRouter(queries *db.Queries, config config.AppConfig, logger *zap.Sugar
 		"SmartOrganizr/1.0 (https://github.com/SamTV12345/SmartOrganizr)",
 	)
 
-	var euriaService = service.NewEuriaService(
-		config.InfomaniakAI.BaseURL,
-		config.InfomaniakAI.Token,
-		config.InfomaniakAI.ProductID,
-		config.InfomaniakAI.Model,
+	var aiService = service.NewAIService(
+		config.AI.BaseURL,
+		config.AI.Token,
+		config.AI.Model,
 	)
 
 	noteService.FolderService = &folderService
@@ -172,7 +171,7 @@ func SetupRouter(queries *db.Queries, config config.AppConfig, logger *zap.Sugar
 		SetLocal[service.ClubInvitationService](c, constants.ClubInvitationService, clubInvitationService)
 		SetLocal[service.MessageService](c, constants.MessageService, messageService)
 		SetLocal[*service.WikidataService](c, constants.WikidataService, wikidataService)
-		SetLocal[*service.EuriaService](c, constants.EuriaService, euriaService)
+		SetLocal[*service.AIService](c, constants.AIService, aiService)
 
 		return c.Next()
 	})

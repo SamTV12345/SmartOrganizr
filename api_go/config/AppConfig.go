@@ -40,11 +40,10 @@ type AppConfigSMTP struct {
 	Enabled     bool
 }
 
-type AppConfigInfomaniakAI struct {
-	BaseURL   string
-	Token     string
-	ProductID string
-	Model     string
+type AppConfigAI struct {
+	BaseURL string
+	Token   string
+	Model   string
 }
 
 func (c AppConfigDatabase) GetDSN() string {
@@ -52,12 +51,12 @@ func (c AppConfigDatabase) GetDSN() string {
 }
 
 type AppConfig struct {
-	Database     AppConfigDatabase
-	Port         int
-	SSO          AppConfigSSO
-	App          AppParameters
-	SMTP         AppConfigSMTP
-	InfomaniakAI AppConfigInfomaniakAI
+	Database AppConfigDatabase
+	Port     int
+	SSO      AppConfigSSO
+	App      AppParameters
+	SMTP     AppConfigSMTP
+	AI       AppConfigAI
 }
 
 func ReadConfig() (AppConfig, error) {
@@ -103,10 +102,9 @@ func ReadConfig() (AppConfig, error) {
 	viper.SetDefault(SMTPUsername, "")
 	viper.SetDefault(SMTPPassword, "")
 	viper.SetDefault(SMTPFromAddress, "noreply@smartorganizr.local")
-	viper.SetDefault(InfomaniakAIBaseURL, "https://api.infomaniak.com")
-	viper.SetDefault(InfomaniakAIToken, "")
-	viper.SetDefault(InfomaniakAIProductID, "") // empty -> auto-fetch via GET /1/ai
-	viper.SetDefault(InfomaniakAIModel, "llama3.2-vision:90b")
+	viper.SetDefault(AIBaseURL, "https://api.mistral.ai/v1")
+	viper.SetDefault(AIToken, "")
+	viper.SetDefault(AIModel, "pixtral-12b-2409")
 
 	var config = AppConfig{
 		Database: struct {
@@ -142,11 +140,10 @@ func ReadConfig() (AppConfig, error) {
 			FromAddress: viper.GetString(SMTPFromAddress),
 			Enabled:     viper.GetBool(SMTPEnabled),
 		},
-		InfomaniakAI: AppConfigInfomaniakAI{
-			BaseURL:   viper.GetString(InfomaniakAIBaseURL),
-			Token:     viper.GetString(InfomaniakAIToken),
-			ProductID: viper.GetString(InfomaniakAIProductID),
-			Model:     viper.GetString(InfomaniakAIModel),
+		AI: AppConfigAI{
+			BaseURL: viper.GetString(AIBaseURL),
+			Token:   viper.GetString(AIToken),
+			Model:   viper.GetString(AIModel),
 		},
 	}
 

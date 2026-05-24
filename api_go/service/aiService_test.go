@@ -2,7 +2,6 @@ package service
 
 import (
 	"encoding/json"
-	"fmt"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -10,57 +9,26 @@ import (
 	"testing"
 )
 
-func TestEuria_IsConfigured(t *testing.T) {
-	if NewEuriaService("https://x", "", "1", "m").IsConfigured() {
+func TestAI_IsConfigured(t *testing.T) {
+	if NewAIService("https://x", "", "m").IsConfigured() {
 		t.Error("expected IsConfigured=false when token is empty")
 	}
-	if !NewEuriaService("https://x", "tok", "1", "m").IsConfigured() {
+	if !NewAIService("https://x", "tok", "m").IsConfigured() {
 		t.Error("expected IsConfigured=true when token is set")
 	}
 }
 
-func TestEuria_ResolvesProductIDLazily(t *testing.T) {
-	calls := 0
+func TestAI_IdentifyMusic_ParsesPlainJSON(t *testing.T) {
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		switch r.URL.Path {
-		case "/1/ai":
-			calls++
-			w.Write([]byte(`{"data":[{"product_id":42,"name":"My AI"}]}`))
-		case "/2/ai/42/openai/v1/chat/completions":
-			w.Write([]byte(chatCompletionsBody(`{"title":"Test","composer":"X","arranger":"","confidence":0.9}`)))
-		default:
-			t.Errorf("unexpected path %s", r.URL.Path)
-			http.NotFound(w, r)
+		if r.URL.Path != "/chat/completions" {
+			t.Errorf("unexpected path: %s", r.URL.Path)
 		}
-	}))
-	defer srv.Close()
-
-	euria := NewEuriaService(srv.URL, "tok", "", "llama")
-	_, err := euria.IdentifyMusicFromImage("dGVzdA==", "image/jpeg")
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
-	if calls != 1 {
-		t.Errorf("expected exactly 1 /1/ai call (lazy + cached), got %d", calls)
-	}
-	// Second call: must NOT hit /1/ai again (cached).
-	_, err = euria.IdentifyMusicFromImage("dGVzdA==", "image/jpeg")
-	if err != nil {
-		t.Fatalf("second call error: %v", err)
-	}
-	if calls != 1 {
-		t.Errorf("expected product_id to be cached, but /1/ai called %d times", calls)
-	}
-}
-
-func TestEuria_IdentifyMusic_ParsesPlainJSON(t *testing.T) {
-	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte(chatCompletionsBody(`{"title":"Armenian Dances","composer":"Alfred Reed","arranger":"","confidence":0.95}`)))
 	}))
 	defer srv.Close()
 
-	euria := NewEuriaService(srv.URL, "tok", "42", "vision")
-	id, err := euria.IdentifyMusicFromImage("dGVzdA==", "image/jpeg")
+	ai := NewAIService(srv.URL, "tok", "pixtral-12b-2409")
+	id, err := ai.IdentifyMusicFromImage("dGVzdA==", "image/jpeg")
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -69,15 +37,15 @@ func TestEuria_IdentifyMusic_ParsesPlainJSON(t *testing.T) {
 	}
 }
 
-func TestEuria_IdentifyMusic_ParsesJSONInMarkdownFence(t *testing.T) {
+func TestAI_IdentifyMusic_ParsesJSONInMarkdownFence(t *testing.T) {
 	wrapped := "Hier die Antwort:\n\n```json\n" + `{"title":"X","composer":"Y","confidence":0.5}` + "\n```\n"
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte(chatCompletionsBody(wrapped)))
 	}))
 	defer srv.Close()
 
-	euria := NewEuriaService(srv.URL, "tok", "42", "vision")
-	id, err := euria.IdentifyMusicFromImage("dGVzdA==", "image/jpeg")
+	ai := NewAIService(srv.URL, "tok", "pixtral-12b-2409")
+	id, err := ai.IdentifyMusicFromImage("dGVzdA==", "image/jpeg")
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -86,23 +54,23 @@ func TestEuria_IdentifyMusic_ParsesJSONInMarkdownFence(t *testing.T) {
 	}
 }
 
-func TestEuria_IdentifyMusic_BadStatusBubblesUp(t *testing.T) {
+func TestAI_IdentifyMusic_BadStatusBubblesUp(t *testing.T) {
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(429)
 		w.Write([]byte(`{"error":"rate limit"}`))
 	}))
 	defer srv.Close()
 
-	euria := NewEuriaService(srv.URL, "tok", "42", "vision")
-	_, err := euria.IdentifyMusicFromImage("dGVzdA==", "image/jpeg")
+	ai := NewAIService(srv.URL, "tok", "pixtral-12b-2409")
+	_, err := ai.IdentifyMusicFromImage("dGVzdA==", "image/jpeg")
 	if err == nil {
 		t.Fatal("expected error on 429")
 	}
 }
 
-func TestEuria_NotConfigured(t *testing.T) {
-	euria := NewEuriaService("https://x", "", "", "vision")
-	_, err := euria.IdentifyMusicFromImage("dGVzdA==", "image/jpeg")
+func TestAI_NotConfigured(t *testing.T) {
+	ai := NewAIService("https://x", "", "pixtral-12b-2409")
+	_, err := ai.IdentifyMusicFromImage("dGVzdA==", "image/jpeg")
 	if err == nil {
 		t.Fatal("expected error when token missing")
 	}
@@ -111,7 +79,7 @@ func TestEuria_NotConfigured(t *testing.T) {
 	}
 }
 
-func TestEuria_SendsBearerAndBodyShape(t *testing.T) {
+func TestAI_SendsBearerAndBodyShape(t *testing.T) {
 	var capturedBody []byte
 	var capturedAuth string
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -121,8 +89,8 @@ func TestEuria_SendsBearerAndBodyShape(t *testing.T) {
 	}))
 	defer srv.Close()
 
-	euria := NewEuriaService(srv.URL, "my-token", "42", "test-model")
-	_, _ = euria.IdentifyMusicFromImage("aGVsbG8=", "image/png")
+	ai := NewAIService(srv.URL, "my-token", "pixtral-12b-2409")
+	_, _ = ai.IdentifyMusicFromImage("aGVsbG8=", "image/png")
 
 	if capturedAuth != "Bearer my-token" {
 		t.Errorf("expected Bearer my-token, got %q", capturedAuth)
@@ -131,17 +99,14 @@ func TestEuria_SendsBearerAndBodyShape(t *testing.T) {
 	if err := json.Unmarshal(capturedBody, &req); err != nil {
 		t.Fatalf("decode request body: %v", err)
 	}
-	if req["model"] != "test-model" {
+	if req["model"] != "pixtral-12b-2409" {
 		t.Errorf("model mismatch: %v", req["model"])
 	}
-	// Spot-check that the image_url with data: URL made it through.
 	if !strings.Contains(string(capturedBody), "data:image/png;base64,aGVsbG8=") {
 		t.Errorf("expected data: URL in body, got %s", string(capturedBody))
 	}
 }
 
-// chatCompletionsBody wraps a content string into the OpenAI chat
-// completions response envelope.
 func chatCompletionsBody(content string) string {
 	envelope := map[string]any{
 		"choices": []map[string]any{
@@ -151,6 +116,3 @@ func chatCompletionsBody(content string) string {
 	b, _ := json.Marshal(envelope)
 	return string(b)
 }
-
-// Compile-time check that fmt is used (silence import-cycle linters during refactor).
-var _ = fmt.Sprintf

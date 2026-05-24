@@ -40,14 +40,14 @@ func PostIdentifyMusic(c fiber.Ctx) error {
 		return c.Status(400).JSON(fiber.Map{"error": "imageBase64 is required"})
 	}
 
-	euria := GetLocal[*service.EuriaService](c, constants.EuriaService)
-	if euria == nil || !euria.IsConfigured() {
+	ai := GetLocal[*service.AIService](c, constants.AIService)
+	if ai == nil || !ai.IsConfigured() {
 		return c.Status(503).JSON(fiber.Map{
 			"error": "AI identification is not configured on this server",
 		})
 	}
 
-	id, err := euria.IdentifyMusicFromImage(req.ImageBase64, req.MimeType)
+	id, err := ai.IdentifyMusicFromImage(req.ImageBase64, req.MimeType)
 	if err != nil {
 		return c.Status(502).JSON(fiber.Map{"error": err.Error()})
 	}
