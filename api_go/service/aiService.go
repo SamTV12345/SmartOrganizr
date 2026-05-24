@@ -56,7 +56,7 @@ type MusicIdentification struct {
 }
 
 const identifyMusicPrompt = `Du analysierst ein Foto eines Notenblatts, Noten-Covers oder Musik-Booklets.
-Identifiziere den Werkstitel und den/die Komponist(en) bzw. Arrangeur(en).
+Identifiziere den Werkstitel und den Hauptkomponisten bzw. Hauptarrangeur.
 
 Antworte ausschliesslich als JSON-Objekt mit dem Schema:
 {
@@ -66,6 +66,13 @@ Antworte ausschliesslich als JSON-Objekt mit dem Schema:
   "confidence": number zwischen 0 und 1,
   "notes": string mit optionalen Beobachtungen
 }
+
+WICHTIG für composer und arranger:
+- Genau EIN Name pro Feld (Vor- und Nachname, ggf. nur Bandname bei Pop/Rock).
+- KEINE Klammern, KEINE Anmerkungen, KEINE Mehrfachnennungen, KEIN Komma.
+- KEIN Array. composer und arranger sind IMMER strings, niemals Listen.
+- Bei Medleys/Tributes/Arrangements mehrerer Werke: nenne den prominentesten ursprünglichen Komponisten (z.B. "Amy Winehouse" statt "Amy Winehouse, Mark Ronson, Sean Payne"). Details kommen in das notes-Feld.
+- Bei Klassik: vollständiger Name des Komponisten ("Wolfgang Amadeus Mozart" nicht "Mozart").
 
 Wenn du das Werk nicht eindeutig identifizieren kannst, setze confidence niedrig (z.B. 0.2).
 Lass arranger leer wenn nicht erkennbar. Antworte ausschliesslich mit dem JSON, kein Markdown, kein Fliesstext drumherum.`
@@ -162,11 +169,40 @@ func parseIdentificationJSON(raw string) (*MusicIdentification, error) {
 	}
 	return &MusicIdentification{
 		Title:      rmi.Title,
-		Composer:   flattenStringOrArray(rmi.Composer),
-		Arranger:   flattenStringOrArray(rmi.Arranger),
+		Composer:   normalizePersonName(flattenStringOrArray(rmi.Composer)),
+		Arranger:   normalizePersonName(flattenStringOrArray(rmi.Arranger)),
 		Confidence: rmi.Confidence,
 		Notes:      rmi.Notes,
 	}, nil
+}
+
+// normalizePersonName turns a possibly-decorated composer/arranger string
+// into a single clean name suitable for author dedup. The model sometimes
+// ignores the prompt and writes things like:
+//
+//   "Amy Winehouse (You Know I'm No Good, Rehab)"
+//   "Andersson, Ulvaeus"
+//   "Amy Winehouse / Mark Ronson"
+//
+// We want just "Amy Winehouse" — the first name token, parentheses stripped.
+// Everything past the first separator gets dropped (the user can recover
+// detail from the AI 'notes' field if needed).
+func normalizePersonName(name string) string {
+	if name == "" {
+		return ""
+	}
+	// Strip anything in parentheses (and the parens themselves).
+	if i := strings.Index(name, "("); i >= 0 {
+		name = name[:i]
+	}
+	// Take only the first name on common separators.
+	for _, sep := range []string{" / ", ";", " & ", " und ", " and ", ","} {
+		if i := strings.Index(name, sep); i >= 0 {
+			name = name[:i]
+			break
+		}
+	}
+	return strings.TrimSpace(name)
 }
 
 // flattenStringOrArray accepts a raw JSON value that should be a string but

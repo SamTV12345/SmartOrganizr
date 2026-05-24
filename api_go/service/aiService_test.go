@@ -37,8 +37,9 @@ func TestAI_IdentifyMusic_ParsesPlainJSON(t *testing.T) {
 	}
 }
 
-func TestAI_IdentifyMusic_FlattensArrayComposer(t *testing.T) {
+func TestAI_IdentifyMusic_FlattensArrayComposerToFirstName(t *testing.T) {
 	// Real-world Pixtral response when a medley has multiple composers.
+	// We collapse to the first name so author dedup is reliable.
 	content := `{"title":"A Tribute to Amy Winehouse","composer":["Amy Winehouse","Mark Ronson","Sean Payne"],"arranger":"Peter Kleine Schaars","confidence":0.98}`
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte(chatCompletionsBody(content)))
@@ -50,11 +51,31 @@ func TestAI_IdentifyMusic_FlattensArrayComposer(t *testing.T) {
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
-	if id.Composer != "Amy Winehouse / Mark Ronson / Sean Payne" {
-		t.Errorf("expected joined composer string, got %q", id.Composer)
+	if id.Composer != "Amy Winehouse" {
+		t.Errorf("expected single composer 'Amy Winehouse', got %q", id.Composer)
 	}
 	if id.Arranger != "Peter Kleine Schaars" {
 		t.Errorf("expected arranger string preserved, got %q", id.Arranger)
+	}
+}
+
+func TestNormalizePersonName(t *testing.T) {
+	cases := map[string]string{
+		"":                                                    "",
+		"Wolfgang Amadeus Mozart":                             "Wolfgang Amadeus Mozart",
+		"Amy Winehouse (You Know I'm No Good, Rehab)":         "Amy Winehouse",
+		"Amy Winehouse / Mark Ronson":                         "Amy Winehouse",
+		"Andersson, Ulvaeus":                                  "Andersson",
+		"Lennon & McCartney":                                  "Lennon",
+		"Bach und Söhne":                                      "Bach",
+		"Sondheim; Bernstein":                                 "Sondheim",
+		"Reed and Jenkins":                                    "Reed",
+		"  Peter Kleine Schaars  ":                            "Peter Kleine Schaars",
+	}
+	for in, want := range cases {
+		if got := normalizePersonName(in); got != want {
+			t.Errorf("normalizePersonName(%q) = %q, want %q", in, got, want)
+		}
 	}
 }
 
