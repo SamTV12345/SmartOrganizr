@@ -304,8 +304,26 @@ export function CreateFolderOrNote() {
     /* Wikidata external-pick flow                                         */
     /* ------------------------------------------------------------------ */
 
-    // submitWikidataPick is the actual POST. Pulled out so the conflict
-    // resolution buttons can call it with forceNewAuthor / after PATCH.
+    // Picking a Wikidata entry only PRE-FILLS the form. The actual POST runs
+    // on submit (see onSubmit). pendingWikidata acts as the "submit-via-
+    // wikidata" flag — present means submit will POST /works/from-wikidata
+    // instead of POST /elements/notes.
+    const handleWikidataPick = (work: AutocompleteWork) => {
+        setWikidataError(null);
+        setPendingWikidata(work);
+        form.setValue("name", work.name);
+        if (work.description) {
+            form.setValue("description", work.description);
+        }
+        if (work.composer?.name) {
+            form.setValue("authorName", work.composer.name);
+            dispatch(setElementSelectedAuthorName(work.composer.name));
+        }
+    };
+
+    // submitWikidataPick performs the actual POST. Called from onSubmit and
+    // from the conflict-resolution buttons (which need to retry after a
+    // PATCH or with forceNewAuthor=true).
     const submitWikidataPick = async (
         work: AutocompleteWork,
         opts: { forceNewAuthor?: boolean } = {},
@@ -324,24 +342,26 @@ export function CreateFolderOrNote() {
             });
             if ("conflict" in result) {
                 setConflict(result.conflict);
-                setPendingWikidata(work);
                 return;
             }
-            // Success: refresh the tree cache like createNoteMutation does
-            // and run the same post-submit reset/flash logic.
             updateCache(result.note);
             setConflict(null);
             setPendingWikidata(null);
             handlePostSubmit();
         } catch (err) {
             console.error(err);
-            setWikidataError(t("wikidata.createFailed", "Werk konnte nicht angelegt werden.") as string);
+            const e = err as { response?: { status: number; data: { error?: string } } };
+            if (e.response?.data?.error?.includes("Duplicate entry")) {
+                setWikidataError(
+                    t(
+                        "wikidata.alreadyExists",
+                        "Dieses Werk hast du bereits in deiner Sammlung.",
+                    ) as string,
+                );
+            } else {
+                setWikidataError(t("wikidata.createFailed", "Werk konnte nicht angelegt werden.") as string);
+            }
         }
-    };
-
-    const handleWikidataPick = (work: AutocompleteWork) => {
-        setPendingWikidata(work);
-        submitWikidataPick(work);
     };
 
     const handleConflictLinkExisting = async (candidate: AutocompleteAuthor) => {
@@ -385,7 +405,15 @@ export function CreateFolderOrNote() {
             authorId: values.type === "note" ? values.authorId : undefined,
             authorName: values.type === "note" ? values.authorName : undefined,
             name: values.name,
+            wikidata: pendingWikidata?.wikidataId,
         });
+
+        // Wikidata branch: short-circuit the normal create path. The backend
+        // resolves the composer (and may return 409 -> conflict dialog).
+        if (values.type === "note" && pendingWikidata) {
+            await submitWikidataPick(pendingWikidata);
+            return;
+        }
 
         if (values.type === "folder") {
             createFolderMutation.mutate(values);
@@ -621,7 +649,15 @@ export function CreateFolderOrNote() {
                                         {watchType === "note" ? (
                                             <WorkAutocompleteInput
                                                 value={field.value ?? ""}
-                                                onChange={(v) => field.onChange(v)}
+                                                onChange={(v) => {
+                                                    field.onChange(v);
+                                                    // User edited the name after picking a
+                                                    // Wikidata entry — drop the pick so submit
+                                                    // takes the normal create path.
+                                                    if (pendingWikidata && v !== pendingWikidata.name) {
+                                                        setPendingWikidata(null);
+                                                    }
+                                                }}
                                                 onPickLocal={(w) => {
                                                     // Local hit: fill name + author from
                                                     // composer if present. Don't auto-submit.
