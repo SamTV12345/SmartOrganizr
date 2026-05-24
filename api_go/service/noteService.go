@@ -294,3 +294,63 @@ func (n NoteService) UpdateNote(userId string, note models.Note) (models.Note, e
 	}
 	return note, nil
 }
+
+// AutocompleteLocalWorks returns the user's notes whose name contains the
+// term. Returns minimal info (id, name, wikidata + genre when present) — the
+// frontend only needs enough to recognize an existing entry.
+func (n *NoteService) AutocompleteLocalWorks(userId, term string) []dto.AutocompleteWork {
+	rows, err := n.Queries.FindElementsByUserAndNameLike(n.Ctx, db.FindElementsByUserAndNameLikeParams{
+		UserIDFk: db.NewSQLNullString(userId),
+		Term:     term,
+	})
+	if err != nil {
+		return []dto.AutocompleteWork{}
+	}
+	out := make([]dto.AutocompleteWork, 0, len(rows))
+	for _, r := range rows {
+		w := dto.AutocompleteWork{
+			ID:         r.ID,
+			Name:       r.Name.String,
+			WikidataID: r.WikidataID.String,
+			Genre:      r.Genre.String,
+		}
+		if r.CompositionYear.Valid {
+			v := r.CompositionYear.Int16
+			w.CompositionYear = &v
+		}
+		out = append(out, w)
+	}
+	return out
+}
+
+// CreateNoteFromWikidata persists a new note populated from a WikidataWork.
+// Composer is passed in already-resolved (matched / created via ResolveAuthor).
+// Arranger is always nil at creation time — the user adds it manually after.
+func (n *NoteService) CreateNoteFromWikidata(userId, parentId string, work WikidataWork, composer *models.Author) (models.Note, error) {
+	noteId, _ := uuid.NewRandom()
+	var composerIdFk sql.NullString
+	if composer != nil {
+		composerIdFk = db.NewSQLNullString(composer.ID)
+	}
+	var compYear sql.NullInt16
+	if work.Year != nil {
+		compYear = sql.NullInt16{Int16: *work.Year, Valid: true}
+	}
+	_, err := n.Queries.CreateNoteWithWikidata(context.Background(), db.CreateNoteWithWikidataParams{
+		ID:              noteId.String(),
+		Description:     db.NewSQLNullString(work.Description),
+		Name:            db.NewSQLNullString(work.Name),
+		NumberOfPages:   sql.NullInt32{},
+		UserIDFk:        db.NewSQLNullString(userId),
+		Parent:          db.NewSQLNullString(parentId),
+		ComposerIDFk:    composerIdFk,
+		ArrangerIDFk:    sql.NullString{},
+		WikidataID:      db.NewSQLNullString(work.WikidataID),
+		CompositionYear: compYear,
+		Genre:           db.NewSQLNullString(work.Genre),
+	})
+	if err != nil {
+		return models.Note{}, err
+	}
+	return n.LoadNote(noteId.String(), userId)
+}

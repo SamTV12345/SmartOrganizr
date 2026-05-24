@@ -254,6 +254,15 @@ func SetupRouter(queries *db.Queries, config config.AppConfig, logger *zap.Sugar
 		r.Post("/:token/accept", controllers.AcceptClubInvitation)
 	})
 
+	profile.Route("v1/autocomplete", func(r fiber.Router) {
+		r.Get("/works", controllers.GetWorksAutocomplete)
+		r.Get("/authors", controllers.GetAuthorsAutocomplete)
+	})
+
+	profile.Route("v1/works", func(r fiber.Router) {
+		r.Post("/from-wikidata", controllers.PostWorkFromWikidata)
+	})
+
 	profile.Route("v1/elements", func(r fiber.Router) {
 		r.Get("/parentDecks", controllers.GetParentDecks)
 		r.Get("/notes", controllers.GetNotes)
