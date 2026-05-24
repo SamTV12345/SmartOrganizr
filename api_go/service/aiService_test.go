@@ -88,6 +88,49 @@ func TestNormalizePersonName(t *testing.T) {
 	}
 }
 
+func TestAI_IdentifyMusic_RepairsExcelStyleQuotes(t *testing.T) {
+	// Real-world Pixtral output that broke standard JSON parsing — it
+	// used "" as escape inside the title string instead of \".
+	content := "{\n  \"title\": \"GRAN FINALE - ATTO II dall'opera \"\"Aida\"\"\",\n  \"composer\": \"Giuseppe Verdi\",\n  \"arranger\": \"Franco Cesarini\",\n  \"confidence\": 0.95,\n  \"notes\": \"Aus der Oper Aida.\"\n}"
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Write([]byte(chatCompletionsBody(content)))
+	}))
+	defer srv.Close()
+
+	ai := NewAIService(srv.URL, "tok", "pixtral-12b-2409")
+	id, err := ai.IdentifyMusicFromImage("dGVzdA==", "image/jpeg")
+	if err != nil {
+		t.Fatalf("expected repair to succeed, got: %v", err)
+	}
+	if !strings.Contains(id.Title, "Aida") || strings.Contains(id.Title, `""`) {
+		t.Errorf("expected repaired title with single Aida, got %q", id.Title)
+	}
+	if id.Composer != "Giuseppe Verdi" {
+		t.Errorf("composer mismatch: %q", id.Composer)
+	}
+	if id.Arranger != "Franco Cesarini" {
+		t.Errorf("arranger mismatch: %q", id.Arranger)
+	}
+}
+
+func TestAI_IdentifyMusic_PreservesEmptyArrangerThroughRepair(t *testing.T) {
+	// If repair runs, it must not destroy legitimate empty-string values.
+	content := "{\n  \"title\": \"Foo \"\"X\"\"\",\n  \"composer\": \"Bach\",\n  \"arranger\": \"\",\n  \"confidence\": 0.9\n}"
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Write([]byte(chatCompletionsBody(content)))
+	}))
+	defer srv.Close()
+
+	ai := NewAIService(srv.URL, "tok", "pixtral-12b-2409")
+	id, err := ai.IdentifyMusicFromImage("dGVzdA==", "image/jpeg")
+	if err != nil {
+		t.Fatalf("expected repair to succeed, got: %v", err)
+	}
+	if id.Arranger != "" {
+		t.Errorf("expected empty arranger preserved, got %q", id.Arranger)
+	}
+}
+
 func TestAI_IdentifyMusic_ParsesJSONInMarkdownFence(t *testing.T) {
 	wrapped := "Hier die Antwort:\n\n```json\n" + `{"title":"X","composer":"Y","confidence":0.5}` + "\n```\n"
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

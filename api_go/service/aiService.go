@@ -8,6 +8,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"regexp"
 	"strings"
 	"time"
 	"unicode"
@@ -86,6 +87,11 @@ Für notes:
 - Bei niedriger confidence: notes leer lassen.
 - Keine Spekulation, keine Erfindungen.
 
+JSON-Formatierung:
+- KEINE doppelten Anführungszeichen ("") als Escape — wenn ein Titel Anführungszeichen enthält ("Aida"), entweder \" verwenden oder die Anführungszeichen weglassen.
+- Beispiel falsch: "dall'opera ""Aida"""
+- Beispiel richtig: "dall'opera Aida"
+
 Antworte ausschliesslich mit dem JSON, kein Markdown, kein Fliesstext drumherum.`
 
 // IdentifyMusicFromImage sends a base64-encoded image plus an identification
@@ -162,22 +168,28 @@ func (s *AIService) IdentifyMusicFromImage(imageB64, mimeType string) (*MusicIde
 // (e.g. "A Tribute to Amy Winehouse" has 3 composers across 3 songs) —
 // we flatten those into a "A / B / C" string so the downstream form
 // fields don't choke.
+//
+// And they sometimes use Excel-style doubled quotes ("") instead of \" to
+// embed quotes inside strings — see repairLLMJSON.
 func parseIdentificationJSON(raw string) (*MusicIdentification, error) {
 	jsonBlock := extractJSONObject(raw)
 	if jsonBlock == "" {
 		return nil, fmt.Errorf("no JSON object found in model output: %q", raw)
 	}
 
-	var rmi struct {
-		Title      string          `json:"title"`
-		Composer   json.RawMessage `json:"composer"`
-		Arranger   json.RawMessage `json:"arranger"`
-		Confidence float64         `json:"confidence"`
-		Notes      string          `json:"notes"`
+	rmi, err := tryParseRMI(jsonBlock)
+	if err != nil {
+		// Try a repaired version. Logging on success too so we know how
+		// often the repair pass kicks in.
+		repaired := repairLLMJSON(jsonBlock)
+		if r2, err2 := tryParseRMI(repaired); err2 == nil {
+			log.Printf("ai: parsed after repair (original error: %v)", err)
+			rmi = r2
+		} else {
+			return nil, fmt.Errorf("decode identification JSON: %w (raw: %q)", err, jsonBlock)
+		}
 	}
-	if err := json.Unmarshal([]byte(jsonBlock), &rmi); err != nil {
-		return nil, fmt.Errorf("decode identification JSON: %w (raw: %q)", err, jsonBlock)
-	}
+
 	return &MusicIdentification{
 		Title:      rmi.Title,
 		Composer:   normalizePersonName(flattenStringOrArray(rmi.Composer)),
@@ -185,6 +197,43 @@ func parseIdentificationJSON(raw string) (*MusicIdentification, error) {
 		Confidence: rmi.Confidence,
 		Notes:      rmi.Notes,
 	}, nil
+}
+
+type rawMusicID struct {
+	Title      string          `json:"title"`
+	Composer   json.RawMessage `json:"composer"`
+	Arranger   json.RawMessage `json:"arranger"`
+	Confidence float64         `json:"confidence"`
+	Notes      string          `json:"notes"`
+}
+
+func tryParseRMI(s string) (rawMusicID, error) {
+	var r rawMusicID
+	err := json.Unmarshal([]byte(s), &r)
+	return r, err
+}
+
+// repairLLMJSON fixes the two non-JSON patterns we've seen in the wild:
+//
+//  1. Excel-style doubled-quote escaping — "dall'opera ""Aida"""
+//     becomes "dall'opera 'Aida'" (we substitute single quotes since they
+//     don't need escaping in JSON strings).
+//
+// Care is taken not to clobber genuine empty-string values (`: ""`).
+func repairLLMJSON(s string) string {
+	// Stash empty-string values behind a sentinel so the Excel-quote
+	// substitution doesn't touch them.
+	emptyValRE := regexp.MustCompile(`:\s*""`)
+	const sentinel = "\x00__EMPTY_STRING_VALUE__\x00"
+	s = emptyValRE.ReplaceAllString(s, ": "+sentinel)
+
+	// Now every remaining "" is the model's Excel-style escape — collapse
+	// pairs into single quotes which are valid inside JSON strings.
+	s = strings.ReplaceAll(s, `""`, `'`)
+
+	// Restore empty-string values.
+	s = strings.ReplaceAll(s, sentinel, `""`)
+	return s
 }
 
 // normalizePersonName turns a possibly-decorated composer/arranger string
