@@ -81,6 +81,10 @@ func (s *AIService) IdentifyMusicFromImage(imageB64, mimeType string) (*MusicIde
 	if mime == "" {
 		mime = "image/jpeg"
 	}
+	// base64 inflates by ~4/3; approximate bytes back for the log.
+	approxBytes := len(imageB64) * 3 / 4
+	log.Printf("ai: IdentifyMusicFromImage model=%s mime=%s image~=%d bytes", s.Model, mime, approxBytes)
+	started := time.Now()
 
 	// OpenAI vision message format: content is an array of typed parts.
 	// Mistral and most clones accept the same shape.
@@ -116,9 +120,20 @@ func (s *AIService) IdentifyMusicFromImage(imageB64, mimeType string) (*MusicIde
 		return nil, fmt.Errorf("decode chat response: %w", err)
 	}
 	if len(parsed.Choices) == 0 || parsed.Choices[0].Message.Content == "" {
+		log.Printf("ai: empty content in response after %dms", time.Since(started).Milliseconds())
 		return nil, fmt.Errorf("AI returned empty content")
 	}
-	return parseIdentificationJSON(parsed.Choices[0].Message.Content)
+	rawContent := parsed.Choices[0].Message.Content
+	log.Printf("ai: raw model output (%dms): %s", time.Since(started).Milliseconds(), truncate(rawContent, 400))
+
+	id, err := parseIdentificationJSON(rawContent)
+	if err != nil {
+		log.Printf("ai: parse error: %v", err)
+		return nil, err
+	}
+	log.Printf("ai: parsed identification title=%q composer=%q arranger=%q confidence=%.2f",
+		id.Title, id.Composer, id.Arranger, id.Confidence)
+	return id, nil
 }
 
 // parseIdentificationJSON is forgiving: the model sometimes wraps its JSON
