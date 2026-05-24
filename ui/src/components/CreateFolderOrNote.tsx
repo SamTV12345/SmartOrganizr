@@ -52,6 +52,9 @@ import { WorkAutocompleteInput } from "@/src/components/searchBars/WorkAutocompl
 import { AuthorConflictDialog } from "@/src/components/AuthorConflictDialog";
 import { InlineAuthorCreateDialog } from "@/src/components/InlineAuthorCreateDialog";
 import { createWorkFromWikidata } from "@/src/api/autocomplete";
+import { identifyMusicFromImage } from "@/src/api/identifyMusic";
+import { compressImageForAI } from "@/src/utils/ImageUtils";
+import { Sparkles } from "lucide-react";
 import type {
     AutocompleteAuthor,
     AutocompleteWork,
@@ -194,6 +197,10 @@ export function CreateFolderOrNote() {
     const [pendingWikidata, setPendingWikidata] = useState<AutocompleteWork | null>(null);
     const [wikidataError, setWikidataError] = useState<string | null>(null);
     const [authorCreateOpen, setAuthorCreateOpen] = useState(false);
+    const [isAIScanning, setIsAIScanning] = useState(false);
+    const [aiScanError, setAiScanError] = useState<string | null>(null);
+    const [aiSuggestion, setAiSuggestion] = useState<{ title: string; composer: string; arranger?: string; confidence: number } | null>(null);
+    const aiCameraInputRef = useRef<HTMLInputElement | null>(null);
 
     const setCreateAnother = (value: boolean) => {
         setCreateAnotherState(value);
@@ -461,6 +468,64 @@ export function CreateFolderOrNote() {
     const triggerCameraScan = () => {
         setScanError(null);
         cameraInputRef.current?.click();
+    };
+
+    const triggerAIScan = () => {
+        setAiScanError(null);
+        setAiSuggestion(null);
+        aiCameraInputRef.current?.click();
+    };
+
+    // After the user picks a photo for AI identification, compress it, send
+    // it to /v1/ai/identify-music, pre-fill name + author, and then nudge
+    // the WorkAutocomplete to look up the title in Wikidata. The user still
+    // confirms with the regular Save button.
+    const handleAIScanFileChange = async (event: ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0];
+        // Reset the input so the same file can be picked again later.
+        if (event.target) event.target.value = "";
+        if (!file) return;
+
+        setIsAIScanning(true);
+        setAiScanError(null);
+        try {
+            const { base64, mimeType } = await compressImageForAI(file);
+            const id = await identifyMusicFromImage({ imageBase64: base64, mimeType });
+            setAiSuggestion({ title: id.title, composer: id.composer, arranger: id.arranger, confidence: id.confidence });
+
+            // Pre-fill form fields. Don't overwrite anything the user already typed.
+            const cur = form.getValues() as Extract<FormValues, { type: "note" }>;
+            if (!cur.name && id.title) {
+                form.setValue("name", id.title, { shouldDirty: true });
+            }
+            if (!cur.authorName && id.composer) {
+                form.setValue("authorName", id.composer, {
+                    shouldDirty: true,
+                    shouldValidate: true,
+                });
+                form.setValue("authorId", "", { shouldDirty: true });
+                dispatch(setElementSelectedAuthorName(id.composer));
+            }
+            if (id.notes) {
+                const existing = cur.description ?? "";
+                const next = existing
+                    ? `${existing}\n\n${id.notes}`
+                    : id.notes;
+                form.setValue("description", next, { shouldDirty: true });
+            }
+        } catch (err) {
+            console.error(err);
+            const e = err as { response?: { status: number; data?: { error?: string } } };
+            if (e.response?.status === 503) {
+                setAiScanError(t("ai.notConfigured", "KI-Erkennung ist auf diesem Server nicht eingerichtet.") as string);
+            } else if (e.response?.status === 502) {
+                setAiScanError(t("ai.upstreamError", "KI-Dienst nicht erreichbar. Versuche es später erneut.") as string);
+            } else {
+                setAiScanError(t("ai.scanFailed", "Erkennung fehlgeschlagen.") as string);
+            }
+        } finally {
+            setIsAIScanning(false);
+        }
     };
 
     const readFileAsDataUrl = (file: File): Promise<string> =>
@@ -758,11 +823,19 @@ export function CreateFolderOrNote() {
                                         className="hidden"
                                         onChange={handleCameraFileChange}
                                     />
+                                    <input
+                                        ref={aiCameraInputRef}
+                                        type="file"
+                                        accept="image/*"
+                                        capture="environment"
+                                        className="hidden"
+                                        onChange={handleAIScanFileChange}
+                                    />
                                     <Button
                                         type="button"
                                         variant="outline"
                                         onClick={triggerCameraScan}
-                                        disabled={isScanning}
+                                        disabled={isScanning || isAIScanning}
                                         className="w-full"
                                     >
                                         {isScanning ? (
@@ -778,6 +851,25 @@ export function CreateFolderOrNote() {
                                             </>
                                         )}
                                     </Button>
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        onClick={triggerAIScan}
+                                        disabled={isScanning || isAIScanning}
+                                        className="w-full"
+                                    >
+                                        {isAIScanning ? (
+                                            <>
+                                                <Loader className="mr-2 animate-spin" />
+                                                {t("ai.scanning", "KI analysiert…")}
+                                            </>
+                                        ) : (
+                                            <>
+                                                <Sparkles className="mr-2" />
+                                                {t("ai.scanWithCamera", "Mit KI erkennen")}
+                                            </>
+                                        )}
+                                    </Button>
                                     {scanError && (
                                         <p className="text-sm text-destructive">
                                             {scanError}
@@ -787,6 +879,22 @@ export function CreateFolderOrNote() {
                                         <p className="text-sm text-emerald-600">
                                             {t("scanImageWillBeUploaded")}
                                         </p>
+                                    )}
+                                    {aiScanError && (
+                                        <p className="text-sm text-destructive">
+                                            {aiScanError}
+                                        </p>
+                                    )}
+                                    {aiSuggestion && !aiScanError && (
+                                        <div className="rounded-md bg-muted/50 px-3 py-2 text-xs">
+                                            <div className="font-medium">
+                                                {t("ai.suggestion", "KI-Vorschlag")} ({Math.round(aiSuggestion.confidence * 100)}%)
+                                            </div>
+                                            <div>{aiSuggestion.title}{aiSuggestion.composer && <> · {aiSuggestion.composer}</>}{aiSuggestion.arranger && <> (arr. {aiSuggestion.arranger})</>}</div>
+                                            <div className="mt-1 text-muted-foreground">
+                                                {t("ai.suggestionHint", "Felder vorbefüllt — bitte prüfen und ggf. aus Wikidata bestätigen.")}
+                                            </div>
+                                        </div>
                                     )}
                                 </div>
 
