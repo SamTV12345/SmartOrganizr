@@ -179,7 +179,14 @@ func (s *WikidataService) SearchAuthors(term string) ([]WikidataAuthor, error) {
 	    ?person wikibase:apiOutputItem mwapi:item .
 	  }
 	  ?person wdt:P106 ?occupation .
-	  VALUES ?occupation { wd:Q36834 wd:Q486748 wd:Q488205 }
+	  VALUES ?occupation {
+	    wd:Q36834   # composer
+	    wd:Q486748  # arranger
+	    wd:Q488205  # lyricist
+	    wd:Q639669  # musician (includes band leaders, arrangers without explicit role)
+	    wd:Q753110  # songwriter
+	    wd:Q158852  # conductor (often double as composers in wind/brass music)
+	  }
 	  OPTIONAL { ?person wdt:P569 ?birth . }
 	  OPTIONAL { ?person wdt:P570 ?death . }
 	  SERVICE wikibase:label { bd:serviceParam wikibase:language "de,en" . }
