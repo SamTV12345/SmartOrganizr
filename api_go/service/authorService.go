@@ -118,7 +118,7 @@ func (a *AuthorService) CreateAuthor(author dto.AuthorCreateDto, userId string) 
 		ExtraInformation: db.NewSQLNullString(author.ExtraInformation),
 		UserIDFk:         db.NewSQLNullString(userId),
 		ID:               authorId.String(),
-		WikidataID:       db.NewSQLNullString(author.WikidataID),
+		WikidataID:       db.NewNullableSQLString(author.WikidataID),
 		BirthYear:        nullInt16FromPtr(author.BirthYear),
 		DeathYear:        nullInt16FromPtr(author.DeathYear),
 	})
@@ -217,7 +217,7 @@ func (a *AuthorService) UpdateAuthor(authorPatchDto dto.AuthorPatchDto, userId s
 		ExtraInformation: db.NewSQLNullString(authorPatchDto.ExtraInformation),
 		Name:             db.NewSQLNullString(authorPatchDto.Name),
 		UserIDFk:         db.NewSQLNullString(userId),
-		WikidataID:       db.NewSQLNullString(authorPatchDto.WikidataID),
+		WikidataID:       db.NewNullableSQLString(authorPatchDto.WikidataID),
 		BirthYear:        nullInt16FromPtr(authorPatchDto.BirthYear),
 		DeathYear:        nullInt16FromPtr(authorPatchDto.DeathYear),
 	})
