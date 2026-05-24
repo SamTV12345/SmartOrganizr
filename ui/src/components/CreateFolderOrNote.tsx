@@ -257,17 +257,44 @@ export function CreateFolderOrNote() {
         }, 1500);
     };
 
+    const flashJustSavedFocus = () => {
+        flashJustSaved();
+        window.setTimeout(() => {
+            nameInputRef.current?.focus();
+            nameInputRef.current?.select();
+        }, 0);
+    };
+
     const handlePostSubmit = () => {
         setScanError(null);
         setScannedPdfContent("");
+        // AI / Wikidata state is per-piece — discard so the next entry
+        // starts fresh and the next KI-Scan can re-prefill empty fields.
+        setAiSuggestion(null);
+        setAiScanError(null);
+        setPendingWikidata(null);
+        setWikidataError(null);
 
         if (createAnother) {
-            flashJustSaved();
-            // Form-Werte bleiben unverändert. Fokus aufs Name-Feld + Selektion.
-            window.setTimeout(() => {
-                nameInputRef.current?.focus();
-                nameInputRef.current?.select();
-            }, 0);
+            // For notes, clear the piece-specific fields so the user can
+            // immediately enter the next one in the same folder. Keeping
+            // those values stale would also block AI/OCR prefill since
+            // those skip non-empty fields by design.
+            const current = form.getValues();
+            if (current.type === "note") {
+                form.reset({
+                    type: "note",
+                    name: "",
+                    description: "",
+                    numberOfPages: 1,
+                    authorId: "",
+                    authorName: "",
+                    parentId: current.parentId,
+                    extraInformation: "",
+                });
+                dispatch(setElementSelectedAuthorName(""));
+            }
+            flashJustSavedFocus();
             return;
         }
 
