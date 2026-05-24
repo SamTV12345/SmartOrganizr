@@ -37,6 +37,27 @@ func TestAI_IdentifyMusic_ParsesPlainJSON(t *testing.T) {
 	}
 }
 
+func TestAI_IdentifyMusic_FlattensArrayComposer(t *testing.T) {
+	// Real-world Pixtral response when a medley has multiple composers.
+	content := `{"title":"A Tribute to Amy Winehouse","composer":["Amy Winehouse","Mark Ronson","Sean Payne"],"arranger":"Peter Kleine Schaars","confidence":0.98}`
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Write([]byte(chatCompletionsBody(content)))
+	}))
+	defer srv.Close()
+
+	ai := NewAIService(srv.URL, "tok", "pixtral-12b-2409")
+	id, err := ai.IdentifyMusicFromImage("dGVzdA==", "image/jpeg")
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if id.Composer != "Amy Winehouse / Mark Ronson / Sean Payne" {
+		t.Errorf("expected joined composer string, got %q", id.Composer)
+	}
+	if id.Arranger != "Peter Kleine Schaars" {
+		t.Errorf("expected arranger string preserved, got %q", id.Arranger)
+	}
+}
+
 func TestAI_IdentifyMusic_ParsesJSONInMarkdownFence(t *testing.T) {
 	wrapped := "Hier die Antwort:\n\n```json\n" + `{"title":"X","composer":"Y","confidence":0.5}` + "\n```\n"
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

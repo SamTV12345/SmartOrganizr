@@ -139,16 +139,53 @@ func (s *AIService) IdentifyMusicFromImage(imageB64, mimeType string) (*MusicIde
 // parseIdentificationJSON is forgiving: the model sometimes wraps its JSON
 // in markdown fences (```json ... ```) or prefixes a short sentence. We
 // extract the first {...} block we can find and parse it.
+//
+// Vision models also occasionally return composer/arranger as an array
+// (e.g. "A Tribute to Amy Winehouse" has 3 composers across 3 songs) —
+// we flatten those into a "A / B / C" string so the downstream form
+// fields don't choke.
 func parseIdentificationJSON(raw string) (*MusicIdentification, error) {
 	jsonBlock := extractJSONObject(raw)
 	if jsonBlock == "" {
 		return nil, fmt.Errorf("no JSON object found in model output: %q", raw)
 	}
-	var id MusicIdentification
-	if err := json.Unmarshal([]byte(jsonBlock), &id); err != nil {
+
+	var rmi struct {
+		Title      string          `json:"title"`
+		Composer   json.RawMessage `json:"composer"`
+		Arranger   json.RawMessage `json:"arranger"`
+		Confidence float64         `json:"confidence"`
+		Notes      string          `json:"notes"`
+	}
+	if err := json.Unmarshal([]byte(jsonBlock), &rmi); err != nil {
 		return nil, fmt.Errorf("decode identification JSON: %w (raw: %q)", err, jsonBlock)
 	}
-	return &id, nil
+	return &MusicIdentification{
+		Title:      rmi.Title,
+		Composer:   flattenStringOrArray(rmi.Composer),
+		Arranger:   flattenStringOrArray(rmi.Arranger),
+		Confidence: rmi.Confidence,
+		Notes:      rmi.Notes,
+	}, nil
+}
+
+// flattenStringOrArray accepts a raw JSON value that should be a string but
+// might be an array of strings (when the model couldn't decide on a single
+// answer). Returns a single string with " / " between items. Anything else
+// (numbers, objects, null) yields an empty string.
+func flattenStringOrArray(raw json.RawMessage) string {
+	if len(raw) == 0 {
+		return ""
+	}
+	var s string
+	if err := json.Unmarshal(raw, &s); err == nil {
+		return s
+	}
+	var arr []string
+	if err := json.Unmarshal(raw, &arr); err == nil {
+		return strings.Join(arr, " / ")
+	}
+	return ""
 }
 
 func extractJSONObject(s string) string {
