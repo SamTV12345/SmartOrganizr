@@ -17,7 +17,7 @@
     "@rsbuild/core": "^2.0.7",
     "@rsbuild/plugin-babel": "^1.1.2",
     "@rsbuild/plugin-react": "^2.0.0",
-    "@tanstack/react-query": "^5.100.13",
+    "@tanstack/react-query": "^5.100.14",
     "@tanstack/react-table": "^8.21.3",
     "@uidotdev/usehooks": "^2.4.1",
     "babel-plugin-react-compiler": "1.0.0",
