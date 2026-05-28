@@ -1,6 +1,6 @@
 module api_go
 
-go 1.25.0
+go 1.25.7
 
 require (
 	codeberg.org/go-pdf/fpdf v0.12.0
@@ -14,9 +14,10 @@ require (
 	github.com/golang-jwt/jwt/v5 v5.3.1
 	github.com/google/uuid v1.6.0
 	github.com/moby/moby/api v1.54.2
-	github.com/pressly/goose/v3 v3.27.0
+	github.com/pressly/goose/v3 v3.27.1
 	github.com/spf13/viper v1.21.0
 	github.com/subosito/gotenv v1.6.0
+	github.com/swaggo/swag v1.16.6
 	github.com/testcontainers/testcontainers-go/modules/mysql v0.42.0
 	github.com/yeqown/go-qrcode/v2 v2.2.5
 	github.com/yeqown/go-qrcode/writer/standard v1.3.0
@@ -97,7 +98,6 @@ require (
 	github.com/spf13/cast v1.10.0 // indirect
 	github.com/spf13/pflag v1.0.10 // indirect
 	github.com/stretchr/testify v1.11.1 // indirect
-	github.com/swaggo/swag v1.16.6 // indirect
 	github.com/testcontainers/testcontainers-go v0.42.0 // indirect
 	github.com/tinylib/msgp v1.6.4 // indirect
 	github.com/tklauser/go-sysconf v0.4.0 // indirect
