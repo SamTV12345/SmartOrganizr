@@ -103,6 +103,12 @@ type ClubChatMessage struct {
 	CreatedAt    time.Time
 }
 
+type ClubChatRead struct {
+	ChatID     string
+	UserID     string
+	LastReadAt time.Time
+}
+
 type ClubFile struct {
 	ID               string
 	ClubID           string

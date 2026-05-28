@@ -578,3 +578,27 @@ ORDER BY f.created_at DESC;
 -- name: DeleteClubFile :exec
 DELETE FROM club_file
 WHERE id = sqlc.arg(id) AND club_id = sqlc.arg(club_id);
+
+-- name: UpsertChatRead :exec
+INSERT INTO club_chat_read (chat_id, user_id, last_read_at)
+VALUES (sqlc.arg(chat_id), sqlc.arg(user_id), NOW())
+ON DUPLICATE KEY UPDATE last_read_at = NOW();
+
+-- name: CountUnreadForChat :one
+SELECT COUNT(*)
+FROM club_chat_message m
+LEFT JOIN club_chat_read r ON r.chat_id = m.chat_id AND r.user_id = sqlc.arg(user_id)
+WHERE m.chat_id = sqlc.arg(chat_id)
+  AND m.sender_user_id <> sqlc.arg(user_id)
+  AND (r.last_read_at IS NULL OR m.created_at > r.last_read_at);
+
+-- name: CountUnreadForUserByClub :many
+SELECT cc.club_id, c.name AS club_name, COUNT(*) AS unread
+FROM club_chat cc
+JOIN clubs c ON c.id = cc.club_id
+JOIN club_chat_message m ON m.chat_id = cc.id
+LEFT JOIN club_chat_read r ON r.chat_id = cc.id AND r.user_id = sqlc.arg(user_id)
+WHERE (cc.user_a_id = sqlc.arg(user_id) OR cc.user_b_id = sqlc.arg(user_id))
+  AND m.sender_user_id <> sqlc.arg(user_id)
+  AND (r.last_read_at IS NULL OR m.created_at > r.last_read_at)
+GROUP BY cc.club_id, c.name;

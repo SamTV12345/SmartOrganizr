@@ -105,6 +105,77 @@ func (q *Queries) CountSearchByFolderName(ctx context.Context, arg CountSearchBy
 	return count, err
 }
 
+const countUnreadForChat = `-- name: CountUnreadForChat :one
+SELECT COUNT(*)
+FROM club_chat_message m
+LEFT JOIN club_chat_read r ON r.chat_id = m.chat_id AND r.user_id = ?
+WHERE m.chat_id = ?
+  AND m.sender_user_id <> ?
+  AND (r.last_read_at IS NULL OR m.created_at > r.last_read_at)
+`
+
+type CountUnreadForChatParams struct {
+	UserID string
+	ChatID string
+}
+
+func (q *Queries) CountUnreadForChat(ctx context.Context, arg CountUnreadForChatParams) (int64, error) {
+	row := q.db.QueryRowContext(ctx, countUnreadForChat, arg.UserID, arg.ChatID, arg.UserID)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
+const countUnreadForUserByClub = `-- name: CountUnreadForUserByClub :many
+SELECT cc.club_id, c.name AS club_name, COUNT(*) AS unread
+FROM club_chat cc
+JOIN clubs c ON c.id = cc.club_id
+JOIN club_chat_message m ON m.chat_id = cc.id
+LEFT JOIN club_chat_read r ON r.chat_id = cc.id AND r.user_id = ?
+WHERE (cc.user_a_id = ? OR cc.user_b_id = ?)
+  AND m.sender_user_id <> ?
+  AND (r.last_read_at IS NULL OR m.created_at > r.last_read_at)
+GROUP BY cc.club_id, c.name
+`
+
+type CountUnreadForUserByClubParams struct {
+	UserID string
+}
+
+type CountUnreadForUserByClubRow struct {
+	ClubID   string
+	ClubName string
+	Unread   int64
+}
+
+func (q *Queries) CountUnreadForUserByClub(ctx context.Context, arg CountUnreadForUserByClubParams) ([]CountUnreadForUserByClubRow, error) {
+	rows, err := q.db.QueryContext(ctx, countUnreadForUserByClub,
+		arg.UserID,
+		arg.UserID,
+		arg.UserID,
+		arg.UserID,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []CountUnreadForUserByClubRow
+	for rows.Next() {
+		var i CountUnreadForUserByClubRow
+		if err := rows.Scan(&i.ClubID, &i.ClubName, &i.Unread); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const createAuthor = `-- name: CreateAuthor :execlastid
 INSERT INTO authors (id, name, extra_information, user_id_fk, wikidata_id, birth_year, death_year)
 VALUES (?, ?, ?, ?, ?, ?, ?)
@@ -3213,5 +3284,21 @@ type UpdateUserProfilePictureParams struct {
 
 func (q *Queries) UpdateUserProfilePicture(ctx context.Context, arg UpdateUserProfilePictureParams) error {
 	_, err := q.db.ExecContext(ctx, updateUserProfilePicture, arg.ProfilePicture, arg.ID)
+	return err
+}
+
+const upsertChatRead = `-- name: UpsertChatRead :exec
+INSERT INTO club_chat_read (chat_id, user_id, last_read_at)
+VALUES (?, ?, NOW())
+ON DUPLICATE KEY UPDATE last_read_at = NOW()
+`
+
+type UpsertChatReadParams struct {
+	ChatID string
+	UserID string
+}
+
+func (q *Queries) UpsertChatRead(ctx context.Context, arg UpsertChatReadParams) error {
+	_, err := q.db.ExecContext(ctx, upsertChatRead, arg.ChatID, arg.UserID)
 	return err
 }

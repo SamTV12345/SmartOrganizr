@@ -187,6 +187,8 @@ definitions:
         type: string
       other_user_id:
         type: string
+      unread_count:
+        type: integer
     required:
     - chat_id
     - club_id
@@ -764,6 +766,24 @@ definitions:
         type: boolean
       title:
         type: string
+    type: object
+  dto.UnreadByClubDto:
+    properties:
+      clubId:
+        type: string
+      clubName:
+        type: string
+      unread:
+        type: integer
+    type: object
+  dto.UnreadSummaryDto:
+    properties:
+      byClub:
+        items:
+          $ref: '#/definitions/dto.UnreadByClubDto'
+        type: array
+      total:
+        type: integer
     type: object
   dto.User:
     properties:
@@ -1544,6 +1564,25 @@ paths:
       summary: Append a message to a chat
       tags:
       - messages
+  /v1/clubs/{clubId}/messages/chats/{chatId}/read:
+    patch:
+      parameters:
+      - description: Club ID
+        in: path
+        name: clubId
+        required: true
+        type: string
+      - description: Chat ID
+        in: path
+        name: chatId
+        required: true
+        type: string
+      responses:
+        "204":
+          description: No Content
+      summary: Mark a chat as read up to now
+      tags:
+      - notifications
   /v1/clubs/{clubId}/pinboard:
     get:
       parameters:
@@ -2094,6 +2133,28 @@ paths:
       summary: Authenticated accept of a club invitation
       tags:
       - invitations
+  /v1/notifications/stream:
+    get:
+      produces:
+      - text/event-stream
+      responses:
+        "200":
+          description: OK
+      summary: Server-Sent Events stream of notifications for the current user
+      tags:
+      - notifications
+  /v1/notifications/unread-summary:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.UnreadSummaryDto'
+      summary: Total and per-club unread message counts for the current user
+      tags:
+      - notifications
   /v1/users:
     put:
       responses:

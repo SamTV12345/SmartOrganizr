@@ -141,6 +141,7 @@ func mapChatSummaries(chats []models.ClubChatSummary) []dto.ClubChatSummaryDto {
 			LastMessage:      chat.LastMessage,
 			LastSenderUserID: chat.LastSenderUserID,
 			LastMessageAt:    formatNullableTime(chat.LastMessageAt),
+			UnreadCount:      chat.UnreadCount,
 		})
 	}
 	return items

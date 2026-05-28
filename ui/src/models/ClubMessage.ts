@@ -13,6 +13,18 @@ export type ClubChatSummary = {
     last_message: string;
     last_sender_user_id: string;
     last_message_at: string;
+    unread_count: number;
+};
+
+export type UnreadByClub = {
+    clubId: string;
+    clubName: string;
+    unread: number;
+};
+
+export type UnreadSummary = {
+    total: number;
+    byClub: UnreadByClub[];
 };
 
 export type ClubChatMessage = {

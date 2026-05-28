@@ -14,12 +14,14 @@ import (
 type MessageService struct {
 	queries *db.Queries
 	ctx     context.Context
+	hub     *NotificationHub
 }
 
-func NewMessageService(queries *db.Queries) MessageService {
+func NewMessageService(queries *db.Queries, hub *NotificationHub) MessageService {
 	return MessageService{
 		queries: queries,
 		ctx:     context.Background(),
+		hub:     hub,
 	}
 }
 
@@ -69,6 +71,10 @@ func (m *MessageService) GetChats(clubID string, requesterID string) ([]models.C
 		}
 
 		otherUserID := interfaceToString(row.OtherUserID)
+		unread, _ := m.queries.CountUnreadForChat(m.ctx, db.CountUnreadForChatParams{
+			UserID: requesterID,
+			ChatID: row.ChatID,
+		})
 		items = append(items, models.ClubChatSummary{
 			ChatID:           row.ChatID,
 			ClubID:           row.ClubID,
@@ -78,6 +84,7 @@ func (m *MessageService) GetChats(clubID string, requesterID string) ([]models.C
 			LastMessage:      row.LastMessage.String,
 			LastSenderUserID: row.LastSenderUserID.String,
 			LastMessageAt:    lastAt,
+			UnreadCount:      int(unread),
 		})
 	}
 	return items, nil
@@ -135,6 +142,14 @@ func (m *MessageService) CreateChat(clubID string, requesterID string, recipient
 		if err := m.createMessage(chatID, requesterID, normalizedContent); err != nil {
 			return "", err
 		}
+		if m.hub != nil {
+			m.hub.Publish(recipientID, NotificationEvent{
+				Type:    "message",
+				ClubID:  clubID,
+				ChatID:  chatID,
+				Preview: normalizedContent,
+			})
+		}
 	}
 
 	return chatID, nil
@@ -182,7 +197,66 @@ func (m *MessageService) PostMessage(clubID string, chatID string, requesterID s
 	if normalizedContent == "" {
 		return errors.New("message content is required")
 	}
-	return m.createMessage(chatID, requesterID, normalizedContent)
+	if err := m.createMessage(chatID, requesterID, normalizedContent); err != nil {
+		return err
+	}
+	m.publishMessage(clubID, chatID, requesterID, normalizedContent)
+	return nil
+}
+
+// MarkRead records that the requester has read the chat up to now.
+func (m *MessageService) MarkRead(clubID string, chatID string, requesterID string) error {
+	if err := m.ensureMessagingAllowed(clubID, requesterID); err != nil {
+		return err
+	}
+	if err := m.ensureChatAccessible(clubID, chatID, requesterID); err != nil {
+		return err
+	}
+	return m.queries.UpsertChatRead(m.ctx, db.UpsertChatReadParams{
+		ChatID: chatID,
+		UserID: requesterID,
+	})
+}
+
+// UnreadSummary returns total and per-club unread message counts for the user.
+func (m *MessageService) UnreadSummary(requesterID string) (models.UnreadSummary, error) {
+	rows, err := m.queries.CountUnreadForUserByClub(m.ctx, db.CountUnreadForUserByClubParams{
+		UserID: requesterID,
+	})
+	if err != nil {
+		return models.UnreadSummary{}, err
+	}
+	summary := models.UnreadSummary{ByClub: make([]models.UnreadByClub, 0, len(rows))}
+	for _, r := range rows {
+		summary.Total += int(r.Unread)
+		summary.ByClub = append(summary.ByClub, models.UnreadByClub{
+			ClubID:   r.ClubID,
+			ClubName: r.ClubName,
+			Unread:   int(r.Unread),
+		})
+	}
+	return summary, nil
+}
+
+// publishMessage notifies the other participant of a chat about a new message.
+func (m *MessageService) publishMessage(clubID string, chatID string, senderID string, content string) {
+	if m.hub == nil {
+		return
+	}
+	chat, err := m.queries.FindClubChatByID(m.ctx, chatID)
+	if err != nil {
+		return
+	}
+	recipient := chat.UserAID
+	if recipient == senderID {
+		recipient = chat.UserBID
+	}
+	m.hub.Publish(recipient, NotificationEvent{
+		Type:    "message",
+		ClubID:  clubID,
+		ChatID:  chatID,
+		Preview: content,
+	})
 }
 
 func (m *MessageService) createMessage(chatID string, senderUserID string, content string) error {

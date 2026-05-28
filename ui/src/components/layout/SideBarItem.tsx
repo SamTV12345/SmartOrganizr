@@ -7,7 +7,8 @@ type SideBarItemProps = {
     highlightPath: string,
     translationkey: string,
     icon: React.ReactElement,
-    onNavigate?: () => void
+    onNavigate?: () => void,
+    badge?: number
 }
 
 export const SideBarItem: FC<SideBarItemProps> = ({
@@ -15,6 +16,7 @@ export const SideBarItem: FC<SideBarItemProps> = ({
     translationkey,
     icon,
     onNavigate,
+    badge,
 }) => {
     return (
         <li className="w-full">
@@ -30,7 +32,14 @@ export const SideBarItem: FC<SideBarItemProps> = ({
                 }
             >
                 <span className="truncate">{translationkey}</span>
-                <span className="text-sidebar-foreground/80">{icon}</span>
+                <span className="flex items-center gap-2">
+                    {badge !== undefined && badge > 0 && (
+                        <span className="inline-flex min-w-5 items-center justify-center rounded-full bg-red-500 px-1.5 text-xs font-semibold text-white">
+                            {badge > 99 ? "99+" : badge}
+                        </span>
+                    )}
+                    <span className="text-sidebar-foreground/80">{icon}</span>
+                </span>
             </NavLink>
         </li>
     );

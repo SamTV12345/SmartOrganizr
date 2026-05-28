@@ -17,6 +17,18 @@ type ClubChatSummary struct {
 	LastMessage      string
 	LastSenderUserID string
 	LastMessageAt    *time.Time
+	UnreadCount      int
+}
+
+type UnreadByClub struct {
+	ClubID   string
+	ClubName string
+	Unread   int
+}
+
+type UnreadSummary struct {
+	Total  int
+	ByClub []UnreadByClub
 }
 
 type ClubChatMessage struct {

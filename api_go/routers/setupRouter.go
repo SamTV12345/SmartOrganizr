@@ -137,7 +137,8 @@ func SetupRouter(queries *db.Queries, config config.AppConfig, logger *zap.Sugar
 	var clubInvitationService = service.NewClubInvitationService(queries, mailService, config.App.URL)
 
 	var clubMemberService = service.NewClubMemberService(queries, clubService)
-	var messageService = service.NewMessageService(queries)
+	var notificationHub = service.NewNotificationHub()
+	var messageService = service.NewMessageService(queries, notificationHub)
 	var pinboardService = service.NewPinboardService(queries)
 	var clubFileService = service.NewClubFileService(queries)
 
@@ -176,6 +177,7 @@ func SetupRouter(queries *db.Queries, config config.AppConfig, logger *zap.Sugar
 		SetLocal[service.MessageService](c, constants.MessageService, messageService)
 		SetLocal[service.PinboardService](c, constants.PinboardService, pinboardService)
 		SetLocal[service.ClubFileService](c, constants.ClubFileService, clubFileService)
+		SetLocal[*service.NotificationHub](c, constants.NotificationHub, notificationHub)
 		SetLocal[*service.WikidataService](c, constants.WikidataService, wikidataService)
 		SetLocal[*service.AIService](c, constants.AIService, aiService)
 
@@ -262,6 +264,7 @@ func SetupRouter(queries *db.Queries, config config.AppConfig, logger *zap.Sugar
 		r.Post("/:clubId/messages/chats", controllers.CreateClubChat)
 		r.Get("/:clubId/messages/chats/:chatId", controllers.GetClubChatMessages)
 		r.Post("/:clubId/messages/chats/:chatId", controllers.PostClubChatMessage)
+		r.Patch("/:clubId/messages/chats/:chatId/read", controllers.MarkChatRead)
 		r.Get("/:clubId/pinboard", controllers.GetClubPinboard)
 		r.Post("/:clubId/pinboard", controllers.CreateClubPinboardPost)
 		r.Patch("/:clubId/pinboard/:postId", controllers.UpdateClubPinboardPost)
@@ -270,6 +273,11 @@ func SetupRouter(queries *db.Queries, config config.AppConfig, logger *zap.Sugar
 		r.Post("/:clubId/files", controllers.UploadClubFile)
 		r.Get("/:clubId/files/:fileId", controllers.DownloadClubFile)
 		r.Delete("/:clubId/files/:fileId", controllers.DeleteClubFile)
+	})
+
+	profile.Route("v1/notifications", func(r fiber.Router) {
+		r.Get("/stream", controllers.StreamNotifications)
+		r.Get("/unread-summary", controllers.GetUnreadSummary)
 	})
 
 	profile.Route("v1/invitations", func(r fiber.Router) {

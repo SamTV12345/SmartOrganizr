@@ -940,6 +940,35 @@ const docTemplate = `{
                 }
             }
         },
+        "/v1/clubs/{clubId}/messages/chats/{chatId}/read": {
+            "patch": {
+                "tags": [
+                    "notifications"
+                ],
+                "summary": "Mark a chat as read up to now",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Club ID",
+                        "name": "clubId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Chat ID",
+                        "name": "chatId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    }
+                }
+            }
+        },
         "/v1/clubs/{clubId}/pinboard": {
             "get": {
                 "produces": [
@@ -1787,6 +1816,41 @@ const docTemplate = `{
                 }
             }
         },
+        "/v1/notifications/stream": {
+            "get": {
+                "produces": [
+                    "text/event-stream"
+                ],
+                "tags": [
+                    "notifications"
+                ],
+                "summary": "Server-Sent Events stream of notifications for the current user",
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            }
+        },
+        "/v1/notifications/unread-summary": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "notifications"
+                ],
+                "summary": "Total and per-club unread message counts for the current user",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.UnreadSummaryDto"
+                        }
+                    }
+                }
+            }
+        },
         "/v1/users": {
             "put": {
                 "tags": [
@@ -2515,6 +2579,9 @@ const docTemplate = `{
                 },
                 "other_user_id": {
                     "type": "string"
+                },
+                "unread_count": {
+                    "type": "integer"
                 }
             }
         },
@@ -3340,6 +3407,34 @@ const docTemplate = `{
                 },
                 "title": {
                     "type": "string"
+                }
+            }
+        },
+        "dto.UnreadByClubDto": {
+            "type": "object",
+            "properties": {
+                "clubId": {
+                    "type": "string"
+                },
+                "clubName": {
+                    "type": "string"
+                },
+                "unread": {
+                    "type": "integer"
+                }
+            }
+        },
+        "dto.UnreadSummaryDto": {
+            "type": "object",
+            "properties": {
+                "byClub": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.UnreadByClubDto"
+                    }
+                },
+                "total": {
+                    "type": "integer"
                 }
             }
         },

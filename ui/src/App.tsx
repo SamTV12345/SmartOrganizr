@@ -23,18 +23,21 @@ import {ClubView} from "@/src/pages/ClubView";
 import {ClubDetailView} from "@/src/pages/ClubDetailView";
 import {InviteAcceptView} from "@/src/pages/InviteAcceptView";
 import {MyMessagesView} from "@/src/pages/MyMessagesView";
+import {NotificationProvider} from "@/src/notifications/NotificationProvider";
 
 function RootLayout() {
     return (
-        <div className="flex h-dvh flex-col overflow-hidden">
-            <Header />
-            <div className="flex min-h-0 flex-1">
-                <SideBar />
-                <main className="min-h-0 flex-1 overflow-auto">
-                    <Outlet />
-                </main>
+        <NotificationProvider>
+            <div className="flex h-dvh flex-col overflow-hidden">
+                <Header />
+                <div className="flex min-h-0 flex-1">
+                    <SideBar />
+                    <main className="min-h-0 flex-1 overflow-auto">
+                        <Outlet />
+                    </main>
+                </div>
             </div>
-        </div>
+        </NotificationProvider>
     );
 }
 
