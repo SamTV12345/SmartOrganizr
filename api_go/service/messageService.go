@@ -68,11 +68,12 @@ func (m *MessageService) GetChats(clubID string, requesterID string) ([]models.C
 			lastAt = &t
 		}
 
+		otherUserID := interfaceToString(row.OtherUserID)
 		items = append(items, models.ClubChatSummary{
 			ChatID:           row.ChatID,
 			ClubID:           row.ClubID,
-			OtherUserID:      row.OtherUserID,
-			OtherDisplayName: buildDisplayName(row.OtherFirstname.String, row.OtherLastname.String, row.OtherUsername.String, row.OtherUserID),
+			OtherUserID:      otherUserID,
+			OtherDisplayName: buildDisplayName(row.OtherFirstname.String, row.OtherLastname.String, row.OtherUsername.String, otherUserID),
 			OtherEmail:       row.OtherEmail.String,
 			LastMessage:      row.LastMessage.String,
 			LastSenderUserID: row.LastSenderUserID.String,
@@ -154,11 +155,8 @@ func (m *MessageService) GetChatMessages(clubID string, chatID string, requester
 
 	items := make([]models.ClubChatMessage, 0, len(rows))
 	for _, row := range rows {
-		var createdAt *time.Time
-		if row.CreatedAt.Valid {
-			t := row.CreatedAt.Time
-			createdAt = &t
-		}
+		t := row.CreatedAt
+		createdAt := &t
 		items = append(items, models.ClubChatMessage{
 			ID:                row.ID,
 			ChatID:            row.ChatID,
@@ -237,6 +235,20 @@ func normalizeChatUsers(userOne string, userTwo string) (string, string) {
 		return userOne, userTwo
 	}
 	return userTwo, userOne
+}
+
+// interfaceToString converts a value scanned from an untyped SQL expression
+// (sqlc emits interface{} for CASE expressions) into a string. The MySQL driver
+// returns []byte for such columns, so handle both string and []byte.
+func interfaceToString(value interface{}) string {
+	switch v := value.(type) {
+	case string:
+		return v
+	case []byte:
+		return string(v)
+	default:
+		return ""
+	}
 }
 
 func buildDisplayName(firstname string, lastname string, username string, fallback string) string {

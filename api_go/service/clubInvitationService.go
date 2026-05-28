@@ -44,7 +44,7 @@ func (s *ClubInvitationService) CreateAndSendInvitation(clubID string, invitedBy
 		ClubID:          clubID,
 		InvitedEmail:    email,
 		InvitedByUserID: invitedByUserID,
-		ExpiresAt:       db.NewSQLNullTime(expiresAt),
+		ExpiresAt:       expiresAt,
 	})
 	if err != nil {
 		return "", err
@@ -84,7 +84,7 @@ func (s *ClubInvitationService) GetInvitationByToken(token string) (*ClubInvitat
 		ClubID:       invitation.ClubID,
 		ClubName:     clubRow.Club.Name,
 		InvitedEmail: invitation.InvitedEmail,
-		ExpiresAt:    invitation.ExpiresAt.Time,
+		ExpiresAt:    invitation.ExpiresAt,
 		AcceptedAt:   acceptedAt,
 	}, nil
 }
@@ -98,7 +98,7 @@ func (s *ClubInvitationService) AcceptInvitation(token string, userID string, us
 	if invitation.AcceptedAt.Valid {
 		return errors.New("invitation already accepted")
 	}
-	if invitation.ExpiresAt.Valid && invitation.ExpiresAt.Time.Before(time.Now()) {
+	if invitation.ExpiresAt.Before(time.Now()) {
 		return errors.New("invitation expired")
 	}
 	if !strings.EqualFold(invitation.InvitedEmail, userEmail) {
@@ -132,7 +132,7 @@ func (s *ClubInvitationService) CompleteInvitationWithPassword(
 	if invitation.AcceptedAt.Valid {
 		return errors.New("invitation already accepted")
 	}
-	if invitation.ExpiresAt.Valid && invitation.ExpiresAt.Time.Before(time.Now()) {
+	if invitation.ExpiresAt.Before(time.Now()) {
 		return errors.New("invitation expired")
 	}
 

@@ -395,12 +395,12 @@ SELECT * FROM authors WHERE user_id_fk = ? AND name = ?;
 
 -- name: FindAuthorsByUserAndNameLike :many
 SELECT * FROM authors
-WHERE user_id_fk = ? AND name LIKE CONCAT('%', ?, '%')
+WHERE user_id_fk = sqlc.arg(user_id_fk) AND name LIKE CONCAT('%', sqlc.arg(term), '%')
 ORDER BY name LIMIT 10;
 
 -- name: FindElementsByUserAndNameLike :many
 SELECT * FROM elements
-WHERE user_id_fk = ? AND type = 'note' AND name LIKE CONCAT('%', ?, '%')
+WHERE user_id_fk = sqlc.arg(user_id_fk) AND type = 'note' AND name LIKE CONCAT('%', sqlc.arg(term), '%')
 ORDER BY name LIMIT 10;
 
 -- name: CreateNoteWithWikidata :execlastid
@@ -413,3 +413,69 @@ INSERT INTO elements (
   ?, ?, ?, ?,
   ?, ?, ?
 );
+
+-- name: CreateClubChat :exec
+INSERT INTO club_chat (id, club_id, user_a_id, user_b_id)
+VALUES (?, ?, ?, ?);
+
+-- name: FindClubChatByUsers :one
+SELECT id, club_id, user_a_id, user_b_id, created_at
+FROM club_chat
+WHERE club_id = ? AND user_a_id = ? AND user_b_id = ?;
+
+-- name: FindClubChatByID :one
+SELECT id, club_id, user_a_id, user_b_id, created_at
+FROM club_chat
+WHERE id = ?;
+
+-- name: ListClubChatsForUser :many
+SELECT
+    cc.id AS chat_id,
+    cc.club_id AS club_id,
+    CASE WHEN cc.user_a_id = sqlc.arg(requester_id) THEN cc.user_b_id ELSE cc.user_a_id END AS other_user_id,
+    u.username AS other_username,
+    u.firstname AS other_firstname,
+    u.lastname AS other_lastname,
+    u.email AS other_email,
+    cm.content AS last_message,
+    cm.sender_user_id AS last_sender_user_id,
+    cm.created_at AS last_message_at
+FROM club_chat cc
+JOIN user u ON u.id = CASE WHEN cc.user_a_id = sqlc.arg(requester_id) THEN cc.user_b_id ELSE cc.user_a_id END
+LEFT JOIN club_chat_message cm ON cm.id = (
+    SELECT m.id
+    FROM club_chat_message m
+    WHERE m.chat_id = cc.id
+    ORDER BY m.created_at DESC
+    LIMIT 1
+)
+WHERE cc.club_id = sqlc.arg(club_id) AND (cc.user_a_id = sqlc.arg(requester_id) OR cc.user_b_id = sqlc.arg(requester_id))
+ORDER BY COALESCE(cm.created_at, cc.created_at) DESC;
+
+-- name: CreateClubChatMessage :exec
+INSERT INTO club_chat_message (id, chat_id, sender_user_id, content)
+VALUES (?, ?, ?, ?);
+
+-- name: ListClubChatMessages :many
+SELECT
+    cm.id,
+    cm.chat_id,
+    cm.sender_user_id,
+    u.username AS sender_username,
+    u.firstname AS sender_firstname,
+    u.lastname AS sender_lastname,
+    u.email AS sender_email,
+    cm.content,
+    cm.created_at
+FROM club_chat_message cm
+JOIN user u ON u.id = cm.sender_user_id
+WHERE cm.chat_id = ?
+ORDER BY cm.created_at ASC
+LIMIT 500;
+
+-- name: ListClubChatCandidates :many
+SELECT u.id AS user_id, u.username, u.firstname, u.lastname, u.email
+FROM club_participant cp
+JOIN user u ON u.id = cp.user_id
+WHERE cp.club_id = sqlc.arg(club_id) AND cp.user_id <> sqlc.arg(requester_id)
+ORDER BY u.firstname, u.lastname, u.username, u.id;
