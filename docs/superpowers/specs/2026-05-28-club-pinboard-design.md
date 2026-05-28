@@ -44,11 +44,23 @@ CREATE TABLE club_pinboard_post (
 DROP TABLE club_pinboard_post;
 ```
 
-sqlc queries in `data/sql/queries/query.sql` (names): `CreatePinboardPost`,
-`UpdatePinboardPost`, `DeletePinboardPost`, `GetPinboardPost`,
-`ListPinboardPostsForClub` (ORDER BY pinned DESC, created_at DESC),
-`ListRecentPinboardPostsForUser` (join `club_participant` on the user, newest N
-across all their clubs). Author display name joined from `user` like message queries do.
+Data layer uses **sqlc** — the project standard. Add queries to
+`data/sql/queries/query.sql` with `-- name: … :one|:many|:exec` annotations, then run
+`sqlc generate` (v1.28.0) from `api_go/` to regenerate `db/query.sql.go` +
+`db/models.go` (generated — never hand-edit; do NOT follow the `chat_queries.go`
+hand-written pattern, which is legacy debt). Queries:
+
+- `-- name: CreatePinboardPost :exec`
+- `-- name: UpdatePinboardPost :exec`
+- `-- name: DeletePinboardPost :exec`
+- `-- name: GetPinboardPost :one`
+- `-- name: ListPinboardPostsForClub :many` — ORDER BY pinned DESC, created_at DESC;
+  join `user` for author display name → sqlc emits a `ListPinboardPostsForClubRow`.
+- `-- name: ListRecentPinboardPostsForUser :many` — join `club_participant` (on the
+  user) + `clubs` (for clubName), newest N across all the user's clubs; takes the
+  user id and a `LIMIT ?`.
+
+The service layer consumes the generated structs/methods (`c.queries.ListPinboardPostsForClub(ctx, ...)`).
 
 ## API Contract
 
