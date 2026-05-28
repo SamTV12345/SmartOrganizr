@@ -1,12 +1,31 @@
 basePath: /api
 definitions:
+  controllers.IdentifyMusicRequest:
+    properties:
+      imageBase64:
+        description: |-
+          ImageBase64 is the raw base64 payload, *without* the "data:image/..." prefix.
+          Frontends that have a data: URL should strip the prefix before sending.
+        type: string
+      mimeType:
+        description: optional; defaults to image/jpeg
+        type: string
+    required:
+    - imageBase64
+    type: object
   dto.Author:
     properties:
+      birthYear:
+        type: integer
+      deathYear:
+        type: integer
       extraInformation:
         type: string
       id:
         type: string
       name:
+        type: string
+      wikidataId:
         type: string
     required:
     - extraInformation
@@ -15,9 +34,15 @@ definitions:
     type: object
   dto.AuthorCreateDto:
     properties:
+      birthYear:
+        type: integer
+      deathYear:
+        type: integer
       extraInformation:
         type: string
       name:
+        type: string
+      wikidataId:
         type: string
     required:
     - extraInformation
@@ -25,13 +50,75 @@ definitions:
     type: object
   dto.AuthorPatchDto:
     properties:
+      birthYear:
+        type: integer
+      deathYear:
+        type: integer
       extraInformation:
         type: string
       name:
         type: string
+      wikidataId:
+        type: string
     required:
     - extraInformation
     - name
+    type: object
+  dto.AutocompleteAuthor:
+    properties:
+      birthYear:
+        type: integer
+      deathYear:
+        type: integer
+      description:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      wikidataId:
+        type: string
+    type: object
+  dto.AutocompleteAuthorsResponse:
+    properties:
+      external:
+        items:
+          $ref: '#/definitions/dto.AutocompleteAuthor'
+        type: array
+      local:
+        items:
+          $ref: '#/definitions/dto.AutocompleteAuthor'
+        type: array
+    type: object
+  dto.AutocompleteWork:
+    properties:
+      arranger:
+        $ref: '#/definitions/dto.AutocompleteAuthor'
+      composer:
+        $ref: '#/definitions/dto.AutocompleteAuthor'
+      compositionYear:
+        type: integer
+      description:
+        type: string
+      genre:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      wikidataId:
+        type: string
+    type: object
+  dto.AutocompleteWorksResponse:
+    properties:
+      external:
+        items:
+          $ref: '#/definitions/dto.AutocompleteWork'
+        type: array
+      local:
+        items:
+          $ref: '#/definitions/dto.AutocompleteWork'
+        type: array
     type: object
   dto.ClubChatCreateDto:
     properties:
@@ -473,13 +560,19 @@ definitions:
     type: object
   dto.Note:
     properties:
+      arranger:
+        $ref: '#/definitions/dto.Author'
       author:
         $ref: '#/definitions/dto.Author'
+      compositionYear:
+        type: integer
       creationDate:
         type: string
       creator:
         $ref: '#/definitions/dto.User'
       description:
+        type: string
+      genre:
         type: string
       id:
         type: string
@@ -494,6 +587,8 @@ definitions:
       type:
         enum:
         - note
+        type: string
+      wikidataId:
         type: string
     required:
     - author
@@ -531,6 +626,8 @@ definitions:
     type: object
   dto.NotePostDto:
     properties:
+      arrangerId:
+        type: string
       authorId:
         type: string
       description:
@@ -617,6 +714,38 @@ definitions:
     - _embedded
     - page
     type: object
+  dto.PinboardPostDto:
+    properties:
+      authorId:
+        type: string
+      authorName:
+        type: string
+      body:
+        type: string
+      clubId:
+        type: string
+      clubName:
+        type: string
+      createdAt:
+        type: string
+      id:
+        type: string
+      pinned:
+        type: boolean
+      title:
+        type: string
+      updatedAt:
+        type: string
+    type: object
+  dto.PinboardPostUpsertDto:
+    properties:
+      body:
+        type: string
+      pinned:
+        type: boolean
+      title:
+        type: string
+    type: object
   dto.User:
     properties:
       email:
@@ -666,8 +795,33 @@ definitions:
     - telephoneNumber
     - username
     type: object
+  dto.WorkFromWikidataConflictResponse:
+    properties:
+      candidates:
+        items:
+          $ref: '#/definitions/dto.AutocompleteAuthor'
+        type: array
+      incoming:
+        $ref: '#/definitions/dto.AutocompleteAuthor'
+    type: object
+  dto.WorkFromWikidataRequest:
+    properties:
+      forceNewAuthor:
+        type: boolean
+      parentId:
+        type: string
+      wikidataId:
+        type: string
+    required:
+    - parentId
+    - wikidataId
+    type: object
   models.Author:
     properties:
+      birthYear:
+        type: integer
+      deathYear:
+        type: integer
       extraInformation:
         type: string
       id:
@@ -676,6 +830,8 @@ definitions:
         type: string
       user:
         $ref: '#/definitions/models.User'
+      wikidataId:
+        type: string
     type: object
   models.Folder:
     properties:
@@ -697,13 +853,19 @@ definitions:
     type: object
   models.Note:
     properties:
+      arranger:
+        $ref: '#/definitions/models.Author'
       author:
         $ref: '#/definitions/models.Author'
+      compositionYear:
+        type: integer
       creationDate:
         type: string
       creator:
         $ref: '#/definitions/models.User'
       description:
+        type: string
+      genre:
         type: string
       id:
         type: string
@@ -719,6 +881,8 @@ definitions:
         items:
           type: integer
         type: array
+      wikidataId:
+        type: string
     type: object
   models.User:
     properties:
@@ -739,6 +903,19 @@ definitions:
       userId:
         type: string
       username:
+        type: string
+    type: object
+  service.MusicIdentification:
+    properties:
+      arranger:
+        type: string
+      composer:
+        type: string
+      confidence:
+        type: number
+      notes:
+        type: string
+      title:
         type: string
     type: object
 info:
@@ -822,6 +999,39 @@ paths:
       summary: Public access to a user's profile image
       tags:
       - public
+  /v1/ai/identify-music:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Image to identify
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/controllers.IdentifyMusicRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/service.MusicIdentification'
+        "502":
+          description: AI upstream error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "503":
+          description: AI service not configured
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Identify a piece of music from a photo using Infomaniak AI
+      tags:
+      - ai
   /v1/authors:
     get:
       parameters:
@@ -935,6 +1145,42 @@ paths:
       summary: List notes belonging to an author
       tags:
       - authors
+  /v1/autocomplete/authors:
+    get:
+      parameters:
+      - description: Search term (min 2 chars)
+        in: query
+        name: q
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.AutocompleteAuthorsResponse'
+      summary: Autocomplete suggestions for authors (local + Wikidata)
+      tags:
+      - autocomplete
+  /v1/autocomplete/works:
+    get:
+      parameters:
+      - description: Search term (min 2 chars)
+        in: query
+        name: q
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.AutocompleteWorksResponse'
+      summary: Autocomplete suggestions for works (local + Wikidata)
+      tags:
+      - autocomplete
   /v1/clubs:
     post:
       consumes:
@@ -1201,6 +1447,100 @@ paths:
       summary: Append a message to a chat
       tags:
       - messages
+  /v1/clubs/{clubId}/pinboard:
+    get:
+      parameters:
+      - description: Club ID
+        in: path
+        name: clubId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/dto.PinboardPostDto'
+            type: array
+      summary: List pinboard posts of a club
+      tags:
+      - pinboard
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Club ID
+        in: path
+        name: clubId
+        required: true
+        type: string
+      - description: Post payload
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.PinboardPostUpsertDto'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.PinboardPostDto'
+      summary: Create a pinboard post
+      tags:
+      - pinboard
+  /v1/clubs/{clubId}/pinboard/{postId}:
+    delete:
+      parameters:
+      - description: Club ID
+        in: path
+        name: clubId
+        required: true
+        type: string
+      - description: Post ID
+        in: path
+        name: postId
+        required: true
+        type: string
+      responses:
+        "204":
+          description: No Content
+      summary: Delete a pinboard post
+      tags:
+      - pinboard
+    patch:
+      consumes:
+      - application/json
+      parameters:
+      - description: Club ID
+        in: path
+        name: clubId
+        required: true
+        type: string
+      - description: Post ID
+        in: path
+        name: postId
+        required: true
+        type: string
+      - description: Post payload
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.PinboardPostUpsertDto'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.PinboardPostDto'
+      summary: Update a pinboard post
+      tags:
+      - pinboard
   /v1/clubs/{userId}:
     get:
       parameters:
@@ -1802,6 +2142,30 @@ paths:
       summary: Trigger iCal sync for the configured Konzertmeister URL
       tags:
       - users
+  /v1/users/{userId}/pinboard/recent:
+    get:
+      parameters:
+      - description: User ID
+        in: path
+        name: userId
+        required: true
+        type: string
+      - description: Max posts (default 10, max 50)
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/dto.PinboardPostDto'
+            type: array
+      summary: List the most recent pinboard posts across the user's clubs
+      tags:
+      - pinboard
   /v1/users/{userId}/profile:
     delete:
       parameters:
@@ -1888,6 +2252,37 @@ paths:
       summary: Get the currently authenticated user (by token)
       tags:
       - users
+  /v1/works/from-wikidata:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Wikidata source + parent folder
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.WorkFromWikidataRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.Note'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/dto.WorkFromWikidataConflictResponse'
+        "502":
+          description: Bad Gateway
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Create a note (work) from a Wikidata entry
+      tags:
+      - elements
 schemes:
 - https
 - http

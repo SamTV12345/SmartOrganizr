@@ -134,6 +134,63 @@
                 }
             }
         },
+        "/v1/ai/identify-music": {
+            "post": {
+                "tags": [
+                    "ai"
+                ],
+                "summary": "Identify a piece of music from a photo using Infomaniak AI",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/controllers.IdentifyMusicRequest"
+                            }
+                        }
+                    },
+                    "description": "Image to identify",
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/service.MusicIdentification"
+                                }
+                            }
+                        }
+                    },
+                    "502": {
+                        "description": "AI upstream error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "additionalProperties": {
+                                        "type": "string"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "503": {
+                        "description": "AI service not configured",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "additionalProperties": {
+                                        "type": "string"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/v1/authors": {
             "get": {
                 "tags": [
@@ -319,6 +376,68 @@
                                     "items": {
                                         "$ref": "#/components/schemas/models.Note"
                                     }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/autocomplete/authors": {
+            "get": {
+                "tags": [
+                    "autocomplete"
+                ],
+                "summary": "Autocomplete suggestions for authors (local + Wikidata)",
+                "parameters": [
+                    {
+                        "description": "Search term (min 2 chars)",
+                        "name": "q",
+                        "in": "query",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/dto.AutocompleteAuthorsResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/autocomplete/works": {
+            "get": {
+                "tags": [
+                    "autocomplete"
+                ],
+                "summary": "Autocomplete suggestions for works (local + Wikidata)",
+                "parameters": [
+                    {
+                        "description": "Search term (min 2 chars)",
+                        "name": "q",
+                        "in": "query",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/dto.AutocompleteWorksResponse"
                                 }
                             }
                         }
@@ -760,6 +879,146 @@
                 "responses": {
                     "204": {
                         "description": "No Content"
+                    }
+                }
+            }
+        },
+        "/v1/clubs/{clubId}/pinboard": {
+            "get": {
+                "tags": [
+                    "pinboard"
+                ],
+                "summary": "List pinboard posts of a club",
+                "parameters": [
+                    {
+                        "description": "Club ID",
+                        "name": "clubId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/dto.PinboardPostDto"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "pinboard"
+                ],
+                "summary": "Create a pinboard post",
+                "parameters": [
+                    {
+                        "description": "Club ID",
+                        "name": "clubId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "$ref": "#/components/requestBodies/dto.PinboardPostUpsertDto"
+                },
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/dto.PinboardPostDto"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/clubs/{clubId}/pinboard/{postId}": {
+            "delete": {
+                "tags": [
+                    "pinboard"
+                ],
+                "summary": "Delete a pinboard post",
+                "parameters": [
+                    {
+                        "description": "Club ID",
+                        "name": "clubId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "description": "Post ID",
+                        "name": "postId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    }
+                }
+            },
+            "patch": {
+                "tags": [
+                    "pinboard"
+                ],
+                "summary": "Update a pinboard post",
+                "parameters": [
+                    {
+                        "description": "Club ID",
+                        "name": "clubId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "description": "Post ID",
+                        "name": "postId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "$ref": "#/components/requestBodies/dto.PinboardPostUpsertDto"
+                },
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/dto.PinboardPostDto"
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -1866,6 +2125,48 @@
                 }
             }
         },
+        "/v1/users/{userId}/pinboard/recent": {
+            "get": {
+                "tags": [
+                    "pinboard"
+                ],
+                "summary": "List the most recent pinboard posts across the user's clubs",
+                "parameters": [
+                    {
+                        "description": "User ID",
+                        "name": "userId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "description": "Max posts (default 10, max 50)",
+                        "name": "limit",
+                        "in": "query",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/dto.PinboardPostDto"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/v1/users/{userId}/profile": {
             "post": {
                 "tags": [
@@ -1938,6 +2239,60 @@
                     }
                 }
             }
+        },
+        "/v1/works/from-wikidata": {
+            "post": {
+                "tags": [
+                    "elements"
+                ],
+                "summary": "Create a note (work) from a Wikidata entry",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/dto.WorkFromWikidataRequest"
+                            }
+                        }
+                    },
+                    "description": "Wikidata source + parent folder",
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/dto.Note"
+                                }
+                            }
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/dto.WorkFromWikidataConflictResponse"
+                                }
+                            }
+                        }
+                    },
+                    "502": {
+                        "description": "Bad Gateway",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "additionalProperties": {
+                                        "type": "string"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         }
     },
     "servers": [
@@ -1947,6 +2302,17 @@
     ],
     "components": {
         "requestBodies": {
+            "dto.PinboardPostUpsertDto": {
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "$ref": "#/components/schemas/dto.PinboardPostUpsertDto"
+                        }
+                    }
+                },
+                "description": "Post payload",
+                "required": true
+            },
             "dto.NotePostDto": {
                 "content": {
                     "application/json": {
@@ -1960,6 +2326,22 @@
             }
         },
         "schemas": {
+            "controllers.IdentifyMusicRequest": {
+                "type": "object",
+                "required": [
+                    "imageBase64"
+                ],
+                "properties": {
+                    "imageBase64": {
+                        "description": "ImageBase64 is the raw base64 payload, *without* the \"data:image/...\" prefix.\nFrontends that have a data: URL should strip the prefix before sending.",
+                        "type": "string"
+                    },
+                    "mimeType": {
+                        "description": "optional; defaults to image/jpeg",
+                        "type": "string"
+                    }
+                }
+            },
             "dto.Author": {
                 "type": "object",
                 "required": [
@@ -1968,6 +2350,12 @@
                     "name"
                 ],
                 "properties": {
+                    "birthYear": {
+                        "type": "integer"
+                    },
+                    "deathYear": {
+                        "type": "integer"
+                    },
                     "extraInformation": {
                         "type": "string"
                     },
@@ -1975,6 +2363,9 @@
                         "type": "string"
                     },
                     "name": {
+                        "type": "string"
+                    },
+                    "wikidataId": {
                         "type": "string"
                     }
                 }
@@ -1986,10 +2377,19 @@
                     "name"
                 ],
                 "properties": {
+                    "birthYear": {
+                        "type": "integer"
+                    },
+                    "deathYear": {
+                        "type": "integer"
+                    },
                     "extraInformation": {
                         "type": "string"
                     },
                     "name": {
+                        "type": "string"
+                    },
+                    "wikidataId": {
                         "type": "string"
                     }
                 }
@@ -2001,11 +2401,106 @@
                     "name"
                 ],
                 "properties": {
+                    "birthYear": {
+                        "type": "integer"
+                    },
+                    "deathYear": {
+                        "type": "integer"
+                    },
                     "extraInformation": {
                         "type": "string"
                     },
                     "name": {
                         "type": "string"
+                    },
+                    "wikidataId": {
+                        "type": "string"
+                    }
+                }
+            },
+            "dto.AutocompleteAuthor": {
+                "type": "object",
+                "properties": {
+                    "birthYear": {
+                        "type": "integer"
+                    },
+                    "deathYear": {
+                        "type": "integer"
+                    },
+                    "description": {
+                        "type": "string"
+                    },
+                    "id": {
+                        "type": "string"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "wikidataId": {
+                        "type": "string"
+                    }
+                }
+            },
+            "dto.AutocompleteAuthorsResponse": {
+                "type": "object",
+                "properties": {
+                    "external": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/dto.AutocompleteAuthor"
+                        }
+                    },
+                    "local": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/dto.AutocompleteAuthor"
+                        }
+                    }
+                }
+            },
+            "dto.AutocompleteWork": {
+                "type": "object",
+                "properties": {
+                    "arranger": {
+                        "$ref": "#/components/schemas/dto.AutocompleteAuthor"
+                    },
+                    "composer": {
+                        "$ref": "#/components/schemas/dto.AutocompleteAuthor"
+                    },
+                    "compositionYear": {
+                        "type": "integer"
+                    },
+                    "description": {
+                        "type": "string"
+                    },
+                    "genre": {
+                        "type": "string"
+                    },
+                    "id": {
+                        "type": "string"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "wikidataId": {
+                        "type": "string"
+                    }
+                }
+            },
+            "dto.AutocompleteWorksResponse": {
+                "type": "object",
+                "properties": {
+                    "external": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/dto.AutocompleteWork"
+                        }
+                    },
+                    "local": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/dto.AutocompleteWork"
+                        }
                     }
                 }
             },
@@ -2651,8 +3146,14 @@
                     "type"
                 ],
                 "properties": {
+                    "arranger": {
+                        "$ref": "#/components/schemas/dto.Author"
+                    },
                     "author": {
                         "$ref": "#/components/schemas/dto.Author"
+                    },
+                    "compositionYear": {
+                        "type": "integer"
                     },
                     "creationDate": {
                         "type": "string"
@@ -2661,6 +3162,9 @@
                         "$ref": "#/components/schemas/dto.User"
                     },
                     "description": {
+                        "type": "string"
+                    },
+                    "genre": {
                         "type": "string"
                     },
                     "id": {
@@ -2683,6 +3187,9 @@
                         "enum": [
                             "note"
                         ]
+                    },
+                    "wikidataId": {
+                        "type": "string"
                     }
                 }
             },
@@ -2731,6 +3238,9 @@
                     "parentId"
                 ],
                 "properties": {
+                    "arrangerId": {
+                        "type": "string"
+                    },
                     "authorId": {
                         "type": "string"
                     },
@@ -2852,6 +3362,55 @@
                     }
                 }
             },
+            "dto.PinboardPostDto": {
+                "type": "object",
+                "properties": {
+                    "authorId": {
+                        "type": "string"
+                    },
+                    "authorName": {
+                        "type": "string"
+                    },
+                    "body": {
+                        "type": "string"
+                    },
+                    "clubId": {
+                        "type": "string"
+                    },
+                    "clubName": {
+                        "type": "string"
+                    },
+                    "createdAt": {
+                        "type": "string"
+                    },
+                    "id": {
+                        "type": "string"
+                    },
+                    "pinned": {
+                        "type": "boolean"
+                    },
+                    "title": {
+                        "type": "string"
+                    },
+                    "updatedAt": {
+                        "type": "string"
+                    }
+                }
+            },
+            "dto.PinboardPostUpsertDto": {
+                "type": "object",
+                "properties": {
+                    "body": {
+                        "type": "string"
+                    },
+                    "pinned": {
+                        "type": "boolean"
+                    },
+                    "title": {
+                        "type": "string"
+                    }
+                }
+            },
             "dto.User": {
                 "type": "object",
                 "required": [
@@ -2921,9 +3480,47 @@
                     }
                 }
             },
+            "dto.WorkFromWikidataConflictResponse": {
+                "type": "object",
+                "properties": {
+                    "candidates": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/dto.AutocompleteAuthor"
+                        }
+                    },
+                    "incoming": {
+                        "$ref": "#/components/schemas/dto.AutocompleteAuthor"
+                    }
+                }
+            },
+            "dto.WorkFromWikidataRequest": {
+                "type": "object",
+                "required": [
+                    "parentId",
+                    "wikidataId"
+                ],
+                "properties": {
+                    "forceNewAuthor": {
+                        "type": "boolean"
+                    },
+                    "parentId": {
+                        "type": "string"
+                    },
+                    "wikidataId": {
+                        "type": "string"
+                    }
+                }
+            },
             "models.Author": {
                 "type": "object",
                 "properties": {
+                    "birthYear": {
+                        "type": "integer"
+                    },
+                    "deathYear": {
+                        "type": "integer"
+                    },
                     "extraInformation": {
                         "type": "string"
                     },
@@ -2935,6 +3532,9 @@
                     },
                     "user": {
                         "$ref": "#/components/schemas/models.User"
+                    },
+                    "wikidataId": {
+                        "type": "string"
                     }
                 }
             },
@@ -2968,8 +3568,14 @@
             "models.Note": {
                 "type": "object",
                 "properties": {
+                    "arranger": {
+                        "$ref": "#/components/schemas/models.Author"
+                    },
                     "author": {
                         "$ref": "#/components/schemas/models.Author"
+                    },
+                    "compositionYear": {
+                        "type": "integer"
                     },
                     "creationDate": {
                         "type": "string"
@@ -2978,6 +3584,9 @@
                         "$ref": "#/components/schemas/models.User"
                     },
                     "description": {
+                        "type": "string"
+                    },
+                    "genre": {
                         "type": "string"
                     },
                     "id": {
@@ -3000,6 +3609,9 @@
                         "items": {
                             "type": "integer"
                         }
+                    },
+                    "wikidataId": {
+                        "type": "string"
                     }
                 }
             },
@@ -3031,6 +3643,26 @@
                         "type": "string"
                     },
                     "username": {
+                        "type": "string"
+                    }
+                }
+            },
+            "service.MusicIdentification": {
+                "type": "object",
+                "properties": {
+                    "arranger": {
+                        "type": "string"
+                    },
+                    "composer": {
+                        "type": "string"
+                    },
+                    "confidence": {
+                        "type": "number"
+                    },
+                    "notes": {
+                        "type": "string"
+                    },
+                    "title": {
                         "type": "string"
                     }
                 }

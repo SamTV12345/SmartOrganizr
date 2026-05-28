@@ -443,6 +443,32 @@ func (q *Queries) CreateNoteWithWikidata(ctx context.Context, arg CreateNoteWith
 	return result.LastInsertId()
 }
 
+const createPinboardPost = `-- name: CreatePinboardPost :exec
+INSERT INTO club_pinboard_post (id, club_id, author_user_id, title, body, pinned)
+VALUES (?, ?, ?, ?, ?, ?)
+`
+
+type CreatePinboardPostParams struct {
+	ID           string
+	ClubID       string
+	AuthorUserID string
+	Title        string
+	Body         string
+	Pinned       bool
+}
+
+func (q *Queries) CreatePinboardPost(ctx context.Context, arg CreatePinboardPostParams) error {
+	_, err := q.db.ExecContext(ctx, createPinboardPost,
+		arg.ID,
+		arg.ClubID,
+		arg.AuthorUserID,
+		arg.Title,
+		arg.Body,
+		arg.Pinned,
+	)
+	return err
+}
+
 const createUser = `-- name: CreateUser :execlastid
 INSERT INTO user (id, username, side_bar_collapsed, firstname, lastname ) VALUES (?, ?, ?, ?, ?)
 `
@@ -594,6 +620,21 @@ DELETE FROM note_in_concert WHERE note_id_fk = ?
 
 func (q *Queries) DeleteNotesInConcertByNoteId(ctx context.Context, noteIDFk string) error {
 	_, err := q.db.ExecContext(ctx, deleteNotesInConcertByNoteId, noteIDFk)
+	return err
+}
+
+const deletePinboardPost = `-- name: DeletePinboardPost :exec
+DELETE FROM club_pinboard_post
+WHERE id = ? AND club_id = ?
+`
+
+type DeletePinboardPostParams struct {
+	ID     string
+	ClubID string
+}
+
+func (q *Queries) DeletePinboardPost(ctx context.Context, arg DeletePinboardPostParams) error {
+	_, err := q.db.ExecContext(ctx, deletePinboardPost, arg.ID, arg.ClubID)
 	return err
 }
 
@@ -2240,6 +2281,62 @@ func (q *Queries) GetIndexAuthorsOnPage(ctx context.Context, name sql.NullString
 	return items, nil
 }
 
+const getPinboardPost = `-- name: GetPinboardPost :one
+SELECT
+    p.id,
+    p.club_id,
+    p.author_user_id,
+    u.username AS author_username,
+    u.firstname AS author_firstname,
+    u.lastname AS author_lastname,
+    p.title,
+    p.body,
+    p.pinned,
+    p.created_at,
+    p.updated_at
+FROM club_pinboard_post p
+JOIN user u ON u.id = p.author_user_id
+WHERE p.id = ? AND p.club_id = ?
+`
+
+type GetPinboardPostParams struct {
+	ID     string
+	ClubID string
+}
+
+type GetPinboardPostRow struct {
+	ID              string
+	ClubID          string
+	AuthorUserID    string
+	AuthorUsername  sql.NullString
+	AuthorFirstname sql.NullString
+	AuthorLastname  sql.NullString
+	Title           string
+	Body            string
+	Pinned          bool
+	CreatedAt       time.Time
+	UpdatedAt       time.Time
+}
+
+func (q *Queries) GetPinboardPost(ctx context.Context, arg GetPinboardPostParams) (GetPinboardPostRow, error) {
+	row := q.db.QueryRowContext(ctx, getPinboardPost, arg.ID, arg.ClubID)
+	var i GetPinboardPostRow
+	err := row.Scan(
+		&i.ID,
+		&i.ClubID,
+		&i.AuthorUserID,
+		&i.AuthorUsername,
+		&i.AuthorFirstname,
+		&i.AuthorLastname,
+		&i.Title,
+		&i.Body,
+		&i.Pinned,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
 const healthCheck = `-- name: HealthCheck :one
 SELECT 1
 `
@@ -2368,7 +2465,7 @@ const listClubChatsForUser = `-- name: ListClubChatsForUser :many
 SELECT
     cc.id AS chat_id,
     cc.club_id AS club_id,
-    CAST(CASE WHEN cc.user_a_id = ? THEN cc.user_b_id ELSE cc.user_a_id END AS CHAR) AS other_user_id,
+    CASE WHEN cc.user_a_id = ? THEN cc.user_b_id ELSE cc.user_a_id END AS other_user_id,
     u.username AS other_username,
     u.firstname AS other_firstname,
     u.lastname AS other_lastname,
@@ -2433,6 +2530,152 @@ func (q *Queries) ListClubChatsForUser(ctx context.Context, arg ListClubChatsFor
 			&i.LastMessage,
 			&i.LastSenderUserID,
 			&i.LastMessageAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listPinboardPostsForClub = `-- name: ListPinboardPostsForClub :many
+SELECT
+    p.id,
+    p.club_id,
+    p.author_user_id,
+    u.username AS author_username,
+    u.firstname AS author_firstname,
+    u.lastname AS author_lastname,
+    p.title,
+    p.body,
+    p.pinned,
+    p.created_at,
+    p.updated_at
+FROM club_pinboard_post p
+JOIN user u ON u.id = p.author_user_id
+WHERE p.club_id = ?
+ORDER BY p.pinned DESC, p.created_at DESC
+`
+
+type ListPinboardPostsForClubRow struct {
+	ID              string
+	ClubID          string
+	AuthorUserID    string
+	AuthorUsername  sql.NullString
+	AuthorFirstname sql.NullString
+	AuthorLastname  sql.NullString
+	Title           string
+	Body            string
+	Pinned          bool
+	CreatedAt       time.Time
+	UpdatedAt       time.Time
+}
+
+func (q *Queries) ListPinboardPostsForClub(ctx context.Context, clubID string) ([]ListPinboardPostsForClubRow, error) {
+	rows, err := q.db.QueryContext(ctx, listPinboardPostsForClub, clubID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ListPinboardPostsForClubRow
+	for rows.Next() {
+		var i ListPinboardPostsForClubRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.ClubID,
+			&i.AuthorUserID,
+			&i.AuthorUsername,
+			&i.AuthorFirstname,
+			&i.AuthorLastname,
+			&i.Title,
+			&i.Body,
+			&i.Pinned,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listRecentPinboardPostsForUser = `-- name: ListRecentPinboardPostsForUser :many
+SELECT
+    p.id,
+    p.club_id,
+    c.name AS club_name,
+    p.author_user_id,
+    u.username AS author_username,
+    u.firstname AS author_firstname,
+    u.lastname AS author_lastname,
+    p.title,
+    p.body,
+    p.pinned,
+    p.created_at,
+    p.updated_at
+FROM club_pinboard_post p
+JOIN club_participant cp ON cp.club_id = p.club_id AND cp.user_id = ?
+JOIN clubs c ON c.id = p.club_id
+JOIN user u ON u.id = p.author_user_id
+ORDER BY p.created_at DESC
+LIMIT ?
+`
+
+type ListRecentPinboardPostsForUserParams struct {
+	UserID string
+	Limit  int32
+}
+
+type ListRecentPinboardPostsForUserRow struct {
+	ID              string
+	ClubID          string
+	ClubName        string
+	AuthorUserID    string
+	AuthorUsername  sql.NullString
+	AuthorFirstname sql.NullString
+	AuthorLastname  sql.NullString
+	Title           string
+	Body            string
+	Pinned          bool
+	CreatedAt       time.Time
+	UpdatedAt       time.Time
+}
+
+func (q *Queries) ListRecentPinboardPostsForUser(ctx context.Context, arg ListRecentPinboardPostsForUserParams) ([]ListRecentPinboardPostsForUserRow, error) {
+	rows, err := q.db.QueryContext(ctx, listRecentPinboardPostsForUser, arg.UserID, arg.Limit)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ListRecentPinboardPostsForUserRow
+	for rows.Next() {
+		var i ListRecentPinboardPostsForUserRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.ClubID,
+			&i.ClubName,
+			&i.AuthorUserID,
+			&i.AuthorUsername,
+			&i.AuthorFirstname,
+			&i.AuthorLastname,
+			&i.Title,
+			&i.Body,
+			&i.Pinned,
+			&i.CreatedAt,
+			&i.UpdatedAt,
 		); err != nil {
 			return nil, err
 		}
@@ -2763,6 +3006,31 @@ func (q *Queries) UpdateNote(ctx context.Context, arg UpdateNoteParams) error {
 		arg.NumberOfPages,
 		arg.PdfContent,
 		arg.ID,
+	)
+	return err
+}
+
+const updatePinboardPost = `-- name: UpdatePinboardPost :exec
+UPDATE club_pinboard_post
+SET title = ?, body = ?, pinned = ?, updated_at = CURRENT_TIMESTAMP
+WHERE id = ? AND club_id = ?
+`
+
+type UpdatePinboardPostParams struct {
+	Title  string
+	Body   string
+	Pinned bool
+	ID     string
+	ClubID string
+}
+
+func (q *Queries) UpdatePinboardPost(ctx context.Context, arg UpdatePinboardPostParams) error {
+	_, err := q.db.ExecContext(ctx, updatePinboardPost,
+		arg.Title,
+		arg.Body,
+		arg.Pinned,
+		arg.ID,
+		arg.ClubID,
 	)
 	return err
 }

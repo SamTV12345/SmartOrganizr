@@ -91,6 +91,18 @@ func SetupTest(t *testing.T) *fiber.App {
 		if err != nil {
 			t.Fatalf("failed to delete all data: %v", err)
 		}
+		// Club-related tables have no generated DeleteAll queries; clear them with
+		// raw deletes (FK checks are disabled above) so club tests stay isolated.
+		for _, table := range []string{
+			"club_pinboard_post",
+			"club_chat_message",
+			"club_chat",
+			"club_invitation",
+			"club_participant",
+			"clubs",
+		} {
+			rawDB.Exec("DELETE FROM " + table)
+		}
 		rawDB.Exec("SET FOREIGN_KEY_CHECKS = 1;")
 	})
 

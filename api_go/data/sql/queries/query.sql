@@ -479,3 +479,72 @@ FROM club_participant cp
 JOIN user u ON u.id = cp.user_id
 WHERE cp.club_id = sqlc.arg(club_id) AND cp.user_id <> sqlc.arg(requester_id)
 ORDER BY u.firstname, u.lastname, u.username, u.id;
+
+-- name: CreatePinboardPost :exec
+INSERT INTO club_pinboard_post (id, club_id, author_user_id, title, body, pinned)
+VALUES (?, ?, ?, ?, ?, ?);
+
+-- name: UpdatePinboardPost :exec
+UPDATE club_pinboard_post
+SET title = ?, body = ?, pinned = ?, updated_at = CURRENT_TIMESTAMP
+WHERE id = sqlc.arg(id) AND club_id = sqlc.arg(club_id);
+
+-- name: DeletePinboardPost :exec
+DELETE FROM club_pinboard_post
+WHERE id = sqlc.arg(id) AND club_id = sqlc.arg(club_id);
+
+-- name: GetPinboardPost :one
+SELECT
+    p.id,
+    p.club_id,
+    p.author_user_id,
+    u.username AS author_username,
+    u.firstname AS author_firstname,
+    u.lastname AS author_lastname,
+    p.title,
+    p.body,
+    p.pinned,
+    p.created_at,
+    p.updated_at
+FROM club_pinboard_post p
+JOIN user u ON u.id = p.author_user_id
+WHERE p.id = sqlc.arg(id) AND p.club_id = sqlc.arg(club_id);
+
+-- name: ListPinboardPostsForClub :many
+SELECT
+    p.id,
+    p.club_id,
+    p.author_user_id,
+    u.username AS author_username,
+    u.firstname AS author_firstname,
+    u.lastname AS author_lastname,
+    p.title,
+    p.body,
+    p.pinned,
+    p.created_at,
+    p.updated_at
+FROM club_pinboard_post p
+JOIN user u ON u.id = p.author_user_id
+WHERE p.club_id = ?
+ORDER BY p.pinned DESC, p.created_at DESC;
+
+-- name: ListRecentPinboardPostsForUser :many
+SELECT
+    p.id,
+    p.club_id,
+    c.name AS club_name,
+    p.author_user_id,
+    u.username AS author_username,
+    u.firstname AS author_firstname,
+    u.lastname AS author_lastname,
+    p.title,
+    p.body,
+    p.pinned,
+    p.created_at,
+    p.updated_at
+FROM club_pinboard_post p
+JOIN club_participant cp ON cp.club_id = p.club_id AND cp.user_id = sqlc.arg(user_id)
+JOIN clubs c ON c.id = p.club_id
+JOIN user u ON u.id = p.author_user_id
+ORDER BY p.created_at DESC
+LIMIT ?;

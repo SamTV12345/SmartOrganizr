@@ -119,6 +119,17 @@ type ClubParticipant struct {
 	Role   ClubParticipantRole
 }
 
+type ClubPinboardPost struct {
+	ID           string
+	ClubID       string
+	AuthorUserID string
+	Title        string
+	Body         string
+	Pinned       bool
+	CreatedAt    time.Time
+	UpdatedAt    time.Time
+}
+
 type Concert struct {
 	ID          string
 	DueDate     sql.NullTime

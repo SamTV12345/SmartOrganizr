@@ -136,6 +136,7 @@ func SetupRouter(queries *db.Queries, config config.AppConfig, logger *zap.Sugar
 
 	var clubMemberService = service.NewClubMemberService(queries, clubService)
 	var messageService = service.NewMessageService(queries)
+	var pinboardService = service.NewPinboardService(queries)
 
 	var wikidataService = service.NewWikidataService(
 		"https://query.wikidata.org/sparql",
@@ -170,6 +171,7 @@ func SetupRouter(queries *db.Queries, config config.AppConfig, logger *zap.Sugar
 		SetLocal[service.ClubMemberService](c, constants.ClubMemberService, clubMemberService)
 		SetLocal[service.ClubInvitationService](c, constants.ClubInvitationService, clubInvitationService)
 		SetLocal[service.MessageService](c, constants.MessageService, messageService)
+		SetLocal[service.PinboardService](c, constants.PinboardService, pinboardService)
 		SetLocal[*service.WikidataService](c, constants.WikidataService, wikidataService)
 		SetLocal[*service.AIService](c, constants.AIService, aiService)
 
@@ -218,6 +220,7 @@ func SetupRouter(queries *db.Queries, config config.AppConfig, logger *zap.Sugar
 		r.Post("/:userId/konzertmeister-url/sync", controllers.SyncKonzertmeisterUrl)
 		r.Get("/:userId/konzertmeister-url", controllers.GetKonzertmeisterUrl)
 		r.Get("/me", controllers.GetUserProfile)
+		r.Get("/:userId/pinboard/recent", controllers.GetRecentPinboardForUser)
 		r.Get("/offline", controllers.GetOfflineData)
 		r.Delete("/:userId/profile", controllers.DeleteProfilePic)
 	})
@@ -255,6 +258,10 @@ func SetupRouter(queries *db.Queries, config config.AppConfig, logger *zap.Sugar
 		r.Post("/:clubId/messages/chats", controllers.CreateClubChat)
 		r.Get("/:clubId/messages/chats/:chatId", controllers.GetClubChatMessages)
 		r.Post("/:clubId/messages/chats/:chatId", controllers.PostClubChatMessage)
+		r.Get("/:clubId/pinboard", controllers.GetClubPinboard)
+		r.Post("/:clubId/pinboard", controllers.CreateClubPinboardPost)
+		r.Patch("/:clubId/pinboard/:postId", controllers.UpdateClubPinboardPost)
+		r.Delete("/:clubId/pinboard/:postId", controllers.DeleteClubPinboardPost)
 	})
 
 	profile.Route("v1/invitations", func(r fiber.Router) {
