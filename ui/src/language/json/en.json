@@ -1,4 +1,17 @@
 {
+  "pinboard": {
+    "title": "Pinboard",
+    "create": "Create post",
+    "edit": "Edit post",
+    "delete": "Delete",
+    "delete-confirm": "Really delete this post?",
+    "empty": "No posts yet.",
+    "pinned": "Pinned",
+    "field": {
+      "title": "Title",
+      "body": "Content"
+    }
+  },
   "homepage": "Homepage",
   "fast": "Fast",
   "modern": "Modern",

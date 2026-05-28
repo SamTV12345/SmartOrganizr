@@ -32,6 +32,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { ClubPinboardSection } from "@/src/components/ClubPinboardSection";
 
 type ClubSection = {
     id: string;
@@ -292,7 +293,11 @@ export const ClubDetailView: FC = () => {
                         </Card>
                     )}
 
-                    {activeSection.id !== "rollen" && activeSection.id !== "mitglieder" && activeSection.id !== "nachrichten" && (
+                    {activeSection.id === "pinnwand" && (
+                        <ClubPinboardSection clubId={club.id} canWrite={sectionWritable} />
+                    )}
+
+                    {activeSection.id !== "rollen" && activeSection.id !== "mitglieder" && activeSection.id !== "nachrichten" && activeSection.id !== "pinnwand" && (
                         <Card className="border-dashed">
                             <CardHeader>
                                 <CardTitle className="flex items-center gap-2 text-xl">

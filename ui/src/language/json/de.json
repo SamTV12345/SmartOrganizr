@@ -1,4 +1,17 @@
 {
+  "pinboard": {
+    "title": "Pinnwand",
+    "create": "Beitrag erstellen",
+    "edit": "Beitrag bearbeiten",
+    "delete": "Löschen",
+    "delete-confirm": "Diesen Beitrag wirklich löschen?",
+    "empty": "Noch keine Beiträge vorhanden.",
+    "pinned": "Angepinnt",
+    "field": {
+      "title": "Titel",
+      "body": "Inhalt"
+    }
+  },
   "homepage": "Startseite",
   "fast": "Schnell",
   "modern": "Modern",
