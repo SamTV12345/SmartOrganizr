@@ -548,3 +548,33 @@ JOIN clubs c ON c.id = p.club_id
 JOIN user u ON u.id = p.author_user_id
 ORDER BY p.created_at DESC
 LIMIT ?;
+
+-- name: CreateClubFile :exec
+INSERT INTO club_file (id, club_id, name, mime_type, size_bytes, content, uploaded_by_user_id)
+VALUES (?, ?, ?, ?, ?, ?, ?);
+
+-- name: GetClubFileContent :one
+SELECT id, name, mime_type, size_bytes, content
+FROM club_file
+WHERE id = sqlc.arg(id) AND club_id = sqlc.arg(club_id);
+
+-- name: ListClubFilesForClub :many
+SELECT
+    f.id,
+    f.club_id,
+    f.name,
+    f.mime_type,
+    f.size_bytes,
+    f.uploaded_by_user_id,
+    u.username AS uploader_username,
+    u.firstname AS uploader_firstname,
+    u.lastname AS uploader_lastname,
+    f.created_at
+FROM club_file f
+JOIN user u ON u.id = f.uploaded_by_user_id
+WHERE f.club_id = ?
+ORDER BY f.created_at DESC;
+
+-- name: DeleteClubFile :exec
+DELETE FROM club_file
+WHERE id = sqlc.arg(id) AND club_id = sqlc.arg(club_id);

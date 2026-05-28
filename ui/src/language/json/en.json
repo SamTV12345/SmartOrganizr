@@ -1,4 +1,13 @@
 {
+  "files": {
+    "title": "Storage for documents and files.",
+    "upload": "Upload file",
+    "empty": "No files yet.",
+    "download": "Download",
+    "delete": "Delete",
+    "delete-confirm": "Really delete this file?",
+    "too-large": "The file exceeds the 25 MB limit."
+  },
   "pinboard": {
     "title": "Pinboard",
     "create": "Create post",

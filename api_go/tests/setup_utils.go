@@ -94,6 +94,7 @@ func SetupTest(t *testing.T) *fiber.App {
 		// Club-related tables have no generated DeleteAll queries; clear them with
 		// raw deletes (FK checks are disabled above) so club tests stay isolated.
 		for _, table := range []string{
+			"club_file",
 			"club_pinboard_post",
 			"club_chat_message",
 			"club_chat",

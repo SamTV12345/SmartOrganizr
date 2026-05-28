@@ -180,6 +180,34 @@ func (q *Queries) CreateClubChatMessage(ctx context.Context, arg CreateClubChatM
 	return err
 }
 
+const createClubFile = `-- name: CreateClubFile :exec
+INSERT INTO club_file (id, club_id, name, mime_type, size_bytes, content, uploaded_by_user_id)
+VALUES (?, ?, ?, ?, ?, ?, ?)
+`
+
+type CreateClubFileParams struct {
+	ID               string
+	ClubID           string
+	Name             string
+	MimeType         string
+	SizeBytes        int64
+	Content          []byte
+	UploadedByUserID string
+}
+
+func (q *Queries) CreateClubFile(ctx context.Context, arg CreateClubFileParams) error {
+	_, err := q.db.ExecContext(ctx, createClubFile,
+		arg.ID,
+		arg.ClubID,
+		arg.Name,
+		arg.MimeType,
+		arg.SizeBytes,
+		arg.Content,
+		arg.UploadedByUserID,
+	)
+	return err
+}
+
 const createClubInvitation = `-- name: CreateClubInvitation :exec
 INSERT INTO club_invitation(
         token,
@@ -551,6 +579,21 @@ type DeleteAuthorParams struct {
 
 func (q *Queries) DeleteAuthor(ctx context.Context, arg DeleteAuthorParams) error {
 	_, err := q.db.ExecContext(ctx, deleteAuthor, arg.ID, arg.UserIDFk)
+	return err
+}
+
+const deleteClubFile = `-- name: DeleteClubFile :exec
+DELETE FROM club_file
+WHERE id = ? AND club_id = ?
+`
+
+type DeleteClubFileParams struct {
+	ID     string
+	ClubID string
+}
+
+func (q *Queries) DeleteClubFile(ctx context.Context, arg DeleteClubFileParams) error {
+	_, err := q.db.ExecContext(ctx, deleteClubFile, arg.ID, arg.ClubID)
 	return err
 }
 
@@ -2158,6 +2201,38 @@ func (q *Queries) FindUserById(ctx context.Context, id string) (User, error) {
 	return i, err
 }
 
+const getClubFileContent = `-- name: GetClubFileContent :one
+SELECT id, name, mime_type, size_bytes, content
+FROM club_file
+WHERE id = ? AND club_id = ?
+`
+
+type GetClubFileContentParams struct {
+	ID     string
+	ClubID string
+}
+
+type GetClubFileContentRow struct {
+	ID        string
+	Name      string
+	MimeType  string
+	SizeBytes int64
+	Content   []byte
+}
+
+func (q *Queries) GetClubFileContent(ctx context.Context, arg GetClubFileContentParams) (GetClubFileContentRow, error) {
+	row := q.db.QueryRowContext(ctx, getClubFileContent, arg.ID, arg.ClubID)
+	var i GetClubFileContentRow
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.MimeType,
+		&i.SizeBytes,
+		&i.Content,
+	)
+	return i, err
+}
+
 const getClubs = `-- name: GetClubs :many
 SELECT clubs.id, clubs.name, clubs.address_id, clubs.club_type, clubs.dates_visible_for_all_members, clubs.members_can_send_messages, clubs.feedback_visibility, clubs.reason_visibility, clubs.confirmed_representative, address.id, address.street, address.house_number, address.location, address.postal_code, address.country
 from clubs
@@ -2530,6 +2605,71 @@ func (q *Queries) ListClubChatsForUser(ctx context.Context, arg ListClubChatsFor
 			&i.LastMessage,
 			&i.LastSenderUserID,
 			&i.LastMessageAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listClubFilesForClub = `-- name: ListClubFilesForClub :many
+SELECT
+    f.id,
+    f.club_id,
+    f.name,
+    f.mime_type,
+    f.size_bytes,
+    f.uploaded_by_user_id,
+    u.username AS uploader_username,
+    u.firstname AS uploader_firstname,
+    u.lastname AS uploader_lastname,
+    f.created_at
+FROM club_file f
+JOIN user u ON u.id = f.uploaded_by_user_id
+WHERE f.club_id = ?
+ORDER BY f.created_at DESC
+`
+
+type ListClubFilesForClubRow struct {
+	ID                string
+	ClubID            string
+	Name              string
+	MimeType          string
+	SizeBytes         int64
+	UploadedByUserID  string
+	UploaderUsername  sql.NullString
+	UploaderFirstname sql.NullString
+	UploaderLastname  sql.NullString
+	CreatedAt         time.Time
+}
+
+func (q *Queries) ListClubFilesForClub(ctx context.Context, clubID string) ([]ListClubFilesForClubRow, error) {
+	rows, err := q.db.QueryContext(ctx, listClubFilesForClub, clubID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ListClubFilesForClubRow
+	for rows.Next() {
+		var i ListClubFilesForClubRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.ClubID,
+			&i.Name,
+			&i.MimeType,
+			&i.SizeBytes,
+			&i.UploadedByUserID,
+			&i.UploaderUsername,
+			&i.UploaderFirstname,
+			&i.UploaderLastname,
+			&i.CreatedAt,
 		); err != nil {
 			return nil, err
 		}

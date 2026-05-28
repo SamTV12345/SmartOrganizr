@@ -1,4 +1,13 @@
 {
+  "files": {
+    "title": "Ablage für Dokumente und Unterlagen.",
+    "upload": "Datei hochladen",
+    "empty": "Noch keine Dateien vorhanden.",
+    "download": "Herunterladen",
+    "delete": "Löschen",
+    "delete-confirm": "Diese Datei wirklich löschen?",
+    "too-large": "Die Datei überschreitet das 25-MB-Limit."
+  },
   "pinboard": {
     "title": "Pinnwand",
     "create": "Beitrag erstellen",

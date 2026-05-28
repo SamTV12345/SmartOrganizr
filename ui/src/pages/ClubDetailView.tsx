@@ -33,6 +33,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { ClubPinboardSection } from "@/src/components/ClubPinboardSection";
+import { ClubFilesSection } from "@/src/components/ClubFilesSection";
 
 type ClubSection = {
     id: string;
@@ -297,7 +298,11 @@ export const ClubDetailView: FC = () => {
                         <ClubPinboardSection clubId={club.id} canWrite={sectionWritable} />
                     )}
 
-                    {activeSection.id !== "rollen" && activeSection.id !== "mitglieder" && activeSection.id !== "nachrichten" && activeSection.id !== "pinnwand" && (
+                    {activeSection.id === "dateien" && (
+                        <ClubFilesSection clubId={club.id} canWrite={sectionWritable} />
+                    )}
+
+                    {activeSection.id !== "rollen" && activeSection.id !== "mitglieder" && activeSection.id !== "nachrichten" && activeSection.id !== "pinnwand" && activeSection.id !== "dateien" && (
                         <Card className="border-dashed">
                             <CardHeader>
                                 <CardTitle className="flex items-center gap-2 text-xl">

@@ -103,6 +103,17 @@ type ClubChatMessage struct {
 	CreatedAt    time.Time
 }
 
+type ClubFile struct {
+	ID               string
+	ClubID           string
+	Name             string
+	MimeType         string
+	SizeBytes        int64
+	Content          []byte
+	UploadedByUserID string
+	CreatedAt        time.Time
+}
+
 type ClubInvitation struct {
 	Token           string
 	ClubID          string

@@ -240,6 +240,25 @@ definitions:
     - reason_visibility
     - street
     type: object
+  dto.ClubFileDto:
+    properties:
+      clubId:
+        type: string
+      createdAt:
+        type: string
+      id:
+        type: string
+      mimeType:
+        type: string
+      name:
+        type: string
+      sizeBytes:
+        type: integer
+      uploadedBy:
+        type: string
+      uploadedById:
+        type: string
+    type: object
   dto.ClubInvitationCompleteDto:
     properties:
       confirm_password:
@@ -1202,6 +1221,84 @@ paths:
       summary: Create a new club (with the current user as admin)
       tags:
       - clubs
+  /v1/clubs/{clubId}/files:
+    get:
+      parameters:
+      - description: Club ID
+        in: path
+        name: clubId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/dto.ClubFileDto'
+            type: array
+      summary: List files of a club
+      tags:
+      - clubFiles
+    post:
+      consumes:
+      - multipart/form-data
+      parameters:
+      - description: Club ID
+        in: path
+        name: clubId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.ClubFileDto'
+      summary: Upload a file to a club (multipart "file")
+      tags:
+      - clubFiles
+  /v1/clubs/{clubId}/files/{fileId}:
+    delete:
+      parameters:
+      - description: Club ID
+        in: path
+        name: clubId
+        required: true
+        type: string
+      - description: File ID
+        in: path
+        name: fileId
+        required: true
+        type: string
+      responses:
+        "204":
+          description: No Content
+      summary: Delete a club file
+      tags:
+      - clubFiles
+    get:
+      parameters:
+      - description: Club ID
+        in: path
+        name: clubId
+        required: true
+        type: string
+      - description: File ID
+        in: path
+        name: fileId
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: file
+      summary: Download a club file
+      tags:
+      - clubFiles
   /v1/clubs/{clubId}/me/permissions:
     get:
       parameters:
