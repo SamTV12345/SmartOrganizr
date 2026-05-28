@@ -131,6 +131,57 @@ const docTemplate = `{
                 }
             }
         },
+        "/v1/ai/identify-music": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "ai"
+                ],
+                "summary": "Identify a piece of music from a photo using Infomaniak AI",
+                "parameters": [
+                    {
+                        "description": "Image to identify",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/controllers.IdentifyMusicRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/service.MusicIdentification"
+                        }
+                    },
+                    "502": {
+                        "description": "AI upstream error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "503": {
+                        "description": "AI service not configured",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/v1/authors": {
             "get": {
                 "produces": [
@@ -305,6 +356,62 @@ const docTemplate = `{
                 }
             }
         },
+        "/v1/autocomplete/authors": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "autocomplete"
+                ],
+                "summary": "Autocomplete suggestions for authors (local + Wikidata)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Search term (min 2 chars)",
+                        "name": "q",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.AutocompleteAuthorsResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/autocomplete/works": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "autocomplete"
+                ],
+                "summary": "Autocomplete suggestions for works (local + Wikidata)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Search term (min 2 chars)",
+                        "name": "q",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.AutocompleteWorksResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/v1/clubs": {
             "post": {
                 "consumes": [
@@ -334,6 +441,125 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/dto.ClubDto"
                         }
+                    }
+                }
+            }
+        },
+        "/v1/clubs/{clubId}/files": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "clubFiles"
+                ],
+                "summary": "List files of a club",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Club ID",
+                        "name": "clubId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/dto.ClubFileDto"
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "clubFiles"
+                ],
+                "summary": "Upload a file to a club (multipart \"file\")",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Club ID",
+                        "name": "clubId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ClubFileDto"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/clubs/{clubId}/files/{fileId}": {
+            "get": {
+                "tags": [
+                    "clubFiles"
+                ],
+                "summary": "Download a club file",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Club ID",
+                        "name": "clubId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "File ID",
+                        "name": "fileId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "file"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "clubFiles"
+                ],
+                "summary": "Delete a club file",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Club ID",
+                        "name": "clubId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "File ID",
+                        "name": "fileId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
                     }
                 }
             }
@@ -710,6 +936,178 @@ const docTemplate = `{
                 "responses": {
                     "204": {
                         "description": "No Content"
+                    }
+                }
+            }
+        },
+        "/v1/clubs/{clubId}/messages/chats/{chatId}/read": {
+            "patch": {
+                "tags": [
+                    "notifications"
+                ],
+                "summary": "Mark a chat as read up to now",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Club ID",
+                        "name": "clubId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Chat ID",
+                        "name": "chatId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    }
+                }
+            }
+        },
+        "/v1/clubs/{clubId}/pinboard": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "pinboard"
+                ],
+                "summary": "List pinboard posts of a club",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Club ID",
+                        "name": "clubId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/dto.PinboardPostDto"
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "pinboard"
+                ],
+                "summary": "Create a pinboard post",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Club ID",
+                        "name": "clubId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Post payload",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.PinboardPostUpsertDto"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.PinboardPostDto"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/clubs/{clubId}/pinboard/{postId}": {
+            "delete": {
+                "tags": [
+                    "pinboard"
+                ],
+                "summary": "Delete a pinboard post",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Club ID",
+                        "name": "clubId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Post ID",
+                        "name": "postId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    }
+                }
+            },
+            "patch": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "pinboard"
+                ],
+                "summary": "Update a pinboard post",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Club ID",
+                        "name": "clubId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Post ID",
+                        "name": "postId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Post payload",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.PinboardPostUpsertDto"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.PinboardPostDto"
+                        }
                     }
                 }
             }
@@ -1418,6 +1816,41 @@ const docTemplate = `{
                 }
             }
         },
+        "/v1/notifications/stream": {
+            "get": {
+                "produces": [
+                    "text/event-stream"
+                ],
+                "tags": [
+                    "notifications"
+                ],
+                "summary": "Server-Sent Events stream of notifications for the current user",
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            }
+        },
+        "/v1/notifications/unread-summary": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "notifications"
+                ],
+                "summary": "Total and per-club unread message counts for the current user",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.UnreadSummaryDto"
+                        }
+                    }
+                }
+            }
+        },
         "/v1/users": {
             "put": {
                 "tags": [
@@ -1707,6 +2140,43 @@ const docTemplate = `{
                 }
             }
         },
+        "/v1/users/{userId}/pinboard/recent": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "pinboard"
+                ],
+                "summary": "List the most recent pinboard posts across the user's clubs",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "User ID",
+                        "name": "userId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Max posts (default 10, max 50)",
+                        "name": "limit",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/dto.PinboardPostDto"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/v1/users/{userId}/profile": {
             "post": {
                 "consumes": [
@@ -1772,9 +2242,73 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "/v1/works/from-wikidata": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "elements"
+                ],
+                "summary": "Create a note (work) from a Wikidata entry",
+                "parameters": [
+                    {
+                        "description": "Wikidata source + parent folder",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.WorkFromWikidataRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Note"
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "$ref": "#/definitions/dto.WorkFromWikidataConflictResponse"
+                        }
+                    },
+                    "502": {
+                        "description": "Bad Gateway",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
+        "controllers.IdentifyMusicRequest": {
+            "type": "object",
+            "required": [
+                "imageBase64"
+            ],
+            "properties": {
+                "imageBase64": {
+                    "description": "ImageBase64 is the raw base64 payload, *without* the \"data:image/...\" prefix.\nFrontends that have a data: URL should strip the prefix before sending.",
+                    "type": "string"
+                },
+                "mimeType": {
+                    "description": "optional; defaults to image/jpeg",
+                    "type": "string"
+                }
+            }
+        },
         "dto.Author": {
             "type": "object",
             "required": [
@@ -1783,6 +2317,12 @@ const docTemplate = `{
                 "name"
             ],
             "properties": {
+                "birthYear": {
+                    "type": "integer"
+                },
+                "deathYear": {
+                    "type": "integer"
+                },
                 "extraInformation": {
                     "type": "string"
                 },
@@ -1790,6 +2330,9 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "name": {
+                    "type": "string"
+                },
+                "wikidataId": {
                     "type": "string"
                 }
             }
@@ -1801,10 +2344,19 @@ const docTemplate = `{
                 "name"
             ],
             "properties": {
+                "birthYear": {
+                    "type": "integer"
+                },
+                "deathYear": {
+                    "type": "integer"
+                },
                 "extraInformation": {
                     "type": "string"
                 },
                 "name": {
+                    "type": "string"
+                },
+                "wikidataId": {
                     "type": "string"
                 }
             }
@@ -1816,11 +2368,106 @@ const docTemplate = `{
                 "name"
             ],
             "properties": {
+                "birthYear": {
+                    "type": "integer"
+                },
+                "deathYear": {
+                    "type": "integer"
+                },
                 "extraInformation": {
                     "type": "string"
                 },
                 "name": {
                     "type": "string"
+                },
+                "wikidataId": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.AutocompleteAuthor": {
+            "type": "object",
+            "properties": {
+                "birthYear": {
+                    "type": "integer"
+                },
+                "deathYear": {
+                    "type": "integer"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "wikidataId": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.AutocompleteAuthorsResponse": {
+            "type": "object",
+            "properties": {
+                "external": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.AutocompleteAuthor"
+                    }
+                },
+                "local": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.AutocompleteAuthor"
+                    }
+                }
+            }
+        },
+        "dto.AutocompleteWork": {
+            "type": "object",
+            "properties": {
+                "arranger": {
+                    "$ref": "#/definitions/dto.AutocompleteAuthor"
+                },
+                "composer": {
+                    "$ref": "#/definitions/dto.AutocompleteAuthor"
+                },
+                "compositionYear": {
+                    "type": "integer"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "genre": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "wikidataId": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.AutocompleteWorksResponse": {
+            "type": "object",
+            "properties": {
+                "external": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.AutocompleteWork"
+                    }
+                },
+                "local": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.AutocompleteWork"
+                    }
                 }
             }
         },
@@ -1932,6 +2579,9 @@ const docTemplate = `{
                 },
                 "other_user_id": {
                     "type": "string"
+                },
+                "unread_count": {
+                    "type": "integer"
                 }
             }
         },
@@ -1990,6 +2640,35 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "street": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.ClubFileDto": {
+            "type": "object",
+            "properties": {
+                "clubId": {
+                    "type": "string"
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "mimeType": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "sizeBytes": {
+                    "type": "integer"
+                },
+                "uploadedBy": {
+                    "type": "string"
+                },
+                "uploadedById": {
                     "type": "string"
                 }
             }
@@ -2466,8 +3145,14 @@ const docTemplate = `{
                 "type"
             ],
             "properties": {
+                "arranger": {
+                    "$ref": "#/definitions/dto.Author"
+                },
                 "author": {
                     "$ref": "#/definitions/dto.Author"
+                },
+                "compositionYear": {
+                    "type": "integer"
                 },
                 "creationDate": {
                     "type": "string"
@@ -2476,6 +3161,9 @@ const docTemplate = `{
                     "$ref": "#/definitions/dto.User"
                 },
                 "description": {
+                    "type": "string"
+                },
+                "genre": {
                     "type": "string"
                 },
                 "id": {
@@ -2498,6 +3186,9 @@ const docTemplate = `{
                     "enum": [
                         "note"
                     ]
+                },
+                "wikidataId": {
+                    "type": "string"
                 }
             }
         },
@@ -2546,6 +3237,9 @@ const docTemplate = `{
                 "parentId"
             ],
             "properties": {
+                "arrangerId": {
+                    "type": "string"
+                },
                 "authorId": {
                     "type": "string"
                 },
@@ -2667,6 +3361,83 @@ const docTemplate = `{
                 }
             }
         },
+        "dto.PinboardPostDto": {
+            "type": "object",
+            "properties": {
+                "authorId": {
+                    "type": "string"
+                },
+                "authorName": {
+                    "type": "string"
+                },
+                "body": {
+                    "type": "string"
+                },
+                "clubId": {
+                    "type": "string"
+                },
+                "clubName": {
+                    "type": "string"
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "pinned": {
+                    "type": "boolean"
+                },
+                "title": {
+                    "type": "string"
+                },
+                "updatedAt": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.PinboardPostUpsertDto": {
+            "type": "object",
+            "properties": {
+                "body": {
+                    "type": "string"
+                },
+                "pinned": {
+                    "type": "boolean"
+                },
+                "title": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.UnreadByClubDto": {
+            "type": "object",
+            "properties": {
+                "clubId": {
+                    "type": "string"
+                },
+                "clubName": {
+                    "type": "string"
+                },
+                "unread": {
+                    "type": "integer"
+                }
+            }
+        },
+        "dto.UnreadSummaryDto": {
+            "type": "object",
+            "properties": {
+                "byClub": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.UnreadByClubDto"
+                    }
+                },
+                "total": {
+                    "type": "integer"
+                }
+            }
+        },
         "dto.User": {
             "type": "object",
             "required": [
@@ -2736,9 +3507,47 @@ const docTemplate = `{
                 }
             }
         },
+        "dto.WorkFromWikidataConflictResponse": {
+            "type": "object",
+            "properties": {
+                "candidates": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.AutocompleteAuthor"
+                    }
+                },
+                "incoming": {
+                    "$ref": "#/definitions/dto.AutocompleteAuthor"
+                }
+            }
+        },
+        "dto.WorkFromWikidataRequest": {
+            "type": "object",
+            "required": [
+                "parentId",
+                "wikidataId"
+            ],
+            "properties": {
+                "forceNewAuthor": {
+                    "type": "boolean"
+                },
+                "parentId": {
+                    "type": "string"
+                },
+                "wikidataId": {
+                    "type": "string"
+                }
+            }
+        },
         "models.Author": {
             "type": "object",
             "properties": {
+                "birthYear": {
+                    "type": "integer"
+                },
+                "deathYear": {
+                    "type": "integer"
+                },
                 "extraInformation": {
                     "type": "string"
                 },
@@ -2750,6 +3559,9 @@ const docTemplate = `{
                 },
                 "user": {
                     "$ref": "#/definitions/models.User"
+                },
+                "wikidataId": {
+                    "type": "string"
                 }
             }
         },
@@ -2783,8 +3595,14 @@ const docTemplate = `{
         "models.Note": {
             "type": "object",
             "properties": {
+                "arranger": {
+                    "$ref": "#/definitions/models.Author"
+                },
                 "author": {
                     "$ref": "#/definitions/models.Author"
+                },
+                "compositionYear": {
+                    "type": "integer"
                 },
                 "creationDate": {
                     "type": "string"
@@ -2793,6 +3611,9 @@ const docTemplate = `{
                     "$ref": "#/definitions/models.User"
                 },
                 "description": {
+                    "type": "string"
+                },
+                "genre": {
                     "type": "string"
                 },
                 "id": {
@@ -2815,6 +3636,9 @@ const docTemplate = `{
                     "items": {
                         "type": "integer"
                     }
+                },
+                "wikidataId": {
+                    "type": "string"
                 }
             }
         },
@@ -2846,6 +3670,26 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "username": {
+                    "type": "string"
+                }
+            }
+        },
+        "service.MusicIdentification": {
+            "type": "object",
+            "properties": {
+                "arranger": {
+                    "type": "string"
+                },
+                "composer": {
+                    "type": "string"
+                },
+                "confidence": {
+                    "type": "number"
+                },
+                "notes": {
+                    "type": "string"
+                },
+                "title": {
                     "type": "string"
                 }
             }

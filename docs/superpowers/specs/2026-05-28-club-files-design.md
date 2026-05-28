@@ -44,9 +44,17 @@ CREATE TABLE club_file (
 DROP TABLE club_file;
 ```
 
-sqlc queries (`query.sql`): `CreateClubFile`, `GetClubFileContent` (id+content+mime+name),
-`ListClubFilesForClub` (metadata only — **never select `content` in the list query**),
-`DeleteClubFile`. Uploader display name joined from `user`.
+Data layer uses **sqlc** (project standard). Add to `data/sql/queries/query.sql` with
+`-- name:` annotations, then `sqlc generate` (v1.28.0) regenerates `db/query.sql.go` +
+`db/models.go` (never hand-edit; do NOT copy the legacy `chat_queries.go` hand-written
+style). `LONGBLOB content` maps to `[]byte`. Queries:
+
+- `-- name: CreateClubFile :exec`
+- `-- name: GetClubFileContent :one` — selects id, name, mime_type, size_bytes, content
+  (the only query that returns `content`).
+- `-- name: ListClubFilesForClub :many` — metadata only (**never select `content`**),
+  join `user` for uploader name → emits `ListClubFilesForClubRow`.
+- `-- name: DeleteClubFile :exec`
 
 Note: `LONGBLOB` + a separate metadata-only list query is essential — listing must not
 pull file bytes. MySQL `max_allowed_packet` and the app body limit must accommodate the

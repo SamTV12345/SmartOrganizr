@@ -1,6 +1,6 @@
 import { FC, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { http as axios } from "@/src/api/client";
 import { apiURL } from "@/src/Keycloak";
 import { useKeycloak } from "@/src/Keycloak/useKeycloak";
@@ -15,6 +15,7 @@ import { Input } from "@/components/ui/input";
 
 export const MyMessagesView: FC = () => {
     const user = useKeycloak();
+    const queryClient = useQueryClient();
     const [searchParams, setSearchParams] = useSearchParams();
     const [selectedClubId, setSelectedClubId] = useState(searchParams.get("clubId") ?? "");
     const [activeChatId, setActiveChatId] = useState("");
@@ -81,6 +82,19 @@ export const MyMessagesView: FC = () => {
         queryFn: async () => axios.get<ClubChatMessage[]>(`${apiURL}/v1/clubs/${selectedClubId}/messages/chats/${activeChatId}`),
         enabled: !!selectedClubId && !!activeChatId && messagingAllowed,
     });
+
+    useEffect(() => {
+        if (!selectedClubId || !activeChatId || !messagingAllowed) {
+            return;
+        }
+        axios
+            .patch(`${apiURL}/v1/clubs/${selectedClubId}/messages/chats/${activeChatId}/read`)
+            .then(() => {
+                queryClient.invalidateQueries({ queryKey: ["unread-summary"] });
+                return refetchChats();
+            })
+            .catch(() => {});
+    }, [selectedClubId, activeChatId, messagingAllowed]);
 
     const createChatMutation = useMutation({
         mutationFn: async (payload: { recipientUserId: string; content: string }) =>
@@ -203,7 +217,14 @@ export const MyMessagesView: FC = () => {
                                     }`}
                                     onClick={() => setActiveChatId(chat.chat_id)}
                                 >
-                                    <p className="font-medium">{chat.other_display_name}</p>
+                                    <div className="flex items-center justify-between gap-2">
+                                        <p className="font-medium">{chat.other_display_name}</p>
+                                        {chat.unread_count > 0 && (
+                                            <span className="inline-flex min-w-5 items-center justify-center rounded-full bg-red-500 px-1.5 text-xs font-semibold text-white">
+                                                {chat.unread_count > 99 ? "99+" : chat.unread_count}
+                                            </span>
+                                        )}
+                                    </div>
                                     <p className="line-clamp-1 text-xs text-muted-foreground">{chat.last_message || "Noch keine Nachricht"}</p>
                                 </button>
                             ))}

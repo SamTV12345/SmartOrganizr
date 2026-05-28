@@ -42,10 +42,10 @@ func (f *FolderService) loadSubElements(folder *models.Folder, user models.User)
 		var author *models.Author = nil
 		if _, ok := ielement.(db.Note); ok {
 			var dbAuthor = mappers.ConvertAuthorFromEntity(db.Author{
-				UserIDFk:         db.NewSQLNullString(element.UserIDFk.String),
-				Name:             db.NewSQLNullString(element.Name.String),
-				ID:               element.ID.String,
-				ExtraInformation: db.NewSQLNullString(element.ExtraInformation.String),
+				UserIDFk:         db.NewSQLNullString(element.Author.UserIDFk.String),
+				Name:             db.NewSQLNullString(element.Author.Name.String),
+				ID:               element.Author.ID,
+				ExtraInformation: db.NewSQLNullString(element.Author.ExtraInformation.String),
 			})
 			author = &dbAuthor
 		}
@@ -229,10 +229,10 @@ func (f *FolderService) FindNextChildren(folderId string, userId string) ([]mode
 		var author *models.Author
 		if _, ok := convertedElement.(db.Note); ok {
 			var authorMapped = mappers.ConvertAuthorFromEntity(db.Author{
-				UserIDFk:         db.NewSQLNullString(element.UserIDFk.String),
-				Name:             db.NewSQLNullString(element.Name.String),
-				ID:               element.ID.String,
-				ExtraInformation: db.NewSQLNullString(element.ExtraInformation.String),
+				UserIDFk:         db.NewSQLNullString(element.Author.UserIDFk.String),
+				Name:             db.NewSQLNullString(element.Author.Name.String),
+				ID:               element.Author.ID,
+				ExtraInformation: db.NewSQLNullString(element.Author.ExtraInformation.String),
 			})
 			author = &authorMapped
 		}

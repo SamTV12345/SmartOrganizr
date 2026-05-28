@@ -8,6 +8,7 @@ import (
 	"database/sql"
 	"database/sql/driver"
 	"fmt"
+	"time"
 )
 
 type ClubParticipantRole string
@@ -86,10 +87,37 @@ type Club struct {
 	ConfirmedRepresentative   bool
 }
 
-type ClubParticipant struct {
-	UserID string
-	ClubID string
-	Role   ClubParticipantRole
+type ClubChat struct {
+	ID        string
+	ClubID    string
+	UserAID   string
+	UserBID   string
+	CreatedAt time.Time
+}
+
+type ClubChatMessage struct {
+	ID           string
+	ChatID       string
+	SenderUserID string
+	Content      string
+	CreatedAt    time.Time
+}
+
+type ClubChatRead struct {
+	ChatID     string
+	UserID     string
+	LastReadAt time.Time
+}
+
+type ClubFile struct {
+	ID               string
+	ClubID           string
+	Name             string
+	MimeType         string
+	SizeBytes        int64
+	Content          []byte
+	UploadedByUserID string
+	CreatedAt        time.Time
 }
 
 type ClubInvitation struct {
@@ -97,26 +125,42 @@ type ClubInvitation struct {
 	ClubID          string
 	InvitedEmail    string
 	InvitedByUserID string
-	CreatedAt       sql.NullTime
-	ExpiresAt       sql.NullTime
+	CreatedAt       time.Time
+	ExpiresAt       time.Time
 	AcceptedAt      sql.NullTime
+}
+
+type ClubParticipant struct {
+	UserID string
+	ClubID string
+	Role   ClubParticipantRole
+}
+
+type ClubPinboardPost struct {
+	ID           string
+	ClubID       string
+	AuthorUserID string
+	Title        string
+	Body         string
+	Pinned       bool
+	CreatedAt    time.Time
+	UpdatedAt    time.Time
 }
 
 type Concert struct {
 	ID          string
-	Description sql.NullString
 	DueDate     sql.NullTime
 	Hints       sql.NullString
 	Location    sql.NullString
 	Title       sql.NullString
 	UserIDFk    sql.NullString
+	Description sql.NullString
 }
 
 type Element struct {
 	Type            string
 	ID              string
 	CreationDate    sql.NullTime
-	Description     sql.NullString
 	Name            sql.NullString
 	NumberOfPages   sql.NullInt32
 	UserIDFk        sql.NullString
@@ -127,6 +171,7 @@ type Element struct {
 	Genre           sql.NullString
 	ComposerIDFk    sql.NullString
 	ArrangerIDFk    sql.NullString
+	Description     sql.NullString
 }
 
 type Event struct {

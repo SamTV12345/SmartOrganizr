@@ -162,6 +162,69 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/ai/identify-music": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Identify a piece of music from a photo using Infomaniak AI */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            /** @description Image to identify */
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["controllers.IdentifyMusicRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["service.MusicIdentification"];
+                    };
+                };
+                /** @description AI upstream error */
+                502: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            [key: string]: string;
+                        };
+                    };
+                };
+                /** @description AI service not configured */
+                503: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            [key: string]: string;
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/authors": {
         parameters: {
             query?: never;
@@ -354,6 +417,84 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/autocomplete/authors": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Autocomplete suggestions for authors (local + Wikidata) */
+        get: {
+            parameters: {
+                query: {
+                    /** @description Search term (min 2 chars) */
+                    q: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["dto.AutocompleteAuthorsResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/autocomplete/works": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Autocomplete suggestions for works (local + Wikidata) */
+        get: {
+            parameters: {
+                query: {
+                    /** @description Search term (min 2 chars) */
+                    q: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["dto.AutocompleteWorksResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/clubs": {
         parameters: {
             query?: never;
@@ -390,6 +531,132 @@ export interface paths {
             };
         };
         delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/clubs/{clubId}/files": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List files of a club */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Club ID */
+                    clubId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["dto.ClubFileDto"][];
+                    };
+                };
+            };
+        };
+        put?: never;
+        /** Upload a file to a club (multipart "file") */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Club ID */
+                    clubId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["dto.ClubFileDto"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/clubs/{clubId}/files/{fileId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Download a club file */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Club ID */
+                    clubId: string;
+                    /** @description File ID */
+                    fileId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "*/*": string;
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        /** Delete a club file */
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Club ID */
+                    clubId: string;
+                    /** @description File ID */
+                    fileId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description No Content */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
         options?: never;
         head?: never;
         patch?: never;
@@ -812,6 +1079,171 @@ export interface paths {
         options?: never;
         head?: never;
         patch?: never;
+        trace?: never;
+    };
+    "/v1/clubs/{clubId}/messages/chats/{chatId}/read": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Mark a chat as read up to now */
+        patch: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Club ID */
+                    clubId: string;
+                    /** @description Chat ID */
+                    chatId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description No Content */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        trace?: never;
+    };
+    "/v1/clubs/{clubId}/pinboard": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List pinboard posts of a club */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Club ID */
+                    clubId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["dto.PinboardPostDto"][];
+                    };
+                };
+            };
+        };
+        put?: never;
+        /** Create a pinboard post */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Club ID */
+                    clubId: string;
+                };
+                cookie?: never;
+            };
+            requestBody: components["requestBodies"]["dto.PinboardPostUpsertDto"];
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["dto.PinboardPostDto"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/clubs/{clubId}/pinboard/{postId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Delete a pinboard post */
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Club ID */
+                    clubId: string;
+                    /** @description Post ID */
+                    postId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description No Content */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        /** Update a pinboard post */
+        patch: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Club ID */
+                    clubId: string;
+                    /** @description Post ID */
+                    postId: string;
+                };
+                cookie?: never;
+            };
+            requestBody: components["requestBodies"]["dto.PinboardPostUpsertDto"];
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["dto.PinboardPostDto"];
+                    };
+                };
+            };
+        };
         trace?: never;
     };
     "/v1/clubs/{userId}": {
@@ -1654,6 +2086,76 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/notifications/stream": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Server-Sent Events stream of notifications for the current user */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/notifications/unread-summary": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Total and per-club unread message counts for the current user */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["dto.UnreadSummaryDto"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/users": {
         parameters: {
             query?: never;
@@ -2049,6 +2551,48 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/users/{userId}/pinboard/recent": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List the most recent pinboard posts across the user's clubs */
+        get: {
+            parameters: {
+                query?: {
+                    /** @description Max posts (default 10, max 50) */
+                    limit?: number;
+                };
+                header?: never;
+                path: {
+                    /** @description User ID */
+                    userId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["dto.PinboardPostDto"][];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/users/{userId}/profile": {
         parameters: {
             query?: never;
@@ -2122,22 +2666,127 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/works/from-wikidata": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Create a note (work) from a Wikidata entry */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            /** @description Wikidata source + parent folder */
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["dto.WorkFromWikidataRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["dto.Note"];
+                    };
+                };
+                /** @description Conflict */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["dto.WorkFromWikidataConflictResponse"];
+                    };
+                };
+                /** @description Bad Gateway */
+                502: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            [key: string]: string;
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        "controllers.IdentifyMusicRequest": {
+            /**
+             * @description ImageBase64 is the raw base64 payload, *without* the "data:image/..." prefix.
+             *     Frontends that have a data: URL should strip the prefix before sending.
+             */
+            imageBase64: string;
+            /** @description optional; defaults to image/jpeg */
+            mimeType?: string;
+        };
         "dto.Author": {
+            birthYear?: number;
+            deathYear?: number;
             extraInformation: string;
             id: string;
             name: string;
+            wikidataId?: string;
         };
         "dto.AuthorCreateDto": {
+            birthYear?: number;
+            deathYear?: number;
             extraInformation: string;
             name: string;
+            wikidataId?: string;
         };
         "dto.AuthorPatchDto": {
+            birthYear?: number;
+            deathYear?: number;
             extraInformation: string;
             name: string;
+            wikidataId?: string;
+        };
+        "dto.AutocompleteAuthor": {
+            birthYear?: number;
+            deathYear?: number;
+            description?: string;
+            id?: string;
+            name?: string;
+            wikidataId?: string;
+        };
+        "dto.AutocompleteAuthorsResponse": {
+            external?: components["schemas"]["dto.AutocompleteAuthor"][];
+            local?: components["schemas"]["dto.AutocompleteAuthor"][];
+        };
+        "dto.AutocompleteWork": {
+            arranger?: components["schemas"]["dto.AutocompleteAuthor"];
+            composer?: components["schemas"]["dto.AutocompleteAuthor"];
+            compositionYear?: number;
+            description?: string;
+            genre?: string;
+            id?: string;
+            name?: string;
+            wikidataId?: string;
+        };
+        "dto.AutocompleteWorksResponse": {
+            external?: components["schemas"]["dto.AutocompleteWork"][];
+            local?: components["schemas"]["dto.AutocompleteWork"][];
         };
         "dto.ClubChatCreateDto": {
             content: string;
@@ -2167,6 +2816,7 @@ export interface components {
             other_display_name: string;
             other_email: string;
             other_user_id: string;
+            unread_count?: number;
         };
         "dto.ClubDto": {
             club_type: string;
@@ -2182,6 +2832,16 @@ export interface components {
             postal_code: string;
             reason_visibility: string;
             street: string;
+        };
+        "dto.ClubFileDto": {
+            clubId?: string;
+            createdAt?: string;
+            id?: string;
+            mimeType?: string;
+            name?: string;
+            sizeBytes?: number;
+            uploadedBy?: string;
+            uploadedById?: string;
         };
         "dto.ClubInvitationCompleteDto": {
             confirm_password: string;
@@ -2303,10 +2963,13 @@ export interface components {
             url: string;
         };
         "dto.Note": {
+            arranger?: components["schemas"]["dto.Author"];
             author: components["schemas"]["dto.Author"];
+            compositionYear?: number;
             creationDate: string;
             creator: components["schemas"]["dto.User"];
             description: string;
+            genre?: string;
             id: string;
             name: string;
             numberOfPages: number;
@@ -2314,6 +2977,7 @@ export interface components {
             pdfAvailable: boolean;
             /** @enum {string} */
             type: "note";
+            wikidataId?: string;
         };
         "dto.NoteDetailResponse": {
             currentNote?: components["schemas"]["dto.Note"];
@@ -2326,6 +2990,7 @@ export interface components {
             placeInConcert: number;
         };
         "dto.NotePostDto": {
+            arrangerId?: string;
             authorId: string;
             description: string;
             name: string;
@@ -2357,6 +3022,32 @@ export interface components {
             };
             page: components["schemas"]["dto.Page"];
         };
+        "dto.PinboardPostDto": {
+            authorId?: string;
+            authorName?: string;
+            body?: string;
+            clubId?: string;
+            clubName?: string;
+            createdAt?: string;
+            id?: string;
+            pinned?: boolean;
+            title?: string;
+            updatedAt?: string;
+        };
+        "dto.PinboardPostUpsertDto": {
+            body?: string;
+            pinned?: boolean;
+            title?: string;
+        };
+        "dto.UnreadByClubDto": {
+            clubId?: string;
+            clubName?: string;
+            unread?: number;
+        };
+        "dto.UnreadSummaryDto": {
+            byClub?: components["schemas"]["dto.UnreadByClubDto"][];
+            total?: number;
+        };
         "dto.User": {
             email: string;
             firstname: string;
@@ -2375,11 +3066,23 @@ export interface components {
             telephoneNumber: string;
             username: string;
         };
+        "dto.WorkFromWikidataConflictResponse": {
+            candidates?: components["schemas"]["dto.AutocompleteAuthor"][];
+            incoming?: components["schemas"]["dto.AutocompleteAuthor"];
+        };
+        "dto.WorkFromWikidataRequest": {
+            forceNewAuthor?: boolean;
+            parentId: string;
+            wikidataId: string;
+        };
         "models.Author": {
+            birthYear?: number;
+            deathYear?: number;
             extraInformation?: string;
             id?: string;
             name?: string;
             user?: components["schemas"]["models.User"];
+            wikidataId?: string;
         };
         "models.Folder": {
             creationDate?: string;
@@ -2391,16 +3094,20 @@ export interface components {
             parent?: components["schemas"]["models.Folder"];
         };
         "models.Note": {
+            arranger?: components["schemas"]["models.Author"];
             author?: components["schemas"]["models.Author"];
+            compositionYear?: number;
             creationDate?: string;
             creator?: components["schemas"]["models.User"];
             description?: string;
+            genre?: string;
             id?: string;
             name?: string;
             numberOfPages?: number;
             parent?: components["schemas"]["models.Folder"];
             pdfAvailable?: boolean;
             pdfContent?: number[];
+            wikidataId?: string;
         };
         "models.User": {
             email?: string;
@@ -2412,10 +3119,23 @@ export interface components {
             userId?: string;
             username?: string;
         };
+        "service.MusicIdentification": {
+            arranger?: string;
+            composer?: string;
+            confidence?: number;
+            notes?: string;
+            title?: string;
+        };
     };
     responses: never;
     parameters: never;
     requestBodies: {
+        /** @description Post payload */
+        "dto.PinboardPostUpsertDto": {
+            content: {
+                "application/json": components["schemas"]["dto.PinboardPostUpsertDto"];
+            };
+        };
         /** @description Note payload */
         "dto.NotePostDto": {
             content: {

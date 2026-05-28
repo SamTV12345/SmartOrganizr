@@ -395,12 +395,12 @@ SELECT * FROM authors WHERE user_id_fk = ? AND name = ?;
 
 -- name: FindAuthorsByUserAndNameLike :many
 SELECT * FROM authors
-WHERE user_id_fk = ? AND name LIKE CONCAT('%', ?, '%')
+WHERE user_id_fk = sqlc.arg(user_id_fk) AND name LIKE CONCAT('%', sqlc.arg(term), '%')
 ORDER BY name LIMIT 10;
 
 -- name: FindElementsByUserAndNameLike :many
 SELECT * FROM elements
-WHERE user_id_fk = ? AND type = 'note' AND name LIKE CONCAT('%', ?, '%')
+WHERE user_id_fk = sqlc.arg(user_id_fk) AND type = 'note' AND name LIKE CONCAT('%', sqlc.arg(term), '%')
 ORDER BY name LIMIT 10;
 
 -- name: CreateNoteWithWikidata :execlastid
@@ -413,3 +413,192 @@ INSERT INTO elements (
   ?, ?, ?, ?,
   ?, ?, ?
 );
+
+-- name: CreateClubChat :exec
+INSERT INTO club_chat (id, club_id, user_a_id, user_b_id)
+VALUES (?, ?, ?, ?);
+
+-- name: FindClubChatByUsers :one
+SELECT id, club_id, user_a_id, user_b_id, created_at
+FROM club_chat
+WHERE club_id = ? AND user_a_id = ? AND user_b_id = ?;
+
+-- name: FindClubChatByID :one
+SELECT id, club_id, user_a_id, user_b_id, created_at
+FROM club_chat
+WHERE id = ?;
+
+-- name: ListClubChatsForUser :many
+SELECT
+    cc.id AS chat_id,
+    cc.club_id AS club_id,
+    CASE WHEN cc.user_a_id = sqlc.arg(requester_id) THEN cc.user_b_id ELSE cc.user_a_id END AS other_user_id,
+    u.username AS other_username,
+    u.firstname AS other_firstname,
+    u.lastname AS other_lastname,
+    u.email AS other_email,
+    cm.content AS last_message,
+    cm.sender_user_id AS last_sender_user_id,
+    cm.created_at AS last_message_at
+FROM club_chat cc
+JOIN user u ON u.id = CASE WHEN cc.user_a_id = sqlc.arg(requester_id) THEN cc.user_b_id ELSE cc.user_a_id END
+LEFT JOIN club_chat_message cm ON cm.id = (
+    SELECT m.id
+    FROM club_chat_message m
+    WHERE m.chat_id = cc.id
+    ORDER BY m.created_at DESC
+    LIMIT 1
+)
+WHERE cc.club_id = sqlc.arg(club_id) AND (cc.user_a_id = sqlc.arg(requester_id) OR cc.user_b_id = sqlc.arg(requester_id))
+ORDER BY COALESCE(cm.created_at, cc.created_at) DESC;
+
+-- name: CreateClubChatMessage :exec
+INSERT INTO club_chat_message (id, chat_id, sender_user_id, content)
+VALUES (?, ?, ?, ?);
+
+-- name: ListClubChatMessages :many
+SELECT
+    cm.id,
+    cm.chat_id,
+    cm.sender_user_id,
+    u.username AS sender_username,
+    u.firstname AS sender_firstname,
+    u.lastname AS sender_lastname,
+    u.email AS sender_email,
+    cm.content,
+    cm.created_at
+FROM club_chat_message cm
+JOIN user u ON u.id = cm.sender_user_id
+WHERE cm.chat_id = ?
+ORDER BY cm.created_at ASC
+LIMIT 500;
+
+-- name: ListClubChatCandidates :many
+SELECT u.id AS user_id, u.username, u.firstname, u.lastname, u.email
+FROM club_participant cp
+JOIN user u ON u.id = cp.user_id
+WHERE cp.club_id = sqlc.arg(club_id) AND cp.user_id <> sqlc.arg(requester_id)
+ORDER BY u.firstname, u.lastname, u.username, u.id;
+
+-- name: CreatePinboardPost :exec
+INSERT INTO club_pinboard_post (id, club_id, author_user_id, title, body, pinned)
+VALUES (?, ?, ?, ?, ?, ?);
+
+-- name: UpdatePinboardPost :exec
+UPDATE club_pinboard_post
+SET title = ?, body = ?, pinned = ?, updated_at = CURRENT_TIMESTAMP
+WHERE id = sqlc.arg(id) AND club_id = sqlc.arg(club_id);
+
+-- name: DeletePinboardPost :exec
+DELETE FROM club_pinboard_post
+WHERE id = sqlc.arg(id) AND club_id = sqlc.arg(club_id);
+
+-- name: GetPinboardPost :one
+SELECT
+    p.id,
+    p.club_id,
+    p.author_user_id,
+    u.username AS author_username,
+    u.firstname AS author_firstname,
+    u.lastname AS author_lastname,
+    p.title,
+    p.body,
+    p.pinned,
+    p.created_at,
+    p.updated_at
+FROM club_pinboard_post p
+JOIN user u ON u.id = p.author_user_id
+WHERE p.id = sqlc.arg(id) AND p.club_id = sqlc.arg(club_id);
+
+-- name: ListPinboardPostsForClub :many
+SELECT
+    p.id,
+    p.club_id,
+    p.author_user_id,
+    u.username AS author_username,
+    u.firstname AS author_firstname,
+    u.lastname AS author_lastname,
+    p.title,
+    p.body,
+    p.pinned,
+    p.created_at,
+    p.updated_at
+FROM club_pinboard_post p
+JOIN user u ON u.id = p.author_user_id
+WHERE p.club_id = ?
+ORDER BY p.pinned DESC, p.created_at DESC;
+
+-- name: ListRecentPinboardPostsForUser :many
+SELECT
+    p.id,
+    p.club_id,
+    c.name AS club_name,
+    p.author_user_id,
+    u.username AS author_username,
+    u.firstname AS author_firstname,
+    u.lastname AS author_lastname,
+    p.title,
+    p.body,
+    p.pinned,
+    p.created_at,
+    p.updated_at
+FROM club_pinboard_post p
+JOIN club_participant cp ON cp.club_id = p.club_id AND cp.user_id = sqlc.arg(user_id)
+JOIN clubs c ON c.id = p.club_id
+JOIN user u ON u.id = p.author_user_id
+ORDER BY p.created_at DESC
+LIMIT ?;
+
+-- name: CreateClubFile :exec
+INSERT INTO club_file (id, club_id, name, mime_type, size_bytes, content, uploaded_by_user_id)
+VALUES (?, ?, ?, ?, ?, ?, ?);
+
+-- name: GetClubFileContent :one
+SELECT id, name, mime_type, size_bytes, content
+FROM club_file
+WHERE id = sqlc.arg(id) AND club_id = sqlc.arg(club_id);
+
+-- name: ListClubFilesForClub :many
+SELECT
+    f.id,
+    f.club_id,
+    f.name,
+    f.mime_type,
+    f.size_bytes,
+    f.uploaded_by_user_id,
+    u.username AS uploader_username,
+    u.firstname AS uploader_firstname,
+    u.lastname AS uploader_lastname,
+    f.created_at
+FROM club_file f
+JOIN user u ON u.id = f.uploaded_by_user_id
+WHERE f.club_id = ?
+ORDER BY f.created_at DESC;
+
+-- name: DeleteClubFile :exec
+DELETE FROM club_file
+WHERE id = sqlc.arg(id) AND club_id = sqlc.arg(club_id);
+
+-- name: UpsertChatRead :exec
+INSERT INTO club_chat_read (chat_id, user_id, last_read_at)
+VALUES (sqlc.arg(chat_id), sqlc.arg(user_id), NOW())
+ON DUPLICATE KEY UPDATE last_read_at = NOW();
+
+-- name: CountUnreadForChat :one
+SELECT COUNT(*)
+FROM club_chat_message m
+LEFT JOIN club_chat_read r ON r.chat_id = m.chat_id AND r.user_id = sqlc.arg(user_id)
+WHERE m.chat_id = sqlc.arg(chat_id)
+  AND m.sender_user_id <> sqlc.arg(user_id)
+  AND (r.last_read_at IS NULL OR m.created_at > r.last_read_at);
+
+-- name: CountUnreadForUserByClub :many
+SELECT cc.club_id, c.name AS club_name, COUNT(*) AS unread
+FROM club_chat cc
+JOIN clubs c ON c.id = cc.club_id
+JOIN club_chat_message m ON m.chat_id = cc.id
+LEFT JOIN club_chat_read r ON r.chat_id = cc.id AND r.user_id = sqlc.arg(user_id)
+WHERE (cc.user_a_id = sqlc.arg(user_id) OR cc.user_b_id = sqlc.arg(user_id))
+  AND m.sender_user_id <> sqlc.arg(user_id)
+  AND (r.last_read_at IS NULL OR m.created_at > r.last_read_at)
+GROUP BY cc.club_id, c.name;

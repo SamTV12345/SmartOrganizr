@@ -15,6 +15,18 @@ type ClubChatSummaryDto struct {
 	LastMessage      string `json:"last_message"        validate:"required"`
 	LastSenderUserID string `json:"last_sender_user_id" validate:"required"`
 	LastMessageAt    string `json:"last_message_at"     validate:"required"`
+	UnreadCount      int    `json:"unread_count"`
+}
+
+type UnreadByClubDto struct {
+	ClubID   string `json:"clubId"`
+	ClubName string `json:"clubName"`
+	Unread   int    `json:"unread"`
+}
+
+type UnreadSummaryDto struct {
+	Total  int               `json:"total"`
+	ByClub []UnreadByClubDto `json:"byClub"`
 }
 
 type ClubChatMessageDto struct {

@@ -7,6 +7,7 @@ import { useQuery } from "@tanstack/react-query";
 import { http as axios } from "@/src/api/client";
 import { apiURL } from "@/src/Keycloak";
 import { Club } from "@/src/models/Club";
+import { useUnreadSummary } from "@/src/notifications/useUnreadSummary";
 import {
     Sheet,
     SheetContent,
@@ -28,6 +29,9 @@ const SidebarContent = ({ onNavigate }: { onNavigate?: () => void }) => {
         queryFn: getClubs,
     });
 
+    const { data: unreadData } = useUnreadSummary();
+    const unreadTotal = unreadData?.data?.total ?? 0;
+
     return (
         <div className="bg-sidebar text-sidebar-foreground flex min-h-0 w-full flex-col">
             <div className="border-sidebar-border border-b px-3 py-3">
@@ -38,7 +42,7 @@ const SidebarContent = ({ onNavigate }: { onNavigate?: () => void }) => {
                     <SidebarHeading>{t("my-smartorganizr")}</SidebarHeading>
                     <SideBarItem onNavigate={onNavigate} highlightPath={"/dashboard"} translationkey={t("dashboard")} icon={<i className="fa-solid fa-table-columns" />} />
                     <SideBarItem onNavigate={onNavigate} highlightPath={"/myDates"} translationkey={t("my-dates")} icon={<i className="fa-solid fa-calendar" />} />
-                    <SideBarItem onNavigate={onNavigate} highlightPath={"/myMessages"} translationkey={t("my-messages")} icon={<i className="fa-solid fa-message" />} />
+                    <SideBarItem onNavigate={onNavigate} highlightPath={"/myMessages"} translationkey={t("my-messages")} icon={<i className="fa-solid fa-message" />} badge={unreadTotal} />
                     <SideBarItem onNavigate={onNavigate} highlightPath={"/myPolls"} translationkey={t("my-polls")} icon={<i className="fa-solid fa-square-poll-horizontal" />} />
                     <SideBarItem onNavigate={onNavigate} highlightPath={"/clubOverview"} translationkey={t("club-overview")} icon={<i className="fa-solid fa-drum" />} />
                     <SideBarItem onNavigate={onNavigate} highlightPath={"/myRooms"} translationkey={t("my-rooms")} icon={<i className="fa-solid fa-door-open" />} />

@@ -39,10 +39,23 @@ CREATE TABLE club_chat_read (
 DROP TABLE club_chat_read;
 ```
 
-sqlc queries (`query.sql`): `UpsertChatRead` (INSERT ... ON DUPLICATE KEY UPDATE
-last_read_at = VALUES(last_read_at)), `CountUnreadForChat` (messages in chat with
-created_at > last_read_at AND sender != me; treat missing read row as "all unread"),
-`CountUnreadForUserByClub` (grouped totals across the user's clubs).
+Data layer uses **sqlc** (project standard) — add to `data/sql/queries/query.sql` with
+`-- name:` annotations, then `sqlc generate` (v1.28.0) regenerates `db/query.sql.go` +
+`db/models.go` (never hand-edit; do NOT copy the legacy `chat_queries.go` style, even
+though the existing chat read-paths live there — the *new* read-tracking queries are
+sqlc). Queries:
+
+- `-- name: UpsertChatRead :exec` — INSERT ... ON DUPLICATE KEY UPDATE last_read_at =
+  VALUES(last_read_at).
+- `-- name: CountUnreadForChat :one` — messages in chat with created_at > last_read_at
+  AND sender != me; LEFT JOIN club_chat_read so a missing read row counts all messages.
+- `-- name: CountUnreadForUserByClub :many` — grouped unread totals across the user's
+  clubs (join club_chat + club_chat_message + club_chat_read + clubs for clubName).
+
+Note: the existing `GetClubChats` path is hand-written in `db/chat_queries.go`. To add
+`unreadCount` to its result, add a sqlc `CountUnreadForChat` call in the *service* layer
+(loop over chats) rather than editing the hand-written query — keeps new code on sqlc
+and avoids touching legacy SQL.
 
 ## SSE Hub (in-process)
 

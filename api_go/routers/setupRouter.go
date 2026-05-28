@@ -27,7 +27,9 @@ import (
 
 func SetupRouter(queries *db.Queries, config config.AppConfig, logger *zap.SugaredLogger) *fiber.App {
 
-	app := fiber.New()
+	app := fiber.New(fiber.Config{
+		BodyLimit: 30 * 1024 * 1024, // allow club file uploads up to 25 MB plus overhead
+	})
 	validate := validator.New(validator.WithRequiredStructEnabled())
 
 	app.Use(cors.New(cors.Config{
@@ -135,7 +137,10 @@ func SetupRouter(queries *db.Queries, config config.AppConfig, logger *zap.Sugar
 	var clubInvitationService = service.NewClubInvitationService(queries, mailService, config.App.URL)
 
 	var clubMemberService = service.NewClubMemberService(queries, clubService)
-	var messageService = service.NewMessageService(queries)
+	var notificationHub = service.NewNotificationHub()
+	var messageService = service.NewMessageService(queries, notificationHub)
+	var pinboardService = service.NewPinboardService(queries)
+	var clubFileService = service.NewClubFileService(queries)
 
 	var wikidataService = service.NewWikidataService(
 		"https://query.wikidata.org/sparql",
@@ -170,6 +175,9 @@ func SetupRouter(queries *db.Queries, config config.AppConfig, logger *zap.Sugar
 		SetLocal[service.ClubMemberService](c, constants.ClubMemberService, clubMemberService)
 		SetLocal[service.ClubInvitationService](c, constants.ClubInvitationService, clubInvitationService)
 		SetLocal[service.MessageService](c, constants.MessageService, messageService)
+		SetLocal[service.PinboardService](c, constants.PinboardService, pinboardService)
+		SetLocal[service.ClubFileService](c, constants.ClubFileService, clubFileService)
+		SetLocal[*service.NotificationHub](c, constants.NotificationHub, notificationHub)
 		SetLocal[*service.WikidataService](c, constants.WikidataService, wikidataService)
 		SetLocal[*service.AIService](c, constants.AIService, aiService)
 
@@ -218,6 +226,7 @@ func SetupRouter(queries *db.Queries, config config.AppConfig, logger *zap.Sugar
 		r.Post("/:userId/konzertmeister-url/sync", controllers.SyncKonzertmeisterUrl)
 		r.Get("/:userId/konzertmeister-url", controllers.GetKonzertmeisterUrl)
 		r.Get("/me", controllers.GetUserProfile)
+		r.Get("/:userId/pinboard/recent", controllers.GetRecentPinboardForUser)
 		r.Get("/offline", controllers.GetOfflineData)
 		r.Delete("/:userId/profile", controllers.DeleteProfilePic)
 	})
@@ -255,6 +264,20 @@ func SetupRouter(queries *db.Queries, config config.AppConfig, logger *zap.Sugar
 		r.Post("/:clubId/messages/chats", controllers.CreateClubChat)
 		r.Get("/:clubId/messages/chats/:chatId", controllers.GetClubChatMessages)
 		r.Post("/:clubId/messages/chats/:chatId", controllers.PostClubChatMessage)
+		r.Patch("/:clubId/messages/chats/:chatId/read", controllers.MarkChatRead)
+		r.Get("/:clubId/pinboard", controllers.GetClubPinboard)
+		r.Post("/:clubId/pinboard", controllers.CreateClubPinboardPost)
+		r.Patch("/:clubId/pinboard/:postId", controllers.UpdateClubPinboardPost)
+		r.Delete("/:clubId/pinboard/:postId", controllers.DeleteClubPinboardPost)
+		r.Get("/:clubId/files", controllers.GetClubFiles)
+		r.Post("/:clubId/files", controllers.UploadClubFile)
+		r.Get("/:clubId/files/:fileId", controllers.DownloadClubFile)
+		r.Delete("/:clubId/files/:fileId", controllers.DeleteClubFile)
+	})
+
+	profile.Route("v1/notifications", func(r fiber.Router) {
+		r.Get("/stream", controllers.StreamNotifications)
+		r.Get("/unread-summary", controllers.GetUnreadSummary)
 	})
 
 	profile.Route("v1/invitations", func(r fiber.Router) {
