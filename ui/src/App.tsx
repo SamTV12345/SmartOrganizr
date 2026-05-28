@@ -23,6 +23,7 @@ import {ClubView} from "@/src/pages/ClubView";
 import {ClubDetailView} from "@/src/pages/ClubDetailView";
 import {InviteAcceptView} from "@/src/pages/InviteAcceptView";
 import {MyMessagesView} from "@/src/pages/MyMessagesView";
+import {DashboardView} from "@/src/pages/DashboardView";
 import {NotificationProvider} from "@/src/notifications/NotificationProvider";
 
 function RootLayout() {
@@ -62,7 +63,8 @@ function App() {
           <Routes>
               <Route path="/invite/:token" element={<Suspense><InviteAcceptView/></Suspense>} />
               <Route element={<RootLayout />}>
-                  <Route path="/" element={<Navigate to={"/welcome"}/>}/>
+                  <Route path="/" element={<Navigate to={"/dashboard"}/>}/>
+                  <Route path={"/dashboard"} element={<DashboardView/>}/>
                   <Route path={"/welcome"} element={<WelcomePage/>}/>
                   <Route path={"/noteManagement"} element={<MyManagement/>}/>
                   <Route path="/profile/edit" element={<ProfileEdit/>}/>

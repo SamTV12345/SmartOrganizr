@@ -1,4 +1,16 @@
 {
+  "dashboard": {
+    "title": "Dashboard",
+    "events": "Anstehende Termine",
+    "eventsEmpty": "Keine anstehenden Termine.",
+    "messages": "Ungelesene Nachrichten",
+    "messagesEmpty": "Keine ungelesenen Nachrichten.",
+    "clubs": "Meine Vereine",
+    "clubsEmpty": "Du bist noch in keinem Verein.",
+    "pinboard": "Neueste Pinnwand-Beiträge",
+    "pinboardEmpty": "Keine aktuellen Beiträge.",
+    "viewAll": "Alle anzeigen"
+  },
   "files": {
     "title": "Ablage für Dokumente und Unterlagen.",
     "upload": "Datei hochladen",

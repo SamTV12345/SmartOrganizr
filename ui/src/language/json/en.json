@@ -1,4 +1,16 @@
 {
+  "dashboard": {
+    "title": "Dashboard",
+    "events": "Upcoming events",
+    "eventsEmpty": "No upcoming events.",
+    "messages": "Unread messages",
+    "messagesEmpty": "No unread messages.",
+    "clubs": "My clubs",
+    "clubsEmpty": "You are not in any club yet.",
+    "pinboard": "Recent pinboard posts",
+    "pinboardEmpty": "No recent posts.",
+    "viewAll": "View all"
+  },
   "files": {
     "title": "Storage for documents and files.",
     "upload": "Upload file",
