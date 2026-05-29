@@ -255,6 +255,7 @@ func SetupRouter(queries *db.Queries, config config.AppConfig, logger *zap.Sugar
 	profile.Route("v1/clubs", func(r fiber.Router) {
 		r.Get("/:userId", controllers.GetAllClubsForMe)
 		r.Post("/", controllers.PostClub)
+		r.Patch("/:clubId", controllers.UpdateClub)
 		r.Get("/:clubId/me/permissions", controllers.GetMyClubPermissions)
 		r.Get("/:clubId/members", controllers.GetClubMembers)
 		r.Patch("/:clubId/members/:memberUserId/role", controllers.PatchClubMemberRole)
