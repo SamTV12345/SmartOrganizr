@@ -509,6 +509,48 @@
                 }
             }
         },
+        "/v1/clubs/{clubId}": {
+            "patch": {
+                "tags": [
+                    "clubs"
+                ],
+                "summary": "Update a club's settings (manager only)",
+                "parameters": [
+                    {
+                        "description": "Club ID",
+                        "name": "clubId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/dto.ClubPostDto"
+                            }
+                        }
+                    },
+                    "description": "Club settings payload",
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/dto.ClubDto"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/v1/clubs/{clubId}/events": {
             "get": {
                 "tags": [
