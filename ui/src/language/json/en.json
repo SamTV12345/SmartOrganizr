@@ -126,5 +126,7 @@
   "club-invite-error": "Invitations could not be sent.",
   "konzertmeister-url": "Konzertmeister URL",
   "fieldMustBeUrl": "This field must be a valid URL.",
-  "event-current": "Upcoming events"
+  "event-current": "Upcoming events",
+  "synced-feed": "Feed",
+  "club-events": "Club events"
 }
