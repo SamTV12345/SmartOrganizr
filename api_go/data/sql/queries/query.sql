@@ -85,12 +85,8 @@ ORDER BY elements.name;
 -- name: FindAllNotesByCreatorPaged :many
 SELECT
   sqlc.embed(note),
-  sqlc.embed(composer),
-  sqlc.embed(arranger),
   sqlc.embed(p)
 FROM elements as note
-LEFT JOIN authors composer ON note.composer_id_fk = composer.id
-LEFT JOIN authors arranger ON note.arranger_id_fk = arranger.id
 JOIN elements p ON p.id = note.parent
 WHERE note.type ='note' AND note.user_id_fk = ?
 ORDER BY note.name LIMIT ? OFFSET ?;
@@ -98,12 +94,8 @@ ORDER BY note.name LIMIT ? OFFSET ?;
 -- name: FindAllNotesByCreator :many
 SELECT
   sqlc.embed(note),
-  sqlc.embed(composer),
-  sqlc.embed(arranger),
   sqlc.embed(p)
 FROM elements as note
-LEFT JOIN authors composer ON note.composer_id_fk = composer.id
-LEFT JOIN authors arranger ON note.arranger_id_fk = arranger.id
 JOIN elements p ON p.id = note.parent
 WHERE note.type ='note' AND note.user_id_fk = ?
 ORDER BY note.name;
@@ -114,12 +106,8 @@ SELECT COUNT(*) FROM elements as note WHERE note.type ='note' AND note.user_id_f
 -- name: FindAllNotesByCreatorPagedWithSearch :many
 SELECT
   sqlc.embed(note),
-  sqlc.embed(composer),
-  sqlc.embed(arranger),
   sqlc.embed(p)
 FROM elements as note
-LEFT JOIN authors composer ON note.composer_id_fk = composer.id
-LEFT JOIN authors arranger ON note.arranger_id_fk = arranger.id
 JOIN elements p ON p.id = note.parent
 WHERE note.type ='note'
   AND note.name LIKE CONCAT('%',?,'%')
@@ -129,12 +117,8 @@ ORDER BY note.name LIMIT ? OFFSET ?;
 -- name: FindAllNotesByCreatorWithSearch :many
 SELECT
   sqlc.embed(note),
-  sqlc.embed(composer),
-  sqlc.embed(arranger),
   sqlc.embed(p)
 FROM elements as note
-LEFT JOIN authors composer ON note.composer_id_fk = composer.id
-LEFT JOIN authors arranger ON note.arranger_id_fk = arranger.id
 JOIN elements p ON p.id = note.parent
 WHERE note.type ='note'
   AND note.name LIKE CONCAT('%',?,'%')

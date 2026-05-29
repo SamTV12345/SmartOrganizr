@@ -1117,12 +1117,8 @@ func (q *Queries) FindAllNotesByAuthor(ctx context.Context, arg FindAllNotesByAu
 const findAllNotesByCreator = `-- name: FindAllNotesByCreator :many
 SELECT
   note.type, note.id, note.creation_date, note.name, note.number_of_pages, note.user_id_fk, note.parent, note.pdf_content, note.wikidata_id, note.composition_year, note.genre, note.composer_id_fk, note.arranger_id_fk, note.description,
-  composer.id, composer.extra_information, composer.name, composer.user_id_fk, composer.wikidata_id, composer.birth_year, composer.death_year,
-  arranger.id, arranger.extra_information, arranger.name, arranger.user_id_fk, arranger.wikidata_id, arranger.birth_year, arranger.death_year,
   p.type, p.id, p.creation_date, p.name, p.number_of_pages, p.user_id_fk, p.parent, p.pdf_content, p.wikidata_id, p.composition_year, p.genre, p.composer_id_fk, p.arranger_id_fk, p.description
 FROM elements as note
-LEFT JOIN authors composer ON note.composer_id_fk = composer.id
-LEFT JOIN authors arranger ON note.arranger_id_fk = arranger.id
 JOIN elements p ON p.id = note.parent
 WHERE note.type ='note' AND note.user_id_fk = ?
 ORDER BY note.name
@@ -1130,8 +1126,6 @@ ORDER BY note.name
 
 type FindAllNotesByCreatorRow struct {
 	Element   Element
-	Author    Author
-	Author_2  Author
 	Element_2 Element
 }
 
@@ -1159,20 +1153,6 @@ func (q *Queries) FindAllNotesByCreator(ctx context.Context, userIDFk sql.NullSt
 			&i.Element.ComposerIDFk,
 			&i.Element.ArrangerIDFk,
 			&i.Element.Description,
-			&i.Author.ID,
-			&i.Author.ExtraInformation,
-			&i.Author.Name,
-			&i.Author.UserIDFk,
-			&i.Author.WikidataID,
-			&i.Author.BirthYear,
-			&i.Author.DeathYear,
-			&i.Author_2.ID,
-			&i.Author_2.ExtraInformation,
-			&i.Author_2.Name,
-			&i.Author_2.UserIDFk,
-			&i.Author_2.WikidataID,
-			&i.Author_2.BirthYear,
-			&i.Author_2.DeathYear,
 			&i.Element_2.Type,
 			&i.Element_2.ID,
 			&i.Element_2.CreationDate,
@@ -1204,12 +1184,8 @@ func (q *Queries) FindAllNotesByCreator(ctx context.Context, userIDFk sql.NullSt
 const findAllNotesByCreatorPaged = `-- name: FindAllNotesByCreatorPaged :many
 SELECT
   note.type, note.id, note.creation_date, note.name, note.number_of_pages, note.user_id_fk, note.parent, note.pdf_content, note.wikidata_id, note.composition_year, note.genre, note.composer_id_fk, note.arranger_id_fk, note.description,
-  composer.id, composer.extra_information, composer.name, composer.user_id_fk, composer.wikidata_id, composer.birth_year, composer.death_year,
-  arranger.id, arranger.extra_information, arranger.name, arranger.user_id_fk, arranger.wikidata_id, arranger.birth_year, arranger.death_year,
   p.type, p.id, p.creation_date, p.name, p.number_of_pages, p.user_id_fk, p.parent, p.pdf_content, p.wikidata_id, p.composition_year, p.genre, p.composer_id_fk, p.arranger_id_fk, p.description
 FROM elements as note
-LEFT JOIN authors composer ON note.composer_id_fk = composer.id
-LEFT JOIN authors arranger ON note.arranger_id_fk = arranger.id
 JOIN elements p ON p.id = note.parent
 WHERE note.type ='note' AND note.user_id_fk = ?
 ORDER BY note.name LIMIT ? OFFSET ?
@@ -1223,8 +1199,6 @@ type FindAllNotesByCreatorPagedParams struct {
 
 type FindAllNotesByCreatorPagedRow struct {
 	Element   Element
-	Author    Author
-	Author_2  Author
 	Element_2 Element
 }
 
@@ -1252,20 +1226,6 @@ func (q *Queries) FindAllNotesByCreatorPaged(ctx context.Context, arg FindAllNot
 			&i.Element.ComposerIDFk,
 			&i.Element.ArrangerIDFk,
 			&i.Element.Description,
-			&i.Author.ID,
-			&i.Author.ExtraInformation,
-			&i.Author.Name,
-			&i.Author.UserIDFk,
-			&i.Author.WikidataID,
-			&i.Author.BirthYear,
-			&i.Author.DeathYear,
-			&i.Author_2.ID,
-			&i.Author_2.ExtraInformation,
-			&i.Author_2.Name,
-			&i.Author_2.UserIDFk,
-			&i.Author_2.WikidataID,
-			&i.Author_2.BirthYear,
-			&i.Author_2.DeathYear,
 			&i.Element_2.Type,
 			&i.Element_2.ID,
 			&i.Element_2.CreationDate,
@@ -1297,12 +1257,8 @@ func (q *Queries) FindAllNotesByCreatorPaged(ctx context.Context, arg FindAllNot
 const findAllNotesByCreatorPagedWithSearch = `-- name: FindAllNotesByCreatorPagedWithSearch :many
 SELECT
   note.type, note.id, note.creation_date, note.name, note.number_of_pages, note.user_id_fk, note.parent, note.pdf_content, note.wikidata_id, note.composition_year, note.genre, note.composer_id_fk, note.arranger_id_fk, note.description,
-  composer.id, composer.extra_information, composer.name, composer.user_id_fk, composer.wikidata_id, composer.birth_year, composer.death_year,
-  arranger.id, arranger.extra_information, arranger.name, arranger.user_id_fk, arranger.wikidata_id, arranger.birth_year, arranger.death_year,
   p.type, p.id, p.creation_date, p.name, p.number_of_pages, p.user_id_fk, p.parent, p.pdf_content, p.wikidata_id, p.composition_year, p.genre, p.composer_id_fk, p.arranger_id_fk, p.description
 FROM elements as note
-LEFT JOIN authors composer ON note.composer_id_fk = composer.id
-LEFT JOIN authors arranger ON note.arranger_id_fk = arranger.id
 JOIN elements p ON p.id = note.parent
 WHERE note.type ='note'
   AND note.name LIKE CONCAT('%',?,'%')
@@ -1319,8 +1275,6 @@ type FindAllNotesByCreatorPagedWithSearchParams struct {
 
 type FindAllNotesByCreatorPagedWithSearchRow struct {
 	Element   Element
-	Author    Author
-	Author_2  Author
 	Element_2 Element
 }
 
@@ -1353,20 +1307,6 @@ func (q *Queries) FindAllNotesByCreatorPagedWithSearch(ctx context.Context, arg 
 			&i.Element.ComposerIDFk,
 			&i.Element.ArrangerIDFk,
 			&i.Element.Description,
-			&i.Author.ID,
-			&i.Author.ExtraInformation,
-			&i.Author.Name,
-			&i.Author.UserIDFk,
-			&i.Author.WikidataID,
-			&i.Author.BirthYear,
-			&i.Author.DeathYear,
-			&i.Author_2.ID,
-			&i.Author_2.ExtraInformation,
-			&i.Author_2.Name,
-			&i.Author_2.UserIDFk,
-			&i.Author_2.WikidataID,
-			&i.Author_2.BirthYear,
-			&i.Author_2.DeathYear,
 			&i.Element_2.Type,
 			&i.Element_2.ID,
 			&i.Element_2.CreationDate,
@@ -1398,12 +1338,8 @@ func (q *Queries) FindAllNotesByCreatorPagedWithSearch(ctx context.Context, arg 
 const findAllNotesByCreatorWithSearch = `-- name: FindAllNotesByCreatorWithSearch :many
 SELECT
   note.type, note.id, note.creation_date, note.name, note.number_of_pages, note.user_id_fk, note.parent, note.pdf_content, note.wikidata_id, note.composition_year, note.genre, note.composer_id_fk, note.arranger_id_fk, note.description,
-  composer.id, composer.extra_information, composer.name, composer.user_id_fk, composer.wikidata_id, composer.birth_year, composer.death_year,
-  arranger.id, arranger.extra_information, arranger.name, arranger.user_id_fk, arranger.wikidata_id, arranger.birth_year, arranger.death_year,
   p.type, p.id, p.creation_date, p.name, p.number_of_pages, p.user_id_fk, p.parent, p.pdf_content, p.wikidata_id, p.composition_year, p.genre, p.composer_id_fk, p.arranger_id_fk, p.description
 FROM elements as note
-LEFT JOIN authors composer ON note.composer_id_fk = composer.id
-LEFT JOIN authors arranger ON note.arranger_id_fk = arranger.id
 JOIN elements p ON p.id = note.parent
 WHERE note.type ='note'
   AND note.name LIKE CONCAT('%',?,'%')
@@ -1418,8 +1354,6 @@ type FindAllNotesByCreatorWithSearchParams struct {
 
 type FindAllNotesByCreatorWithSearchRow struct {
 	Element   Element
-	Author    Author
-	Author_2  Author
 	Element_2 Element
 }
 
@@ -1447,20 +1381,6 @@ func (q *Queries) FindAllNotesByCreatorWithSearch(ctx context.Context, arg FindA
 			&i.Element.ComposerIDFk,
 			&i.Element.ArrangerIDFk,
 			&i.Element.Description,
-			&i.Author.ID,
-			&i.Author.ExtraInformation,
-			&i.Author.Name,
-			&i.Author.UserIDFk,
-			&i.Author.WikidataID,
-			&i.Author.BirthYear,
-			&i.Author.DeathYear,
-			&i.Author_2.ID,
-			&i.Author_2.ExtraInformation,
-			&i.Author_2.Name,
-			&i.Author_2.UserIDFk,
-			&i.Author_2.WikidataID,
-			&i.Author_2.BirthYear,
-			&i.Author_2.DeathYear,
 			&i.Element_2.Type,
 			&i.Element_2.ID,
 			&i.Element_2.CreationDate,

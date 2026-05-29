@@ -25,6 +25,7 @@ func GetParentDecks(c fiber.Ctx) error {
 	var folderService = GetLocal[service.FolderService](c, "folderService")
 	var folders, err = folderService.FindAllParentDeckFolders(userId)
 	if err != nil {
+		log.Errorf("GetParentDecks failed for user %q: %v", userId, err)
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": err.Error(),
 		})
@@ -51,6 +52,7 @@ func DeleteElement(c fiber.Ctx) error {
 
 	lookedUpFolder, err := folderService.FindFolderByIdAndUser(elementId, userId)
 	if err != nil {
+		log.Errorf("DeleteElement failed to find element %q for user %q: %v", elementId, userId, err)
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": err.Error(),
 		})
@@ -61,6 +63,7 @@ func DeleteElement(c fiber.Ctx) error {
 
 	if err := noteService.DeleteNote(userId, elementId); err != nil {
 		if !errors.Is(err, sql.ErrNoRows) {
+			log.Errorf("DeleteElement failed to delete note %q for user %q: %v", elementId, userId, err)
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 				"error": err.Error(),
 			})
@@ -99,6 +102,7 @@ func GetNotes(c fiber.Ctx) error {
 	var noteService = GetLocal[service.NoteService](c, "noteService")
 	var notes, totalCount, err = noteService.LoadAllNotes(userId, pageArg, nameStr)
 	if err != nil {
+		log.Errorf("GetNotes failed: %v", err)
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": err.Error(),
 		})
@@ -141,11 +145,13 @@ func CreateFolder(c fiber.Ctx) error {
 	if errorWhenCreating != nil {
 		var errorType *fiber.Error
 		if errors.As(errorWhenCreating, &errorType) {
+			log.Errorf("CreateFolder failed for user %q: %v", userId, errorWhenCreating)
 			return c.Status(errorType.Code).JSON(fiber.Map{
 				"error": errorWhenCreating.Error(),
 			})
 		}
 
+		log.Errorf("CreateFolder failed for user %q: %v", userId, errorWhenCreating)
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": errorWhenCreating.Error(),
 		})
@@ -242,6 +248,7 @@ func CreateNote(c fiber.Ctx) error {
 	var noteService = GetLocal[service.NoteService](c, "noteService")
 	var note, err = noteService.CreateNote(userId, notePostDto)
 	if err != nil {
+		log.Errorf("CreateNote failed for user %q: %v", userId, err)
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": err.Error(),
 		})
@@ -272,6 +279,7 @@ func UpdateFolder(c fiber.Ctx) error {
 
 	var folder, err = folderService.FindFolderByIdAndUser(folderId, userId)
 	if err != nil {
+		log.Errorf("UpdateFolder failed to find folder %q for user %q: %v", folderId, userId, err)
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{})
 	}
 	folder.Name = folderPatch.Name
@@ -280,6 +288,7 @@ func UpdateFolder(c fiber.Ctx) error {
 	if folderPatch.ParentId != "" {
 		parent, err = folderService.FindFolderByIdAndUser(folderPatch.ParentId, userId)
 		if err != nil {
+			log.Errorf("UpdateFolder failed to find parent folder %q for user %q: %v", folderPatch.ParentId, userId, err)
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 				"error": err.Error(),
 			})
@@ -290,6 +299,7 @@ func UpdateFolder(c fiber.Ctx) error {
 
 	folder, err = folderService.UpdateFolder(userId, *folder)
 	if err != nil {
+		log.Errorf("UpdateFolder failed for folder %q user %q: %v", folderId, userId, err)
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": err.Error(),
 		})
@@ -313,6 +323,7 @@ func UpdateNote(c fiber.Ctx) error {
 	var noteService = GetLocal[service.NoteService](c, "noteService")
 	var note, err = noteService.LoadNote(noteId, userId)
 	if err != nil {
+		log.Errorf("UpdateNote failed to load note %q for user %q: %v", noteId, userId, err)
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": err.Error(),
 		})
@@ -330,6 +341,7 @@ func UpdateNote(c fiber.Ctx) error {
 
 	var updatedNote, errUpdate = noteService.UpdateNote(userId, note)
 	if errUpdate != nil {
+		log.Errorf("UpdateNote failed for note %q user %q: %v", noteId, userId, errUpdate)
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": errUpdate.Error(),
 		})
@@ -351,6 +363,7 @@ func GetParentOfNote(c fiber.Ctx) error {
 	var folderService = GetLocal[service.FolderService](c, "noteService")
 	var element, err = folderService.FindFolderByIdAndUser(noteId, userId)
 	if err != nil {
+		log.Errorf("GetParentOfNote failed for note %q user %q: %v", noteId, userId, err)
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": err.Error(),
 		})
@@ -372,6 +385,7 @@ func GetNoteasPDF(c fiber.Ctx) error {
 	var noteService = GetLocal[service.NoteService](c, "noteService")
 	var note, err = noteService.LoadNote(noteId, userId)
 	if err != nil {
+		log.Errorf("GetNoteasPDF failed to load note %q for user %q: %v", noteId, userId, err)
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": err.Error(),
 		})
@@ -393,6 +407,7 @@ func UpdatePDFOfNote(c fiber.Ctx) error {
 	var noteService = GetLocal[service.NoteService](c, "noteService")
 	var note, err = noteService.LoadNote(noteId, userId)
 	if err != nil {
+		log.Errorf("UpdatePDFOfNote failed to load note %q for user %q: %v", noteId, userId, err)
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": err.Error(),
 		})
@@ -401,6 +416,7 @@ func UpdatePDFOfNote(c fiber.Ctx) error {
 	note.PDFContent = pdfContent
 	updatedNote, err := noteService.UpdateNote(userId, note)
 	if err != nil {
+		log.Errorf("UpdatePDFOfNote failed to update note %q for user %q: %v", noteId, userId, err)
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": err.Error(),
 		})
@@ -423,6 +439,7 @@ func ExportPDFFromNotes(c fiber.Ctx) error {
 	var folderId = c.Params("folderId")
 	pdfContent, err := service.GeneratePDFForFolder(folderId, folderservice, userservice)
 	if err != nil {
+		log.Errorf("ExportPDFFromNotes failed for folder %q: %v", folderId, err)
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": err.Error(),
 		})
@@ -447,6 +464,7 @@ func GetNodeByID(c fiber.Ctx) error {
 	var foundNote, previousNote, nextNote, index, err = noteService.LoadNoteByParent(noteId, userId)
 
 	if err != nil {
+		log.Errorf("GetNodeByID failed for note %q user %q: %v", noteId, userId, err)
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": err.Error(),
 		})
@@ -476,6 +494,7 @@ func MoveToFolder(c fiber.Ctx) error {
 	var secondElement = c.Params("lastElement")
 
 	if err := folderService.MoveToFolder(firstElement, secondElement, userId); err != nil {
+		log.Errorf("MoveToFolder failed moving %q to %q for user %q: %v", firstElement, secondElement, userId, err)
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": err.Error(),
 		})

@@ -26,6 +26,24 @@ type NoteWithAuthor struct {
 	Folder db.Element
 }
 
+// loadComposerEntity returns the composer author entity for a note element, or
+// an empty Author if the note has no composer or it cannot be loaded. Replaces
+// the previous LEFT JOIN + sqlc.embed of authors, which failed to scan NULL
+// (no composer) into the non-nullable author id.
+func (n NoteService) loadComposerEntity(note db.Element, userId string) db.Author {
+	if !note.ComposerIDFk.Valid {
+		return db.Author{}
+	}
+	author, err := n.Queries.FindAuthorById(n.Ctx, db.FindAuthorByIdParams{
+		ID:       note.ComposerIDFk.String,
+		UserIDFk: db.NewSQLNullString(userId),
+	})
+	if err != nil {
+		return db.Author{}
+	}
+	return author
+}
+
 func (n NoteService) LoadAllNotes(userId string, page *int, nameStr *string) ([]models.Note, int, error) {
 
 	var notes []NoteWithAuthor
@@ -39,7 +57,7 @@ func (n NoteService) LoadAllNotes(userId string, page *int, nameStr *string) ([]
 			for _, note := range notesRetrieved {
 				notes = append(notes, NoteWithAuthor{
 					Note:   note.Element,
-					Author: note.Author,
+					Author: n.loadComposerEntity(note.Element, userId),
 					Folder: note.Element_2,
 				})
 			}
@@ -58,7 +76,7 @@ func (n NoteService) LoadAllNotes(userId string, page *int, nameStr *string) ([]
 			for _, note := range notesRetrieved {
 				notes = append(notes, NoteWithAuthor{
 					Note:   note.Element,
-					Author: note.Author,
+					Author: n.loadComposerEntity(note.Element, userId),
 					Folder: note.Element_2,
 				})
 			}
@@ -83,7 +101,7 @@ func (n NoteService) LoadAllNotes(userId string, page *int, nameStr *string) ([]
 			for _, note := range notesRetrieved {
 				notes = append(notes, NoteWithAuthor{
 					Note:   note.Element,
-					Author: note.Author,
+					Author: n.loadComposerEntity(note.Element, userId),
 					Folder: note.Element_2,
 				})
 			}
@@ -104,7 +122,7 @@ func (n NoteService) LoadAllNotes(userId string, page *int, nameStr *string) ([]
 			for _, note := range notesRetrieved {
 				notes = append(notes, NoteWithAuthor{
 					Note:   note.Element,
-					Author: note.Author,
+					Author: n.loadComposerEntity(note.Element, userId),
 					Folder: note.Element_2,
 				})
 			}
