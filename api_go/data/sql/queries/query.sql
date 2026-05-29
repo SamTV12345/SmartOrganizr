@@ -77,25 +77,16 @@ SELECT * FROM elements as folders WHERE type ='folder' AND user_id_fk = ? ORDER 
 
 
 -- name: FindAllSubElements :many
-SELECT
-  sqlc.embed(elements),
-  sqlc.embed(composer),
-  sqlc.embed(arranger)
+SELECT sqlc.embed(elements)
 FROM elements
-LEFT JOIN authors composer ON elements.composer_id_fk = composer.id
-LEFT JOIN authors arranger ON elements.arranger_id_fk = arranger.id
 WHERE parent = ? AND elements.user_id_fk = ?
 ORDER BY elements.name;
 
 -- name: FindAllNotesByCreatorPaged :many
 SELECT
   sqlc.embed(note),
-  sqlc.embed(composer),
-  sqlc.embed(arranger),
   sqlc.embed(p)
 FROM elements as note
-LEFT JOIN authors composer ON note.composer_id_fk = composer.id
-LEFT JOIN authors arranger ON note.arranger_id_fk = arranger.id
 JOIN elements p ON p.id = note.parent
 WHERE note.type ='note' AND note.user_id_fk = ?
 ORDER BY note.name LIMIT ? OFFSET ?;
@@ -103,12 +94,8 @@ ORDER BY note.name LIMIT ? OFFSET ?;
 -- name: FindAllNotesByCreator :many
 SELECT
   sqlc.embed(note),
-  sqlc.embed(composer),
-  sqlc.embed(arranger),
   sqlc.embed(p)
 FROM elements as note
-LEFT JOIN authors composer ON note.composer_id_fk = composer.id
-LEFT JOIN authors arranger ON note.arranger_id_fk = arranger.id
 JOIN elements p ON p.id = note.parent
 WHERE note.type ='note' AND note.user_id_fk = ?
 ORDER BY note.name;
@@ -119,12 +106,8 @@ SELECT COUNT(*) FROM elements as note WHERE note.type ='note' AND note.user_id_f
 -- name: FindAllNotesByCreatorPagedWithSearch :many
 SELECT
   sqlc.embed(note),
-  sqlc.embed(composer),
-  sqlc.embed(arranger),
   sqlc.embed(p)
 FROM elements as note
-LEFT JOIN authors composer ON note.composer_id_fk = composer.id
-LEFT JOIN authors arranger ON note.arranger_id_fk = arranger.id
 JOIN elements p ON p.id = note.parent
 WHERE note.type ='note'
   AND note.name LIKE CONCAT('%',?,'%')
@@ -134,12 +117,8 @@ ORDER BY note.name LIMIT ? OFFSET ?;
 -- name: FindAllNotesByCreatorWithSearch :many
 SELECT
   sqlc.embed(note),
-  sqlc.embed(composer),
-  sqlc.embed(arranger),
   sqlc.embed(p)
 FROM elements as note
-LEFT JOIN authors composer ON note.composer_id_fk = composer.id
-LEFT JOIN authors arranger ON note.arranger_id_fk = arranger.id
 JOIN elements p ON p.id = note.parent
 WHERE note.type ='note'
   AND note.name LIKE CONCAT('%',?,'%')
@@ -602,3 +581,83 @@ WHERE (cc.user_a_id = sqlc.arg(user_id) OR cc.user_b_id = sqlc.arg(user_id))
   AND m.sender_user_id <> sqlc.arg(user_id)
   AND (r.last_read_at IS NULL OR m.created_at > r.last_read_at)
 GROUP BY cc.club_id, c.name;
+
+-- name: CreateClubEvent :exec
+INSERT INTO club_events (
+    id, club_id, summary, description, location, geo_date_x, geo_date_y,
+    event_type, start_date, end_date, created_by_user_id
+) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+
+-- name: UpdateClubEvent :exec
+UPDATE club_events
+SET summary = ?, description = ?, location = ?, geo_date_x = ?, geo_date_y = ?,
+    event_type = ?, start_date = ?, end_date = ?, updated_at = CURRENT_TIMESTAMP
+WHERE id = ? AND club_id = ?;
+
+-- name: SoftCancelClubEvent :exec
+UPDATE club_events SET cancelled = 1, updated_at = CURRENT_TIMESTAMP
+WHERE id = ? AND club_id = ?;
+
+-- name: DeleteClubEvent :exec
+DELETE FROM club_events WHERE id = ? AND club_id = ?;
+
+-- name: GetClubEventByID :one
+SELECT * FROM club_events WHERE id = ? AND club_id = ?;
+
+-- name: ListClubEventsForClub :many
+SELECT
+    e.*,
+    (SELECT COUNT(*) FROM club_event_response r WHERE r.event_id = e.id AND r.status = 'YES')   AS yes_count,
+    (SELECT COUNT(*) FROM club_event_response r WHERE r.event_id = e.id AND r.status = 'NO')    AS no_count,
+    (SELECT COUNT(*) FROM club_event_response r WHERE r.event_id = e.id AND r.status = 'MAYBE') AS maybe_count,
+    (SELECT COUNT(*) FROM club_participant p WHERE p.club_id = e.club_id)                       AS member_count,
+    mine.status AS my_status,
+    mine.reason AS my_reason
+FROM club_events e
+LEFT JOIN club_event_response mine ON mine.event_id = e.id AND mine.user_id = sqlc.arg(user_id)
+WHERE e.club_id = sqlc.arg(club_id) AND e.start_date > sqlc.arg(since)
+ORDER BY e.start_date;
+
+-- name: ListClubEventsForUser :many
+SELECT
+    e.*,
+    c.name AS club_name,
+    (SELECT COUNT(*) FROM club_event_response r WHERE r.event_id = e.id AND r.status = 'YES')   AS yes_count,
+    (SELECT COUNT(*) FROM club_event_response r WHERE r.event_id = e.id AND r.status = 'NO')    AS no_count,
+    (SELECT COUNT(*) FROM club_event_response r WHERE r.event_id = e.id AND r.status = 'MAYBE') AS maybe_count,
+    (SELECT COUNT(*) FROM club_participant p2 WHERE p2.club_id = e.club_id)                     AS member_count,
+    mine.status AS my_status,
+    mine.reason AS my_reason
+FROM club_events e
+JOIN clubs c ON c.id = e.club_id
+JOIN club_participant p ON p.club_id = e.club_id AND p.user_id = sqlc.arg(user_id)
+LEFT JOIN club_event_response mine ON mine.event_id = e.id AND mine.user_id = sqlc.arg(user_id)
+WHERE e.start_date > sqlc.arg(since) AND e.cancelled = 0
+ORDER BY e.start_date;
+
+-- name: UpsertClubEventResponse :exec
+INSERT INTO club_event_response (event_id, user_id, status, reason, responded_at)
+VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP)
+ON DUPLICATE KEY UPDATE status = VALUES(status), reason = VALUES(reason), responded_at = CURRENT_TIMESTAMP;
+
+-- name: GetClubEventResponse :one
+SELECT * FROM club_event_response WHERE event_id = ? AND user_id = ?;
+
+-- name: ListClubEventResponses :many
+SELECT
+    r.event_id, r.user_id, r.status, r.reason, r.responded_at,
+    u.firstname, u.lastname, u.username
+FROM club_event_response r
+JOIN user u ON u.id = r.user_id
+WHERE r.event_id = ?;
+
+-- name: UpdateClub :exec
+UPDATE clubs
+SET name = ?, club_type = ?, dates_visible_for_all_members = ?,
+    members_can_send_messages = ?, feedback_visibility = ?, reason_visibility = ?
+WHERE id = ?;
+
+-- name: UpdateAddress :exec
+UPDATE address
+SET street = ?, house_number = ?, location = ?, postal_code = ?, country = ?
+WHERE id = ?;

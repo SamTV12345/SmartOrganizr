@@ -6,6 +6,8 @@ import {EventCard} from "@/src/components/EventCard";
 import {Card, CardContent, CardHeader, CardTitle} from "@/components/ui/card";
 import {useState} from "react";
 import {EventDetailDialog} from "@/src/components/EventDetailDialog";
+import {ClubEventsSection} from "@/src/components/ClubEventsSection";
+import {Button} from "@/components/ui/button";
 
 export const EventView = ()=> {
   const user = useKeycloak()
@@ -15,6 +17,7 @@ export const EventView = ()=> {
   // Stable for the component lifetime: recomputing on each render would change the
   // query key every render and trigger an infinite refetch loop.
   const [since] = useState(() => new Date().toISOString())
+  const [tab, setTab] = useState<"feed" | "club">("feed")
 
   const {data} = $api.useQuery("get", "/v1/events/{userId}", {
     params: {
@@ -40,6 +43,17 @@ export const EventView = ()=> {
         <p className="text-muted-foreground text-sm">{t('event-current')}</p>
       </header>
 
+      <div className="flex gap-2">
+        <Button variant={tab === "feed" ? "default" : "outline"} size="sm" onClick={() => setTab("feed")}>
+          {t("synced-feed")}
+        </Button>
+        <Button variant={tab === "club" ? "default" : "outline"} size="sm" onClick={() => setTab("club")}>
+          {t("club-events")}
+        </Button>
+      </div>
+
+      {tab === "feed" && (
+        <>
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
         <Card>
           <CardHeader className="pb-2">
@@ -87,6 +101,10 @@ export const EventView = ()=> {
           ))}
         </main>
       )}
+        </>
+      )}
+
+      {tab === "club" && <ClubEventsSection />}
 
       <EventDetailDialog
         event={selectedEvent}

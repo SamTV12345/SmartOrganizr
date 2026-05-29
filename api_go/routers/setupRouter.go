@@ -141,6 +141,7 @@ func SetupRouter(queries *db.Queries, config config.AppConfig, logger *zap.Sugar
 	var messageService = service.NewMessageService(queries, notificationHub)
 	var pinboardService = service.NewPinboardService(queries)
 	var clubFileService = service.NewClubFileService(queries)
+	var clubEventService = service.NewClubEventService(queries, clubMemberService, notificationHub)
 
 	var wikidataService = service.NewWikidataService(
 		"https://query.wikidata.org/sparql",
@@ -177,6 +178,7 @@ func SetupRouter(queries *db.Queries, config config.AppConfig, logger *zap.Sugar
 		SetLocal[service.MessageService](c, constants.MessageService, messageService)
 		SetLocal[service.PinboardService](c, constants.PinboardService, pinboardService)
 		SetLocal[service.ClubFileService](c, constants.ClubFileService, clubFileService)
+		SetLocal[service.ClubEventService](c, constants.ClubEventService, clubEventService)
 		SetLocal[*service.NotificationHub](c, constants.NotificationHub, notificationHub)
 		SetLocal[*service.WikidataService](c, constants.WikidataService, wikidataService)
 		SetLocal[*service.AIService](c, constants.AIService, aiService)
@@ -253,6 +255,7 @@ func SetupRouter(queries *db.Queries, config config.AppConfig, logger *zap.Sugar
 	profile.Route("v1/clubs", func(r fiber.Router) {
 		r.Get("/:userId", controllers.GetAllClubsForMe)
 		r.Post("/", controllers.PostClub)
+		r.Patch("/:clubId", controllers.UpdateClub)
 		r.Get("/:clubId/me/permissions", controllers.GetMyClubPermissions)
 		r.Get("/:clubId/members", controllers.GetClubMembers)
 		r.Patch("/:clubId/members/:memberUserId/role", controllers.PatchClubMemberRole)
@@ -273,6 +276,17 @@ func SetupRouter(queries *db.Queries, config config.AppConfig, logger *zap.Sugar
 		r.Post("/:clubId/files", controllers.UploadClubFile)
 		r.Get("/:clubId/files/:fileId", controllers.DownloadClubFile)
 		r.Delete("/:clubId/files/:fileId", controllers.DeleteClubFile)
+		r.Get("/:clubId/events", controllers.ListClubEvents)
+		r.Post("/:clubId/events", controllers.CreateClubEvent)
+		r.Put("/:clubId/events/:eventId", controllers.UpdateClubEvent)
+		r.Post("/:clubId/events/:eventId/cancel", controllers.CancelClubEvent)
+		r.Delete("/:clubId/events/:eventId", controllers.DeleteClubEvent)
+		r.Put("/:clubId/events/:eventId/response", controllers.RespondToClubEvent)
+		r.Get("/:clubId/events/:eventId/attendance", controllers.GetClubEventAttendance)
+	})
+
+	profile.Route("v1/club-events", func(r fiber.Router) {
+		r.Get("/", controllers.ListMyClubEvents)
 	})
 
 	profile.Route("v1/notifications", func(r fiber.Router) {

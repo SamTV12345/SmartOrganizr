@@ -107,6 +107,56 @@ func (c *ClubService) CreateClub(club dto.ClubPostDto) (*models.Club, error) {
 	return &savedClub, nil
 }
 
+func (c *ClubService) UpdateClub(clubId string, in dto.ClubPostDto) (*models.Club, error) {
+	existing, err := c.queries.FindClubByID(c.context, clubId)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := c.queries.UpdateAddress(c.context, db.UpdateAddressParams{
+		Street:      in.Street,
+		HouseNumber: in.HouseNumber,
+		Location:    in.Location,
+		PostalCode:  in.PostalCode,
+		Country:     in.Country,
+		ID:          existing.Club.AddressID,
+	}); err != nil {
+		return nil, err
+	}
+
+	if err := c.queries.UpdateClub(c.context, db.UpdateClubParams{
+		Name:                      in.Name,
+		ClubType:                  in.ClubType,
+		DatesVisibleForAllMembers: in.DatesVisibleForAllMember,
+		MembersCanSendMessages:    in.MembersCanSendMessages,
+		FeedbackVisibility:        in.FeedbackVisibility,
+		ReasonVisibility:          in.ReasonVisibility,
+		ID:                        clubId,
+	}); err != nil {
+		return nil, err
+	}
+
+	updated := models.Club{
+		ID:                       clubId,
+		Name:                     in.Name,
+		ClubType:                 in.ClubType,
+		DatesVisibleForAllMember: in.DatesVisibleForAllMember,
+		MembersCanSendMessages:   in.MembersCanSendMessages,
+		FeedbackVisibility:       in.FeedbackVisibility,
+		ReasonVisibility:         in.ReasonVisibility,
+		ConfirmedRepresentative:  existing.Club.ConfirmedRepresentative,
+		Address: models.Address{
+			Id:          existing.Club.AddressID,
+			Street:      in.Street,
+			HouseNumber: in.HouseNumber,
+			Location:    in.Location,
+			PostalCode:  in.PostalCode,
+			Country:     in.Country,
+		},
+	}
+	return &updated, nil
+}
+
 func (c *ClubService) InviteUsersByEmail(clubId string, emails []string) ([]string, []string, error) {
 	addedEmails := make([]string, 0)
 	invitedEmails := make([]string, 0)

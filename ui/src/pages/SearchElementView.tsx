@@ -1,3 +1,4 @@
+import {useRef} from "react";
 import {useTranslation} from "react-i18next";
 import {ElementSearchBar} from "../components/searchBars/ElementSearchBar";
 import {useAppDispatch, useAppSelector} from "../store/hooks";
@@ -21,23 +22,33 @@ export const SearchElementView = ()=>{
     const dispatch = useAppDispatch()
     const navigate = useNavigate()
 
+    // Guards against the refetch storm: without it, the end-of-list waypoint
+    // could fire loadNotes many times before the first response lands, each
+    // appending a page and re-triggering the waypoint.
+    const loadingRef = useRef(false)
+
     const loadNotes = async (link:string)=>{
         if(searchedElements==null){
             return
         }
-        const notesInPage: Page<ElementEmbeddedContainer<NoteItem>> = await new Promise<Page<ElementEmbeddedContainer<NoteItem>>>(resolve=>{
-            axios.get(link)
-                .then(resp=>resolve(resp.data))
-                .catch((error)=>{
-                    console.log(error)
-                })})
-        if(notesInPage !== undefined){
-            dispatch(setNotesSearched({
-                _embedded: {
-                    noteRepresentationModelList:[...searchedElements._embedded.noteRepresentationModelList,...notesInPage._embedded.noteRepresentationModelList]
-                },
-                page: notesInPage.page,
-            } as Page<ElementEmbeddedContainer<NoteItem>>))
+        if(loadingRef.current){
+            return
+        }
+        loadingRef.current = true
+        try {
+            const notesInPage: Page<ElementEmbeddedContainer<NoteItem>> = (await axios.get(link)).data
+            if(notesInPage !== undefined){
+                dispatch(setNotesSearched({
+                    _embedded: {
+                        noteRepresentationModelList:[...searchedElements._embedded.noteRepresentationModelList,...notesInPage._embedded.noteRepresentationModelList]
+                    },
+                    page: notesInPage.page,
+                } as Page<ElementEmbeddedContainer<NoteItem>>))
+            }
+        } catch (error) {
+            console.log(error)
+        } finally {
+            loadingRef.current = false
         }
     }
 
@@ -91,7 +102,7 @@ export const SearchElementView = ()=>{
                                     </TableCell>
                                 </TableRow>
                             )}
-                            {notes.map((element, index)=>
+                            {notes.map((element)=>
                                 <TableRow key={element.id} className="cursor-pointer" onClick={() => navigate(`/noteManagement/notes/${element.id}`)}>
                                     <TableCell className="max-w-[260px] truncate">
                                         <Button
@@ -110,16 +121,18 @@ export const SearchElementView = ()=>{
                                     <TableCell className="max-w-[340px] truncate">{element.description}</TableCell>
                                     <TableCell className="max-w-[240px] truncate">
                                         {element.parent?.name}
-                                        {searchedElements?.page && searchedElements.page.size-index<5 &&
-                                            hasNextPage(searchedElements) &&
-                                            <Waypoint onEnter={()=>{
-                                                loadNotes(buildNextPageUrl(searchedElements))
-                                            }}/>}
                                     </TableCell>
                                 </TableRow>
                             )}
                         </TableBody>
                     </Table>
+                    {notes.length > 0 && hasNextPage(searchedElements) && (
+                        <Waypoint onEnter={()=>{
+                            if(searchedElements){
+                                loadNotes(buildNextPageUrl(searchedElements))
+                            }
+                        }}/>
+                    )}
                 </CardContent>
             </Card>
         </main>

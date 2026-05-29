@@ -251,6 +251,44 @@ func (q *Queries) CreateClubChatMessage(ctx context.Context, arg CreateClubChatM
 	return err
 }
 
+const createClubEvent = `-- name: CreateClubEvent :exec
+INSERT INTO club_events (
+    id, club_id, summary, description, location, geo_date_x, geo_date_y,
+    event_type, start_date, end_date, created_by_user_id
+) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+`
+
+type CreateClubEventParams struct {
+	ID              string
+	ClubID          string
+	Summary         string
+	Description     sql.NullString
+	Location        sql.NullString
+	GeoDateX        sql.NullFloat64
+	GeoDateY        sql.NullFloat64
+	EventType       string
+	StartDate       time.Time
+	EndDate         sql.NullTime
+	CreatedByUserID string
+}
+
+func (q *Queries) CreateClubEvent(ctx context.Context, arg CreateClubEventParams) error {
+	_, err := q.db.ExecContext(ctx, createClubEvent,
+		arg.ID,
+		arg.ClubID,
+		arg.Summary,
+		arg.Description,
+		arg.Location,
+		arg.GeoDateX,
+		arg.GeoDateY,
+		arg.EventType,
+		arg.StartDate,
+		arg.EndDate,
+		arg.CreatedByUserID,
+	)
+	return err
+}
+
 const createClubFile = `-- name: CreateClubFile :exec
 INSERT INTO club_file (id, club_id, name, mime_type, size_bytes, content, uploaded_by_user_id)
 VALUES (?, ?, ?, ?, ?, ?, ?)
@@ -650,6 +688,20 @@ type DeleteAuthorParams struct {
 
 func (q *Queries) DeleteAuthor(ctx context.Context, arg DeleteAuthorParams) error {
 	_, err := q.db.ExecContext(ctx, deleteAuthor, arg.ID, arg.UserIDFk)
+	return err
+}
+
+const deleteClubEvent = `-- name: DeleteClubEvent :exec
+DELETE FROM club_events WHERE id = ? AND club_id = ?
+`
+
+type DeleteClubEventParams struct {
+	ID     string
+	ClubID string
+}
+
+func (q *Queries) DeleteClubEvent(ctx context.Context, arg DeleteClubEventParams) error {
+	_, err := q.db.ExecContext(ctx, deleteClubEvent, arg.ID, arg.ClubID)
 	return err
 }
 
@@ -1065,12 +1117,8 @@ func (q *Queries) FindAllNotesByAuthor(ctx context.Context, arg FindAllNotesByAu
 const findAllNotesByCreator = `-- name: FindAllNotesByCreator :many
 SELECT
   note.type, note.id, note.creation_date, note.name, note.number_of_pages, note.user_id_fk, note.parent, note.pdf_content, note.wikidata_id, note.composition_year, note.genre, note.composer_id_fk, note.arranger_id_fk, note.description,
-  composer.id, composer.extra_information, composer.name, composer.user_id_fk, composer.wikidata_id, composer.birth_year, composer.death_year,
-  arranger.id, arranger.extra_information, arranger.name, arranger.user_id_fk, arranger.wikidata_id, arranger.birth_year, arranger.death_year,
   p.type, p.id, p.creation_date, p.name, p.number_of_pages, p.user_id_fk, p.parent, p.pdf_content, p.wikidata_id, p.composition_year, p.genre, p.composer_id_fk, p.arranger_id_fk, p.description
 FROM elements as note
-LEFT JOIN authors composer ON note.composer_id_fk = composer.id
-LEFT JOIN authors arranger ON note.arranger_id_fk = arranger.id
 JOIN elements p ON p.id = note.parent
 WHERE note.type ='note' AND note.user_id_fk = ?
 ORDER BY note.name
@@ -1078,8 +1126,6 @@ ORDER BY note.name
 
 type FindAllNotesByCreatorRow struct {
 	Element   Element
-	Author    Author
-	Author_2  Author
 	Element_2 Element
 }
 
@@ -1107,20 +1153,6 @@ func (q *Queries) FindAllNotesByCreator(ctx context.Context, userIDFk sql.NullSt
 			&i.Element.ComposerIDFk,
 			&i.Element.ArrangerIDFk,
 			&i.Element.Description,
-			&i.Author.ID,
-			&i.Author.ExtraInformation,
-			&i.Author.Name,
-			&i.Author.UserIDFk,
-			&i.Author.WikidataID,
-			&i.Author.BirthYear,
-			&i.Author.DeathYear,
-			&i.Author_2.ID,
-			&i.Author_2.ExtraInformation,
-			&i.Author_2.Name,
-			&i.Author_2.UserIDFk,
-			&i.Author_2.WikidataID,
-			&i.Author_2.BirthYear,
-			&i.Author_2.DeathYear,
 			&i.Element_2.Type,
 			&i.Element_2.ID,
 			&i.Element_2.CreationDate,
@@ -1152,12 +1184,8 @@ func (q *Queries) FindAllNotesByCreator(ctx context.Context, userIDFk sql.NullSt
 const findAllNotesByCreatorPaged = `-- name: FindAllNotesByCreatorPaged :many
 SELECT
   note.type, note.id, note.creation_date, note.name, note.number_of_pages, note.user_id_fk, note.parent, note.pdf_content, note.wikidata_id, note.composition_year, note.genre, note.composer_id_fk, note.arranger_id_fk, note.description,
-  composer.id, composer.extra_information, composer.name, composer.user_id_fk, composer.wikidata_id, composer.birth_year, composer.death_year,
-  arranger.id, arranger.extra_information, arranger.name, arranger.user_id_fk, arranger.wikidata_id, arranger.birth_year, arranger.death_year,
   p.type, p.id, p.creation_date, p.name, p.number_of_pages, p.user_id_fk, p.parent, p.pdf_content, p.wikidata_id, p.composition_year, p.genre, p.composer_id_fk, p.arranger_id_fk, p.description
 FROM elements as note
-LEFT JOIN authors composer ON note.composer_id_fk = composer.id
-LEFT JOIN authors arranger ON note.arranger_id_fk = arranger.id
 JOIN elements p ON p.id = note.parent
 WHERE note.type ='note' AND note.user_id_fk = ?
 ORDER BY note.name LIMIT ? OFFSET ?
@@ -1171,8 +1199,6 @@ type FindAllNotesByCreatorPagedParams struct {
 
 type FindAllNotesByCreatorPagedRow struct {
 	Element   Element
-	Author    Author
-	Author_2  Author
 	Element_2 Element
 }
 
@@ -1200,20 +1226,6 @@ func (q *Queries) FindAllNotesByCreatorPaged(ctx context.Context, arg FindAllNot
 			&i.Element.ComposerIDFk,
 			&i.Element.ArrangerIDFk,
 			&i.Element.Description,
-			&i.Author.ID,
-			&i.Author.ExtraInformation,
-			&i.Author.Name,
-			&i.Author.UserIDFk,
-			&i.Author.WikidataID,
-			&i.Author.BirthYear,
-			&i.Author.DeathYear,
-			&i.Author_2.ID,
-			&i.Author_2.ExtraInformation,
-			&i.Author_2.Name,
-			&i.Author_2.UserIDFk,
-			&i.Author_2.WikidataID,
-			&i.Author_2.BirthYear,
-			&i.Author_2.DeathYear,
 			&i.Element_2.Type,
 			&i.Element_2.ID,
 			&i.Element_2.CreationDate,
@@ -1245,12 +1257,8 @@ func (q *Queries) FindAllNotesByCreatorPaged(ctx context.Context, arg FindAllNot
 const findAllNotesByCreatorPagedWithSearch = `-- name: FindAllNotesByCreatorPagedWithSearch :many
 SELECT
   note.type, note.id, note.creation_date, note.name, note.number_of_pages, note.user_id_fk, note.parent, note.pdf_content, note.wikidata_id, note.composition_year, note.genre, note.composer_id_fk, note.arranger_id_fk, note.description,
-  composer.id, composer.extra_information, composer.name, composer.user_id_fk, composer.wikidata_id, composer.birth_year, composer.death_year,
-  arranger.id, arranger.extra_information, arranger.name, arranger.user_id_fk, arranger.wikidata_id, arranger.birth_year, arranger.death_year,
   p.type, p.id, p.creation_date, p.name, p.number_of_pages, p.user_id_fk, p.parent, p.pdf_content, p.wikidata_id, p.composition_year, p.genre, p.composer_id_fk, p.arranger_id_fk, p.description
 FROM elements as note
-LEFT JOIN authors composer ON note.composer_id_fk = composer.id
-LEFT JOIN authors arranger ON note.arranger_id_fk = arranger.id
 JOIN elements p ON p.id = note.parent
 WHERE note.type ='note'
   AND note.name LIKE CONCAT('%',?,'%')
@@ -1267,8 +1275,6 @@ type FindAllNotesByCreatorPagedWithSearchParams struct {
 
 type FindAllNotesByCreatorPagedWithSearchRow struct {
 	Element   Element
-	Author    Author
-	Author_2  Author
 	Element_2 Element
 }
 
@@ -1301,20 +1307,6 @@ func (q *Queries) FindAllNotesByCreatorPagedWithSearch(ctx context.Context, arg 
 			&i.Element.ComposerIDFk,
 			&i.Element.ArrangerIDFk,
 			&i.Element.Description,
-			&i.Author.ID,
-			&i.Author.ExtraInformation,
-			&i.Author.Name,
-			&i.Author.UserIDFk,
-			&i.Author.WikidataID,
-			&i.Author.BirthYear,
-			&i.Author.DeathYear,
-			&i.Author_2.ID,
-			&i.Author_2.ExtraInformation,
-			&i.Author_2.Name,
-			&i.Author_2.UserIDFk,
-			&i.Author_2.WikidataID,
-			&i.Author_2.BirthYear,
-			&i.Author_2.DeathYear,
 			&i.Element_2.Type,
 			&i.Element_2.ID,
 			&i.Element_2.CreationDate,
@@ -1346,12 +1338,8 @@ func (q *Queries) FindAllNotesByCreatorPagedWithSearch(ctx context.Context, arg 
 const findAllNotesByCreatorWithSearch = `-- name: FindAllNotesByCreatorWithSearch :many
 SELECT
   note.type, note.id, note.creation_date, note.name, note.number_of_pages, note.user_id_fk, note.parent, note.pdf_content, note.wikidata_id, note.composition_year, note.genre, note.composer_id_fk, note.arranger_id_fk, note.description,
-  composer.id, composer.extra_information, composer.name, composer.user_id_fk, composer.wikidata_id, composer.birth_year, composer.death_year,
-  arranger.id, arranger.extra_information, arranger.name, arranger.user_id_fk, arranger.wikidata_id, arranger.birth_year, arranger.death_year,
   p.type, p.id, p.creation_date, p.name, p.number_of_pages, p.user_id_fk, p.parent, p.pdf_content, p.wikidata_id, p.composition_year, p.genre, p.composer_id_fk, p.arranger_id_fk, p.description
 FROM elements as note
-LEFT JOIN authors composer ON note.composer_id_fk = composer.id
-LEFT JOIN authors arranger ON note.arranger_id_fk = arranger.id
 JOIN elements p ON p.id = note.parent
 WHERE note.type ='note'
   AND note.name LIKE CONCAT('%',?,'%')
@@ -1366,8 +1354,6 @@ type FindAllNotesByCreatorWithSearchParams struct {
 
 type FindAllNotesByCreatorWithSearchRow struct {
 	Element   Element
-	Author    Author
-	Author_2  Author
 	Element_2 Element
 }
 
@@ -1395,20 +1381,6 @@ func (q *Queries) FindAllNotesByCreatorWithSearch(ctx context.Context, arg FindA
 			&i.Element.ComposerIDFk,
 			&i.Element.ArrangerIDFk,
 			&i.Element.Description,
-			&i.Author.ID,
-			&i.Author.ExtraInformation,
-			&i.Author.Name,
-			&i.Author.UserIDFk,
-			&i.Author.WikidataID,
-			&i.Author.BirthYear,
-			&i.Author.DeathYear,
-			&i.Author_2.ID,
-			&i.Author_2.ExtraInformation,
-			&i.Author_2.Name,
-			&i.Author_2.UserIDFk,
-			&i.Author_2.WikidataID,
-			&i.Author_2.BirthYear,
-			&i.Author_2.DeathYear,
 			&i.Element_2.Type,
 			&i.Element_2.ID,
 			&i.Element_2.CreationDate,
@@ -1507,13 +1479,8 @@ func (q *Queries) FindAllParentFolders(ctx context.Context, userIDFk sql.NullStr
 }
 
 const findAllSubElements = `-- name: FindAllSubElements :many
-SELECT
-  elements.type, elements.id, elements.creation_date, elements.name, elements.number_of_pages, elements.user_id_fk, elements.parent, elements.pdf_content, elements.wikidata_id, elements.composition_year, elements.genre, elements.composer_id_fk, elements.arranger_id_fk, elements.description,
-  composer.id, composer.extra_information, composer.name, composer.user_id_fk, composer.wikidata_id, composer.birth_year, composer.death_year,
-  arranger.id, arranger.extra_information, arranger.name, arranger.user_id_fk, arranger.wikidata_id, arranger.birth_year, arranger.death_year
+SELECT elements.type, elements.id, elements.creation_date, elements.name, elements.number_of_pages, elements.user_id_fk, elements.parent, elements.pdf_content, elements.wikidata_id, elements.composition_year, elements.genre, elements.composer_id_fk, elements.arranger_id_fk, elements.description
 FROM elements
-LEFT JOIN authors composer ON elements.composer_id_fk = composer.id
-LEFT JOIN authors arranger ON elements.arranger_id_fk = arranger.id
 WHERE parent = ? AND elements.user_id_fk = ?
 ORDER BY elements.name
 `
@@ -1524,9 +1491,7 @@ type FindAllSubElementsParams struct {
 }
 
 type FindAllSubElementsRow struct {
-	Element  Element
-	Author   Author
-	Author_2 Author
+	Element Element
 }
 
 func (q *Queries) FindAllSubElements(ctx context.Context, arg FindAllSubElementsParams) ([]FindAllSubElementsRow, error) {
@@ -1553,20 +1518,6 @@ func (q *Queries) FindAllSubElements(ctx context.Context, arg FindAllSubElements
 			&i.Element.ComposerIDFk,
 			&i.Element.ArrangerIDFk,
 			&i.Element.Description,
-			&i.Author.ID,
-			&i.Author.ExtraInformation,
-			&i.Author.Name,
-			&i.Author.UserIDFk,
-			&i.Author.WikidataID,
-			&i.Author.BirthYear,
-			&i.Author.DeathYear,
-			&i.Author_2.ID,
-			&i.Author_2.ExtraInformation,
-			&i.Author_2.Name,
-			&i.Author_2.UserIDFk,
-			&i.Author_2.WikidataID,
-			&i.Author_2.BirthYear,
-			&i.Author_2.DeathYear,
 		); err != nil {
 			return nil, err
 		}
@@ -2272,6 +2223,59 @@ func (q *Queries) FindUserById(ctx context.Context, id string) (User, error) {
 	return i, err
 }
 
+const getClubEventByID = `-- name: GetClubEventByID :one
+SELECT id, club_id, summary, description, location, geo_date_x, geo_date_y, event_type, start_date, end_date, cancelled, created_by_user_id, created_at, updated_at FROM club_events WHERE id = ? AND club_id = ?
+`
+
+type GetClubEventByIDParams struct {
+	ID     string
+	ClubID string
+}
+
+func (q *Queries) GetClubEventByID(ctx context.Context, arg GetClubEventByIDParams) (ClubEvent, error) {
+	row := q.db.QueryRowContext(ctx, getClubEventByID, arg.ID, arg.ClubID)
+	var i ClubEvent
+	err := row.Scan(
+		&i.ID,
+		&i.ClubID,
+		&i.Summary,
+		&i.Description,
+		&i.Location,
+		&i.GeoDateX,
+		&i.GeoDateY,
+		&i.EventType,
+		&i.StartDate,
+		&i.EndDate,
+		&i.Cancelled,
+		&i.CreatedByUserID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
+const getClubEventResponse = `-- name: GetClubEventResponse :one
+SELECT event_id, user_id, status, reason, responded_at FROM club_event_response WHERE event_id = ? AND user_id = ?
+`
+
+type GetClubEventResponseParams struct {
+	EventID string
+	UserID  string
+}
+
+func (q *Queries) GetClubEventResponse(ctx context.Context, arg GetClubEventResponseParams) (ClubEventResponse, error) {
+	row := q.db.QueryRowContext(ctx, getClubEventResponse, arg.EventID, arg.UserID)
+	var i ClubEventResponse
+	err := row.Scan(
+		&i.EventID,
+		&i.UserID,
+		&i.Status,
+		&i.Reason,
+		&i.RespondedAt,
+	)
+	return i, err
+}
+
 const getClubFileContent = `-- name: GetClubFileContent :one
 SELECT id, name, mime_type, size_bytes, content
 FROM club_file
@@ -2690,6 +2694,238 @@ func (q *Queries) ListClubChatsForUser(ctx context.Context, arg ListClubChatsFor
 	return items, nil
 }
 
+const listClubEventResponses = `-- name: ListClubEventResponses :many
+SELECT
+    r.event_id, r.user_id, r.status, r.reason, r.responded_at,
+    u.firstname, u.lastname, u.username
+FROM club_event_response r
+JOIN user u ON u.id = r.user_id
+WHERE r.event_id = ?
+`
+
+type ListClubEventResponsesRow struct {
+	EventID     string
+	UserID      string
+	Status      string
+	Reason      sql.NullString
+	RespondedAt time.Time
+	Firstname   sql.NullString
+	Lastname    sql.NullString
+	Username    sql.NullString
+}
+
+func (q *Queries) ListClubEventResponses(ctx context.Context, eventID string) ([]ListClubEventResponsesRow, error) {
+	rows, err := q.db.QueryContext(ctx, listClubEventResponses, eventID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ListClubEventResponsesRow
+	for rows.Next() {
+		var i ListClubEventResponsesRow
+		if err := rows.Scan(
+			&i.EventID,
+			&i.UserID,
+			&i.Status,
+			&i.Reason,
+			&i.RespondedAt,
+			&i.Firstname,
+			&i.Lastname,
+			&i.Username,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listClubEventsForClub = `-- name: ListClubEventsForClub :many
+SELECT
+    e.id, e.club_id, e.summary, e.description, e.location, e.geo_date_x, e.geo_date_y, e.event_type, e.start_date, e.end_date, e.cancelled, e.created_by_user_id, e.created_at, e.updated_at,
+    (SELECT COUNT(*) FROM club_event_response r WHERE r.event_id = e.id AND r.status = 'YES')   AS yes_count,
+    (SELECT COUNT(*) FROM club_event_response r WHERE r.event_id = e.id AND r.status = 'NO')    AS no_count,
+    (SELECT COUNT(*) FROM club_event_response r WHERE r.event_id = e.id AND r.status = 'MAYBE') AS maybe_count,
+    (SELECT COUNT(*) FROM club_participant p WHERE p.club_id = e.club_id)                       AS member_count,
+    mine.status AS my_status,
+    mine.reason AS my_reason
+FROM club_events e
+LEFT JOIN club_event_response mine ON mine.event_id = e.id AND mine.user_id = ?
+WHERE e.club_id = ? AND e.start_date > ?
+ORDER BY e.start_date
+`
+
+type ListClubEventsForClubParams struct {
+	UserID string
+	ClubID string
+	Since  time.Time
+}
+
+type ListClubEventsForClubRow struct {
+	ID              string
+	ClubID          string
+	Summary         string
+	Description     sql.NullString
+	Location        sql.NullString
+	GeoDateX        sql.NullFloat64
+	GeoDateY        sql.NullFloat64
+	EventType       string
+	StartDate       time.Time
+	EndDate         sql.NullTime
+	Cancelled       bool
+	CreatedByUserID string
+	CreatedAt       time.Time
+	UpdatedAt       time.Time
+	YesCount        int64
+	NoCount         int64
+	MaybeCount      int64
+	MemberCount     int64
+	MyStatus        sql.NullString
+	MyReason        sql.NullString
+}
+
+func (q *Queries) ListClubEventsForClub(ctx context.Context, arg ListClubEventsForClubParams) ([]ListClubEventsForClubRow, error) {
+	rows, err := q.db.QueryContext(ctx, listClubEventsForClub, arg.UserID, arg.ClubID, arg.Since)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ListClubEventsForClubRow
+	for rows.Next() {
+		var i ListClubEventsForClubRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.ClubID,
+			&i.Summary,
+			&i.Description,
+			&i.Location,
+			&i.GeoDateX,
+			&i.GeoDateY,
+			&i.EventType,
+			&i.StartDate,
+			&i.EndDate,
+			&i.Cancelled,
+			&i.CreatedByUserID,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.YesCount,
+			&i.NoCount,
+			&i.MaybeCount,
+			&i.MemberCount,
+			&i.MyStatus,
+			&i.MyReason,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listClubEventsForUser = `-- name: ListClubEventsForUser :many
+SELECT
+    e.id, e.club_id, e.summary, e.description, e.location, e.geo_date_x, e.geo_date_y, e.event_type, e.start_date, e.end_date, e.cancelled, e.created_by_user_id, e.created_at, e.updated_at,
+    c.name AS club_name,
+    (SELECT COUNT(*) FROM club_event_response r WHERE r.event_id = e.id AND r.status = 'YES')   AS yes_count,
+    (SELECT COUNT(*) FROM club_event_response r WHERE r.event_id = e.id AND r.status = 'NO')    AS no_count,
+    (SELECT COUNT(*) FROM club_event_response r WHERE r.event_id = e.id AND r.status = 'MAYBE') AS maybe_count,
+    (SELECT COUNT(*) FROM club_participant p2 WHERE p2.club_id = e.club_id)                     AS member_count,
+    mine.status AS my_status,
+    mine.reason AS my_reason
+FROM club_events e
+JOIN clubs c ON c.id = e.club_id
+JOIN club_participant p ON p.club_id = e.club_id AND p.user_id = ?
+LEFT JOIN club_event_response mine ON mine.event_id = e.id AND mine.user_id = ?
+WHERE e.start_date > ? AND e.cancelled = 0
+ORDER BY e.start_date
+`
+
+type ListClubEventsForUserParams struct {
+	UserID string
+	Since  time.Time
+}
+
+type ListClubEventsForUserRow struct {
+	ID              string
+	ClubID          string
+	Summary         string
+	Description     sql.NullString
+	Location        sql.NullString
+	GeoDateX        sql.NullFloat64
+	GeoDateY        sql.NullFloat64
+	EventType       string
+	StartDate       time.Time
+	EndDate         sql.NullTime
+	Cancelled       bool
+	CreatedByUserID string
+	CreatedAt       time.Time
+	UpdatedAt       time.Time
+	ClubName        string
+	YesCount        int64
+	NoCount         int64
+	MaybeCount      int64
+	MemberCount     int64
+	MyStatus        sql.NullString
+	MyReason        sql.NullString
+}
+
+func (q *Queries) ListClubEventsForUser(ctx context.Context, arg ListClubEventsForUserParams) ([]ListClubEventsForUserRow, error) {
+	rows, err := q.db.QueryContext(ctx, listClubEventsForUser, arg.UserID, arg.UserID, arg.Since)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ListClubEventsForUserRow
+	for rows.Next() {
+		var i ListClubEventsForUserRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.ClubID,
+			&i.Summary,
+			&i.Description,
+			&i.Location,
+			&i.GeoDateX,
+			&i.GeoDateY,
+			&i.EventType,
+			&i.StartDate,
+			&i.EndDate,
+			&i.Cancelled,
+			&i.CreatedByUserID,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.ClubName,
+			&i.YesCount,
+			&i.NoCount,
+			&i.MaybeCount,
+			&i.MemberCount,
+			&i.MyStatus,
+			&i.MyReason,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const listClubFilesForClub = `-- name: ListClubFilesForClub :many
 SELECT
     f.id,
@@ -3071,6 +3307,48 @@ func (q *Queries) SearchByFolderName(ctx context.Context, arg SearchByFolderName
 	return items, nil
 }
 
+const softCancelClubEvent = `-- name: SoftCancelClubEvent :exec
+UPDATE club_events SET cancelled = 1, updated_at = CURRENT_TIMESTAMP
+WHERE id = ? AND club_id = ?
+`
+
+type SoftCancelClubEventParams struct {
+	ID     string
+	ClubID string
+}
+
+func (q *Queries) SoftCancelClubEvent(ctx context.Context, arg SoftCancelClubEventParams) error {
+	_, err := q.db.ExecContext(ctx, softCancelClubEvent, arg.ID, arg.ClubID)
+	return err
+}
+
+const updateAddress = `-- name: UpdateAddress :exec
+UPDATE address
+SET street = ?, house_number = ?, location = ?, postal_code = ?, country = ?
+WHERE id = ?
+`
+
+type UpdateAddressParams struct {
+	Street      string
+	HouseNumber string
+	Location    string
+	PostalCode  string
+	Country     string
+	ID          string
+}
+
+func (q *Queries) UpdateAddress(ctx context.Context, arg UpdateAddressParams) error {
+	_, err := q.db.ExecContext(ctx, updateAddress,
+		arg.Street,
+		arg.HouseNumber,
+		arg.Location,
+		arg.PostalCode,
+		arg.Country,
+		arg.ID,
+	)
+	return err
+}
+
 const updateAuthor = `-- name: UpdateAuthor :exec
 UPDATE authors
 SET name = ?, extra_information = ?, wikidata_id = ?, birth_year = ?, death_year = ?
@@ -3096,6 +3374,72 @@ func (q *Queries) UpdateAuthor(ctx context.Context, arg UpdateAuthorParams) erro
 		arg.DeathYear,
 		arg.ID,
 		arg.UserIDFk,
+	)
+	return err
+}
+
+const updateClub = `-- name: UpdateClub :exec
+UPDATE clubs
+SET name = ?, club_type = ?, dates_visible_for_all_members = ?,
+    members_can_send_messages = ?, feedback_visibility = ?, reason_visibility = ?
+WHERE id = ?
+`
+
+type UpdateClubParams struct {
+	Name                      string
+	ClubType                  string
+	DatesVisibleForAllMembers bool
+	MembersCanSendMessages    bool
+	FeedbackVisibility        string
+	ReasonVisibility          string
+	ID                        string
+}
+
+func (q *Queries) UpdateClub(ctx context.Context, arg UpdateClubParams) error {
+	_, err := q.db.ExecContext(ctx, updateClub,
+		arg.Name,
+		arg.ClubType,
+		arg.DatesVisibleForAllMembers,
+		arg.MembersCanSendMessages,
+		arg.FeedbackVisibility,
+		arg.ReasonVisibility,
+		arg.ID,
+	)
+	return err
+}
+
+const updateClubEvent = `-- name: UpdateClubEvent :exec
+UPDATE club_events
+SET summary = ?, description = ?, location = ?, geo_date_x = ?, geo_date_y = ?,
+    event_type = ?, start_date = ?, end_date = ?, updated_at = CURRENT_TIMESTAMP
+WHERE id = ? AND club_id = ?
+`
+
+type UpdateClubEventParams struct {
+	Summary     string
+	Description sql.NullString
+	Location    sql.NullString
+	GeoDateX    sql.NullFloat64
+	GeoDateY    sql.NullFloat64
+	EventType   string
+	StartDate   time.Time
+	EndDate     sql.NullTime
+	ID          string
+	ClubID      string
+}
+
+func (q *Queries) UpdateClubEvent(ctx context.Context, arg UpdateClubEventParams) error {
+	_, err := q.db.ExecContext(ctx, updateClubEvent,
+		arg.Summary,
+		arg.Description,
+		arg.Location,
+		arg.GeoDateX,
+		arg.GeoDateY,
+		arg.EventType,
+		arg.StartDate,
+		arg.EndDate,
+		arg.ID,
+		arg.ClubID,
 	)
 	return err
 }
@@ -3300,5 +3644,28 @@ type UpsertChatReadParams struct {
 
 func (q *Queries) UpsertChatRead(ctx context.Context, arg UpsertChatReadParams) error {
 	_, err := q.db.ExecContext(ctx, upsertChatRead, arg.ChatID, arg.UserID)
+	return err
+}
+
+const upsertClubEventResponse = `-- name: UpsertClubEventResponse :exec
+INSERT INTO club_event_response (event_id, user_id, status, reason, responded_at)
+VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP)
+ON DUPLICATE KEY UPDATE status = VALUES(status), reason = VALUES(reason), responded_at = CURRENT_TIMESTAMP
+`
+
+type UpsertClubEventResponseParams struct {
+	EventID string
+	UserID  string
+	Status  string
+	Reason  sql.NullString
+}
+
+func (q *Queries) UpsertClubEventResponse(ctx context.Context, arg UpsertClubEventResponseParams) error {
+	_, err := q.db.ExecContext(ctx, upsertClubEventResponse,
+		arg.EventID,
+		arg.UserID,
+		arg.Status,
+		arg.Reason,
+	)
 	return err
 }

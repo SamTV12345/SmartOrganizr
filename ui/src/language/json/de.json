@@ -152,5 +152,7 @@
   "club-invite-error": "Einladungen konnten nicht gesendet werden.",
   "konzertmeister-url": "Konzertmeister URL",
   "fieldMustBeUrl": "Dieses Feld muss eine gültige URL sein.",
-  "event-current": "Anstehende Events"
+  "event-current": "Anstehende Events",
+  "synced-feed": "Feed",
+  "club-events": "Vereinstermine"
 }

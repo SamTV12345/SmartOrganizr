@@ -41,19 +41,32 @@ func (f *FolderService) loadSubElements(folder *models.Folder, user models.User)
 		var ielement = db.ConvertElementEntityToDBVersion(element.Element)
 		var author *models.Author = nil
 		if _, ok := ielement.(db.Note); ok {
-			var dbAuthor = mappers.ConvertAuthorFromEntity(db.Author{
-				UserIDFk:         db.NewSQLNullString(element.Author.UserIDFk.String),
-				Name:             db.NewSQLNullString(element.Author.Name.String),
-				ID:               element.Author.ID,
-				ExtraInformation: db.NewSQLNullString(element.Author.ExtraInformation.String),
-			})
-			author = &dbAuthor
+			author = f.loadComposer(element.Element, user.UserId)
 		}
 		var elementToAppend = mappers.ConvertFromEntity(ielement, user, author)
 		folder.Elements = append(folder.Elements, elementToAppend)
 	}
 
 	return nil
+}
+
+// loadComposer returns the composer author of a note element, or nil if the
+// element has no composer or it cannot be loaded. This replaces the previous
+// LEFT JOIN + sqlc.embed of authors, which failed to scan (NULL into the
+// non-nullable author id) whenever an element had no composer/arranger.
+func (f *FolderService) loadComposer(element db.Element, userId string) *models.Author {
+	if !element.ComposerIDFk.Valid {
+		return nil
+	}
+	dbAuthor, err := f.Queries.FindAuthorById(f.Ctx, db.FindAuthorByIdParams{
+		ID:       element.ComposerIDFk.String,
+		UserIDFk: db.NewSQLNullString(userId),
+	})
+	if err != nil {
+		return nil
+	}
+	var mapped = mappers.ConvertAuthorFromEntity(dbAuthor)
+	return &mapped
 }
 
 func (f *FolderService) FindAllParentDeckFolders(userId string) ([]models.Folder, error) {
@@ -228,13 +241,7 @@ func (f *FolderService) FindNextChildren(folderId string, userId string) ([]mode
 		var convertedElement = db.ConvertElementEntityToDBVersion(element.Element)
 		var author *models.Author
 		if _, ok := convertedElement.(db.Note); ok {
-			var authorMapped = mappers.ConvertAuthorFromEntity(db.Author{
-				UserIDFk:         db.NewSQLNullString(element.Author.UserIDFk.String),
-				Name:             db.NewSQLNullString(element.Author.Name.String),
-				ID:               element.Author.ID,
-				ExtraInformation: db.NewSQLNullString(element.Author.ExtraInformation.String),
-			})
-			author = &authorMapped
+			author = f.loadComposer(element.Element, userId)
 		}
 		var modelElement = mappers.ConvertFromEntity(convertedElement, *creator, author)
 		modelElements = append(modelElements, modelElement)
