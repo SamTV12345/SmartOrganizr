@@ -27,6 +27,7 @@ import {
 import { http as axios } from "@/src/api/client";
 import { apiURL } from "@/src/Keycloak";
 import { Club } from "@/src/models/Club";
+import { visibilityOptions } from "@/src/models/clubSettings";
 
 type ClubProps = {
 
@@ -49,13 +50,7 @@ export const ClubView: FC<ClubProps> = ({})=>{
         "posaunenchor",
     ] as const
 
-    const visibilityOptions = [
-        "leaders-and-authorized",
-        "all-members",
-        "only-authorized",
-    ] as const
-
-    const formSchema = z.object({
+const formSchema = z.object({
         name: z.string().min(1, fieldRequiredMessage),
         club_type: z.enum(clubTypes),
         street: z.string().min(1, fieldRequiredMessage),
