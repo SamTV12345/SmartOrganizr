@@ -251,6 +251,44 @@ func (q *Queries) CreateClubChatMessage(ctx context.Context, arg CreateClubChatM
 	return err
 }
 
+const createClubEvent = `-- name: CreateClubEvent :exec
+INSERT INTO club_events (
+    id, club_id, summary, description, location, geo_date_x, geo_date_y,
+    event_type, start_date, end_date, created_by_user_id
+) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+`
+
+type CreateClubEventParams struct {
+	ID              string
+	ClubID          string
+	Summary         string
+	Description     sql.NullString
+	Location        sql.NullString
+	GeoDateX        sql.NullFloat64
+	GeoDateY        sql.NullFloat64
+	EventType       string
+	StartDate       time.Time
+	EndDate         sql.NullTime
+	CreatedByUserID string
+}
+
+func (q *Queries) CreateClubEvent(ctx context.Context, arg CreateClubEventParams) error {
+	_, err := q.db.ExecContext(ctx, createClubEvent,
+		arg.ID,
+		arg.ClubID,
+		arg.Summary,
+		arg.Description,
+		arg.Location,
+		arg.GeoDateX,
+		arg.GeoDateY,
+		arg.EventType,
+		arg.StartDate,
+		arg.EndDate,
+		arg.CreatedByUserID,
+	)
+	return err
+}
+
 const createClubFile = `-- name: CreateClubFile :exec
 INSERT INTO club_file (id, club_id, name, mime_type, size_bytes, content, uploaded_by_user_id)
 VALUES (?, ?, ?, ?, ?, ?, ?)
@@ -650,6 +688,20 @@ type DeleteAuthorParams struct {
 
 func (q *Queries) DeleteAuthor(ctx context.Context, arg DeleteAuthorParams) error {
 	_, err := q.db.ExecContext(ctx, deleteAuthor, arg.ID, arg.UserIDFk)
+	return err
+}
+
+const deleteClubEvent = `-- name: DeleteClubEvent :exec
+DELETE FROM club_events WHERE id = ? AND club_id = ?
+`
+
+type DeleteClubEventParams struct {
+	ID     string
+	ClubID string
+}
+
+func (q *Queries) DeleteClubEvent(ctx context.Context, arg DeleteClubEventParams) error {
+	_, err := q.db.ExecContext(ctx, deleteClubEvent, arg.ID, arg.ClubID)
 	return err
 }
 
@@ -2272,6 +2324,59 @@ func (q *Queries) FindUserById(ctx context.Context, id string) (User, error) {
 	return i, err
 }
 
+const getClubEventByID = `-- name: GetClubEventByID :one
+SELECT id, club_id, summary, description, location, geo_date_x, geo_date_y, event_type, start_date, end_date, cancelled, created_by_user_id, created_at, updated_at FROM club_events WHERE id = ? AND club_id = ?
+`
+
+type GetClubEventByIDParams struct {
+	ID     string
+	ClubID string
+}
+
+func (q *Queries) GetClubEventByID(ctx context.Context, arg GetClubEventByIDParams) (ClubEvent, error) {
+	row := q.db.QueryRowContext(ctx, getClubEventByID, arg.ID, arg.ClubID)
+	var i ClubEvent
+	err := row.Scan(
+		&i.ID,
+		&i.ClubID,
+		&i.Summary,
+		&i.Description,
+		&i.Location,
+		&i.GeoDateX,
+		&i.GeoDateY,
+		&i.EventType,
+		&i.StartDate,
+		&i.EndDate,
+		&i.Cancelled,
+		&i.CreatedByUserID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
+const getClubEventResponse = `-- name: GetClubEventResponse :one
+SELECT event_id, user_id, status, reason, responded_at FROM club_event_response WHERE event_id = ? AND user_id = ?
+`
+
+type GetClubEventResponseParams struct {
+	EventID string
+	UserID  string
+}
+
+func (q *Queries) GetClubEventResponse(ctx context.Context, arg GetClubEventResponseParams) (ClubEventResponse, error) {
+	row := q.db.QueryRowContext(ctx, getClubEventResponse, arg.EventID, arg.UserID)
+	var i ClubEventResponse
+	err := row.Scan(
+		&i.EventID,
+		&i.UserID,
+		&i.Status,
+		&i.Reason,
+		&i.RespondedAt,
+	)
+	return i, err
+}
+
 const getClubFileContent = `-- name: GetClubFileContent :one
 SELECT id, name, mime_type, size_bytes, content
 FROM club_file
@@ -2690,6 +2795,238 @@ func (q *Queries) ListClubChatsForUser(ctx context.Context, arg ListClubChatsFor
 	return items, nil
 }
 
+const listClubEventResponses = `-- name: ListClubEventResponses :many
+SELECT
+    r.event_id, r.user_id, r.status, r.reason, r.responded_at,
+    u.firstname, u.lastname, u.username
+FROM club_event_response r
+JOIN user u ON u.id = r.user_id
+WHERE r.event_id = ?
+`
+
+type ListClubEventResponsesRow struct {
+	EventID     string
+	UserID      string
+	Status      string
+	Reason      sql.NullString
+	RespondedAt time.Time
+	Firstname   sql.NullString
+	Lastname    sql.NullString
+	Username    sql.NullString
+}
+
+func (q *Queries) ListClubEventResponses(ctx context.Context, eventID string) ([]ListClubEventResponsesRow, error) {
+	rows, err := q.db.QueryContext(ctx, listClubEventResponses, eventID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ListClubEventResponsesRow
+	for rows.Next() {
+		var i ListClubEventResponsesRow
+		if err := rows.Scan(
+			&i.EventID,
+			&i.UserID,
+			&i.Status,
+			&i.Reason,
+			&i.RespondedAt,
+			&i.Firstname,
+			&i.Lastname,
+			&i.Username,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listClubEventsForClub = `-- name: ListClubEventsForClub :many
+SELECT
+    e.id, e.club_id, e.summary, e.description, e.location, e.geo_date_x, e.geo_date_y, e.event_type, e.start_date, e.end_date, e.cancelled, e.created_by_user_id, e.created_at, e.updated_at,
+    (SELECT COUNT(*) FROM club_event_response r WHERE r.event_id = e.id AND r.status = 'YES')   AS yes_count,
+    (SELECT COUNT(*) FROM club_event_response r WHERE r.event_id = e.id AND r.status = 'NO')    AS no_count,
+    (SELECT COUNT(*) FROM club_event_response r WHERE r.event_id = e.id AND r.status = 'MAYBE') AS maybe_count,
+    (SELECT COUNT(*) FROM club_participant p WHERE p.club_id = e.club_id)                       AS member_count,
+    mine.status AS my_status,
+    mine.reason AS my_reason
+FROM club_events e
+LEFT JOIN club_event_response mine ON mine.event_id = e.id AND mine.user_id = ?
+WHERE e.club_id = ? AND e.start_date > ?
+ORDER BY e.start_date
+`
+
+type ListClubEventsForClubParams struct {
+	UserID string
+	ClubID string
+	Since  time.Time
+}
+
+type ListClubEventsForClubRow struct {
+	ID              string
+	ClubID          string
+	Summary         string
+	Description     sql.NullString
+	Location        sql.NullString
+	GeoDateX        sql.NullFloat64
+	GeoDateY        sql.NullFloat64
+	EventType       string
+	StartDate       time.Time
+	EndDate         sql.NullTime
+	Cancelled       bool
+	CreatedByUserID string
+	CreatedAt       time.Time
+	UpdatedAt       time.Time
+	YesCount        int64
+	NoCount         int64
+	MaybeCount      int64
+	MemberCount     int64
+	MyStatus        sql.NullString
+	MyReason        sql.NullString
+}
+
+func (q *Queries) ListClubEventsForClub(ctx context.Context, arg ListClubEventsForClubParams) ([]ListClubEventsForClubRow, error) {
+	rows, err := q.db.QueryContext(ctx, listClubEventsForClub, arg.UserID, arg.ClubID, arg.Since)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ListClubEventsForClubRow
+	for rows.Next() {
+		var i ListClubEventsForClubRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.ClubID,
+			&i.Summary,
+			&i.Description,
+			&i.Location,
+			&i.GeoDateX,
+			&i.GeoDateY,
+			&i.EventType,
+			&i.StartDate,
+			&i.EndDate,
+			&i.Cancelled,
+			&i.CreatedByUserID,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.YesCount,
+			&i.NoCount,
+			&i.MaybeCount,
+			&i.MemberCount,
+			&i.MyStatus,
+			&i.MyReason,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listClubEventsForUser = `-- name: ListClubEventsForUser :many
+SELECT
+    e.id, e.club_id, e.summary, e.description, e.location, e.geo_date_x, e.geo_date_y, e.event_type, e.start_date, e.end_date, e.cancelled, e.created_by_user_id, e.created_at, e.updated_at,
+    c.name AS club_name,
+    (SELECT COUNT(*) FROM club_event_response r WHERE r.event_id = e.id AND r.status = 'YES')   AS yes_count,
+    (SELECT COUNT(*) FROM club_event_response r WHERE r.event_id = e.id AND r.status = 'NO')    AS no_count,
+    (SELECT COUNT(*) FROM club_event_response r WHERE r.event_id = e.id AND r.status = 'MAYBE') AS maybe_count,
+    (SELECT COUNT(*) FROM club_participant p2 WHERE p2.club_id = e.club_id)                     AS member_count,
+    mine.status AS my_status,
+    mine.reason AS my_reason
+FROM club_events e
+JOIN clubs c ON c.id = e.club_id
+JOIN club_participant p ON p.club_id = e.club_id AND p.user_id = ?
+LEFT JOIN club_event_response mine ON mine.event_id = e.id AND mine.user_id = ?
+WHERE e.start_date > ? AND e.cancelled = 0
+ORDER BY e.start_date
+`
+
+type ListClubEventsForUserParams struct {
+	UserID string
+	Since  time.Time
+}
+
+type ListClubEventsForUserRow struct {
+	ID              string
+	ClubID          string
+	Summary         string
+	Description     sql.NullString
+	Location        sql.NullString
+	GeoDateX        sql.NullFloat64
+	GeoDateY        sql.NullFloat64
+	EventType       string
+	StartDate       time.Time
+	EndDate         sql.NullTime
+	Cancelled       bool
+	CreatedByUserID string
+	CreatedAt       time.Time
+	UpdatedAt       time.Time
+	ClubName        string
+	YesCount        int64
+	NoCount         int64
+	MaybeCount      int64
+	MemberCount     int64
+	MyStatus        sql.NullString
+	MyReason        sql.NullString
+}
+
+func (q *Queries) ListClubEventsForUser(ctx context.Context, arg ListClubEventsForUserParams) ([]ListClubEventsForUserRow, error) {
+	rows, err := q.db.QueryContext(ctx, listClubEventsForUser, arg.UserID, arg.UserID, arg.Since)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ListClubEventsForUserRow
+	for rows.Next() {
+		var i ListClubEventsForUserRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.ClubID,
+			&i.Summary,
+			&i.Description,
+			&i.Location,
+			&i.GeoDateX,
+			&i.GeoDateY,
+			&i.EventType,
+			&i.StartDate,
+			&i.EndDate,
+			&i.Cancelled,
+			&i.CreatedByUserID,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.ClubName,
+			&i.YesCount,
+			&i.NoCount,
+			&i.MaybeCount,
+			&i.MemberCount,
+			&i.MyStatus,
+			&i.MyReason,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const listClubFilesForClub = `-- name: ListClubFilesForClub :many
 SELECT
     f.id,
@@ -3071,6 +3408,21 @@ func (q *Queries) SearchByFolderName(ctx context.Context, arg SearchByFolderName
 	return items, nil
 }
 
+const softCancelClubEvent = `-- name: SoftCancelClubEvent :exec
+UPDATE club_events SET cancelled = 1, updated_at = CURRENT_TIMESTAMP
+WHERE id = ? AND club_id = ?
+`
+
+type SoftCancelClubEventParams struct {
+	ID     string
+	ClubID string
+}
+
+func (q *Queries) SoftCancelClubEvent(ctx context.Context, arg SoftCancelClubEventParams) error {
+	_, err := q.db.ExecContext(ctx, softCancelClubEvent, arg.ID, arg.ClubID)
+	return err
+}
+
 const updateAuthor = `-- name: UpdateAuthor :exec
 UPDATE authors
 SET name = ?, extra_information = ?, wikidata_id = ?, birth_year = ?, death_year = ?
@@ -3096,6 +3448,42 @@ func (q *Queries) UpdateAuthor(ctx context.Context, arg UpdateAuthorParams) erro
 		arg.DeathYear,
 		arg.ID,
 		arg.UserIDFk,
+	)
+	return err
+}
+
+const updateClubEvent = `-- name: UpdateClubEvent :exec
+UPDATE club_events
+SET summary = ?, description = ?, location = ?, geo_date_x = ?, geo_date_y = ?,
+    event_type = ?, start_date = ?, end_date = ?, updated_at = CURRENT_TIMESTAMP
+WHERE id = ? AND club_id = ?
+`
+
+type UpdateClubEventParams struct {
+	Summary     string
+	Description sql.NullString
+	Location    sql.NullString
+	GeoDateX    sql.NullFloat64
+	GeoDateY    sql.NullFloat64
+	EventType   string
+	StartDate   time.Time
+	EndDate     sql.NullTime
+	ID          string
+	ClubID      string
+}
+
+func (q *Queries) UpdateClubEvent(ctx context.Context, arg UpdateClubEventParams) error {
+	_, err := q.db.ExecContext(ctx, updateClubEvent,
+		arg.Summary,
+		arg.Description,
+		arg.Location,
+		arg.GeoDateX,
+		arg.GeoDateY,
+		arg.EventType,
+		arg.StartDate,
+		arg.EndDate,
+		arg.ID,
+		arg.ClubID,
 	)
 	return err
 }
@@ -3300,5 +3688,28 @@ type UpsertChatReadParams struct {
 
 func (q *Queries) UpsertChatRead(ctx context.Context, arg UpsertChatReadParams) error {
 	_, err := q.db.ExecContext(ctx, upsertChatRead, arg.ChatID, arg.UserID)
+	return err
+}
+
+const upsertClubEventResponse = `-- name: UpsertClubEventResponse :exec
+INSERT INTO club_event_response (event_id, user_id, status, reason, responded_at)
+VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP)
+ON DUPLICATE KEY UPDATE status = VALUES(status), reason = VALUES(reason), responded_at = CURRENT_TIMESTAMP
+`
+
+type UpsertClubEventResponseParams struct {
+	EventID string
+	UserID  string
+	Status  string
+	Reason  sql.NullString
+}
+
+func (q *Queries) UpsertClubEventResponse(ctx context.Context, arg UpsertClubEventResponseParams) error {
+	_, err := q.db.ExecContext(ctx, upsertClubEventResponse,
+		arg.EventID,
+		arg.UserID,
+		arg.Status,
+		arg.Reason,
+	)
 	return err
 }

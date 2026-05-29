@@ -109,6 +109,31 @@ type ClubChatRead struct {
 	LastReadAt time.Time
 }
 
+type ClubEvent struct {
+	ID              string
+	ClubID          string
+	Summary         string
+	Description     sql.NullString
+	Location        sql.NullString
+	GeoDateX        sql.NullFloat64
+	GeoDateY        sql.NullFloat64
+	EventType       string
+	StartDate       time.Time
+	EndDate         sql.NullTime
+	Cancelled       bool
+	CreatedByUserID string
+	CreatedAt       time.Time
+	UpdatedAt       time.Time
+}
+
+type ClubEventResponse struct {
+	EventID     string
+	UserID      string
+	Status      string
+	Reason      sql.NullString
+	RespondedAt time.Time
+}
+
 type ClubFile struct {
 	ID               string
 	ClubID           string
