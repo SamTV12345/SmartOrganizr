@@ -146,13 +146,19 @@ func (s *ClubEventService) Update(clubID, userID, eventID string, in dto.ClubEve
 	if err := s.requireManager(clubID, userID); err != nil {
 		return dto.ClubEventDto{}, err
 	}
+	if strings.TrimSpace(in.Summary) == "" {
+		return dto.ClubEventDto{}, errors.New("summary is required")
+	}
 	start, err := parseRFC3339(in.StartDate)
 	if err != nil || !start.Valid {
 		return dto.ClubEventDto{}, errors.New("startDate must be a valid RFC3339 timestamp")
 	}
 	var end sql.NullTime
 	if in.EndDate != nil {
-		end, _ = parseRFC3339(*in.EndDate)
+		end, err = parseRFC3339(*in.EndDate)
+		if err != nil {
+			return dto.ClubEventDto{}, errors.New("endDate must be a valid RFC3339 timestamp")
+		}
 	}
 	if err := s.queries.UpdateClubEvent(s.ctx, db.UpdateClubEventParams{
 		Summary:     in.Summary,
@@ -326,12 +332,16 @@ func (s *ClubEventService) Attendance(clubID, userID, eventID string) (dto.Atten
 		}
 	}
 	total := len(*members)
+	undecidedCount := total - (yes + no + maybe)
+	if undecidedCount < 0 {
+		undecidedCount = 0
+	}
 	result := dto.AttendanceDto{
 		EventID:        eventID,
 		YesCount:       yes,
 		NoCount:        no,
 		MaybeCount:     maybe,
-		UndecidedCount: total - (yes + no + maybe),
+		UndecidedCount: undecidedCount,
 		Rows:           []dto.AttendanceRowDto{},
 	}
 
