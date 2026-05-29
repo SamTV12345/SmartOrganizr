@@ -10,8 +10,9 @@ import (
 	"github.com/gofiber/fiber/v3"
 )
 
-func clubEventService(c fiber.Ctx) service.ClubEventService {
-	return GetLocal[service.ClubEventService](c, constants.ClubEventService)
+func clubEventService(c fiber.Ctx) *service.ClubEventService {
+	svc := GetLocal[service.ClubEventService](c, constants.ClubEventService)
+	return &svc
 }
 
 // mapServiceError maps known service errors to HTTP statuses.
