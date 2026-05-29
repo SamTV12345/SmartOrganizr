@@ -34,6 +34,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { ClubPinboardSection } from "@/src/components/ClubPinboardSection";
 import { ClubFilesSection } from "@/src/components/ClubFilesSection";
+import { ClubEventsManager } from "@/src/components/club/ClubEventsManager";
 
 type ClubSection = {
     id: string;
@@ -60,6 +61,7 @@ const ROLE_OPTIONS = [
 
 const CLUB_SECTIONS: ClubSection[] = [
     { id: "pinnwand", label: "Pinnwand", description: "Neuigkeiten und Hinweise.", icon: LayoutDashboard, primaryAction: "Beitrag erstellen", secondaryAction: "Beiträge filtern" },
+    { id: "termine", label: "Termine", description: "Vereinstermine verwalten und Anwesenheit prüfen.", icon: CalendarDays, primaryAction: "Termin erstellen", secondaryAction: "Termine anzeigen" },
     { id: "nachrichten", label: "Nachrichten", description: "Direkte Kommunikation im Verein.", icon: MessagesSquare, primaryAction: "Nachricht verfassen", secondaryAction: "Posteingang öffnen" },
     { id: "aufgaben", label: "Aufgaben", description: "Aufgaben zu Proben, Auftritten und Orga.", icon: ClipboardCheck, primaryAction: "Aufgabe anlegen", secondaryAction: "Offene Aufgaben anzeigen" },
     { id: "dateien", label: "Dateien", description: "Ablage für Dokumente und Unterlagen.", icon: FolderKanban, primaryAction: "Datei hochladen", secondaryAction: "Ordnerstruktur öffnen" },
@@ -302,7 +304,11 @@ export const ClubDetailView: FC = () => {
                         <ClubFilesSection clubId={club.id} canWrite={sectionWritable} />
                     )}
 
-                    {activeSection.id !== "rollen" && activeSection.id !== "mitglieder" && activeSection.id !== "nachrichten" && activeSection.id !== "pinnwand" && activeSection.id !== "dateien" && (
+                    {activeSection.id === "termine" && (
+                        <ClubEventsManager clubId={club.id} canManage={permissions?.can_manage_events ?? false} />
+                    )}
+
+                    {activeSection.id !== "rollen" && activeSection.id !== "mitglieder" && activeSection.id !== "nachrichten" && activeSection.id !== "pinnwand" && activeSection.id !== "dateien" && activeSection.id !== "termine" && (
                         <Card className="border-dashed">
                             <CardHeader>
                                 <CardTitle className="flex items-center gap-2 text-xl">
