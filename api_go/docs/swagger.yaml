@@ -1367,6 +1367,32 @@ paths:
       summary: Create a new club (with the current user as admin)
       tags:
       - clubs
+  /v1/clubs/{clubId}:
+    patch:
+      consumes:
+      - application/json
+      parameters:
+      - description: Club ID
+        in: path
+        name: clubId
+        required: true
+        type: string
+      - description: Club settings payload
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.ClubPostDto'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.ClubDto'
+      summary: Update a club's settings (manager only)
+      tags:
+      - clubs
   /v1/clubs/{clubId}/events:
     get:
       parameters:
