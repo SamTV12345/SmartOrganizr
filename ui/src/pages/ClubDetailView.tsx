@@ -16,6 +16,7 @@ import {
     Music2,
     NotebookTabs,
     PencilLine,
+    Settings,
     Upload,
     UserRoundCog,
     UserRoundPlus,
@@ -35,6 +36,7 @@ import { Label } from "@/components/ui/label";
 import { ClubPinboardSection } from "@/src/components/ClubPinboardSection";
 import { ClubFilesSection } from "@/src/components/ClubFilesSection";
 import { ClubEventsManager } from "@/src/components/club/ClubEventsManager";
+import { ClubSettingsForm } from "@/src/components/club/ClubSettingsForm";
 
 type ClubSection = {
     id: string;
@@ -244,11 +246,20 @@ export const ClubDetailView: FC = () => {
                                 </p>
                             </div>
                         </div>
-                        <div className="flex flex-wrap gap-2">
+                        <div className="flex flex-wrap items-center gap-2">
                             <span className="rounded-full bg-accentDark/10 px-3 py-1 text-xs font-semibold text-accentDark">{club.club_type}</span>
                             <span className="rounded-full bg-muted px-3 py-1 text-xs font-semibold text-muted-foreground">
                                 Rolle: {permissions?.role ?? "MITGLIED"}
                             </span>
+                            {permissions?.can_manage_roles && (
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => setSearchParams({ section: "bearbeiten" })}
+                                >
+                                    <Settings className="size-4" />
+                                </Button>
+                            )}
                         </div>
                     </div>
 
@@ -308,7 +319,13 @@ export const ClubDetailView: FC = () => {
                         <ClubEventsManager clubId={club.id} canManage={permissions?.can_manage_events ?? false} />
                     )}
 
-                    {activeSection.id !== "rollen" && activeSection.id !== "mitglieder" && activeSection.id !== "nachrichten" && activeSection.id !== "pinnwand" && activeSection.id !== "dateien" && activeSection.id !== "termine" && (
+                    {activeSection.id === "bearbeiten" && club && (
+                        permissions?.can_manage_roles
+                            ? <ClubSettingsForm club={club} />
+                            : <p className="text-sm text-muted-foreground">Nur die Vereinsleitung kann Einstellungen bearbeiten.</p>
+                    )}
+
+                    {activeSection.id !== "rollen" && activeSection.id !== "mitglieder" && activeSection.id !== "nachrichten" && activeSection.id !== "pinnwand" && activeSection.id !== "dateien" && activeSection.id !== "termine" && activeSection.id !== "bearbeiten" && (
                         <Card className="border-dashed">
                             <CardHeader>
                                 <CardTitle className="flex items-center gap-2 text-xl">
