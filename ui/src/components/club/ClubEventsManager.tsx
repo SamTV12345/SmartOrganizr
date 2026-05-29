@@ -28,7 +28,10 @@ export const ClubEventsManager = ({ clubId, canManage }: Props) => {
   })
 
   const cancel = $api.useMutation("post", "/v1/clubs/{clubId}/events/{eventId}/cancel", {
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["get", "/v1/clubs/{clubId}/events"] }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["get", "/v1/clubs/{clubId}/events"] })
+      queryClient.invalidateQueries({ queryKey: ["get", "/v1/club-events"] })
+    },
   })
 
   return (

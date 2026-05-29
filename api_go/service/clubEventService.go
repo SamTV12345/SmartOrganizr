@@ -276,8 +276,12 @@ func (s *ClubEventService) Respond(clubID, userID, eventID string, in dto.ClubEv
 	if _, err := s.requireMember(clubID, userID); err != nil {
 		return err
 	}
-	if _, err := s.queries.GetClubEventByID(s.ctx, db.GetClubEventByIDParams{ID: eventID, ClubID: clubID}); err != nil {
+	ev, err := s.queries.GetClubEventByID(s.ctx, db.GetClubEventByIDParams{ID: eventID, ClubID: clubID})
+	if err != nil {
 		return errors.New("event not found")
+	}
+	if ev.Cancelled {
+		return errors.New("cannot respond to a cancelled event")
 	}
 	status, err := normalizeStatus(in.Status)
 	if err != nil {
