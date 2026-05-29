@@ -3423,6 +3423,33 @@ func (q *Queries) SoftCancelClubEvent(ctx context.Context, arg SoftCancelClubEve
 	return err
 }
 
+const updateAddress = `-- name: UpdateAddress :exec
+UPDATE address
+SET street = ?, house_number = ?, location = ?, postal_code = ?, country = ?
+WHERE id = ?
+`
+
+type UpdateAddressParams struct {
+	Street      string
+	HouseNumber string
+	Location    string
+	PostalCode  string
+	Country     string
+	ID          string
+}
+
+func (q *Queries) UpdateAddress(ctx context.Context, arg UpdateAddressParams) error {
+	_, err := q.db.ExecContext(ctx, updateAddress,
+		arg.Street,
+		arg.HouseNumber,
+		arg.Location,
+		arg.PostalCode,
+		arg.Country,
+		arg.ID,
+	)
+	return err
+}
+
 const updateAuthor = `-- name: UpdateAuthor :exec
 UPDATE authors
 SET name = ?, extra_information = ?, wikidata_id = ?, birth_year = ?, death_year = ?
@@ -3448,6 +3475,36 @@ func (q *Queries) UpdateAuthor(ctx context.Context, arg UpdateAuthorParams) erro
 		arg.DeathYear,
 		arg.ID,
 		arg.UserIDFk,
+	)
+	return err
+}
+
+const updateClub = `-- name: UpdateClub :exec
+UPDATE clubs
+SET name = ?, club_type = ?, dates_visible_for_all_members = ?,
+    members_can_send_messages = ?, feedback_visibility = ?, reason_visibility = ?
+WHERE id = ?
+`
+
+type UpdateClubParams struct {
+	Name                      string
+	ClubType                  string
+	DatesVisibleForAllMembers bool
+	MembersCanSendMessages    bool
+	FeedbackVisibility        string
+	ReasonVisibility          string
+	ID                        string
+}
+
+func (q *Queries) UpdateClub(ctx context.Context, arg UpdateClubParams) error {
+	_, err := q.db.ExecContext(ctx, updateClub,
+		arg.Name,
+		arg.ClubType,
+		arg.DatesVisibleForAllMembers,
+		arg.MembersCanSendMessages,
+		arg.FeedbackVisibility,
+		arg.ReasonVisibility,
+		arg.ID,
 	)
 	return err
 }

@@ -671,3 +671,14 @@ SELECT
 FROM club_event_response r
 JOIN user u ON u.id = r.user_id
 WHERE r.event_id = ?;
+
+-- name: UpdateClub :exec
+UPDATE clubs
+SET name = ?, club_type = ?, dates_visible_for_all_members = ?,
+    members_can_send_messages = ?, feedback_visibility = ?, reason_visibility = ?
+WHERE id = ?;
+
+-- name: UpdateAddress :exec
+UPDATE address
+SET street = ?, house_number = ?, location = ?, postal_code = ?, country = ?
+WHERE id = ?;
