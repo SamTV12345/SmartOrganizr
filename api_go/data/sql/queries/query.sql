@@ -77,13 +77,8 @@ SELECT * FROM elements as folders WHERE type ='folder' AND user_id_fk = ? ORDER 
 
 
 -- name: FindAllSubElements :many
-SELECT
-  sqlc.embed(elements),
-  sqlc.embed(composer),
-  sqlc.embed(arranger)
+SELECT sqlc.embed(elements)
 FROM elements
-LEFT JOIN authors composer ON elements.composer_id_fk = composer.id
-LEFT JOIN authors arranger ON elements.arranger_id_fk = arranger.id
 WHERE parent = ? AND elements.user_id_fk = ?
 ORDER BY elements.name;
 

@@ -1559,13 +1559,8 @@ func (q *Queries) FindAllParentFolders(ctx context.Context, userIDFk sql.NullStr
 }
 
 const findAllSubElements = `-- name: FindAllSubElements :many
-SELECT
-  elements.type, elements.id, elements.creation_date, elements.name, elements.number_of_pages, elements.user_id_fk, elements.parent, elements.pdf_content, elements.wikidata_id, elements.composition_year, elements.genre, elements.composer_id_fk, elements.arranger_id_fk, elements.description,
-  composer.id, composer.extra_information, composer.name, composer.user_id_fk, composer.wikidata_id, composer.birth_year, composer.death_year,
-  arranger.id, arranger.extra_information, arranger.name, arranger.user_id_fk, arranger.wikidata_id, arranger.birth_year, arranger.death_year
+SELECT elements.type, elements.id, elements.creation_date, elements.name, elements.number_of_pages, elements.user_id_fk, elements.parent, elements.pdf_content, elements.wikidata_id, elements.composition_year, elements.genre, elements.composer_id_fk, elements.arranger_id_fk, elements.description
 FROM elements
-LEFT JOIN authors composer ON elements.composer_id_fk = composer.id
-LEFT JOIN authors arranger ON elements.arranger_id_fk = arranger.id
 WHERE parent = ? AND elements.user_id_fk = ?
 ORDER BY elements.name
 `
@@ -1576,9 +1571,7 @@ type FindAllSubElementsParams struct {
 }
 
 type FindAllSubElementsRow struct {
-	Element  Element
-	Author   Author
-	Author_2 Author
+	Element Element
 }
 
 func (q *Queries) FindAllSubElements(ctx context.Context, arg FindAllSubElementsParams) ([]FindAllSubElementsRow, error) {
@@ -1605,20 +1598,6 @@ func (q *Queries) FindAllSubElements(ctx context.Context, arg FindAllSubElements
 			&i.Element.ComposerIDFk,
 			&i.Element.ArrangerIDFk,
 			&i.Element.Description,
-			&i.Author.ID,
-			&i.Author.ExtraInformation,
-			&i.Author.Name,
-			&i.Author.UserIDFk,
-			&i.Author.WikidataID,
-			&i.Author.BirthYear,
-			&i.Author.DeathYear,
-			&i.Author_2.ID,
-			&i.Author_2.ExtraInformation,
-			&i.Author_2.Name,
-			&i.Author_2.UserIDFk,
-			&i.Author_2.WikidataID,
-			&i.Author_2.BirthYear,
-			&i.Author_2.DeathYear,
 		); err != nil {
 			return nil, err
 		}

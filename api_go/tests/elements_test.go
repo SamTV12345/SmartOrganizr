@@ -111,3 +111,53 @@ func TestCreateSubFolder(t *testing.T) {
 		t.Fatalf("expected folder parent to be set, got nil")
 	}
 }
+
+// TestFindNextChildrenWithComposerlessChild guards against the regression where
+// listing a folder's children failed with "converting NULL to string is
+// unsupported": the children query LEFT JOINed authors and embedded a
+// non-nullable author id, so any child without a composer (e.g. a subfolder)
+// crashed the scan. A subfolder has no composer, so this reproduces it.
+func TestFindNextChildrenWithComposerlessChild(t *testing.T) {
+	app := SetupTest(t)
+
+	// Create a parent folder.
+	folderPost := builders.CreateParentFolderPostDto()
+	bytesEncoded, _ := json.Marshal(folderPost)
+	request, _ := http.NewRequest("POST", "http://localhost/api/v1/elements/folders", bytes.NewBuffer(bytesEncoded))
+	request.Header.Set("Content-Type", "application/json")
+	response, _ := app.Test(request)
+	if response.StatusCode != http.StatusOK {
+		t.Fatalf("expected 200 creating parent folder, got %d", response.StatusCode)
+	}
+	readBytes, _ := io.ReadAll(response.Body)
+	var parent dto.Folder
+	encodingHelper.Decode(readBytes, &parent)
+
+	// Create a composer-less subfolder under it.
+	subfolder := builders.CreateSubFolderPostDto(parent.Id)
+	bytesEncoded, _ = json.Marshal(subfolder)
+	request, _ = http.NewRequest("POST", "http://localhost/api/v1/elements/folders", bytes.NewBuffer(bytesEncoded))
+	request.Header.Set("Content-Type", "application/json")
+	if _, err := app.Test(request); err != nil {
+		t.Fatalf("failed to create subfolder: %v", err)
+	}
+
+	// Listing children must succeed (previously failed on the NULL author scan).
+	childReq, _ := http.NewRequest("GET", "http://localhost/api/v1/elements/"+parent.Id+"/children", nil)
+	childRes, err := app.Test(childReq)
+	if err != nil {
+		t.Fatalf("children request failed: %v", err)
+	}
+	if childRes.StatusCode != http.StatusOK {
+		raw, _ := io.ReadAll(childRes.Body)
+		t.Fatalf("expected 200 listing children, got %d: %s", childRes.StatusCode, string(raw))
+	}
+	var children []map[string]any
+	raw, _ := io.ReadAll(childRes.Body)
+	if err := json.Unmarshal(raw, &children); err != nil {
+		t.Fatalf("decode children: %v", err)
+	}
+	if len(children) != 1 {
+		t.Fatalf("expected 1 child folder, got %d", len(children))
+	}
+}
