@@ -482,6 +482,10 @@ func canInviteMembers(role models.ClubRole) bool {
 	return role == models.Admin || role == models.CoAdmin || role == models.Secretary || role == models.Treasurer
 }
 
+func canManageEvents(role models.ClubRole) bool {
+	return role == models.Admin || role == models.CoAdmin
+}
+
 func buildPermissionsDto(role models.ClubRole) dto.ClubPermissionsDto {
 	sectionWrite := map[string]bool{
 		"pinnwand":       canWriteSection(role, "pinnwand"),
@@ -503,6 +507,7 @@ func buildPermissionsDto(role models.ClubRole) dto.ClubPermissionsDto {
 		Role:            role.String(),
 		CanManageRoles:  role == models.Admin || role == models.CoAdmin,
 		CanInviteMember: canInviteMembers(role),
+		CanManageEvents: canManageEvents(role),
 		SectionWrite:    sectionWrite,
 	}
 }
