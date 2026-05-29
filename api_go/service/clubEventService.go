@@ -382,17 +382,18 @@ func (s *ClubEventService) Attendance(clubID, userID, eventID string) (dto.Atten
 }
 
 // visibilityAllows reports whether a caller may see others' data given a club
-// visibility token. "section" is reserved and currently behaves as "managers".
+// visibility token (as stored by the club create/settings form). Unknown,
+// non-empty tokens fail safe to manager-only.
 func visibilityAllows(token string, isManager bool) bool {
 	switch strings.ToLower(strings.TrimSpace(token)) {
-	case "", "all":
+	case "", "all", "all-members":
 		return true
-	case "managers", "section": // TODO: sections — "section" gets its own rule when sections land
+	case "leaders-and-authorized", "only-authorized", "managers", "section": // TODO: sections — only-authorized gets a stricter rule once registers exist
 		return isManager
 	case "self":
 		return false
 	default:
-		return true
+		return isManager
 	}
 }
 
