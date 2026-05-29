@@ -13,6 +13,36 @@ definitions:
     required:
     - imageBase64
     type: object
+  dto.AttendanceDto:
+    properties:
+      eventId:
+        type: string
+      maybeCount:
+        type: integer
+      noCount:
+        type: integer
+      rows:
+        description: empty if caller may not see others
+        items:
+          $ref: '#/definitions/dto.AttendanceRowDto'
+        type: array
+      undecidedCount:
+        type: integer
+      yesCount:
+        type: integer
+    type: object
+  dto.AttendanceRowDto:
+    properties:
+      displayName:
+        type: string
+      reason:
+        type: string
+      status:
+        description: YES|NO|MAYBE|UNDECIDED
+        type: string
+      userId:
+        type: string
+    type: object
   dto.Author:
     properties:
       birthYear:
@@ -242,6 +272,81 @@ definitions:
     - reason_visibility
     - street
     type: object
+  dto.ClubEventDto:
+    properties:
+      cancelled:
+        type: boolean
+      clubId:
+        type: string
+      clubName:
+        type: string
+      description:
+        type: string
+      endDate:
+        type: string
+      eventType:
+        type: string
+      geoDateX:
+        type: number
+      geoDateY:
+        type: number
+      id:
+        type: string
+      location:
+        type: string
+      maybeCount:
+        type: integer
+      myReason:
+        type: string
+      myStatus:
+        description: YES|NO|MAYBE|"" (=undecided)
+        type: string
+      noCount:
+        type: integer
+      startDate:
+        type: string
+      summary:
+        type: string
+      undecidedCount:
+        type: integer
+      yesCount:
+        type: integer
+    type: object
+  dto.ClubEventResponseDto:
+    properties:
+      reason:
+        type: string
+      status:
+        description: YES|NO|MAYBE
+        type: string
+    required:
+    - status
+    type: object
+  dto.ClubEventUpsertDto:
+    properties:
+      description:
+        type: string
+      endDate:
+        description: RFC3339 or null
+        type: string
+      eventType:
+        description: REHEARSAL | CONCERT | OTHER
+        type: string
+      geoDateX:
+        type: number
+      geoDateY:
+        type: number
+      location:
+        type: string
+      startDate:
+        description: RFC3339
+        type: string
+      summary:
+        type: string
+    required:
+    - startDate
+    - summary
+    type: object
   dto.ClubFileDto:
     properties:
       clubId:
@@ -375,6 +480,8 @@ definitions:
   dto.ClubPermissionsDto:
     properties:
       can_invite_members:
+        type: boolean
+      can_manage_events:
         type: boolean
       can_manage_roles:
         type: boolean
@@ -1220,6 +1327,25 @@ paths:
       summary: Autocomplete suggestions for works (local + Wikidata)
       tags:
       - autocomplete
+  /v1/club-events:
+    get:
+      parameters:
+      - description: RFC3339 lower bound
+        in: query
+        name: since
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/dto.ClubEventDto'
+            type: array
+      summary: List native events across all of the caller's clubs
+      tags:
+      - club-events
   /v1/clubs:
     post:
       consumes:
@@ -1241,6 +1367,173 @@ paths:
       summary: Create a new club (with the current user as admin)
       tags:
       - clubs
+  /v1/clubs/{clubId}/events:
+    get:
+      parameters:
+      - description: Club ID
+        in: path
+        name: clubId
+        required: true
+        type: string
+      - description: RFC3339 lower bound
+        in: query
+        name: since
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/dto.ClubEventDto'
+            type: array
+      summary: List a club's upcoming native events
+      tags:
+      - club-events
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Club ID
+        in: path
+        name: clubId
+        required: true
+        type: string
+      - description: Event payload
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.ClubEventUpsertDto'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.ClubEventDto'
+      summary: Create a native club event
+      tags:
+      - club-events
+  /v1/clubs/{clubId}/events/{eventId}:
+    delete:
+      parameters:
+      - description: Club ID
+        in: path
+        name: clubId
+        required: true
+        type: string
+      - description: Event ID
+        in: path
+        name: eventId
+        required: true
+        type: string
+      responses:
+        "204":
+          description: No Content
+      summary: Delete a native club event
+      tags:
+      - club-events
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: Club ID
+        in: path
+        name: clubId
+        required: true
+        type: string
+      - description: Event ID
+        in: path
+        name: eventId
+        required: true
+        type: string
+      - description: Event payload
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.ClubEventUpsertDto'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.ClubEventDto'
+      summary: Update a native club event
+      tags:
+      - club-events
+  /v1/clubs/{clubId}/events/{eventId}/attendance:
+    get:
+      parameters:
+      - description: Club ID
+        in: path
+        name: clubId
+        required: true
+        type: string
+      - description: Event ID
+        in: path
+        name: eventId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.AttendanceDto'
+      summary: Get the visibility-filtered attendance matrix
+      tags:
+      - club-events
+  /v1/clubs/{clubId}/events/{eventId}/cancel:
+    post:
+      parameters:
+      - description: Club ID
+        in: path
+        name: clubId
+        required: true
+        type: string
+      - description: Event ID
+        in: path
+        name: eventId
+        required: true
+        type: string
+      responses:
+        "204":
+          description: No Content
+      summary: Soft-cancel a native club event
+      tags:
+      - club-events
+  /v1/clubs/{clubId}/events/{eventId}/response:
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: Club ID
+        in: path
+        name: clubId
+        required: true
+        type: string
+      - description: Event ID
+        in: path
+        name: eventId
+        required: true
+        type: string
+      - description: Response payload
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.ClubEventResponseDto'
+      responses:
+        "204":
+          description: No Content
+      summary: Upsert the caller's RSVP to a club event
+      tags:
+      - club-events
   /v1/clubs/{clubId}/files:
     get:
       parameters:

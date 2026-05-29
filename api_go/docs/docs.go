@@ -412,6 +412,36 @@ const docTemplate = `{
                 }
             }
         },
+        "/v1/club-events": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "club-events"
+                ],
+                "summary": "List native events across all of the caller's clubs",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "RFC3339 lower bound",
+                        "name": "since",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/dto.ClubEventDto"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/v1/clubs": {
             "post": {
                 "consumes": [
@@ -441,6 +471,260 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/dto.ClubDto"
                         }
+                    }
+                }
+            }
+        },
+        "/v1/clubs/{clubId}/events": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "club-events"
+                ],
+                "summary": "List a club's upcoming native events",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Club ID",
+                        "name": "clubId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "RFC3339 lower bound",
+                        "name": "since",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/dto.ClubEventDto"
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "club-events"
+                ],
+                "summary": "Create a native club event",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Club ID",
+                        "name": "clubId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Event payload",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.ClubEventUpsertDto"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ClubEventDto"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/clubs/{clubId}/events/{eventId}": {
+            "put": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "club-events"
+                ],
+                "summary": "Update a native club event",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Club ID",
+                        "name": "clubId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Event ID",
+                        "name": "eventId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Event payload",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.ClubEventUpsertDto"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ClubEventDto"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "club-events"
+                ],
+                "summary": "Delete a native club event",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Club ID",
+                        "name": "clubId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Event ID",
+                        "name": "eventId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    }
+                }
+            }
+        },
+        "/v1/clubs/{clubId}/events/{eventId}/attendance": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "club-events"
+                ],
+                "summary": "Get the visibility-filtered attendance matrix",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Club ID",
+                        "name": "clubId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Event ID",
+                        "name": "eventId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.AttendanceDto"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/clubs/{clubId}/events/{eventId}/cancel": {
+            "post": {
+                "tags": [
+                    "club-events"
+                ],
+                "summary": "Soft-cancel a native club event",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Club ID",
+                        "name": "clubId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Event ID",
+                        "name": "eventId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    }
+                }
+            }
+        },
+        "/v1/clubs/{clubId}/events/{eventId}/response": {
+            "put": {
+                "consumes": [
+                    "application/json"
+                ],
+                "tags": [
+                    "club-events"
+                ],
+                "summary": "Upsert the caller's RSVP to a club event",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Club ID",
+                        "name": "clubId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Event ID",
+                        "name": "eventId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Response payload",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.ClubEventResponseDto"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
                     }
                 }
             }
@@ -2309,6 +2593,51 @@ const docTemplate = `{
                 }
             }
         },
+        "dto.AttendanceDto": {
+            "type": "object",
+            "properties": {
+                "eventId": {
+                    "type": "string"
+                },
+                "maybeCount": {
+                    "type": "integer"
+                },
+                "noCount": {
+                    "type": "integer"
+                },
+                "rows": {
+                    "description": "empty if caller may not see others",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.AttendanceRowDto"
+                    }
+                },
+                "undecidedCount": {
+                    "type": "integer"
+                },
+                "yesCount": {
+                    "type": "integer"
+                }
+            }
+        },
+        "dto.AttendanceRowDto": {
+            "type": "object",
+            "properties": {
+                "displayName": {
+                    "type": "string"
+                },
+                "reason": {
+                    "type": "string"
+                },
+                "status": {
+                    "description": "YES|NO|MAYBE|UNDECIDED",
+                    "type": "string"
+                },
+                "userId": {
+                    "type": "string"
+                }
+            }
+        },
         "dto.Author": {
             "type": "object",
             "required": [
@@ -2644,6 +2973,117 @@ const docTemplate = `{
                 }
             }
         },
+        "dto.ClubEventDto": {
+            "type": "object",
+            "properties": {
+                "cancelled": {
+                    "type": "boolean"
+                },
+                "clubId": {
+                    "type": "string"
+                },
+                "clubName": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "endDate": {
+                    "type": "string"
+                },
+                "eventType": {
+                    "type": "string"
+                },
+                "geoDateX": {
+                    "type": "number"
+                },
+                "geoDateY": {
+                    "type": "number"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "location": {
+                    "type": "string"
+                },
+                "maybeCount": {
+                    "type": "integer"
+                },
+                "myReason": {
+                    "type": "string"
+                },
+                "myStatus": {
+                    "description": "YES|NO|MAYBE|\"\" (=undecided)",
+                    "type": "string"
+                },
+                "noCount": {
+                    "type": "integer"
+                },
+                "startDate": {
+                    "type": "string"
+                },
+                "summary": {
+                    "type": "string"
+                },
+                "undecidedCount": {
+                    "type": "integer"
+                },
+                "yesCount": {
+                    "type": "integer"
+                }
+            }
+        },
+        "dto.ClubEventResponseDto": {
+            "type": "object",
+            "required": [
+                "status"
+            ],
+            "properties": {
+                "reason": {
+                    "type": "string"
+                },
+                "status": {
+                    "description": "YES|NO|MAYBE",
+                    "type": "string"
+                }
+            }
+        },
+        "dto.ClubEventUpsertDto": {
+            "type": "object",
+            "required": [
+                "startDate",
+                "summary"
+            ],
+            "properties": {
+                "description": {
+                    "type": "string"
+                },
+                "endDate": {
+                    "description": "RFC3339 or null",
+                    "type": "string"
+                },
+                "eventType": {
+                    "description": "REHEARSAL | CONCERT | OTHER",
+                    "type": "string"
+                },
+                "geoDateX": {
+                    "type": "number"
+                },
+                "geoDateY": {
+                    "type": "number"
+                },
+                "location": {
+                    "type": "string"
+                },
+                "startDate": {
+                    "description": "RFC3339",
+                    "type": "string"
+                },
+                "summary": {
+                    "type": "string"
+                }
+            }
+        },
         "dto.ClubFileDto": {
             "type": "object",
             "properties": {
@@ -2844,6 +3284,9 @@ const docTemplate = `{
             ],
             "properties": {
                 "can_invite_members": {
+                    "type": "boolean"
+                },
+                "can_manage_events": {
                     "type": "boolean"
                 },
                 "can_manage_roles": {
