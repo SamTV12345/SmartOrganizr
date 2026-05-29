@@ -11,6 +11,7 @@ import (
 	"strconv"
 
 	"github.com/gofiber/fiber/v3"
+	"github.com/gofiber/fiber/v3/log"
 )
 
 // GetParentDecks godoc
@@ -166,8 +167,9 @@ func FindNextChildren(c fiber.Ctx) error {
 	var folderId = c.Params("folderId")
 	var elementsModel, err = folderService.FindNextChildren(folderId, userId)
 	if err != nil {
+		log.Errorf("FindNextChildren failed for folder %q user %q: %v", folderId, userId, err)
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": err,
+			"error": err.Error(),
 		})
 	}
 	var elementDto = make([]interface{}, 0)
@@ -197,8 +199,9 @@ func SearchFolders(c fiber.Ctx) error {
 	}
 	var folders, errSearch = folderService.SearchFolders(userId, page, search)
 	if errSearch != nil {
+		log.Errorf("SearchFolders failed for user %q search %q: %v", userId, search, errSearch)
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": err,
+			"error": errSearch.Error(),
 		})
 	}
 
