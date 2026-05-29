@@ -7,7 +7,7 @@ import {ElementEmbeddedContainer} from "../../models/ElementEmbeddedContainer";
 import {NoteItem} from "../../models/NoteItem";
 import { http as axios } from "@/src/api/client";
 import {setNotesSearched} from "../../store/CommonSlice";
-import {useState} from "react";
+import {useRef, useState} from "react";
 import {ConcertDto} from "../../models/ConcertDto";
 import {apiURL} from "../../Keycloak";
 import {concertActions} from "../../store/slices/ConcertSlice";
@@ -24,24 +24,32 @@ export const NoteSearchModal = () => {
     const concerts = useAppSelector(state=>state.concertReducer.concerts)
     const selectedConcert = useAppSelector(state=>state.concertReducer.selectedConcert)
 
+    // Guards against the refetch storm from the end-of-list waypoint firing
+    // repeatedly before a response lands.
+    const loadingRef = useRef(false)
+
     const loadNotes = async (link: string) => {
         if (searchedElements == null) {
             return
         }
-        const notesInPage: Page<ElementEmbeddedContainer<NoteItem>> = await new Promise<Page<ElementEmbeddedContainer<NoteItem>>>(resolve => {
-            axios.get(link)
-                .then(resp => resolve(resp.data))
-                .catch((error) => {
-                    console.log(error)
-                })
-        })
-        if (notesInPage !== undefined) {
-            dispatch(setNotesSearched({
-                _embedded: {
-                    noteRepresentationModelList: [...searchedElements._embedded.noteRepresentationModelList, ...notesInPage._embedded.noteRepresentationModelList]
-                },
-                page: notesInPage.page,
-            } satisfies Page<ElementEmbeddedContainer<NoteItem>>))
+        if (loadingRef.current) {
+            return
+        }
+        loadingRef.current = true
+        try {
+            const notesInPage: Page<ElementEmbeddedContainer<NoteItem>> = (await axios.get(link)).data
+            if (notesInPage !== undefined) {
+                dispatch(setNotesSearched({
+                    _embedded: {
+                        noteRepresentationModelList: [...searchedElements._embedded.noteRepresentationModelList, ...notesInPage._embedded.noteRepresentationModelList]
+                    },
+                    page: notesInPage.page,
+                } satisfies Page<ElementEmbeddedContainer<NoteItem>>))
+            }
+        } catch (error) {
+            console.log(error)
+        } finally {
+            loadingRef.current = false
         }
     }
 
@@ -113,7 +121,7 @@ export const NoteSearchModal = () => {
                     </div>
                 </td>
             </tr>
-            {searchedElements && searchedElements._embedded && searchedElements._embedded.noteRepresentationModelList && searchedElements._embedded.noteRepresentationModelList.map((element, index) =>
+            {searchedElements && searchedElements._embedded && searchedElements._embedded.noteRepresentationModelList && searchedElements._embedded.noteRepresentationModelList.map((element) =>
             <tr key={element.id+"tr"} className={`${selectedNotes.includes(element.id) ? 'bg-gray-900' : ''}`}
                     onClick={() => {
                         if (selectedNotes.includes(element.id)) {
@@ -125,16 +133,17 @@ export const NoteSearchModal = () => {
                     <NoteSearchModalTD children={element.name}/>
                     <NoteSearchModalTD children={element.author.name}/>
                     <NoteSearchModalTD children={element.description}/>
-                    <NoteSearchModalTD children={element.parent?.name ?? ""}
-                                       {...(searchedElements.page.size - index < 5) && hasNextPage(searchedElements)
-                                           && <Waypoint onEnter={() => {
-                                               loadNotes(buildNextPageUrl(searchedElements));
-                                           }}/>
-                                       }
-                    />
+                    <NoteSearchModalTD children={element.parent?.name ?? ""}/>
                 </tr>
             )}
             </tbody>
         </table>
+        {(searchedElements?._embedded?.noteRepresentationModelList?.length ?? 0) > 0 && hasNextPage(searchedElements) && (
+            <Waypoint onEnter={() => {
+                if (searchedElements) {
+                    loadNotes(buildNextPageUrl(searchedElements))
+                }
+            }}/>
+        )}
     </>
 }
