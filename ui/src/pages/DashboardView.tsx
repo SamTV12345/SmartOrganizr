@@ -1,4 +1,4 @@
-import { FC } from "react";
+import { FC, useState } from "react";
 import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { $api, http as axios } from "@/src/api/client";
@@ -26,10 +26,13 @@ const formatDate = (iso?: string) => {
 const UpcomingEventsCard: FC = () => {
     const { t } = useTranslation();
     const user = useKeycloak();
+    // Stable for the component lifetime: recomputing on each render would change the
+    // query key every render and trigger an infinite refetch loop.
+    const [since] = useState(() => new Date().toISOString());
     const { data } = $api.useQuery("get", "/v1/events/{userId}", {
         params: {
             path: { userId: user.subject ?? "" },
-            query: { since: new Date().toISOString() },
+            query: { since },
         },
     });
     const events = ((data as EventModel[] | undefined) ?? [])

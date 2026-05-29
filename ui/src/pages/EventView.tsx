@@ -12,11 +12,14 @@ export const EventView = ()=> {
   const {t} = useTranslation()
   const [selectedEvent, setSelectedEvent] = useState<EventModel | null>(null)
   const [detailOpen, setDetailOpen] = useState(false)
+  // Stable for the component lifetime: recomputing on each render would change the
+  // query key every render and trigger an infinite refetch loop.
+  const [since] = useState(() => new Date().toISOString())
 
   const {data} = $api.useQuery("get", "/v1/events/{userId}", {
     params: {
       path: { userId: user.subject ?? "" },
-      query: { since: new Date().toISOString() },
+      query: { since },
     },
   })
 
