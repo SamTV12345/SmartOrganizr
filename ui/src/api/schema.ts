@@ -495,6 +495,45 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/club-events": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List native events across all of the caller's clubs */
+        get: {
+            parameters: {
+                query?: {
+                    /** @description RFC3339 lower bound */
+                    since?: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["dto.ClubEventDto"][];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/clubs": {
         parameters: {
             query?: never;
@@ -530,6 +569,259 @@ export interface paths {
                 };
             };
         };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/clubs/{clubId}/events": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List a club's upcoming native events */
+        get: {
+            parameters: {
+                query?: {
+                    /** @description RFC3339 lower bound */
+                    since?: string;
+                };
+                header?: never;
+                path: {
+                    /** @description Club ID */
+                    clubId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["dto.ClubEventDto"][];
+                    };
+                };
+            };
+        };
+        put?: never;
+        /** Create a native club event */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Club ID */
+                    clubId: string;
+                };
+                cookie?: never;
+            };
+            requestBody: components["requestBodies"]["dto.ClubEventUpsertDto"];
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["dto.ClubEventDto"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/clubs/{clubId}/events/{eventId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Update a native club event */
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Club ID */
+                    clubId: string;
+                    /** @description Event ID */
+                    eventId: string;
+                };
+                cookie?: never;
+            };
+            requestBody: components["requestBodies"]["dto.ClubEventUpsertDto"];
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["dto.ClubEventDto"];
+                    };
+                };
+            };
+        };
+        post?: never;
+        /** Delete a native club event */
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Club ID */
+                    clubId: string;
+                    /** @description Event ID */
+                    eventId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description No Content */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/clubs/{clubId}/events/{eventId}/attendance": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get the visibility-filtered attendance matrix */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Club ID */
+                    clubId: string;
+                    /** @description Event ID */
+                    eventId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["dto.AttendanceDto"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/clubs/{clubId}/events/{eventId}/cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Soft-cancel a native club event */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Club ID */
+                    clubId: string;
+                    /** @description Event ID */
+                    eventId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description No Content */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/clubs/{clubId}/events/{eventId}/response": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Upsert the caller's RSVP to a club event */
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Club ID */
+                    clubId: string;
+                    /** @description Event ID */
+                    eventId: string;
+                };
+                cookie?: never;
+            };
+            /** @description Response payload */
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["dto.ClubEventResponseDto"];
+                };
+            };
+            responses: {
+                /** @description No Content */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -2740,6 +3032,22 @@ export interface components {
             /** @description optional; defaults to image/jpeg */
             mimeType?: string;
         };
+        "dto.AttendanceDto": {
+            eventId?: string;
+            maybeCount?: number;
+            noCount?: number;
+            /** @description empty if caller may not see others */
+            rows?: components["schemas"]["dto.AttendanceRowDto"][];
+            undecidedCount?: number;
+            yesCount?: number;
+        };
+        "dto.AttendanceRowDto": {
+            displayName?: string;
+            reason?: string;
+            /** @description YES|NO|MAYBE|UNDECIDED */
+            status?: string;
+            userId?: string;
+        };
         "dto.Author": {
             birthYear?: number;
             deathYear?: number;
@@ -2833,6 +3141,45 @@ export interface components {
             reason_visibility: string;
             street: string;
         };
+        "dto.ClubEventDto": {
+            cancelled?: boolean;
+            clubId?: string;
+            clubName?: string;
+            description?: string;
+            endDate?: string;
+            eventType?: string;
+            geoDateX?: number;
+            geoDateY?: number;
+            id?: string;
+            location?: string;
+            maybeCount?: number;
+            myReason?: string;
+            /** @description YES|NO|MAYBE|"" (=undecided) */
+            myStatus?: string;
+            noCount?: number;
+            startDate?: string;
+            summary?: string;
+            undecidedCount?: number;
+            yesCount?: number;
+        };
+        "dto.ClubEventResponseDto": {
+            reason?: string;
+            /** @description YES|NO|MAYBE */
+            status: string;
+        };
+        "dto.ClubEventUpsertDto": {
+            description?: string;
+            /** @description RFC3339 or null */
+            endDate?: string;
+            /** @description REHEARSAL | CONCERT | OTHER */
+            eventType?: string;
+            geoDateX?: number;
+            geoDateY?: number;
+            location?: string;
+            /** @description RFC3339 */
+            startDate: string;
+            summary: string;
+        };
         "dto.ClubFileDto": {
             clubId?: string;
             createdAt?: string;
@@ -2884,6 +3231,7 @@ export interface components {
         };
         "dto.ClubPermissionsDto": {
             can_invite_members: boolean;
+            can_manage_events?: boolean;
             can_manage_roles: boolean;
             role: string;
             section_write: {
@@ -3130,6 +3478,12 @@ export interface components {
     responses: never;
     parameters: never;
     requestBodies: {
+        /** @description Event payload */
+        "dto.ClubEventUpsertDto": {
+            content: {
+                "application/json": components["schemas"]["dto.ClubEventUpsertDto"];
+            };
+        };
         /** @description Post payload */
         "dto.PinboardPostUpsertDto": {
             content: {
