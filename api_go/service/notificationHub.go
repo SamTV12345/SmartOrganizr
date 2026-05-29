@@ -8,8 +8,15 @@ type NotificationEvent struct {
 	ClubID  string `json:"clubId"`
 	ChatID  string `json:"chatId,omitempty"`
 	PostID  string `json:"postId,omitempty"`
+	EventID string `json:"eventId,omitempty"`
 	Preview string `json:"preview,omitempty"`
 }
+
+const (
+	NotifClubEventCreated   = "club_event_created"
+	NotifClubEventCancelled = "club_event_cancelled"
+	NotifClubEventResponse  = "club_event_response"
+)
 
 // NotificationHub is an in-process pub/sub keyed by user id. A user may have
 // several connected clients (channels); each gets every event for that user.
