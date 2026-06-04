@@ -14,9 +14,11 @@ apiFetch.use({
         return request;
     },
     async onError({ request, error }) {
-        // fetch rejected (offline / network failure) — try serving from the local store.
-        if (request.method === "GET") {
-            const offline = await buildOfflineApiResponse(new URL(request.url));
+        // fetch rejected (offline / network failure) — serve from the local store when possible.
+        // Guard for a browser env, and give new URL() a base so a relative request.url can't
+        // throw a TypeError that masks the original error.
+        if (request.method === "GET" && typeof window !== "undefined") {
+            const offline = await buildOfflineApiResponse(new URL(request.url, window.location.origin));
             if (offline) return offline;
         }
         throw error;
