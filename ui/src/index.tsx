@@ -19,6 +19,13 @@ export let accountURL = ''
 
 applyTheme(getInitialTheme());
 
+if (process.env.NODE_ENV === "production" && "serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("/ui/sw.js", { scope: "/ui/" })
+      .catch((err) => console.log("Service worker registration failed", err));
+  });
+}
+
 const initKeycloak = (keycloak: Keycloak) => {
     console.log("Called initKeycloak")
     const isPublicInvitePath = window.location.pathname.includes("/ui/invite/")
