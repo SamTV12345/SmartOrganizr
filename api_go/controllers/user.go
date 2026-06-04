@@ -168,10 +168,10 @@ func GetUserImage(c fiber.Ctx) error {
 }
 
 // GetOfflineData godoc
-// @Summary  Bulk download of all folders, authors and notes for offline use
+// @Summary  Bulk download of all folders, authors and notes for offline use (metadata only)
 // @Tags     users
 // @Produce  json
-// @Success  200  {object} map[string]interface{}
+// @Success  200  {object} dto.OfflineDataResponse
 // @Router   /v1/users/offline [get]
 func GetOfflineData(c fiber.Ctx) error {
 	var folderService = GetLocal[service.FolderService](c, "folderService")
@@ -182,18 +182,25 @@ func GetOfflineData(c fiber.Ctx) error {
 	var folders, _ = folderService.LoadAllFolders(userId)
 	var authors, _ = authorService.LoadAllAuthors(userId)
 	var notes, _, _ = noteService.LoadAllNotes(userId, nil, nil)
-	type DataExporter struct {
-		Authors []models.Author `json:"authors"`
-		Folders []models.Folder `json:"folders"`
-		Notes   []models.Note   `json:"notes"`
+
+	authorDtos := make([]dto.Author, 0, len(authors))
+	for _, a := range authors {
+		authorDtos = append(authorDtos, mappers.ConvertAuthorDtoFromModel(a))
 	}
-	var dataExporter = DataExporter{
-		Authors: authors,
-		Folders: folders,
-		Notes:   notes,
+	folderDtos := make([]dto.Folder, 0, len(folders))
+	for _, f := range folders {
+		folderDtos = append(folderDtos, mappers.ConvertFolderDtoFromModel(f, c))
+	}
+	noteDtos := make([]dto.Note, 0, len(notes))
+	for i := range notes {
+		noteDtos = append(noteDtos, *mappers.ConvertNoteDtoFromModel(&notes[i], c))
 	}
 
-	return c.JSON(dataExporter)
+	return c.JSON(dto.OfflineDataResponse{
+		Authors: authorDtos,
+		Folders: folderDtos,
+		Notes:   noteDtos,
+	})
 }
 
 // UpdateUser godoc

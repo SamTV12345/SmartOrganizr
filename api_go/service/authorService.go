@@ -19,9 +19,7 @@ type AuthorService struct {
 }
 
 func (a *AuthorService) LoadAllAuthors(userId string) ([]models.Author, error) {
-	authorsDB, err := a.Queries.FindAllAuthorsByCreatorUnpaged(a.Ctx, sql.NullString{
-		String: userId,
-	})
+	authorsDB, err := a.Queries.FindAllAuthorsByCreatorUnpaged(a.Ctx, db.NewSQLNullString(userId))
 	var modelAuthors = make([]models.Author, 0)
 	if err != nil {
 		return nil, err
