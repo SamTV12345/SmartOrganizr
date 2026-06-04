@@ -2,6 +2,7 @@ import createFetchClient from "openapi-fetch";
 import createQueryClient from "openapi-react-query";
 import { apiURL, keycloak } from "@/src/Keycloak";
 import type { paths } from "./schema";
+import { buildOfflineApiResponse, buildOfflineHttpResponse } from "@/src/offline/offlineFallback";
 
 export const apiFetch = createFetchClient<paths>({ baseUrl: apiURL });
 
@@ -11,6 +12,14 @@ apiFetch.use({
             request.headers.set("Authorization", `Bearer ${keycloak.token}`);
         }
         return request;
+    },
+    async onError({ request, error }) {
+        // fetch rejected (offline / network failure) — try serving from the local store.
+        if (request.method === "GET") {
+            const offline = await buildOfflineApiResponse(new URL(request.url));
+            if (offline) return offline;
+        }
+        throw error;
     },
 });
 
@@ -104,7 +113,21 @@ const request = async <T>(method: string, url: string, body: unknown, config: Ht
             finalUrl += (url.includes("?") ? "&" : "?") + qs;
         }
     }
-    const response = await authFetch(finalUrl, { method, body: payload, headers });
+    if (method === "GET" && typeof navigator !== "undefined" && !navigator.onLine) {
+        const offline = await buildOfflineHttpResponse(finalUrl);
+        if (offline) return offline as HttpResponse<T>;
+    }
+
+    let response: Response;
+    try {
+        response = await authFetch(finalUrl, { method, body: payload, headers });
+    } catch (networkErr) {
+        if (method === "GET") {
+            const offline = await buildOfflineHttpResponse(finalUrl);
+            if (offline) return offline as HttpResponse<T>;
+        }
+        throw networkErr;
+    }
     if (!response.ok) {
         const err: Error & { response?: { status: number; data: unknown } } = new Error(`Request failed with status ${response.status}`);
         try {
