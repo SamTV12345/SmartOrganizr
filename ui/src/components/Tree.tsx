@@ -15,6 +15,7 @@ import {
 import { UpdateFolderOrNote } from "@/src/components/UpdateFolderOrNote";
 import { FolderItem } from "@/src/models/Folder";
 import { useQueryClient } from "@tanstack/react-query";
+import { useOnlineStatus } from "@/src/offline/useOnlineStatus";
 
 export type TreeData = ElementItem;
 
@@ -119,6 +120,7 @@ const TreeNode: FC<TreeNodeProps> = ({
     const hasChild = element.type === "folder";
     const queryClient = useQueryClient();
     const isExpanded = hasChild && expandedIds.has(element.id);
+    const isOnline = useOnlineStatus();
 
 
     const drag = (ev: React.DragEvent<HTMLDivElement>, id: TreeData) => {
@@ -219,7 +221,7 @@ const TreeNode: FC<TreeNodeProps> = ({
                             }}
                         />
                     )}
-                    {isNote(element) && element.pdfAvailable && (
+                    {isNote(element) && element.pdfAvailable && isOnline && (
                         <i
                             className="fa-solid fa-eye ml-2"
                             onClick={() => {
