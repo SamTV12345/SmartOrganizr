@@ -8,7 +8,7 @@ require (
 	github.com/arran4/golang-ical v0.3.5
 	github.com/coreos/go-oidc/v3 v3.18.0
 	github.com/go-faker/faker/v4 v4.7.0
-	github.com/go-playground/validator/v10 v10.30.2
+	github.com/go-playground/validator/v10 v10.30.3
 	github.com/go-sql-driver/mysql v1.10.0
 	github.com/gofiber/fiber/v3 v3.3.0
 	github.com/golang-jwt/jwt/v5 v5.3.1
