@@ -106,13 +106,21 @@ const bootstrapApp = async () => {
     if (keycloak !== undefined) return;
 
     let config: CachedKeycloakConfig | null = null;
+    let reachedServer = false;
     try {
         const resp = await axios.get("/../public");
         config = { clientId: resp.data.clientId, realm: resp.data.realm, url: resp.data.url };
         localStorage.setItem(KEYCLOAK_CONFIG_CACHE_KEY, JSON.stringify(config));
+        reachedServer = true;
     } catch {
+        // Offline (or backend unreachable): fall back to the cached config. Guard the parse so
+        // a corrupt cached value can't throw out of bootstrap and leave a blank screen.
         const cached = localStorage.getItem(KEYCLOAK_CONFIG_CACHE_KEY);
-        config = cached ? (JSON.parse(cached) as CachedKeycloakConfig) : null;
+        try {
+            config = cached ? (JSON.parse(cached) as CachedKeycloakConfig) : null;
+        } catch {
+            config = null;
+        }
     }
 
     if (!config) {
@@ -123,8 +131,10 @@ const bootstrapApp = async () => {
     accountURL = config.url + "/realms/" + config.realm + "/account";
     setKeycloak(config.clientId, config.realm, config.url);
 
-    if (navigator.onLine) {
-        try { await initKeycloak(keycloak); } catch (error) { console.log("Keycloak init failed", error); }
+    // Use whether we actually reached the backend (not navigator.onLine, which is true even
+    // on captive portals that can't reach Keycloak) to decide the online vs. offline path.
+    if (reachedServer) {
+        try { await initKeycloak(keycloak); } catch (error) { console.error("Keycloak init failed", error); }
         renderApp(keycloak);
         syncNow().catch((error) => console.log("Background offline sync failed", error));
         return;
@@ -139,4 +149,9 @@ const bootstrapApp = async () => {
     }
 };
 
-bootstrapApp().then(() => { console.log("Started") });
+bootstrapApp()
+    .then(() => { console.log("Started") })
+    .catch((error) => {
+        console.error("Boot failed", error);
+        renderOfflineNotice("Something went wrong", "Please reconnect to the internet and reload SmartOrganizr.");
+    });
