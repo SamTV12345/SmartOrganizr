@@ -35,6 +35,26 @@ export async function replaceAll<T>(store: DataStore, items: T[]): Promise<void>
   await tx.done;
 }
 
+/**
+ * Atomically replace all three data stores in a single transaction. If any write fails the
+ * whole transaction aborts and NONE of the stores change — so a sync can never leave a torn
+ * mix of new and old data (e.g. new authors but stale notes).
+ */
+export async function replaceAllStores(authors: unknown[], folders: unknown[], notes: unknown[]): Promise<void> {
+  const db = await getDb();
+  const tx = db.transaction(["authors", "folders", "notes"], "readwrite");
+  const authorStore = tx.objectStore("authors");
+  const folderStore = tx.objectStore("folders");
+  const noteStore = tx.objectStore("notes");
+  await Promise.all([authorStore.clear(), folderStore.clear(), noteStore.clear()]);
+  await Promise.all([
+    ...authors.map((item) => authorStore.put(item)),
+    ...folders.map((item) => folderStore.put(item)),
+    ...notes.map((item) => noteStore.put(item)),
+  ]);
+  await tx.done;
+}
+
 export async function getAllAuthors(): Promise<Author[]> { return (await (await getDb()).getAll("authors")) as Author[]; }
 export async function getAllFolders(): Promise<Folder[]> { return (await (await getDb()).getAll("folders")) as Folder[]; }
 export async function getAllNotes(): Promise<Note[]> { return (await (await getDb()).getAll("notes")) as Note[]; }

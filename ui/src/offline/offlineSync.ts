@@ -1,6 +1,6 @@
 import { apiFetch } from "@/src/api/client";
 import type { Author, Folder, Note } from "@/src/api/types";
-import { replaceAll, setLastSyncedAt } from "./offlineDb";
+import { replaceAllStores, setLastSyncedAt } from "./offlineDb";
 
 type OfflinePayload = { authors: Author[]; folders: Folder[]; notes: Note[] };
 
@@ -16,8 +16,6 @@ export async function syncNow(): Promise<void> {
   if (error || !data) throw new Error("offline sync: request failed");
   if (!isValidPayload(data as unknown)) throw new Error("offline sync: malformed payload");
   const payload = data as unknown as OfflinePayload;
-  await replaceAll("authors", payload.authors);
-  await replaceAll("folders", payload.folders);
-  await replaceAll("notes", payload.notes);
+  await replaceAllStores(payload.authors, payload.folders, payload.notes);
   await setLastSyncedAt(Date.now());
 }

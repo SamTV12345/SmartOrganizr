@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from "vitest";
 import {
-  replaceAll, getAllAuthors, getAllFolders, getRootFolders, getChildren,
+  replaceAll, replaceAllStores, getAllAuthors, getAllFolders, getAllNotes, getRootFolders, getChildren,
   searchAuthors, searchNotes, getNoteDetail, setLastSyncedAt, getLastSyncedAt, clearOfflineData,
 } from "./offlineDb";
 import type { Author, Folder, Note } from "@/src/api/types";
@@ -22,6 +22,18 @@ describe("offlineDb", () => {
     await replaceAll("folders", [folder("a"), folder("b")]);
     await replaceAll("folders", [folder("c")]);
     expect((await getAllFolders()).map((f) => f.id)).toEqual(["c"]);
+  });
+
+  it("replaceAllStores replaces all three stores in one transaction", async () => {
+    await replaceAll("authors", [{ id: "old", name: "Old" } as Author]);
+    await replaceAllStores(
+      [{ id: "1", name: "Bach" } as Author],
+      [folder("a")],
+      [note("n1", "a")],
+    );
+    expect((await getAllAuthors()).map((a) => a.id)).toEqual(["1"]);
+    expect((await getAllFolders()).map((f) => f.id)).toEqual(["a"]);
+    expect((await getAllNotes()).map((n) => n.id)).toEqual(["n1"]);
   });
 
   it("getRootFolders returns parentless folders", async () => {
