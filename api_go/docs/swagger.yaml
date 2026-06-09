@@ -775,6 +775,21 @@ definitions:
     - numberOfPages
     - parentId
     type: object
+  dto.OfflineDataResponse:
+    properties:
+      authors:
+        items:
+          $ref: '#/definitions/dto.Author'
+        type: array
+      folders:
+        items:
+          $ref: '#/definitions/dto.Folder'
+        type: array
+      notes:
+        items:
+          $ref: '#/definitions/dto.Note'
+        type: array
+    type: object
   dto.Page:
     properties:
       number:
@@ -2706,9 +2721,9 @@ paths:
         "200":
           description: OK
           schema:
-            additionalProperties: true
-            type: object
-      summary: Bulk download of all folders, authors and notes for offline use
+            $ref: '#/definitions/dto.OfflineDataResponse'
+      summary: Bulk download of all folders, authors and notes for offline use (metadata
+        only)
       tags:
       - users
   /v1/users/token:
