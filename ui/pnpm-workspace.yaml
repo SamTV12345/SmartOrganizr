@@ -1,10 +1,12 @@
 allowBuilds:
   '@tailwindcss/oxide': true
   core-js: true
+  sharp: true
   tesseract.js: true
 ignoredBuiltDependencies:
   - core-js
 onlyBuiltDependencies:
   - '@tailwindcss/oxide'
   - esbuild
+  - sharp
 minimumReleaseAge: 0

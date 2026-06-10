@@ -2,6 +2,7 @@ import createFetchClient from "openapi-fetch";
 import createQueryClient from "openapi-react-query";
 import { apiURL, keycloak } from "@/src/Keycloak";
 import type { paths } from "./schema";
+import { buildOfflineApiResponse, buildOfflineHttpResponse } from "@/src/offline/offlineFallback";
 
 export const apiFetch = createFetchClient<paths>({ baseUrl: apiURL });
 
@@ -11,6 +12,16 @@ apiFetch.use({
             request.headers.set("Authorization", `Bearer ${keycloak.token}`);
         }
         return request;
+    },
+    async onError({ request, error }) {
+        // fetch rejected (offline / network failure) — serve from the local store when possible.
+        // Guard for a browser env, and give new URL() a base so a relative request.url can't
+        // throw a TypeError that masks the original error.
+        if (request.method === "GET" && typeof window !== "undefined") {
+            const offline = await buildOfflineApiResponse(new URL(request.url, window.location.origin));
+            if (offline) return offline;
+        }
+        throw error;
     },
 });
 
@@ -79,40 +90,67 @@ const isJsonBody = (body: unknown, headers?: Record<string, string>) => {
     return true;
 };
 
+// Serializes the body and, for JSON payloads, sets Content-Type on `headers` as a side effect.
+const buildPayload = (body: unknown, headers: Headers, rawHeaders?: Record<string, string>): BodyInit | undefined => {
+    if (body === undefined || body === null) {
+        return undefined;
+    }
+    if (!isJsonBody(body, rawHeaders)) {
+        return body as BodyInit;
+    }
+    if (!headers.has("Content-Type")) {
+        headers.set("Content-Type", "application/json");
+    }
+    return typeof body === "string" ? body : JSON.stringify(body);
+};
+
+const withQueryParams = (url: string, params: HttpConfig["params"]): string => {
+    if (!params) return url;
+    const search = new URLSearchParams();
+    for (const [key, value] of Object.entries(params)) {
+        if (value === undefined || value === null) continue;
+        search.append(key, String(value));
+    }
+    const qs = search.toString();
+    return qs ? url + (url.includes("?") ? "&" : "?") + qs : url;
+};
+
+// Offline reads only — non-GET requests never fall back to the local store.
+const offlineFallbackFor = async <T>(method: string, finalUrl: string): Promise<HttpResponse<T> | undefined> => {
+    if (method !== "GET") return undefined;
+    return (await buildOfflineHttpResponse(finalUrl)) as HttpResponse<T> | undefined;
+};
+
+const buildHttpError = async (response: Response, responseType: HttpConfig["responseType"]): Promise<Error> => {
+    const err: Error & { response?: { status: number; data: unknown } } = new Error(`Request failed with status ${response.status}`);
+    try {
+        err.response = { status: response.status, data: await parseBody(response.clone(), responseType) };
+    } catch {
+        err.response = { status: response.status, data: undefined };
+    }
+    return err;
+};
+
 const request = async <T>(method: string, url: string, body: unknown, config: HttpConfig = {}): Promise<HttpResponse<T>> => {
     const headers = new Headers(config.headers);
-    let payload: BodyInit | undefined = undefined;
-    if (body !== undefined && body !== null) {
-        if (isJsonBody(body, config.headers)) {
-            if (!headers.has("Content-Type")) {
-                headers.set("Content-Type", "application/json");
-            }
-            payload = typeof body === "string" ? body : JSON.stringify(body);
-        } else {
-            payload = body as BodyInit;
-        }
+    const payload = buildPayload(body, headers, config.headers);
+    const finalUrl = withQueryParams(url, config.params);
+
+    if (typeof navigator !== "undefined" && !navigator.onLine) {
+        const offline = await offlineFallbackFor<T>(method, finalUrl);
+        if (offline) return offline;
     }
-    let finalUrl = url;
-    if (config.params) {
-        const search = new URLSearchParams();
-        for (const [key, value] of Object.entries(config.params)) {
-            if (value === undefined || value === null) continue;
-            search.append(key, String(value));
-        }
-        const qs = search.toString();
-        if (qs) {
-            finalUrl += (url.includes("?") ? "&" : "?") + qs;
-        }
+
+    let response: Response;
+    try {
+        response = await authFetch(finalUrl, { method, body: payload, headers });
+    } catch (networkErr) {
+        const offline = await offlineFallbackFor<T>(method, finalUrl);
+        if (offline) return offline;
+        throw networkErr;
     }
-    const response = await authFetch(finalUrl, { method, body: payload, headers });
     if (!response.ok) {
-        const err: Error & { response?: { status: number; data: unknown } } = new Error(`Request failed with status ${response.status}`);
-        try {
-            err.response = { status: response.status, data: await parseBody(response.clone(), config.responseType) };
-        } catch {
-            err.response = { status: response.status, data: undefined };
-        }
-        throw err;
+        throw await buildHttpError(response, config.responseType);
     }
     const data = await parseBody<T>(response, config.responseType);
     return { data, status: response.status, headers: response.headers };

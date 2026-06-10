@@ -2215,13 +2215,12 @@ const docTemplate = `{
                 "tags": [
                     "users"
                 ],
-                "summary": "Bulk download of all folders, authors and notes for offline use",
+                "summary": "Bulk download of all folders, authors and notes for offline use (metadata only)",
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/dto.OfflineDataResponse"
                         }
                     }
                 }
@@ -3740,6 +3739,29 @@ const docTemplate = `{
                 },
                 "pdfContent": {
                     "type": "string"
+                }
+            }
+        },
+        "dto.OfflineDataResponse": {
+            "type": "object",
+            "properties": {
+                "authors": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.Author"
+                    }
+                },
+                "folders": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.Folder"
+                    }
+                },
+                "notes": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.Note"
+                    }
                 }
             }
         },

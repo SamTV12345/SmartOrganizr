@@ -2569,7 +2569,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Bulk download of all folders, authors and notes for offline use */
+        /** Bulk download of all folders, authors and notes for offline use (metadata only) */
         get: {
             parameters: {
                 query?: never;
@@ -2585,9 +2585,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            [key: string]: unknown;
-                        };
+                        "application/json": components["schemas"]["dto.OfflineDataResponse"];
                     };
                 };
             };
@@ -3389,6 +3387,11 @@ export interface components {
             numberOfPages: number;
             parentId: string;
             pdfContent?: string;
+        };
+        "dto.OfflineDataResponse": {
+            authors?: components["schemas"]["dto.Author"][];
+            folders?: components["schemas"]["dto.Folder"][];
+            notes?: components["schemas"]["dto.Note"][];
         };
         "dto.Page": {
             number: number;

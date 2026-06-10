@@ -2366,15 +2366,14 @@
                 "tags": [
                     "users"
                 ],
-                "summary": "Bulk download of all folders, authors and notes for offline use",
+                "summary": "Bulk download of all folders, authors and notes for offline use (metadata only)",
                 "responses": {
                     "200": {
                         "description": "OK",
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "type": "object",
-                                    "additionalProperties": true
+                                    "$ref": "#/components/schemas/dto.OfflineDataResponse"
                                 }
                             }
                         }
@@ -4001,6 +4000,29 @@
                     },
                     "pdfContent": {
                         "type": "string"
+                    }
+                }
+            },
+            "dto.OfflineDataResponse": {
+                "type": "object",
+                "properties": {
+                    "authors": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/dto.Author"
+                        }
+                    },
+                    "folders": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/dto.Folder"
+                        }
+                    },
+                    "notes": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/dto.Note"
+                        }
                     }
                 }
             },
