@@ -41,7 +41,7 @@
     "react-hook-form": "^7.76.1",
     "react-i18next": "^17.0.8",
     "react-redux": "^9.3.0",
-    "react-router-dom": "^7.15.1",
+    "react-router-dom": "^7.17.0",
     "react-waypoint": "^10.3.0",
     "redux": "^5.0.1",
     "tailwind-merge": "^3.6.0",
