@@ -2,6 +2,7 @@ package service
 
 import (
 	"api_go/models"
+	"context"
 	"encoding/json"
 	"io"
 	"net/http"
@@ -63,7 +64,7 @@ func TestRunChat_ToolCallThenAnswer(t *testing.T) {
 	}
 
 	var events []ChatEvent
-	final, err := svc.RunChat("user-1", []ChatMessage{{Role: "user", Content: "Such mir die Kleine Nachtmusik"}}, func(ev ChatEvent) {
+	final, err := svc.RunChat(context.Background(), "user-1", []ChatMessage{{Role: "user", Content: "Such mir die Kleine Nachtmusik"}}, func(ev ChatEvent) {
 		events = append(events, ev)
 	})
 	if err != nil {
@@ -122,5 +123,40 @@ func TestExecuteTool_NavigateWhitelist(t *testing.T) {
 		if navigated != tc.wantOK {
 			t.Errorf("path %q: navigated=%v, want %v (result %s)", tc.path, navigated, tc.wantOK, result)
 		}
+	}
+}
+
+func TestStreamCompletion_AccumulatesSplitToolCallArguments(t *testing.T) {
+	const frame1 = `{"choices":[{"delta":{"tool_calls":[{"index":0,"id":"call_1","function":{"name":"search_notes","arguments":"{\"query\":\"Kleine "}}]},"finish_reason":null}]}`
+	const frame2 = `{"choices":[{"delta":{"tool_calls":[{"index":0,"function":{"arguments":"Nachtmusik\"}"}}]},"finish_reason":"tool_calls"}]}`
+
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "text/event-stream")
+		_, _ = w.Write([]byte(sseFrames(frame1, frame2)))
+	}))
+	defer srv.Close()
+
+	svc := &AIChatService{
+		AI:         NewAIService(srv.URL, "tok", "test-model"),
+		NoteSearch: stubNoteSearcher{},
+	}
+
+	_, calls, err := svc.streamCompletion(context.Background(), []ChatMessage{{Role: "user", Content: "x"}}, func(ChatEvent) {})
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if len(calls) != 1 {
+		t.Fatalf("expected 1 tool call, got %d", len(calls))
+	}
+	tc := calls[0]
+	if tc.ID != "call_1" {
+		t.Errorf("expected ID %q, got %q", "call_1", tc.ID)
+	}
+	if tc.Function.Name != "search_notes" {
+		t.Errorf("expected function name %q, got %q", "search_notes", tc.Function.Name)
+	}
+	const wantArgs = `{"query":"Kleine Nachtmusik"}`
+	if tc.Function.Arguments != wantArgs {
+		t.Errorf("expected arguments %q, got %q", wantArgs, tc.Function.Arguments)
 	}
 }

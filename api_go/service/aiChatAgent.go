@@ -3,7 +3,9 @@ package service
 import (
 	"bufio"
 	"bytes"
+	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"log"
@@ -11,7 +13,15 @@ import (
 	"regexp"
 	"sort"
 	"strings"
+	"time"
 )
+
+// chatStreamClient deliberately has no overall Timeout: http.Client.Timeout
+// caps the whole exchange including the streamed body, which would kill
+// long-running chats mid-stream. Cancellation comes from the request
+// context (see RunChat); the dial/TLS phase still uses sane transport
+// defaults.
+var chatStreamClient = &http.Client{}
 
 // ChatEvent is one server-sent event pushed to the chat client while the
 // agent loop runs. Type is one of: token, tool, navigate, done, error.
@@ -91,12 +101,19 @@ var chatTools = []map[string]any{
 // RunChat executes the agent loop for one user turn. history must already
 // end with the new user message. emit is called for every streamed event;
 // the final assistant text is returned for persistence.
-func (s *AIChatService) RunChat(userID string, history []ChatMessage, emit func(ChatEvent)) (string, error) {
+func (s *AIChatService) RunChat(ctx context.Context, userID string, history []ChatMessage, emit func(ChatEvent)) (string, error) {
+	if s.AI == nil || !s.AI.IsConfigured() {
+		return "", errors.New("AI chat is not configured")
+	}
+
+	ctx, cancel := context.WithTimeout(ctx, 5*time.Minute)
+	defer cancel()
+
 	messages := append([]ChatMessage{{Role: "system", Content: chatSystemPrompt}}, history...)
 	var finalText strings.Builder
 
 	for i := 0; i < maxAgentIterations; i++ {
-		text, calls, err := s.streamCompletion(messages, emit)
+		text, calls, err := s.streamCompletion(ctx, messages, emit)
 		if err != nil {
 			return "", err
 		}
@@ -138,7 +155,7 @@ type streamChunk struct {
 // streamCompletion performs one streaming chat/completions call. Text
 // deltas are forwarded as token events; tool-call deltas are accumulated
 // (providers may split the JSON arguments across chunks) and returned.
-func (s *AIChatService) streamCompletion(messages []ChatMessage, emit func(ChatEvent)) (string, []toolCall, error) {
+func (s *AIChatService) streamCompletion(ctx context.Context, messages []ChatMessage, emit func(ChatEvent)) (string, []toolCall, error) {
 	payload := map[string]any{
 		"model":       s.AI.Model,
 		"messages":    messages,
@@ -151,7 +168,7 @@ func (s *AIChatService) streamCompletion(messages []ChatMessage, emit func(ChatE
 	if err != nil {
 		return "", nil, err
 	}
-	req, err := http.NewRequest("POST", s.AI.BaseURL+"/chat/completions", bytes.NewReader(buf))
+	req, err := http.NewRequestWithContext(ctx, "POST", s.AI.BaseURL+"/chat/completions", bytes.NewReader(buf))
 	if err != nil {
 		return "", nil, err
 	}
@@ -159,7 +176,7 @@ func (s *AIChatService) streamCompletion(messages []ChatMessage, emit func(ChatE
 	req.Header.Set("Authorization", "Bearer "+s.AI.Token)
 	req.Header.Set("Accept", "text/event-stream")
 
-	resp, err := s.AI.Client.Do(req)
+	resp, err := chatStreamClient.Do(req)
 	if err != nil {
 		return "", nil, err
 	}
