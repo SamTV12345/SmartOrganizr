@@ -19,8 +19,12 @@ und kann später als dünne Schicht über dieselben Tools gelegt werden.
 
 ## Scope (V1)
 
-- **Suchen:** nur Musiknoten (Titel/Komponist/Arrangeur), über die bestehende
-  Notensuche, gescoped auf den eingeloggten User.
+- **Suchen:** nur Musiknoten, über die bestehende Notensuche (sucht nach
+  Titel; Komponist/Arrangeur erscheinen in den Treffern, sind aber kein
+  Suchkriterium — bekannte V1-Einschränkung), gescoped auf den eingeloggten
+  User. Hinweis: Die bestehende Suche findet keine Noten auf Wurzelebene
+  (INNER JOIN auf den Eltern-Ordner) — vorbestehende Einschränkung, als
+  Follow-up zu beheben.
 - **Navigieren:** zur Noten-Detailseite per react-router, ausgelöst durch ein
   SSE-Event vom Backend.
 - **Streaming:** Antworten erscheinen live (Token für Token).
