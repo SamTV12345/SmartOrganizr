@@ -14,6 +14,7 @@ export async function streamChatMessage(
     sessionId: string,
     message: string,
     onEvent: (event: ChatStreamEvent) => void,
+    signal?: AbortSignal,
 ): Promise<void> {
     let response: Response;
     try {
@@ -21,8 +22,10 @@ export async function streamChatMessage(
             method: "POST",
             headers: { "Content-Type": "application/json", Accept: "text/event-stream" },
             body: JSON.stringify({ message }),
+            signal,
         });
-    } catch {
+    } catch (err) {
+        if ((err as DOMException)?.name === "AbortError") return;
         onEvent({ type: "error", message: "network" });
         return;
     }
@@ -37,7 +40,14 @@ export async function streamChatMessage(
     let terminal = false;
 
     while (true) {
-        const { value, done } = await reader.read();
+        let value: Uint8Array | undefined;
+        let done: boolean;
+        try {
+            ({ value, done } = await reader.read());
+        } catch (err) {
+            if ((err as DOMException)?.name === "AbortError") return;
+            throw err;
+        }
         if (done) break;
         buffer += decoder.decode(value, { stream: true });
         let sep = buffer.indexOf("\n\n");
@@ -61,7 +71,7 @@ export async function streamChatMessage(
             sep = buffer.indexOf("\n\n");
         }
     }
-    if (!terminal) {
+    if (!terminal && !signal?.aborted) {
         onEvent({ type: "error", message: "stream ended unexpectedly" });
     }
 }

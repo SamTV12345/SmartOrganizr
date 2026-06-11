@@ -17,6 +17,7 @@ export const AIChatPanel = () => {
     } = useAiChatStore();
     const [input, setInput] = useState("");
     const bottomRef = useRef<HTMLDivElement>(null);
+    const abortRef = useRef<AbortController | null>(null);
 
     const refreshSessions = async () => {
         const resp = await authFetch(`${apiURL}/v1/ai/chat/sessions`);
@@ -33,6 +34,12 @@ export const AIChatPanel = () => {
     useEffect(() => {
         bottomRef.current?.scrollIntoView({ behavior: "smooth" });
     }, [messages, toolStatus]);
+
+    useEffect(() => {
+        return () => {
+            abortRef.current?.abort();
+        };
+    }, []);
 
     const openSession = async (sessionId: string) => {
         const resp = await authFetch(`${apiURL}/v1/ai/chat/sessions/${sessionId}/messages`);
@@ -67,16 +74,19 @@ export const AIChatPanel = () => {
         addMessage({ id: crypto.randomUUID(), role: "assistant", content: "" });
         setStreaming(true);
 
+        const controller = new AbortController();
+        abortRef.current = controller;
+
         await streamChatMessage(sessionId, text, (event) => {
             switch (event.type) {
                 case "token":
-                    appendToLastAssistant(event.text);
+                    if (typeof event.text === "string") appendToLastAssistant(event.text);
                     break;
                 case "tool":
-                    setToolStatus(t("aiChat.searching", { query: event.status }));
+                    if (typeof event.status === "string") setToolStatus(t("aiChat.searching", { query: event.status }));
                     break;
                 case "navigate":
-                    navigate(event.path);
+                    if (typeof event.path === "string") navigate(event.path);
                     break;
                 case "done":
                     setToolStatus(null);
@@ -88,7 +98,8 @@ export const AIChatPanel = () => {
                     appendToLastAssistant(t("aiChat.error"));
                     break;
             }
-        });
+        }, controller.signal);
+        abortRef.current = null;
         setStreaming(false);
     };
 
