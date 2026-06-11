@@ -40,9 +40,12 @@ ausschließlich über sqlc in `query.sql`, kein handgeschriebenes DB-Go.
 CREATE TABLE ai_chat_session (
     id         VARCHAR(36) PRIMARY KEY,          -- UUID
     user_fk    VARCHAR(255) COLLATE utf8mb4_general_ci NOT NULL,
-    title      VARCHAR(255) NOT NULL,            -- erste User-Nachricht, auf 80 Zeichen gekürzt
+    title      VARCHAR(255) NOT NULL DEFAULT '', -- erste User-Nachricht, auf 80 Zeichen gekürzt
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    -- kein ON UPDATE CURRENT_TIMESTAMP: updated_at wird bewusst nur über die
+    -- explizite Touch-Query fortgeschrieben, damit z.B. Titel-Updates die
+    -- Session-Sortierung nicht verändern
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT fk_ai_chat_session_user FOREIGN KEY (user_fk)
         REFERENCES user(id) ON DELETE CASCADE,
     INDEX idx_ai_chat_session_user (user_fk, updated_at)
@@ -51,7 +54,7 @@ CREATE TABLE ai_chat_session (
 CREATE TABLE ai_chat_message (
     id         BIGINT AUTO_INCREMENT PRIMARY KEY,
     session_fk VARCHAR(36) NOT NULL,
-    role       ENUM('user','assistant') NOT NULL,
+    role       VARCHAR(16) NOT NULL,             -- 'user' | 'assistant' (VARCHAR statt ENUM, Stil von club_events.event_type)
     content    TEXT NOT NULL,
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT fk_ai_chat_message_session FOREIGN KEY (session_fk)
