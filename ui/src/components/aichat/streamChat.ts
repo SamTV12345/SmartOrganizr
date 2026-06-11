@@ -46,7 +46,10 @@ export async function streamChatMessage(
             ({ value, done } = await reader.read());
         } catch (err) {
             if ((err as DOMException)?.name === "AbortError") return;
-            throw err;
+            // Surface mid-stream network failures as an error event instead of
+            // rejecting — callers rely on streamChatMessage never throwing.
+            onEvent({ type: "error", message: "network" });
+            return;
         }
         if (done) break;
         buffer += decoder.decode(value, { stream: true });
