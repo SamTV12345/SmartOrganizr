@@ -62,6 +62,11 @@ func SetupTest(t *testing.T) *fiber.App {
 		App: config.AppParameters{
 			URL: "http://localhost:999",
 		},
+		AI: config.AppConfigAI{
+			Token:   os.Getenv("SMARTORGANIZR_AI_TOKEN"),
+			BaseURL: "https://api.mistral.ai/v1",
+			Model:   "pixtral-12b-2409",
+		},
 	}
 
 	var db, rawDB = db2.Setup(appconfig.Database)
@@ -101,6 +106,8 @@ func SetupTest(t *testing.T) *fiber.App {
 			"club_invitation",
 			"club_participant",
 			"clubs",
+			"ai_chat_message",
+			"ai_chat_session",
 		} {
 			rawDB.Exec("DELETE FROM " + table)
 		}
