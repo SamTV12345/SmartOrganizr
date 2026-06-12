@@ -537,6 +537,37 @@ SELECT id, name, mime_type, size_bytes, content
 FROM club_file
 WHERE id = sqlc.arg(id) AND club_id = sqlc.arg(club_id);
 
+-- name: CreateAiChatSession :exec
+INSERT INTO ai_chat_session (id, user_fk, title)
+VALUES (?, ?, ?);
+
+-- name: FindAiChatSessionsByUser :many
+SELECT * FROM ai_chat_session
+WHERE user_fk = ?
+ORDER BY updated_at DESC;
+
+-- name: FindAiChatSessionById :one
+SELECT * FROM ai_chat_session
+WHERE id = ?;
+
+-- name: UpdateAiChatSessionTitle :exec
+UPDATE ai_chat_session SET title = ? WHERE id = ?;
+
+-- name: TouchAiChatSession :exec
+UPDATE ai_chat_session SET updated_at = CURRENT_TIMESTAMP WHERE id = ?;
+
+-- name: DeleteAiChatSession :exec
+DELETE FROM ai_chat_session WHERE id = ?;
+
+-- name: CreateAiChatMessage :exec
+INSERT INTO ai_chat_message (session_fk, role, content)
+VALUES (?, ?, ?);
+
+-- name: FindAiChatMessagesBySession :many
+SELECT * FROM ai_chat_message
+WHERE session_fk = ?
+ORDER BY created_at ASC, id ASC;
+
 -- name: ListClubFilesForClub :many
 SELECT
     f.id,

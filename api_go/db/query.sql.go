@@ -176,6 +176,38 @@ func (q *Queries) CountUnreadForUserByClub(ctx context.Context, arg CountUnreadF
 	return items, nil
 }
 
+const createAiChatMessage = `-- name: CreateAiChatMessage :exec
+INSERT INTO ai_chat_message (session_fk, role, content)
+VALUES (?, ?, ?)
+`
+
+type CreateAiChatMessageParams struct {
+	SessionFk string
+	Role      string
+	Content   string
+}
+
+func (q *Queries) CreateAiChatMessage(ctx context.Context, arg CreateAiChatMessageParams) error {
+	_, err := q.db.ExecContext(ctx, createAiChatMessage, arg.SessionFk, arg.Role, arg.Content)
+	return err
+}
+
+const createAiChatSession = `-- name: CreateAiChatSession :exec
+INSERT INTO ai_chat_session (id, user_fk, title)
+VALUES (?, ?, ?)
+`
+
+type CreateAiChatSessionParams struct {
+	ID     string
+	UserFk string
+	Title  string
+}
+
+func (q *Queries) CreateAiChatSession(ctx context.Context, arg CreateAiChatSessionParams) error {
+	_, err := q.db.ExecContext(ctx, createAiChatSession, arg.ID, arg.UserFk, arg.Title)
+	return err
+}
+
 const createAuthor = `-- name: CreateAuthor :execlastid
 INSERT INTO authors (id, name, extra_information, user_id_fk, wikidata_id, birth_year, death_year)
 VALUES (?, ?, ?, ?, ?, ?, ?)
@@ -632,6 +664,15 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (int64, 
 	return result.LastInsertId()
 }
 
+const deleteAiChatSession = `-- name: DeleteAiChatSession :exec
+DELETE FROM ai_chat_session WHERE id = ?
+`
+
+func (q *Queries) DeleteAiChatSession(ctx context.Context, id string) error {
+	_, err := q.db.ExecContext(ctx, deleteAiChatSession, id)
+	return err
+}
+
 const deleteAllAuthors = `-- name: DeleteAllAuthors :exec
 TRUNCATE authors
 `
@@ -811,6 +852,94 @@ UPDATE user SET profile_picture = NULL WHERE id = ?
 func (q *Queries) DeleteProfilePicture(ctx context.Context, id string) error {
 	_, err := q.db.ExecContext(ctx, deleteProfilePicture, id)
 	return err
+}
+
+const findAiChatMessagesBySession = `-- name: FindAiChatMessagesBySession :many
+SELECT id, session_fk, role, content, created_at FROM ai_chat_message
+WHERE session_fk = ?
+ORDER BY created_at ASC, id ASC
+`
+
+func (q *Queries) FindAiChatMessagesBySession(ctx context.Context, sessionFk string) ([]AiChatMessage, error) {
+	rows, err := q.db.QueryContext(ctx, findAiChatMessagesBySession, sessionFk)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []AiChatMessage
+	for rows.Next() {
+		var i AiChatMessage
+		if err := rows.Scan(
+			&i.ID,
+			&i.SessionFk,
+			&i.Role,
+			&i.Content,
+			&i.CreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const findAiChatSessionById = `-- name: FindAiChatSessionById :one
+SELECT id, user_fk, title, created_at, updated_at FROM ai_chat_session
+WHERE id = ?
+`
+
+func (q *Queries) FindAiChatSessionById(ctx context.Context, id string) (AiChatSession, error) {
+	row := q.db.QueryRowContext(ctx, findAiChatSessionById, id)
+	var i AiChatSession
+	err := row.Scan(
+		&i.ID,
+		&i.UserFk,
+		&i.Title,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
+const findAiChatSessionsByUser = `-- name: FindAiChatSessionsByUser :many
+SELECT id, user_fk, title, created_at, updated_at FROM ai_chat_session
+WHERE user_fk = ?
+ORDER BY updated_at DESC
+`
+
+func (q *Queries) FindAiChatSessionsByUser(ctx context.Context, userFk string) ([]AiChatSession, error) {
+	rows, err := q.db.QueryContext(ctx, findAiChatSessionsByUser, userFk)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []AiChatSession
+	for rows.Next() {
+		var i AiChatSession
+		if err := rows.Scan(
+			&i.ID,
+			&i.UserFk,
+			&i.Title,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const findAllAuthorsByCreator = `-- name: FindAllAuthorsByCreator :many
@@ -3322,6 +3451,15 @@ func (q *Queries) SoftCancelClubEvent(ctx context.Context, arg SoftCancelClubEve
 	return err
 }
 
+const touchAiChatSession = `-- name: TouchAiChatSession :exec
+UPDATE ai_chat_session SET updated_at = CURRENT_TIMESTAMP WHERE id = ?
+`
+
+func (q *Queries) TouchAiChatSession(ctx context.Context, id string) error {
+	_, err := q.db.ExecContext(ctx, touchAiChatSession, id)
+	return err
+}
+
 const updateAddress = `-- name: UpdateAddress :exec
 UPDATE address
 SET street = ?, house_number = ?, location = ?, postal_code = ?, country = ?
@@ -3346,6 +3484,20 @@ func (q *Queries) UpdateAddress(ctx context.Context, arg UpdateAddressParams) er
 		arg.Country,
 		arg.ID,
 	)
+	return err
+}
+
+const updateAiChatSessionTitle = `-- name: UpdateAiChatSessionTitle :exec
+UPDATE ai_chat_session SET title = ? WHERE id = ?
+`
+
+type UpdateAiChatSessionTitleParams struct {
+	Title string
+	ID    string
+}
+
+func (q *Queries) UpdateAiChatSessionTitle(ctx context.Context, arg UpdateAiChatSessionTitleParams) error {
+	_, err := q.db.ExecContext(ctx, updateAiChatSessionTitle, arg.Title, arg.ID)
 	return err
 }
 

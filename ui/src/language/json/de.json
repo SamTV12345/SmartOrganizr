@@ -154,5 +154,17 @@
   "fieldMustBeUrl": "Dieses Feld muss eine gültige URL sein.",
   "event-current": "Anstehende Events",
   "synced-feed": "Feed",
-  "club-events": "Vereinstermine"
+  "club-events": "Vereinstermine",
+  "aiChat": {
+    "title": "Assistent",
+    "newChat": "Neuer Chat",
+    "deleteChat": "Chat löschen",
+    "placeholder": "Frag mich z.B.: Such mir die Kleine Nachtmusik",
+    "send": "Senden",
+    "searching": "Suche nach \"{{query}}\" ...",
+    "error": "Da ist etwas schiefgelaufen. Versuch es noch einmal.",
+    "empty": "Womit kann ich helfen?",
+    "open": "AI-Assistent öffnen",
+    "close": "Schließen"
+  }
 }
