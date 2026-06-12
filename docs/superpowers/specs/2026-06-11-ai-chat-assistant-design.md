@@ -117,6 +117,13 @@ Ablauf pro eingehender Nachricht:
      `tool`-Status-Event an den Client, Tool-Ergebnis als Tool-Message
      anhängen, erneut aufrufen.
    - Modell antwortet mit Text → Tokens live als `token`-Events durchreichen.
+   - Schleifen-Ende: Antwort ohne `tool_calls`, ODER eine Runde, in der das
+     Modell bereits Text geliefert hat und ausschließlich `navigate_to`
+     aufruft. `navigate_to` ist ein reiner UI-Seiteneffekt ohne verwertbares
+     Ergebnis; würde man danach erneut aufrufen, re-issued das Modell
+     `navigate_to` bis zum Iterationslimit und die bereits gestreamte Antwort
+     ginge als Fehler verloren. Wird das Limit dennoch erreicht, aber es liegt
+     bereits Text vor, wird dieser Text zurückgegeben (kein `error`-Event).
 5. Finale Assistant-Nachricht persistieren, `updated_at` der Session
    aktualisieren, `done`-Event senden.
 

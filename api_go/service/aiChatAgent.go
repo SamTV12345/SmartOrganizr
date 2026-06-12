@@ -122,6 +122,7 @@ func (s *AIChatService) RunChat(ctx context.Context, userID string, history []Ch
 			return finalText.String(), nil
 		}
 		messages = append(messages, ChatMessage{Role: "assistant", Content: text, ToolCalls: calls})
+		onlySideEffects := true
 		for _, call := range calls {
 			result := s.executeTool(userID, call, emit)
 			messages = append(messages, ChatMessage{
@@ -130,7 +131,24 @@ func (s *AIChatService) RunChat(ctx context.Context, userID string, history []Ch
 				ToolCallID: call.ID,
 				Name:       call.Function.Name,
 			})
+			if call.Function.Name != "navigate_to" {
+				onlySideEffects = false
+			}
 		}
+		// navigate_to is a fire-and-forget UI side effect: its result carries
+		// nothing the model needs to reason about. Once the model has both
+		// answered and triggered navigation, the turn is complete. Looping
+		// again only invites it to re-issue navigate_to until the iteration
+		// cap, which would discard the answer the user already saw streamed.
+		if onlySideEffects && finalText.Len() > 0 {
+			return finalText.String(), nil
+		}
+	}
+	// Safety net: if a misbehaving model never stops calling tools but has
+	// already produced a complete answer, return that answer rather than an
+	// error — the user has already seen it streamed.
+	if finalText.Len() > 0 {
+		return finalText.String(), nil
 	}
 	return "", fmt.Errorf("agent loop exceeded %d iterations", maxAgentIterations)
 }

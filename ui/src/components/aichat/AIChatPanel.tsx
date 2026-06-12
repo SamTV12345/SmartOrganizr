@@ -6,6 +6,7 @@ import { authFetch } from "../../api/client";
 import { apiURL } from "../../Keycloak";
 import { AiChatMessage, AiChatSession, useAiChatStore } from "../../store/aiChatStore";
 import { streamChatMessage } from "./streamChat";
+import { MarkdownMessage } from "./MarkdownMessage";
 
 export const AIChatPanel = () => {
     const { t } = useTranslation();
@@ -93,6 +94,10 @@ export const AIChatPanel = () => {
                     refreshSessions();
                     break;
                 case "error":
+                    // TEMP diagnostic: surface which error path fired (backend
+                    // "AI request failed" / "failed to store reply" vs frontend
+                    // "stream ended unexpectedly" / "network" / "HTTP nnn").
+                    console.error("[aichat] stream error:", event.message);
                     setToolStatus(null);
                     markLastAssistantError();
                     appendToLastAssistant(t("aiChat.error"));
@@ -141,13 +146,15 @@ export const AIChatPanel = () => {
                 )}
                 {messages.map((m: AiChatMessage) => (
                     <div key={m.id}
-                         className={`max-w-[85%] whitespace-pre-wrap rounded-lg px-3 py-2 text-sm ${
+                         className={`max-w-[85%] rounded-lg px-3 py-2 text-sm ${
                              m.role === "user"
-                                 ? "ml-auto bg-blue-600"
+                                 ? "ml-auto whitespace-pre-wrap bg-blue-600"
                                  : m.error
                                      ? "bg-red-900"
                                      : "bg-gray-600"}`}>
-                        {m.content}
+                        {m.role === "assistant"
+                            ? <MarkdownMessage content={m.content} />
+                            : m.content}
                     </div>
                 ))}
                 {toolStatus && (

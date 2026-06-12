@@ -96,6 +96,55 @@ func TestRunChat_ToolCallThenAnswer(t *testing.T) {
 	}
 }
 
+// Reproduces the reported bug: the model pairs its final confirmation text
+// with a navigate_to call (the system prompt tells it to navigate AND
+// confirm). navigate_to returns a result, so the loop feeds it back and the
+// model keeps re-issuing navigate_to with no new content until the iteration
+// cap is hit. The user already saw a complete answer, but RunChat returns an
+// error -> the client renders a spurious error bubble after the answer.
+func TestRunChat_AnswerWithNavigateDoesNotErrorOnLoopCap(t *testing.T) {
+	const answer = "Die Noten zu Kaiserin Sissi von Timo Dellweg werden angezeigt. Viel Spaß beim Durchsehen! 🎶"
+	navigateChunk := `{"choices":[{"delta":{"content":"` + answer + `","tool_calls":[{"index":0,"id":"call_nav","function":{"name":"navigate_to","arguments":"{\"path\":\"/noteManagement/notes/abc-123\"}"}}]},"finish_reason":"tool_calls"}]}`
+	navigateOnlyChunk := `{"choices":[{"delta":{"tool_calls":[{"index":0,"id":"call_nav","function":{"name":"navigate_to","arguments":"{\"path\":\"/noteManagement/notes/abc-123\"}"}}]},"finish_reason":"tool_calls"}]}`
+
+	var calls int32
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		n := atomic.AddInt32(&calls, 1)
+		w.Header().Set("Content-Type", "text/event-stream")
+		if n == 1 {
+			_, _ = w.Write([]byte(sseFrames(navigateChunk)))
+			return
+		}
+		// The model keeps re-navigating with no further content.
+		_, _ = w.Write([]byte(sseFrames(navigateOnlyChunk)))
+	}))
+	defer srv.Close()
+
+	svc := &AIChatService{
+		AI:         NewAIService(srv.URL, "tok", "test-model"),
+		NoteSearch: stubNoteSearcher{},
+	}
+
+	var tokens strings.Builder
+	final, err := svc.RunChat(context.Background(), "user-1", []ChatMessage{{Role: "user", Content: "Zeig mir Kaiserin Sissi"}}, func(ev ChatEvent) {
+		if ev.Type == "token" {
+			tokens.WriteString(ev.Data["text"].(string))
+		}
+	})
+
+	// The user already received the full answer via token events ...
+	if tokens.String() != answer {
+		t.Fatalf("expected the answer to be streamed, got %q", tokens.String())
+	}
+	// ... so RunChat must surface it as the final text, not an error.
+	if err != nil {
+		t.Fatalf("expected no error after a complete answer was streamed, got %v", err)
+	}
+	if final != answer {
+		t.Errorf("expected final text %q, got %q", answer, final)
+	}
+}
+
 func TestExecuteTool_NavigateWhitelist(t *testing.T) {
 	svc := &AIChatService{}
 
