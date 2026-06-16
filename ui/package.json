@@ -62,7 +62,7 @@
     "selfsigned": "^5.5.0",
     "sharp": "^0.34.5",
     "swagger2openapi": "^7.0.8",
-    "tailwindcss": "^4.3.0",
+    "tailwindcss": "^4.3.1",
     "typescript": "^6.0.3",
     "vitest": "^4.1.8"
   }
