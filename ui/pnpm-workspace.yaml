@@ -10,3 +10,6 @@ onlyBuiltDependencies:
   - esbuild
   - sharp
 minimumReleaseAge: 0
+overrides:
+  # Security fix: js-yaml ReDoS, pinned by transitive deps below patched range
+  js-yaml@^4.0.0: '^4.1.2'
