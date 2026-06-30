@@ -17,7 +17,7 @@
     "@hookform/resolvers": "^5.4.0",
     "@reduxjs/toolkit": "^2.12.0",
     "@rsbuild/core": "^2.0.7",
-    "@rsbuild/plugin-babel": "^1.1.2",
+    "@rsbuild/plugin-babel": "^2.0.0",
     "@rsbuild/plugin-react": "^2.0.1",
     "@tanstack/react-query": "^5.101.0",
     "@tanstack/react-table": "^8.21.3",
