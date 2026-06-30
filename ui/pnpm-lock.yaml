@@ -19,7 +19,7 @@ importers:
         version: 7.3.0
       '@hookform/resolvers':
         specifier: ^5.4.0
-        version: 5.4.0(react-hook-form@7.79.0(react@19.2.6))
+        version: 5.4.0(react-hook-form@7.80.0(react@19.2.6))
       '@reduxjs/toolkit':
         specifier: ^2.12.0
         version: 2.12.0(react-redux@9.3.0(@types/react@19.2.15)(react@19.2.6)(redux@5.0.1))(react@19.2.6)
@@ -90,8 +90,8 @@ importers:
         specifier: ^19.2.6
         version: 19.2.6(react@19.2.6)
       react-hook-form:
-        specifier: ^7.79.0
-        version: 7.79.0(react@19.2.6)
+        specifier: ^7.80.0
+        version: 7.80.0(react@19.2.6)
       react-i18next:
         specifier: ^17.0.8
         version: 17.0.8(i18next@26.3.1(typescript@6.0.3))(react-dom@19.2.6(react@19.2.6))(react@19.2.6)(typescript@6.0.3)
@@ -2010,8 +2010,8 @@ packages:
     peerDependencies:
       react: ^19.2.6
 
-  react-hook-form@7.79.0:
-    resolution: {integrity: sha512-mhYp/MTmXvzYX6AJcJVko0rktoIhhmRnEouObj4wF5i/tCttgJvnp1+9wRkpITZjDTqpo4IOSJqu0dBlPlV/Lw==}
+  react-hook-form@7.80.0:
+    resolution: {integrity: sha512-4P+fk6oXsxY+6xSj7Euhc2sumQD8zQqCuVHoJwoyp9EchP+IUW9OESB7uHFJOKsIBQ4MQqYE84INJFqUCYNoOg==}
     engines: {node: '>=18.0.0'}
     peerDependencies:
       react: ^16.8.0 || ^17 || ^18 || ^19
@@ -2894,10 +2894,10 @@ snapshots:
 
   '@fortawesome/fontawesome-free@7.3.0': {}
 
-  '@hookform/resolvers@5.4.0(react-hook-form@7.79.0(react@19.2.6))':
+  '@hookform/resolvers@5.4.0(react-hook-form@7.80.0(react@19.2.6))':
     dependencies:
       '@standard-schema/utils': 0.3.0
-      react-hook-form: 7.79.0(react@19.2.6)
+      react-hook-form: 7.80.0(react@19.2.6)
 
   '@img/colour@1.1.0': {}
 
@@ -4326,7 +4326,7 @@ snapshots:
       react: 19.2.6
       scheduler: 0.27.0
 
-  react-hook-form@7.79.0(react@19.2.6):
+  react-hook-form@7.80.0(react@19.2.6):
     dependencies:
       react: 19.2.6
 
