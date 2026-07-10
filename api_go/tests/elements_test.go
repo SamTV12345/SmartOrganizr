@@ -272,24 +272,12 @@ func TestDeleteElementNote(t *testing.T) {
 func TestDeleteElementFolder(t *testing.T) {
 	app := SetupTest(t)
 
-	// Deleting a folder that still contains elements fails on the legacy
-	// non-cascading elements_parent_id_fk constraint (pre-existing schema
-	// issue, duplicated by the cascading FK from migration 00010), so this
-	// covers the folder dispatch path with an empty folder.
-	folderPost := builders.CreateParentFolderPostDto()
-	bytesEncoded, _ := json.Marshal(folderPost)
-	request, _ := http.NewRequest("POST", "http://localhost/api/v1/elements/folders", bytes.NewBuffer(bytesEncoded))
-	request.Header.Set("Content-Type", "application/json")
-	response, _ := app.Test(request)
-	if response.StatusCode != http.StatusOK {
-		t.Fatalf("expected 200 creating folder, got %d", response.StatusCode)
-	}
-	readBytes, _ := io.ReadAll(response.Body)
-	var folder dto.Folder
-	encodingHelper.Decode(readBytes, &folder)
-	folderId := folder.Id
+	// A non-empty folder: the contained note must be deleted with it via the
+	// cascading parent FK (the blocking legacy constraint was dropped in
+	// migration 00026).
+	folderId, _ := createNoteFixture(t, app)
 
-	request, _ = http.NewRequest("DELETE", "http://localhost/api/v1/elements/"+folderId, nil)
+	request, _ := http.NewRequest("DELETE", "http://localhost/api/v1/elements/"+folderId, nil)
 	response, err := app.Test(request)
 	if err != nil {
 		t.Fatalf("failed to make request: %v", err)
