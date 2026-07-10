@@ -153,18 +153,20 @@ func (s *AIChatService) RunChat(ctx context.Context, userID string, history []Ch
 	return "", fmt.Errorf("agent loop exceeded %d iterations", maxAgentIterations)
 }
 
+type streamToolCallDelta struct {
+	Index    int    `json:"index"`
+	ID       string `json:"id"`
+	Function struct {
+		Name      string `json:"name"`
+		Arguments string `json:"arguments"`
+	} `json:"function"`
+}
+
 type streamChunk struct {
 	Choices []struct {
 		Delta struct {
-			Content   string `json:"content"`
-			ToolCalls []struct {
-				Index    int    `json:"index"`
-				ID       string `json:"id"`
-				Function struct {
-					Name      string `json:"name"`
-					Arguments string `json:"arguments"`
-				} `json:"function"`
-			} `json:"tool_calls"`
+			Content   string                `json:"content"`
+			ToolCalls []streamToolCallDelta `json:"tool_calls"`
 		} `json:"delta"`
 		FinishReason *string `json:"finish_reason"`
 	} `json:"choices"`
@@ -174,26 +176,10 @@ type streamChunk struct {
 // deltas are forwarded as token events; tool-call deltas are accumulated
 // (providers may split the JSON arguments across chunks) and returned.
 func (s *AIChatService) streamCompletion(ctx context.Context, messages []ChatMessage, emit func(ChatEvent)) (string, []toolCall, error) {
-	payload := map[string]any{
-		"model":       s.AI.Model,
-		"messages":    messages,
-		"tools":       chatTools,
-		"tool_choice": "auto",
-		"temperature": 0.2,
-		"stream":      true,
-	}
-	buf, err := json.Marshal(payload)
+	req, err := s.buildChatRequest(ctx, messages)
 	if err != nil {
 		return "", nil, err
 	}
-	req, err := http.NewRequestWithContext(ctx, "POST", s.AI.BaseURL+"/chat/completions", bytes.NewReader(buf))
-	if err != nil {
-		return "", nil, err
-	}
-	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("Authorization", "Bearer "+s.AI.Token)
-	req.Header.Set("Accept", "text/event-stream")
-
 	resp, err := chatStreamClient.Do(req)
 	if err != nil {
 		return "", nil, err
@@ -204,10 +190,36 @@ func (s *AIChatService) streamCompletion(ctx context.Context, messages []ChatMes
 		log.Printf("ai chat POST %s -> %d: %.500s", s.AI.BaseURL+"/chat/completions", resp.StatusCode, string(body))
 		return "", nil, fmt.Errorf("AI provider returned %d", resp.StatusCode)
 	}
+	return consumeChatStream(resp.Body, emit)
+}
 
+func (s *AIChatService) buildChatRequest(ctx context.Context, messages []ChatMessage) (*http.Request, error) {
+	payload := map[string]any{
+		"model":       s.AI.Model,
+		"messages":    messages,
+		"tools":       chatTools,
+		"tool_choice": "auto",
+		"temperature": 0.2,
+		"stream":      true,
+	}
+	buf, err := json.Marshal(payload)
+	if err != nil {
+		return nil, err
+	}
+	req, err := http.NewRequestWithContext(ctx, "POST", s.AI.BaseURL+"/chat/completions", bytes.NewReader(buf))
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", "Bearer "+s.AI.Token)
+	req.Header.Set("Accept", "text/event-stream")
+	return req, nil
+}
+
+func consumeChatStream(body io.Reader, emit func(ChatEvent)) (string, []toolCall, error) {
 	var text strings.Builder
 	calls := map[int]*toolCall{}
-	scanner := bufio.NewScanner(resp.Body)
+	scanner := bufio.NewScanner(body)
 	scanner.Buffer(make([]byte, 0, 64*1024), 1024*1024)
 	for scanner.Scan() {
 		line := strings.TrimSpace(scanner.Text())
@@ -227,25 +239,32 @@ func (s *AIChatService) streamCompletion(ctx context.Context, messages []ChatMes
 			text.WriteString(delta.Content)
 			emit(ChatEvent{Type: "token", Data: map[string]any{"text": delta.Content}})
 		}
-		for _, tc := range delta.ToolCalls {
-			existing, ok := calls[tc.Index]
-			if !ok {
-				existing = &toolCall{Type: "function"}
-				calls[tc.Index] = existing
-			}
-			if tc.ID != "" {
-				existing.ID = tc.ID
-			}
-			if tc.Function.Name != "" {
-				existing.Function.Name = tc.Function.Name
-			}
-			existing.Function.Arguments += tc.Function.Arguments
-		}
+		applyToolCallDeltas(calls, delta.ToolCalls)
 	}
 	if err := scanner.Err(); err != nil {
 		return "", nil, err
 	}
+	return text.String(), orderedToolCalls(calls), nil
+}
 
+func applyToolCallDeltas(calls map[int]*toolCall, deltas []streamToolCallDelta) {
+	for _, tc := range deltas {
+		existing, ok := calls[tc.Index]
+		if !ok {
+			existing = &toolCall{Type: "function"}
+			calls[tc.Index] = existing
+		}
+		if tc.ID != "" {
+			existing.ID = tc.ID
+		}
+		if tc.Function.Name != "" {
+			existing.Function.Name = tc.Function.Name
+		}
+		existing.Function.Arguments += tc.Function.Arguments
+	}
+}
+
+func orderedToolCalls(calls map[int]*toolCall) []toolCall {
 	indexes := make([]int, 0, len(calls))
 	for i := range calls {
 		indexes = append(indexes, i)
@@ -255,7 +274,7 @@ func (s *AIChatService) streamCompletion(ctx context.Context, messages []ChatMes
 	for _, i := range indexes {
 		ordered = append(ordered, *calls[i])
 	}
-	return text.String(), ordered, nil
+	return ordered
 }
 
 // executeTool runs one tool call and returns the JSON string handed back
@@ -264,49 +283,55 @@ func (s *AIChatService) streamCompletion(ctx context.Context, messages []ChatMes
 func (s *AIChatService) executeTool(userID string, call toolCall, emit func(ChatEvent)) string {
 	switch call.Function.Name {
 	case "search_notes":
-		var args struct {
-			Query string `json:"query"`
-		}
-		if err := json.Unmarshal([]byte(call.Function.Arguments), &args); err != nil || strings.TrimSpace(args.Query) == "" {
-			return `{"error":"invalid arguments, expected {\"query\": string}"}`
-		}
-		emit(ChatEvent{Type: "tool", Data: map[string]any{"status": args.Query}})
-		notes, _, err := s.NoteSearch.LoadAllNotes(userID, nil, &args.Query)
-		if err != nil {
-			log.Printf("ai chat: search_notes failed: %v", err)
-			return `{"error":"search failed"}`
-		}
-		type hit struct {
-			ID       string `json:"id"`
-			Title    string `json:"title"`
-			Composer string `json:"composer,omitempty"`
-			Folder   string `json:"folder,omitempty"`
-		}
-		hits := make([]hit, 0, maxSearchResults)
-		for _, n := range notes {
-			if len(hits) == maxSearchResults {
-				break
-			}
-			h := hit{ID: n.Id, Title: n.Name, Composer: n.Author.Name}
-			if n.Parent != nil {
-				h.Folder = n.Parent.Name
-			}
-			hits = append(hits, h)
-		}
-		out, _ := json.Marshal(map[string]any{"results": hits, "total": len(notes)})
-		return string(out)
-
+		return s.execSearchNotes(userID, call.Function.Arguments, emit)
 	case "navigate_to":
-		var args struct {
-			Path string `json:"path"`
-		}
-		if err := json.Unmarshal([]byte(call.Function.Arguments), &args); err != nil || !noteDetailPathRE.MatchString(args.Path) {
-			return `{"error":"path not allowed; only /noteManagement/notes/<id> is permitted"}`
-		}
-		emit(ChatEvent{Type: "navigate", Data: map[string]any{"path": args.Path}})
-		return `{"ok":"navigation triggered"}`
-
+		return execNavigateTo(call.Function.Arguments, emit)
 	default:
 		return `{"error":"unknown tool"}`
 	}
+}
+
+func (s *AIChatService) execSearchNotes(userID string, rawArgs string, emit func(ChatEvent)) string {
+	var args struct {
+		Query string `json:"query"`
+	}
+	if err := json.Unmarshal([]byte(rawArgs), &args); err != nil || strings.TrimSpace(args.Query) == "" {
+		return `{"error":"invalid arguments, expected {\"query\": string}"}`
+	}
+	emit(ChatEvent{Type: "tool", Data: map[string]any{"status": args.Query}})
+	notes, _, err := s.NoteSearch.LoadAllNotes(userID, nil, &args.Query)
+	if err != nil {
+		log.Printf("ai chat: search_notes failed: %v", err)
+		return `{"error":"search failed"}`
+	}
+	type hit struct {
+		ID       string `json:"id"`
+		Title    string `json:"title"`
+		Composer string `json:"composer,omitempty"`
+		Folder   string `json:"folder,omitempty"`
+	}
+	hits := make([]hit, 0, maxSearchResults)
+	for _, n := range notes {
+		if len(hits) == maxSearchResults {
+			break
+		}
+		h := hit{ID: n.Id, Title: n.Name, Composer: n.Author.Name}
+		if n.Parent != nil {
+			h.Folder = n.Parent.Name
+		}
+		hits = append(hits, h)
+	}
+	out, _ := json.Marshal(map[string]any{"results": hits, "total": len(notes)})
+	return string(out)
+}
+
+func execNavigateTo(rawArgs string, emit func(ChatEvent)) string {
+	var args struct {
+		Path string `json:"path"`
+	}
+	if err := json.Unmarshal([]byte(rawArgs), &args); err != nil || !noteDetailPathRE.MatchString(args.Path) {
+		return `{"error":"path not allowed; only /noteManagement/notes/<id> is permitted"}`
+	}
+	emit(ChatEvent{Type: "navigate", Data: map[string]any{"path": args.Path}})
+	return `{"ok":"navigation triggered"}`
 }
