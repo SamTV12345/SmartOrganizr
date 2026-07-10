@@ -46,10 +46,6 @@ type AppConfigAI struct {
 	Model   string
 }
 
-func (c AppConfigDatabase) GetDSN() string {
-	return c.User + ":" + c.Password + "@tcp(" + c.Host + ":" + string(rune(c.Port)) + ")/smartorganizr"
-}
-
 type AppConfig struct {
 	Database AppConfigDatabase
 	Port     int
