@@ -171,7 +171,7 @@ SELECT * FROM elements WHERE parent IS NULL AND type = 'folder' AND user_id_fk =
 INSERT INTO elements (id, type, name, description, user_id_fk, parent) VALUES (?,'folder', ?, ?, ?, ?);
 
 -- name: CreateNote :execlastid
-INSERT INTO elements (id, type, name, description, user_id_fk, parent, composer_id_fk, number_of_pages, pdf_content) VALUES (?,'note', ?, ?, ?, ?, ?, ?, ?);
+INSERT INTO elements (id, type, name, description, user_id_fk, parent, composer_id_fk, arranger_id_fk, number_of_pages, pdf_content) VALUES (?,'note', ?, ?, ?, ?, ?, ?, ?, ?);
 
 -- name: FindFolderById :one
 SELECT * FROM elements WHERE id = ? and user_id_fk = ?;
@@ -190,7 +190,7 @@ SELECT COUNT(*) FROM elements WHERE name LIKE CONCAT('%', ?, '%') and type = 'fo
 DELETE FROM elements WHERE id = ? AND user_id_fk = ?;
 
 -- name: UpdateNote :exec
-UPDATE elements SET name = ?, description = ?, composer_id_fk = ?, number_of_pages = ?, pdf_content = ? WHERE id = ?;
+UPDATE elements SET name = ?, description = ?, composer_id_fk = ?, arranger_id_fk = ?, number_of_pages = ?, pdf_content = ? WHERE id = ?;
 
 -- name: UpdateFolder :exec
 UPDATE elements SET name=?, description = ?, parent = ? WHERE id = ? and user_id_fk = ?;

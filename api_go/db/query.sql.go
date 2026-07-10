@@ -535,7 +535,7 @@ func (q *Queries) CreateMemberInClub(ctx context.Context, arg CreateMemberInClub
 }
 
 const createNote = `-- name: CreateNote :execlastid
-INSERT INTO elements (id, type, name, description, user_id_fk, parent, composer_id_fk, number_of_pages, pdf_content) VALUES (?,'note', ?, ?, ?, ?, ?, ?, ?)
+INSERT INTO elements (id, type, name, description, user_id_fk, parent, composer_id_fk, arranger_id_fk, number_of_pages, pdf_content) VALUES (?,'note', ?, ?, ?, ?, ?, ?, ?, ?)
 `
 
 type CreateNoteParams struct {
@@ -545,6 +545,7 @@ type CreateNoteParams struct {
 	UserIDFk      sql.NullString
 	Parent        sql.NullString
 	ComposerIDFk  sql.NullString
+	ArrangerIDFk  sql.NullString
 	NumberOfPages sql.NullInt32
 	PdfContent    sql.NullString
 }
@@ -557,6 +558,7 @@ func (q *Queries) CreateNote(ctx context.Context, arg CreateNoteParams) (int64, 
 		arg.UserIDFk,
 		arg.Parent,
 		arg.ComposerIDFk,
+		arg.ArrangerIDFk,
 		arg.NumberOfPages,
 		arg.PdfContent,
 	)
@@ -3693,13 +3695,14 @@ func (q *Queries) UpdateLastSyncOfIcal(ctx context.Context, arg UpdateLastSyncOf
 }
 
 const updateNote = `-- name: UpdateNote :exec
-UPDATE elements SET name = ?, description = ?, composer_id_fk = ?, number_of_pages = ?, pdf_content = ? WHERE id = ?
+UPDATE elements SET name = ?, description = ?, composer_id_fk = ?, arranger_id_fk = ?, number_of_pages = ?, pdf_content = ? WHERE id = ?
 `
 
 type UpdateNoteParams struct {
 	Name          sql.NullString
 	Description   sql.NullString
 	ComposerIDFk  sql.NullString
+	ArrangerIDFk  sql.NullString
 	NumberOfPages sql.NullInt32
 	PdfContent    sql.NullString
 	ID            string
@@ -3710,6 +3713,7 @@ func (q *Queries) UpdateNote(ctx context.Context, arg UpdateNoteParams) error {
 		arg.Name,
 		arg.Description,
 		arg.ComposerIDFk,
+		arg.ArrangerIDFk,
 		arg.NumberOfPages,
 		arg.PdfContent,
 		arg.ID,

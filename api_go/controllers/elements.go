@@ -339,6 +339,24 @@ func UpdateNote(c fiber.Ctx) error {
 	note.NumberOfPages = notePostDto.NumberOfPages
 	note.Name = notePostDto.Name
 
+	var authorService = GetLocal[service.AuthorService](c, constants.AuthorService)
+	if notePostDto.AuthorId != "" && notePostDto.AuthorId != note.Author.ID {
+		author, errAuthor := authorService.LoadAuthorById(notePostDto.AuthorId, userId)
+		if errAuthor != nil {
+			return fiber.NewError(fiber.StatusBadRequest, "composer not found")
+		}
+		note.Author = author
+	}
+	if notePostDto.ArrangerId == "" {
+		note.Arranger = nil
+	} else if note.Arranger == nil || note.Arranger.ID != notePostDto.ArrangerId {
+		arranger, errArranger := authorService.LoadAuthorById(notePostDto.ArrangerId, userId)
+		if errArranger != nil {
+			return fiber.NewError(fiber.StatusBadRequest, "arranger not found")
+		}
+		note.Arranger = &arranger
+	}
+
 	var updatedNote, errUpdate = noteService.UpdateNote(userId, note)
 	if errUpdate != nil {
 		log.Errorf("UpdateNote failed for note %q user %q: %v", noteId, userId, errUpdate)
