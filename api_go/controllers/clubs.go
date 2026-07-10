@@ -488,19 +488,12 @@ func canManageEvents(role models.ClubRole) bool {
 
 func buildPermissionsDto(role models.ClubRole) dto.ClubPermissionsDto {
 	sectionWrite := map[string]bool{
-		"pinnwand":       canWriteSection(role, "pinnwand"),
-		"nachrichten":    canWriteSection(role, "nachrichten"),
-		"aufgaben":       canWriteSection(role, "aufgaben"),
-		"dateien":        canWriteSection(role, "dateien"),
-		"register":       canWriteSection(role, "register"),
-		"gruppen":        canWriteSection(role, "gruppen"),
-		"mitglieder":     canWriteSection(role, "mitglieder"),
-		"rollen":         canWriteSection(role, "rollen"),
-		"raeume":         canWriteSection(role, "raeume"),
-		"musikstuecke":   canWriteSection(role, "musikstuecke"),
-		"setlists":       canWriteSection(role, "setlists"),
-		"terminvorlagen": canWriteSection(role, "terminvorlagen"),
-		"bearbeiten":     canWriteSection(role, "bearbeiten"),
+		"pinnwand":    canWriteSection(role, "pinnwand"),
+		"nachrichten": canWriteSection(role, "nachrichten"),
+		"dateien":     canWriteSection(role, "dateien"),
+		"mitglieder":  canWriteSection(role, "mitglieder"),
+		"rollen":      canWriteSection(role, "rollen"),
+		"bearbeiten":  canWriteSection(role, "bearbeiten"),
 	}
 
 	return dto.ClubPermissionsDto{

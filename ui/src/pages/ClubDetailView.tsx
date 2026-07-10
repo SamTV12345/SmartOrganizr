@@ -4,17 +4,11 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { http as axios } from "@/src/api/client";
 import {
     CalendarDays,
-    CalendarRange,
     ChevronLeft,
-    ClipboardCheck,
-    DoorOpen,
     Download,
     FolderKanban,
     LayoutDashboard,
-    ListMusic,
     MessagesSquare,
-    Music2,
-    NotebookTabs,
     PencilLine,
     Settings,
     Upload,
@@ -41,10 +35,7 @@ import { ClubSettingsForm } from "@/src/components/club/ClubSettingsForm";
 type ClubSection = {
     id: string;
     label: string;
-    description: string;
     icon: FC<{ className?: string }>;
-    primaryAction: string;
-    secondaryAction: string;
 };
 
 type InviteResult = {
@@ -62,20 +53,13 @@ const ROLE_OPTIONS = [
 ];
 
 const CLUB_SECTIONS: ClubSection[] = [
-    { id: "pinnwand", label: "Pinnwand", description: "Neuigkeiten und Hinweise.", icon: LayoutDashboard, primaryAction: "Beitrag erstellen", secondaryAction: "Beiträge filtern" },
-    { id: "termine", label: "Termine", description: "Vereinstermine verwalten und Anwesenheit prüfen.", icon: CalendarDays, primaryAction: "Termin erstellen", secondaryAction: "Termine anzeigen" },
-    { id: "nachrichten", label: "Nachrichten", description: "Direkte Kommunikation im Verein.", icon: MessagesSquare, primaryAction: "Nachricht verfassen", secondaryAction: "Posteingang öffnen" },
-    { id: "aufgaben", label: "Aufgaben", description: "Aufgaben zu Proben, Auftritten und Orga.", icon: ClipboardCheck, primaryAction: "Aufgabe anlegen", secondaryAction: "Offene Aufgaben anzeigen" },
-    { id: "dateien", label: "Dateien", description: "Ablage für Dokumente und Unterlagen.", icon: FolderKanban, primaryAction: "Datei hochladen", secondaryAction: "Ordnerstruktur öffnen" },
-    { id: "register", label: "Register", description: "Instrumenten- und Stimmenbereiche verwalten.", icon: NotebookTabs, primaryAction: "Register anlegen", secondaryAction: "Registerliste anzeigen" },
-    { id: "gruppen", label: "Gruppen", description: "Untergruppen und Teams organisieren.", icon: Users2, primaryAction: "Gruppe erstellen", secondaryAction: "Mitglieder zuweisen" },
-    { id: "mitglieder", label: "Mitglieder", description: "Mitgliederliste, Einladungen und CSV-Import/Export.", icon: Users2, primaryAction: "Mitglied einladen", secondaryAction: "CSV exportieren" },
-    { id: "rollen", label: "Rollen", description: "Berechtigungen für Leitung und Mitglieder steuern.", icon: UserRoundCog, primaryAction: "Rolle vergeben", secondaryAction: "Rechte prüfen" },
-    { id: "raeume", label: "Räume", description: "Proberäume und Orte planen.", icon: DoorOpen, primaryAction: "Raum anlegen", secondaryAction: "Belegung anzeigen" },
-    { id: "musikstuecke", label: "Musikstücke", description: "Repertoire und Stückinfos verwalten.", icon: Music2, primaryAction: "Stück hinzufügen", secondaryAction: "Repertoire ansehen" },
-    { id: "setlists", label: "Setlists", description: "Abläufe für Auftritte vorbereiten.", icon: ListMusic, primaryAction: "Setlist erstellen", secondaryAction: "Setlists vergleichen" },
-    { id: "terminvorlagen", label: "Terminvorlagen", description: "Wiederkehrende Termine als Vorlage.", icon: CalendarRange, primaryAction: "Vorlage erstellen", secondaryAction: "Vorlagen verwalten" },
-    { id: "bearbeiten", label: "Bearbeiten", description: "Vereinsdaten und Einstellungen anpassen.", icon: PencilLine, primaryAction: "Verein bearbeiten", secondaryAction: "Einstellungen öffnen" },
+    { id: "pinnwand", label: "Pinnwand", icon: LayoutDashboard },
+    { id: "termine", label: "Termine", icon: CalendarDays },
+    { id: "nachrichten", label: "Nachrichten", icon: MessagesSquare },
+    { id: "dateien", label: "Dateien", icon: FolderKanban },
+    { id: "mitglieder", label: "Mitglieder", icon: Users2 },
+    { id: "rollen", label: "Rollen", icon: UserRoundCog },
+    { id: "bearbeiten", label: "Bearbeiten", icon: PencilLine },
 ];
 
 const getInitials = (name: string) =>
@@ -221,7 +205,7 @@ export const ClubDetailView: FC = () => {
                             variant="secondary"
                             size="sm"
                             className="bg-white/15 text-white hover:bg-white/25 hover:text-white"
-                            onClick={() => navigate("/welcome")}
+                            onClick={() => navigate("/dashboard")}
                         >
                             <ChevronLeft className="size-4" />
                             Zurück
@@ -323,23 +307,6 @@ export const ClubDetailView: FC = () => {
                         permissions?.can_manage_roles
                             ? <ClubSettingsForm club={club} />
                             : <p className="text-sm text-muted-foreground">Nur die Vereinsleitung kann Einstellungen bearbeiten.</p>
-                    )}
-
-                    {activeSection.id !== "rollen" && activeSection.id !== "mitglieder" && activeSection.id !== "nachrichten" && activeSection.id !== "pinnwand" && activeSection.id !== "dateien" && activeSection.id !== "termine" && activeSection.id !== "bearbeiten" && (
-                        <Card className="border-dashed">
-                            <CardHeader>
-                                <CardTitle className="flex items-center gap-2 text-xl">
-                                    <activeSection.icon className="size-5 text-accentDark" />
-                                    {activeSection.label}
-                                </CardTitle>
-                                <CardDescription>{activeSection.description}</CardDescription>
-                            </CardHeader>
-                            <CardContent className="flex flex-wrap gap-3">
-                                <Button disabled={!sectionWritable}>{activeSection.primaryAction}</Button>
-                                <Button variant="outline">{activeSection.secondaryAction}</Button>
-                                {!sectionWritable && <p className="w-full text-sm text-muted-foreground">Deine Rolle hat hier nur Leserechte.</p>}
-                            </CardContent>
-                        </Card>
                     )}
 
                     {activeSection.id === "mitglieder" && (

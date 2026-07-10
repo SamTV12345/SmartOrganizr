@@ -675,6 +675,8 @@ definitions:
     type: object
   dto.KeycloakModel:
     properties:
+      aiEnabled:
+        type: boolean
       clientId:
         type: string
       realm:
