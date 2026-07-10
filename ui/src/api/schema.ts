@@ -1628,7 +1628,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** List concerts for the current user */
+        /** List concerts for the current user (without their note program) */
         get: {
             parameters: {
                 query?: never;
@@ -1647,21 +1647,10 @@ export interface paths {
                         "application/json": components["schemas"]["dto.ConcertDto"][];
                     };
                 };
-                /** @description Internal Server Error */
-                500: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            [key: string]: string;
-                        };
-                    };
-                };
             };
         };
         put?: never;
-        /** Create a new concert */
+        /** Create a new concert, optionally with an ordered list of note ids */
         post: {
             parameters: {
                 query?: never;
@@ -1685,28 +1674,6 @@ export interface paths {
                         "application/json": components["schemas"]["dto.ConcertDto"];
                     };
                 };
-                /** @description Bad Request */
-                400: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            [key: string]: string;
-                        };
-                    };
-                };
-                /** @description Internal Server Error */
-                500: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            [key: string]: string;
-                        };
-                    };
-                };
             };
         };
         delete?: never;
@@ -1722,7 +1689,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get a single concert */
+        /** Get a single concert including its ordered note program */
         get: {
             parameters: {
                 query?: never;
@@ -1744,20 +1711,37 @@ export interface paths {
                         "application/json": components["schemas"]["dto.ConcertDto"];
                     };
                 };
-                /** @description Internal Server Error */
-                500: {
+            };
+        };
+        /** Update a concert and replace its ordered note program */
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Concert ID */
+                    concertId: string;
+                };
+                cookie?: never;
+            };
+            /** @description Concert payload incl. the complete ordered note id list */
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["dto.ConcertPostDto"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
                     headers: {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            [key: string]: string;
-                        };
+                        "application/json": components["schemas"]["dto.ConcertDto"];
                     };
                 };
             };
         };
-        put?: never;
         post?: never;
         /** Delete a concert */
         delete: {
@@ -1778,17 +1762,6 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content?: never;
-                };
-                /** @description Internal Server Error */
-                500: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "*/*": {
-                            [key: string]: string;
-                        };
-                    };
                 };
             };
         };
@@ -3300,7 +3273,11 @@ export interface components {
             hints: string;
             id: string;
             location: string;
-            noteInConcerts: components["schemas"]["dto.NoteInConcertDto"][];
+            /**
+             * @description NoteInConcerts is only populated on single-concert responses; the list
+             *     endpoint stays lean and omits it.
+             */
+            noteInConcerts?: components["schemas"]["dto.NoteInConcertDto"][];
             title: string;
         };
         "dto.ConcertPostDto": {
@@ -3308,6 +3285,8 @@ export interface components {
             dueDate: string;
             hints: string;
             location: string;
+            /** @description NoteIds is the complete ordered program of the concert (replace semantics). */
+            noteIds?: string[];
             title: string;
         };
         "dto.Event": {
@@ -3348,6 +3327,7 @@ export interface components {
             url: string;
         };
         "dto.KeycloakModel": {
+            aiEnabled?: boolean;
             clientId: string;
             realm: string;
             url: string;

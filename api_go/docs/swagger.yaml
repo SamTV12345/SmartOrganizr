@@ -550,6 +550,9 @@ definitions:
       location:
         type: string
       noteInConcerts:
+        description: |-
+          NoteInConcerts is only populated on single-concert responses; the list
+          endpoint stays lean and omits it.
         items:
           $ref: '#/definitions/dto.NoteInConcertDto'
         type: array
@@ -561,7 +564,6 @@ definitions:
     - hints
     - id
     - location
-    - noteInConcerts
     - title
     type: object
   dto.ConcertPostDto:
@@ -574,6 +576,12 @@ definitions:
         type: string
       location:
         type: string
+      noteIds:
+        description: NoteIds is the complete ordered program of the concert (replace
+          semantics).
+        items:
+          type: string
+        type: array
       title:
         type: string
     required:
@@ -675,6 +683,8 @@ definitions:
     type: object
   dto.KeycloakModel:
     properties:
+      aiEnabled:
+        type: boolean
       clientId:
         type: string
       realm:
@@ -2042,13 +2052,7 @@ paths:
             items:
               $ref: '#/definitions/dto.ConcertDto'
             type: array
-        "500":
-          description: Internal Server Error
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-      summary: List concerts for the current user
+      summary: List concerts for the current user (without their note program)
       tags:
       - concerts
     post:
@@ -2068,19 +2072,7 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/dto.ConcertDto'
-        "400":
-          description: Bad Request
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "500":
-          description: Internal Server Error
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-      summary: Create a new concert
+      summary: Create a new concert, optionally with an ordered list of note ids
       tags:
       - concerts
   /v1/concerts/{concertId}:
@@ -2094,12 +2086,6 @@ paths:
       responses:
         "204":
           description: No Content
-        "500":
-          description: Internal Server Error
-          schema:
-            additionalProperties:
-              type: string
-            type: object
       summary: Delete a concert
       tags:
       - concerts
@@ -2117,13 +2103,32 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/dto.ConcertDto'
-        "500":
-          description: Internal Server Error
+      summary: Get a single concert including its ordered note program
+      tags:
+      - concerts
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: Concert ID
+        in: path
+        name: concertId
+        required: true
+        type: string
+      - description: Concert payload incl. the complete ordered note id list
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.ConcertPostDto'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
           schema:
-            additionalProperties:
-              type: string
-            type: object
-      summary: Get a single concert
+            $ref: '#/definitions/dto.ConcertDto'
+      summary: Update a concert and replace its ordered note program
       tags:
       - concerts
   /v1/elements/{elementid}:

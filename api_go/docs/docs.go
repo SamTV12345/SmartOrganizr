@@ -1475,7 +1475,7 @@ const docTemplate = `{
                 "tags": [
                     "concerts"
                 ],
-                "summary": "List concerts for the current user",
+                "summary": "List concerts for the current user (without their note program)",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -1483,15 +1483,6 @@ const docTemplate = `{
                             "type": "array",
                             "items": {
                                 "$ref": "#/definitions/dto.ConcertDto"
-                            }
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
                             }
                         }
                     }
@@ -1507,7 +1498,7 @@ const docTemplate = `{
                 "tags": [
                     "concerts"
                 ],
-                "summary": "Create a new concert",
+                "summary": "Create a new concert, optionally with an ordered list of note ids",
                 "parameters": [
                     {
                         "description": "Concert payload",
@@ -1525,24 +1516,6 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/dto.ConcertDto"
                         }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
                     }
                 }
             }
@@ -1555,7 +1528,7 @@ const docTemplate = `{
                 "tags": [
                     "concerts"
                 ],
-                "summary": "Get a single concert",
+                "summary": "Get a single concert including its ordered note program",
                 "parameters": [
                     {
                         "type": "string",
@@ -1571,14 +1544,43 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/dto.ConcertDto"
                         }
+                    }
+                }
+            },
+            "put": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "concerts"
+                ],
+                "summary": "Update a concert and replace its ordered note program",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Concert ID",
+                        "name": "concertId",
+                        "in": "path",
+                        "required": true
                     },
-                    "500": {
-                        "description": "Internal Server Error",
+                    {
+                        "description": "Concert payload incl. the complete ordered note id list",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/dto.ConcertPostDto"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ConcertDto"
                         }
                     }
                 }
@@ -1600,15 +1602,6 @@ const docTemplate = `{
                 "responses": {
                     "204": {
                         "description": "No Content"
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
                     }
                 }
             }
@@ -3405,7 +3398,6 @@ const docTemplate = `{
                 "hints",
                 "id",
                 "location",
-                "noteInConcerts",
                 "title"
             ],
             "properties": {
@@ -3425,6 +3417,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "noteInConcerts": {
+                    "description": "NoteInConcerts is only populated on single-concert responses; the list\nendpoint stays lean and omits it.",
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/dto.NoteInConcertDto"
@@ -3456,6 +3449,13 @@ const docTemplate = `{
                 },
                 "location": {
                     "type": "string"
+                },
+                "noteIds": {
+                    "description": "NoteIds is the complete ordered program of the concert (replace semantics).",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
                 },
                 "title": {
                     "type": "string"
@@ -3602,6 +3602,9 @@ const docTemplate = `{
                 "url"
             ],
             "properties": {
+                "aiEnabled": {
+                    "type": "boolean"
+                },
                 "clientId": {
                     "type": "string"
                 },

@@ -145,6 +145,12 @@ SELECT * FROM concert WHERE user_id_fk = ? ORDER BY due_date DESC;
 -- name: FindAllNotesInConcertByPlace :many
 SELECT * FROM note_in_concert WHERE concert_id_fk = ? ORDER BY place_in_concert;
 
+-- name: CreateNoteInConcert :exec
+INSERT INTO note_in_concert (concert_id_fk, note_id_fk, place_in_concert) VALUES (?, ?, ?);
+
+-- name: UpdateConcert :exec
+UPDATE concert SET title = ?, description = ?, location = ?, due_date = ?, hints = ? WHERE id = ? AND user_id_fk = ?;
+
 -- name: DeleteNoteInConcert :exec
 DELETE FROM note_in_concert WHERE concert_id_fk = ? AND note_id_fk = ?;
 
