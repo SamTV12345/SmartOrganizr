@@ -1,7 +1,8 @@
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { $api } from "@/src/api/client";
-import { ArrowLeft, ChevronLeft, ChevronRight, FileMusic, Loader2 } from "lucide-react";
+import { $api, authFetch } from "@/src/api/client";
+import { apiURL } from "@/src/Keycloak";
+import { ArrowLeft, ChevronLeft, ChevronRight, Download, Eye, FileMusic, FileText, Loader2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 import { NoteDetail } from "@/src/models/NoteDetail";
@@ -32,6 +33,63 @@ export const NoteDetailView = () => {
     const currentNote = data?.currentNote;
     const previousNote = data?.previousNote;
     const nextNote = data?.nextNote;
+
+    const [pdfUrl, setPdfUrl] = useState<string>();
+    const [showPdf, setShowPdf] = useState(false);
+    const [pdfLoading, setPdfLoading] = useState(false);
+    const [pdfError, setPdfError] = useState(false);
+
+    // Reset the viewer when navigating to another note; release the object URL.
+    useEffect(() => {
+        setShowPdf(false);
+        setPdfError(false);
+        setPdfUrl((old) => {
+            if (old) URL.revokeObjectURL(old);
+            return undefined;
+        });
+    }, [id]);
+
+    const loadPdf = async (): Promise<string | undefined> => {
+        if (pdfUrl) return pdfUrl;
+        if (!id) return undefined;
+        setPdfLoading(true);
+        setPdfError(false);
+        try {
+            const response = await authFetch(`${apiURL}/v1/elements/${id}/pdf`);
+            if (!response.ok) throw new Error(`status ${response.status}`);
+            let blob = await response.blob();
+            // Uploads store the PDF as a base64 data URL — convert it back to binary.
+            if ((await blob.slice(0, 5).text()) === "data:") {
+                blob = await (await fetch(await blob.text())).blob();
+            }
+            const url = URL.createObjectURL(new Blob([blob], { type: "application/pdf" }));
+            setPdfUrl(url);
+            return url;
+        } catch {
+            setPdfError(true);
+            return undefined;
+        } finally {
+            setPdfLoading(false);
+        }
+    };
+
+    const onTogglePdf = async () => {
+        if (showPdf) {
+            setShowPdf(false);
+            return;
+        }
+        const url = await loadPdf();
+        if (url) setShowPdf(true);
+    };
+
+    const onDownloadPdf = async () => {
+        const url = await loadPdf();
+        if (!url) return;
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = `${currentNote?.name ?? "note"}.pdf`;
+        link.click();
+    };
 
     const metaItems = useMemo(
         () => [
@@ -136,6 +194,41 @@ export const NoteDetailView = () => {
                     </CardContent>
                 </Card>
             </div>
+
+            {currentNote.pdfAvailable && (
+                <Card>
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-2">
+                            <FileText className="size-5 text-primary" />
+                            PDF
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                        <div className="flex flex-wrap gap-3">
+                            <Button onClick={onTogglePdf} disabled={pdfLoading}>
+                                {pdfLoading ? (
+                                    <Loader2 className="mr-2 size-4 animate-spin" />
+                                ) : (
+                                    <Eye className="mr-2 size-4" />
+                                )}
+                                {showPdf ? t("hide-pdf") : t("show-pdf")}
+                            </Button>
+                            <Button variant="outline" onClick={onDownloadPdf} disabled={pdfLoading}>
+                                <Download className="mr-2 size-4" />
+                                {t("download-pdf")}
+                            </Button>
+                        </div>
+                        {pdfError && <p className="text-sm text-red-500">{t("pdf-load-failed")}</p>}
+                        {showPdf && pdfUrl && (
+                            <iframe
+                                src={pdfUrl}
+                                title={currentNote.name}
+                                className="h-[75vh] w-full rounded-lg border"
+                            />
+                        )}
+                    </CardContent>
+                </Card>
+            )}
         </main>
     );
 };
