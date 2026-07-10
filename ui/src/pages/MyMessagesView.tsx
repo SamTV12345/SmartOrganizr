@@ -1,4 +1,5 @@
 import { FC, useEffect, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useSearchParams } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { http as axios } from "@/src/api/client";
@@ -14,6 +15,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 
 export const MyMessagesView: FC = () => {
+    const { t } = useTranslation();
     const user = useKeycloak();
     const queryClient = useQueryClient();
     const [searchParams, setSearchParams] = useSearchParams();
@@ -156,7 +158,7 @@ export const MyMessagesView: FC = () => {
                     </div>
                     {!messagingAllowed && selectedClub && (
                         <p className="rounded-md border bg-muted/40 p-3 text-sm text-muted-foreground">
-                            In diesem Verein ist `members_can_send_messages` deaktiviert.
+                            {t("messaging-disabled")}
                         </p>
                     )}
                 </CardContent>

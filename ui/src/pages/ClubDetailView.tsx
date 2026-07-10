@@ -324,7 +324,7 @@ export const ClubDetailView: FC = () => {
                                 </Button>
                                 {!club.members_can_send_messages && (
                                     <p className="w-full text-sm text-muted-foreground">
-                                        In diesem Verein ist `members_can_send_messages` deaktiviert.
+                                        {t("messaging-disabled")}
                                     </p>
                                 )}
                             </CardContent>

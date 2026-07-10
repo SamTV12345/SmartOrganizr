@@ -40,7 +40,7 @@ const SidebarContent = ({ onNavigate }: { onNavigate?: () => void }) => {
             <div className="flex-1 overflow-y-auto px-2 py-3">
                 <ul className="space-y-1">
                     <SidebarHeading>{t("my-smartorganizr")}</SidebarHeading>
-                    <SideBarItem onNavigate={onNavigate} highlightPath={"/dashboard"} translationkey={t("dashboard")} icon={<i className="fa-solid fa-table-columns" />} />
+                    <SideBarItem onNavigate={onNavigate} highlightPath={"/dashboard"} translationkey={t("nav-dashboard")} icon={<i className="fa-solid fa-table-columns" />} />
                     <SideBarItem onNavigate={onNavigate} highlightPath={"/myDates"} translationkey={t("my-dates")} icon={<i className="fa-solid fa-calendar" />} />
                     <SideBarItem onNavigate={onNavigate} highlightPath={"/myMessages"} translationkey={t("my-messages")} icon={<i className="fa-solid fa-message" />} badge={unreadTotal} />
 
