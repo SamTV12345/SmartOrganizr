@@ -1,9 +1,10 @@
 import {createPortal} from "react-dom";
 import {useAppDispatch, useAppSelector} from "../../store/hooks";
-import {FC, useEffect, useRef, useState} from "react";
-import {setNotePDFUploadOpen, setOpenAddModal} from "../../ModalSlice";
+import {ChangeEvent, FC, useRef, useState} from "react";
+import {setNotePDFUploadOpen} from "../../ModalSlice";
 import {Trans, useTranslation} from "react-i18next";
-import { http as axios } from "@/src/api/client";
+import {useQueryClient} from "@tanstack/react-query";
+import { http as axios, parentDecksQueryKey } from "@/src/api/client";
 import {apiURL} from "../../Keycloak";
 
 type FileUploadModalProps = {
@@ -19,10 +20,13 @@ type DragState = "none" | "allowed" | "invalid"
 export const FileUploadModal:FC<FileUploadModalProps> = () => {
     const dispatch = useAppDispatch()
     const {t} = useTranslation()
+    const queryClient = useQueryClient()
     const openModal = useAppSelector(state => state.modalReducer.openNotePDFUpload)
     const selectedNote = useAppSelector(state=>state.modalReducer.selectedFolder)
     const [files, setFiles] = useState<MyFile[]>([])
     const [dragState, setDragState] = useState<DragState>("none")
+    const [uploading, setUploading] = useState(false)
+    const [uploadError, setUploadError] = useState(false)
     const fileInputRef = useRef<HTMLInputElement>(null)
 
     const readFile = (file: File) => {
@@ -37,21 +41,19 @@ export const FileUploadModal:FC<FileUploadModalProps> = () => {
         })
     }
 
-    const uploadFiles = (files: FileList) => {
-        const filesArray: MyFile[] = []
-        for (const f of files) {
-            const res = readFile(f)
-            res.then(c=>{
-                    if(c!==null) {
-                        filesArray.push(c)
-                    }
-                    setFiles(filesArray)
-                    })
+    const addFiles = async (fileList: FileList) => {
+        try {
+            setFiles(await Promise.all(Array.from(fileList).map(readFile)))
+            setUploadError(false)
+        } catch {
+            setUploadError(true)
         }
     }
 
-    const handleInputChanged = (e: any) => {
-        uploadFiles(e.target.files)
+    const handleInputChanged = (e: ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files) {
+            addFiles(e.target.files)
+        }
     }
 
     const handleDragOver = (e: React.DragEvent) => {
@@ -59,54 +61,49 @@ export const FileUploadModal:FC<FileUploadModalProps> = () => {
         e.dataTransfer.dropEffect = "copy"
     }
 
-    useEffect(()=>{
-        if(files.length>0){
-            console.log("Test")
-        }
-    },[files])
-
     const handleDrop = (e: React.DragEvent) => {
         e.preventDefault()
-
-
-        const fileList: MyFile[] = []
-        for (const f of e.dataTransfer.files) {
-            const res = readFile(f)
-            if(res==null){
-                break
-            }
-            res.then(c=>{
-                if(c!==null) {
-                    fileList.push(c)
-                }
-            })
-        }
-
-        setFiles(fileList)
-
+        addFiles(e.dataTransfer.files)
         setDragState("none")
     }
 
-    const uploadFilesToBackend = (f:string)=>{
-        if(selectedNote===undefined){
+    const close = () => {
+        setFiles([])
+        setUploadError(false)
+        dispatch(setNotePDFUploadOpen(false))
+    }
+
+    const sendFiles = async () => {
+        if (selectedNote === undefined || files.length === 0 || uploading) {
             return
         }
-        axios.post(apiURL+`/v1/elements/${selectedNote.id}/pdf`, f)
-            .then(res=>{
-                console.log(res)
-            })
+        setUploading(true)
+        setUploadError(false)
+        try {
+            for (const f of files) {
+                await axios.post(apiURL + `/v1/elements/${selectedNote.id}/pdf`, f.content)
+            }
+            // Refresh the tree (pdfAvailable icon) and any open note detail view.
+            await queryClient.invalidateQueries({queryKey: parentDecksQueryKey})
+            await queryClient.invalidateQueries({queryKey: ["get", "/v1/elements/notes/{noteId}"]})
+            close()
+        } catch {
+            setUploadError(true)
+        } finally {
+            setUploading(false)
+        }
     }
 
     return openModal ? createPortal (
 
-            <div id="defaultModal" onClick={()=>dispatch(setNotePDFUploadOpen(false))} tabIndex={-1} aria-hidden="true" className="fixed inset-0 z-50 overflow-y-auto overflow-x-hidden p-2 sm:p-4">
+            <div id="defaultModal" onClick={close} tabIndex={-1} aria-hidden="true" className="fixed inset-0 z-50 overflow-y-auto overflow-x-hidden p-2 sm:p-4">
                 <div className="flex min-h-full items-center justify-center">
                     <div className="relative flex w-full max-h-[calc(100dvh-1rem)] flex-col justify-center rounded-lg bg-gray-700 shadow sm:max-h-[calc(100dvh-2rem)] md:w-2/4" onClick={e=>e.stopPropagation()}>
                         <div className="flex justify-between items-start p-4 rounded-t border-b border-gray-600">
                             <h3 className="text-xl font-semibold text-white">
                                 <Trans>upload-pdf</Trans>
                             </h3>
-                            <button type="button" className="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm p-1.5 ml-auto inline-flex items-center hover:bg-gray-600 hover:text-white" data-modal-toggle="defaultModal" onClick={()=>dispatch(setNotePDFUploadOpen(false))}>
+                            <button type="button" className="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm p-1.5 ml-auto inline-flex items-center hover:bg-gray-600 hover:text-white" data-modal-toggle="defaultModal" onClick={close}>
                                 <svg aria-hidden="true" className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd"></path></svg>
                                 <span className="sr-only">{t('closeModal')}</span>
                             </button>
@@ -135,16 +132,13 @@ export const FileUploadModal:FC<FileUploadModalProps> = () => {
                                     <input id="dropzone-file" ref={fileInputRef} type="file" className="hidden" onChange={handleInputChanged} accept=".pdf"/>
                                 </label>
                             </div>
+                            {uploadError && <p className="text-sm text-red-400">{t('pdf-upload-failed')}</p>}
                         </div>
                         <div className="flex shrink-0 items-center p-6 space-x-2 rounded-b border-t border-gray-200 border-gray-600">
                             <button data-modal-toggle="defaultModal" type="button" className="text-gray-500 focus:ring-4 focus:outline-none focus:ring-blue-300 rounded-lg border border-gray-200 text-sm font-medium px-5 py-2.5 hover:text-gray-900 focus:z-10 bg-gray-700 text-gray-300 border-gray-500 hover:text-white hover:bg-gray-600 focus:ring-gray-600"
-                                    onClick={()=>dispatch(setNotePDFUploadOpen(false))}>{t('cancel')}</button>
-                            <button data-modal-toggle="defaultModal" type="button" className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center bg-blue-600 hover:bg-blue-700 focus:ring-blue-800" onClick={()=>{
-                                files.forEach(f=>{
-                                    uploadFilesToBackend(f.content)
-                                })
-                                dispatch(setNotePDFUploadOpen(false))
-                            }}>{t('send')}</button>
+                                    onClick={close}>{t('cancel')}</button>
+                            <button data-modal-toggle="defaultModal" type="button" disabled={uploading || files.length === 0} className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center bg-blue-600 hover:bg-blue-700 focus:ring-blue-800 disabled:opacity-50 disabled:cursor-not-allowed"
+                                    onClick={sendFiles}>{uploading ? t('loading') : t('send')}</button>
                         </div>
                     </div>
                 </div>

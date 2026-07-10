@@ -433,12 +433,18 @@ func UpdatePDFOfNote(c fiber.Ctx) error {
 // @Router   /v1/elements/{folderId}/export [get]
 func ExportPDFFromNotes(c fiber.Ctx) error {
 	folderservice := GetLocal[service.FolderService](c, constants.FolderService)
-	userservice := GetLocal[service.UserService](c, constants.UserService)
 
+	var userId = GetLocal[string](c, "userId")
 	var folderId = c.Params("folderId")
-	pdfContent, err := service.GeneratePDFForFolder(folderId, folderservice, userservice)
+	pdfContent, err := service.GeneratePDFForFolder(folderId, userId, folderservice)
 	if err != nil {
-		log.Errorf("ExportPDFFromNotes failed for folder %q: %v", folderId, err)
+		log.Errorf("ExportPDFFromNotes failed for folder %q user %q: %v", folderId, userId, err)
+		var fiberErr *fiber.Error
+		if errors.As(err, &fiberErr) {
+			return c.Status(fiberErr.Code).JSON(fiber.Map{
+				"error": fiberErr.Message,
+			})
+		}
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": err.Error(),
 		})
