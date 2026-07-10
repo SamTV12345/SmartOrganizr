@@ -6,7 +6,6 @@ import (
 	"api_go/mappers"
 	"api_go/models"
 	"api_go/service"
-	"database/sql"
 	"errors"
 	"strconv"
 
@@ -40,9 +39,9 @@ func GetParentDecks(c fiber.Ctx) error {
 // DeleteElement godoc
 // @Summary  Delete a folder or note by id
 // @Tags     elements
-// @Param    elementid  path  string  true  "Element ID"
+// @Param    elementId  path  string  true  "Element ID"
 // @Success  204
-// @Router   /v1/elements/{elementid} [delete]
+// @Router   /v1/elements/{elementId} [delete]
 func DeleteElement(c fiber.Ctx) error {
 	var userId = GetLocal[string](c, "userId")
 	var elementId = c.Params("elementId")
@@ -50,24 +49,24 @@ func DeleteElement(c fiber.Ctx) error {
 	var folderService = GetLocal[service.FolderService](c, "folderService")
 	var noteService = GetLocal[service.NoteService](c, "noteService")
 
-	lookedUpFolder, err := folderService.FindFolderByIdAndUser(elementId, userId)
+	elementType, err := folderService.FindElementTypeByIdAndUser(elementId, userId)
 	if err != nil {
 		log.Errorf("DeleteElement failed to find element %q for user %q: %v", elementId, userId, err)
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": err.Error(),
 		})
 	}
-	if err := folderService.DeleteFolder(lookedUpFolder.Id, userId); err != nil {
-		return c.SendStatus(fiber.StatusInternalServerError)
-	}
 
-	if err := noteService.DeleteNote(userId, elementId); err != nil {
-		if !errors.Is(err, sql.ErrNoRows) {
-			log.Errorf("DeleteElement failed to delete note %q for user %q: %v", elementId, userId, err)
-			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-				"error": err.Error(),
-			})
-		}
+	if elementType == "folder" {
+		err = folderService.DeleteFolder(elementId, userId)
+	} else {
+		err = noteService.DeleteNote(userId, elementId)
+	}
+	if err != nil {
+		log.Errorf("DeleteElement failed to delete %s %q for user %q: %v", elementType, elementId, userId, err)
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": err.Error(),
+		})
 	}
 
 	return c.SendStatus(fiber.StatusNoContent)

@@ -122,6 +122,19 @@ func (f *FolderService) LoadAllFolders(userId string) ([]models.Folder, error) {
 	return modelFolders, nil
 }
 
+// FindElementTypeByIdAndUser returns the raw element type ('folder' or 'note')
+// of an element owned by the user, without loading the whole subtree.
+func (f *FolderService) FindElementTypeByIdAndUser(elementId string, userId string) (string, error) {
+	element, err := f.Queries.FindFolderById(f.Ctx, db.FindFolderByIdParams{
+		ID:       elementId,
+		UserIDFk: db.NewSQLNullString(userId),
+	})
+	if err != nil {
+		return "", err
+	}
+	return element.Type, nil
+}
+
 func (f *FolderService) FindFolderByIdAndUser(folderId string, userId string) (*models.Folder, error) {
 	folder, err := f.Queries.FindFolderById(f.Ctx, db.FindFolderByIdParams{
 		ID:       folderId,
