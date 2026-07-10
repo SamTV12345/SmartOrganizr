@@ -3599,6 +3599,9 @@
                 "url"
             ],
             "properties": {
+                "aiEnabled": {
+                    "type": "boolean"
+                },
                 "clientId": {
                     "type": "string"
                 },

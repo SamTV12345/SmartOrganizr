@@ -3348,6 +3348,7 @@ export interface components {
             url: string;
         };
         "dto.KeycloakModel": {
+            aiEnabled?: boolean;
             clientId: string;
             realm: string;
             url: string;
