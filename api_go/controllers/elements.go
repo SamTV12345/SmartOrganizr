@@ -360,8 +360,8 @@ func UpdateNote(c fiber.Ctx) error {
 func GetParentOfNote(c fiber.Ctx) error {
 	var userId = GetLocal[string](c, "userId")
 	var noteId = c.Params("noteId")
-	var folderService = GetLocal[service.FolderService](c, "noteService")
-	var element, err = folderService.FindFolderByIdAndUser(noteId, userId)
+	var noteService = GetLocal[service.NoteService](c, "noteService")
+	var note, err = noteService.LoadNote(noteId, userId)
 	if err != nil {
 		log.Errorf("GetParentOfNote failed for note %q user %q: %v", noteId, userId, err)
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
@@ -369,7 +369,7 @@ func GetParentOfNote(c fiber.Ctx) error {
 		})
 	}
 
-	return c.SendString(element.Id)
+	return c.SendString(note.Parent.Id)
 }
 
 // GetNoteasPDF godoc
