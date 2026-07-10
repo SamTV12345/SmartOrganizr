@@ -33,6 +33,10 @@ func TestMain(m *testing.M) {
 var mysqlInstance *mysql2.MySQLContainer = nil
 var port network.Port
 
+// testQueries gives tests direct DB access, e.g. to seed data owned by a
+// different user than the fixed test user "12345".
+var testQueries *db2.Queries
+
 func SetupTest(t *testing.T) *fiber.App {
 	ctx := context.Background()
 	if mysqlInstance == nil {
@@ -70,6 +74,7 @@ func SetupTest(t *testing.T) *fiber.App {
 	}
 
 	var db, rawDB = db2.Setup(appconfig.Database)
+	testQueries = db
 	setupLogger := logger.SetupLogger()
 	var app = routers.SetupRouter(db, appconfig, setupLogger)
 	var syncUser, _ = http.NewRequest("PUT", "http://localhost/api/v1/users/", nil)
@@ -80,6 +85,7 @@ func SetupTest(t *testing.T) *fiber.App {
 
 	t.Cleanup(func() {
 		rawDB.Exec("SET FOREIGN_KEY_CHECKS = 0;")
+		rawDB.Exec("DELETE FROM note_in_concert")
 		err = db.DeleteAllConcerts(ctx)
 		if err != nil {
 			t.Fatalf("failed to delete all concerts: %v", err)

@@ -1,7 +1,4 @@
-import {concertActions} from "../../store/slices/ConcertSlice";
-import {setModalOpen} from "../../ModalSlice";
-import {AddNoteToConcert} from "../modals/AddNoteToConcert";
-import React, {FC, ReactNode, useState} from "react";
+import {FC, ReactNode, useState} from "react";
 
 type AccordeonType = {
     headerChildren?: ReactNode

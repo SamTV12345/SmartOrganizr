@@ -48,7 +48,8 @@ func (u *UserService) UpdateSyncFromKeycloakUser(user *models.User) error {
 		Lastname:         db.NewSQLNullString(user.Lastname),
 		Email:            db.NewSQLNullString(user.Email),
 		Telephonenumber:  db.NewSQLNullString(loadedUser.TelephoneNumber),
-		SideBarCollapsed: user.SideBarCollapsed,
+		// SideBarCollapsed is a local preference, not a Keycloak claim — keep the stored value.
+		SideBarCollapsed: loadedUser.SideBarCollapsed,
 	})
 	return err
 }
@@ -64,6 +65,30 @@ func (u *UserService) UpdateFromEndpoint(user *models.User) error {
 		SideBarCollapsed: user.SideBarCollapsed,
 	})
 	return err
+}
+
+func (u *UserService) SetIcalFeedToken(userId string, token string) error {
+	return u.Queries.SetIcalFeedToken(u.Ctx, db.SetIcalFeedTokenParams{
+		IcalFeedToken: db.NewSQLNullString(token),
+		ID:            userId,
+	})
+}
+
+// GetIcalFeedToken returns the user's calendar feed token, or "" if none is set.
+func (u *UserService) GetIcalFeedToken(userId string) (string, error) {
+	token, err := u.Queries.GetIcalFeedToken(u.Ctx, userId)
+	if err != nil {
+		return "", err
+	}
+	return token.String, nil
+}
+
+func (u *UserService) FindUserIdByIcalFeedToken(token string) (string, error) {
+	user, err := u.Queries.FindUserByIcalFeedToken(u.Ctx, db.NewSQLNullString(token))
+	if err != nil {
+		return "", err
+	}
+	return user.ID, nil
 }
 
 func (u *UserService) UpdateProfilePicture(userId string, profilePic []byte) error {

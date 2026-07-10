@@ -257,4 +257,5 @@ type User struct {
 	Postalcode       sql.NullString
 	City             sql.NullString
 	Street           sql.NullString
+	IcalFeedToken    sql.NullString
 }

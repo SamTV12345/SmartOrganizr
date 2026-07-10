@@ -190,6 +190,7 @@ func SetupRouter(queries *db.Queries, config config.AppConfig, logger *zap.Sugar
 		SetLocal[*service.WikidataService](c, constants.WikidataService, wikidataService)
 		SetLocal[*service.AIService](c, constants.AIService, aiService)
 		SetLocal[*service.AIChatService](c, constants.AIChatService, aiChatService)
+		SetLocal[string](c, constants.AppBaseURL, config.App.URL)
 
 		return c.Next()
 	})
@@ -205,8 +206,8 @@ func SetupRouter(queries *db.Queries, config config.AppConfig, logger *zap.Sugar
 	})
 
 	app.Get("/public", controllers.GetIndex)
+	app.Get("/public/calendar/:token.ics", controllers.GetCalendarFeed)
 	app.Get("/public/users/:userId/:image.png", controllers.GetUserImage)
-	app.Get("/public/:folderId/export", controllers.ExportPDFFromNotes)
 	app.Get("/api/public/invitations/:token", controllers.GetPublicClubInvitation)
 	app.Post("/api/public/invitations/:token/complete", controllers.CompletePublicClubInvitation)
 
@@ -231,6 +232,8 @@ func SetupRouter(queries *db.Queries, config config.AppConfig, logger *zap.Sugar
 	profile.Route("v1/users", func(r fiber.Router) {
 		r.Put("/", controllers.SyncUser)
 		r.Get("/token", controllers.GetUser)
+		r.Post("/calendar-token", controllers.RotateCalendarToken)
+		r.Get("/calendar-token", controllers.GetCalendarToken)
 		r.Patch("/:userId", controllers.UpdateUser)
 		r.Post("/:userId/profile", controllers.UploadProfile)
 		r.Post("/:userId/konzertmeister-url", controllers.SetKonzertmeisterUrl)
@@ -258,6 +261,7 @@ func SetupRouter(queries *db.Queries, config config.AppConfig, logger *zap.Sugar
 		r.Get("/", controllers.GetConcertsOfUser)
 		r.Post("/", controllers.CreateConcert)
 		r.Get("/:concertId", controllers.GetConcert)
+		r.Put("/:concertId", controllers.UpdateConcert)
 		r.Delete("/:concertId", controllers.DeleteConcert)
 	})
 
@@ -265,9 +269,15 @@ func SetupRouter(queries *db.Queries, config config.AppConfig, logger *zap.Sugar
 		r.Get("/:userId", controllers.GetAllClubsForMe)
 		r.Post("/", controllers.PostClub)
 		r.Patch("/:clubId", controllers.UpdateClub)
+		r.Delete("/:clubId", controllers.DeleteClub)
 		r.Get("/:clubId/me/permissions", controllers.GetMyClubPermissions)
 		r.Get("/:clubId/members", controllers.GetClubMembers)
 		r.Patch("/:clubId/members/:memberUserId/role", controllers.PatchClubMemberRole)
+		// "/members/me" must be registered before "/members/:memberUserId"
+		r.Delete("/:clubId/members/me", controllers.LeaveClub)
+		r.Delete("/:clubId/members/:memberUserId", controllers.DeleteClubMember)
+		r.Get("/:clubId/invitations", controllers.GetClubInvitations)
+		r.Delete("/:clubId/invitations/:invitationId", controllers.DeleteClubInvitation)
 		r.Get("/:clubId/members/export", controllers.ExportClubMembersCSV)
 		r.Post("/:clubId/members/import", controllers.ImportClubMembersCSV)
 		r.Post("/:clubId/members/invite", controllers.InviteClubMembers)
@@ -328,7 +338,7 @@ func SetupRouter(queries *db.Queries, config config.AppConfig, logger *zap.Sugar
 	profile.Route("v1/elements", func(r fiber.Router) {
 		r.Get("/parentDecks", controllers.GetParentDecks)
 		r.Get("/notes", controllers.GetNotes)
-		r.Delete("/:elementid", controllers.DeleteElement)
+		r.Delete("/:elementId", controllers.DeleteElement)
 		r.Get("/notes/:noteId", controllers.GetNodeByID)
 		r.Post("/folders", controllers.CreateFolder)
 		r.Get("/:folderId/children", controllers.FindNextChildren)

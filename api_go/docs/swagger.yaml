@@ -150,6 +150,16 @@ definitions:
           $ref: '#/definitions/dto.AutocompleteWork'
         type: array
     type: object
+  dto.CalendarTokenDto:
+    properties:
+      token:
+        type: string
+      url:
+        type: string
+    required:
+    - token
+    - url
+    type: object
   dto.ClubChatCreateDto:
     properties:
       content:
@@ -382,6 +392,22 @@ definitions:
     - lastname
     - password
     type: object
+  dto.ClubInvitationDto:
+    properties:
+      created_at:
+        type: string
+      expires_at:
+        type: string
+      invited_email:
+        type: string
+      token:
+        type: string
+    required:
+    - created_at
+    - expires_at
+    - invited_email
+    - token
+    type: object
   dto.ClubInvitationPublicDto:
     properties:
       club_id:
@@ -550,6 +576,9 @@ definitions:
       location:
         type: string
       noteInConcerts:
+        description: |-
+          NoteInConcerts is only populated on single-concert responses; the list
+          endpoint stays lean and omits it.
         items:
           $ref: '#/definitions/dto.NoteInConcertDto'
         type: array
@@ -561,7 +590,6 @@ definitions:
     - hints
     - id
     - location
-    - noteInConcerts
     - title
     type: object
   dto.ConcertPostDto:
@@ -574,6 +602,12 @@ definitions:
         type: string
       location:
         type: string
+      noteIds:
+        description: NoteIds is the complete ordered program of the concert (replace
+          semantics).
+        items:
+          type: string
+        type: array
       title:
         type: string
     required:
@@ -675,6 +709,8 @@ definitions:
     type: object
   dto.KeycloakModel:
     properties:
+      aiEnabled:
+        type: boolean
       clientId:
         type: string
       realm:
@@ -1097,6 +1133,31 @@ paths:
       summary: Public configuration (Keycloak realm/client)
       tags:
       - public
+  /public/calendar/{token}.ics:
+    get:
+      parameters:
+      - description: Calendar feed token
+        in: path
+        name: token
+        required: true
+        type: string
+      produces:
+      - text/calendar
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Public ICS feed of all native club events of the token owner's clubs
+        (from 3 months in the past onward). The token is the authentication.
+      tags:
+      - public
   /public/invitations/{token}:
     get:
       parameters:
@@ -1383,6 +1444,19 @@ paths:
       tags:
       - clubs
   /v1/clubs/{clubId}:
+    delete:
+      parameters:
+      - description: Club ID
+        in: path
+        name: clubId
+        required: true
+        type: string
+      responses:
+        "204":
+          description: No Content
+      summary: Delete a club and all of its data (LEITER only)
+      tags:
+      - clubs
     patch:
       consumes:
       - application/json
@@ -1653,6 +1727,45 @@ paths:
       summary: Download a club file
       tags:
       - clubFiles
+  /v1/clubs/{clubId}/invitations:
+    get:
+      parameters:
+      - description: Club ID
+        in: path
+        name: clubId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/dto.ClubInvitationDto'
+            type: array
+      summary: List pending (not accepted, not expired) invitations of a club
+      tags:
+      - clubs
+  /v1/clubs/{clubId}/invitations/{invitationId}:
+    delete:
+      parameters:
+      - description: Club ID
+        in: path
+        name: clubId
+        required: true
+        type: string
+      - description: Invitation token
+        in: path
+        name: invitationId
+        required: true
+        type: string
+      responses:
+        "204":
+          description: No Content
+      summary: Revoke a pending club invitation
+      tags:
+      - clubs
   /v1/clubs/{clubId}/me/permissions:
     get:
       parameters:
@@ -1689,6 +1802,25 @@ paths:
               $ref: '#/definitions/dto.ClubMemberDto'
             type: array
       summary: List members of a club
+      tags:
+      - clubs
+  /v1/clubs/{clubId}/members/{memberUserId}:
+    delete:
+      parameters:
+      - description: Club ID
+        in: path
+        name: clubId
+        required: true
+        type: string
+      - description: Member user ID
+        in: path
+        name: memberUserId
+        required: true
+        type: string
+      responses:
+        "204":
+          description: No Content
+      summary: Remove a member from a club (managers only)
       tags:
       - clubs
   /v1/clubs/{clubId}/members/{memberUserId}/role:
@@ -1780,6 +1912,20 @@ paths:
           schema:
             $ref: '#/definitions/dto.ClubInviteResultDto'
       summary: Invite users by email to a club
+      tags:
+      - clubs
+  /v1/clubs/{clubId}/members/me:
+    delete:
+      parameters:
+      - description: Club ID
+        in: path
+        name: clubId
+        required: true
+        type: string
+      responses:
+        "204":
+          description: No Content
+      summary: Leave a club (the last LEITER must transfer the role first)
       tags:
       - clubs
   /v1/clubs/{clubId}/messages/candidates:
@@ -2042,13 +2188,7 @@ paths:
             items:
               $ref: '#/definitions/dto.ConcertDto'
             type: array
-        "500":
-          description: Internal Server Error
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-      summary: List concerts for the current user
+      summary: List concerts for the current user (without their note program)
       tags:
       - concerts
     post:
@@ -2068,19 +2208,7 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/dto.ConcertDto'
-        "400":
-          description: Bad Request
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "500":
-          description: Internal Server Error
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-      summary: Create a new concert
+      summary: Create a new concert, optionally with an ordered list of note ids
       tags:
       - concerts
   /v1/concerts/{concertId}:
@@ -2094,12 +2222,6 @@ paths:
       responses:
         "204":
           description: No Content
-        "500":
-          description: Internal Server Error
-          schema:
-            additionalProperties:
-              type: string
-            type: object
       summary: Delete a concert
       tags:
       - concerts
@@ -2117,21 +2239,40 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/dto.ConcertDto'
-        "500":
-          description: Internal Server Error
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-      summary: Get a single concert
+      summary: Get a single concert including its ordered note program
       tags:
       - concerts
-  /v1/elements/{elementid}:
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: Concert ID
+        in: path
+        name: concertId
+        required: true
+        type: string
+      - description: Concert payload incl. the complete ordered note id list
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.ConcertPostDto'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.ConcertDto'
+      summary: Update a concert and replace its ordered note program
+      tags:
+      - concerts
+  /v1/elements/{elementId}:
     delete:
       parameters:
       - description: Element ID
         in: path
-        name: elementid
+        name: elementId
         required: true
         type: string
       responses:
@@ -2699,6 +2840,43 @@ paths:
               type: string
             type: object
       summary: Upload a profile picture (raw image body)
+      tags:
+      - users
+  /v1/users/calendar-token:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.CalendarTokenDto'
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get the current calendar feed token and subscription URL
+      tags:
+      - users
+    post:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.CalendarTokenDto'
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Generate (or rotate) the personal calendar feed token. Calling this
+        again replaces the previous token, which invalidates any previously subscribed
+        feed URL.
       tags:
       - users
   /v1/users/me:

@@ -43,9 +43,6 @@ const SidebarContent = ({ onNavigate }: { onNavigate?: () => void }) => {
                     <SideBarItem onNavigate={onNavigate} highlightPath={"/dashboard"} translationkey={t("dashboard")} icon={<i className="fa-solid fa-table-columns" />} />
                     <SideBarItem onNavigate={onNavigate} highlightPath={"/myDates"} translationkey={t("my-dates")} icon={<i className="fa-solid fa-calendar" />} />
                     <SideBarItem onNavigate={onNavigate} highlightPath={"/myMessages"} translationkey={t("my-messages")} icon={<i className="fa-solid fa-message" />} badge={unreadTotal} />
-                    <SideBarItem onNavigate={onNavigate} highlightPath={"/myPolls"} translationkey={t("my-polls")} icon={<i className="fa-solid fa-square-poll-horizontal" />} />
-                    <SideBarItem onNavigate={onNavigate} highlightPath={"/clubOverview"} translationkey={t("club-overview")} icon={<i className="fa-solid fa-drum" />} />
-                    <SideBarItem onNavigate={onNavigate} highlightPath={"/myRooms"} translationkey={t("my-rooms")} icon={<i className="fa-solid fa-door-open" />} />
 
                     <SidebarHeading>{t("create-new")}</SidebarHeading>
                     <SideBarItem onNavigate={onNavigate} highlightPath="/createClub" translationkey={t("create-club")} icon={<i className="fa-solid fa-drum" />} />

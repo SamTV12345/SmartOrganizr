@@ -1,5 +1,6 @@
 import {useMemo, useState} from "react";
-import {$api} from "@/src/api/client";
+import {$api, http as axios} from "@/src/api/client";
+import {apiURL} from "@/src/Keycloak";
 import {FolderItem} from "@/src/models/Folder";
 import {Card, CardContent, CardDescription, CardHeader, CardTitle} from "@/components/ui/card";
 import {Button} from "@/components/ui/button";
@@ -22,11 +23,31 @@ export const ImportExportView = () => {
         return folders.find(folder => folder.id === selectedFolder)?.name
     }, [folders, selectedFolder])
 
-    const getPDFOfFolder = ()=>{
-        if(!selectedFolder){
+    const [exporting, setExporting] = useState(false)
+    const [exportError, setExportError] = useState<string | null>(null)
+
+    const getPDFOfFolder = async () => {
+        if (!selectedFolder) {
             return
         }
-        window.open(`/public/${selectedFolder}/export`, '_blank');
+        setExporting(true)
+        setExportError(null)
+        try {
+            const response = await axios.get<Blob>(`${apiURL}/v1/elements/${selectedFolder}/export`, {responseType: "blob"})
+            const url = URL.createObjectURL(new Blob([response.data], {type: "application/pdf"}))
+            const link = document.createElement("a")
+            link.href = url
+            link.download = `${selectedFolderName ?? "export"}.pdf`
+            link.click()
+            URL.revokeObjectURL(url)
+        } catch (e) {
+            const err = e as Error & { response?: { status: number } }
+            setExportError(err.response?.status === 404
+                ? "Der Ordner enthält keine Noten mit PDF."
+                : "Export fehlgeschlagen. Bitte erneut versuchen.")
+        } finally {
+            setExporting(false)
+        }
     }
 
     return (
@@ -66,9 +87,9 @@ export const ImportExportView = () => {
                     </div>
 
                     <div className="flex flex-wrap items-center gap-3">
-                        <Button onClick={getPDFOfFolder} disabled={selectedFolder===undefined}>
+                        <Button onClick={getPDFOfFolder} disabled={selectedFolder===undefined || exporting}>
                             <Download className="size-4"/>
-                            PDF exportieren
+                            {exporting ? "Exportiere..." : "PDF exportieren"}
                         </Button>
                         {selectedFolderName && (
                             <p className="text-muted-foreground text-sm">
@@ -76,6 +97,9 @@ export const ImportExportView = () => {
                             </p>
                         )}
                     </div>
+                    {exportError && (
+                        <p className="text-sm text-red-500">{exportError}</p>
+                    )}
                 </CardContent>
             </Card>
         </main>

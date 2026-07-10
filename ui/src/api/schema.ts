@@ -40,6 +40,56 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/public/calendar/{token}.ics": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Public ICS feed of all native club events of the token owner's clubs (from 3 months in the past onward). The token is the authentication. */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Calendar feed token */
+                    token: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/calendar": string;
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/calendar": {
+                            [key: string]: string;
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/public/invitations/{token}": {
         parameters: {
             query?: never;
@@ -585,7 +635,28 @@ export interface paths {
         get?: never;
         put?: never;
         post?: never;
-        delete?: never;
+        /** Delete a club and all of its data (LEITER only) */
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Club ID */
+                    clubId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description No Content */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
         options?: never;
         head?: never;
         /** Update a club's settings (manager only) */
@@ -998,6 +1069,84 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/clubs/{clubId}/invitations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List pending (not accepted, not expired) invitations of a club */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Club ID */
+                    clubId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["dto.ClubInvitationDto"][];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/clubs/{clubId}/invitations/{invitationId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Revoke a pending club invitation */
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Club ID */
+                    clubId: string;
+                    /** @description Invitation token */
+                    invitationId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description No Content */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/clubs/{clubId}/me/permissions": {
         parameters: {
             query?: never;
@@ -1193,6 +1342,82 @@ export interface paths {
             };
         };
         delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/clubs/{clubId}/members/me": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Leave a club (the last LEITER must transfer the role first) */
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Club ID */
+                    clubId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description No Content */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/clubs/{clubId}/members/{memberUserId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Remove a member from a club (managers only) */
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Club ID */
+                    clubId: string;
+                    /** @description Member user ID */
+                    memberUserId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description No Content */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
         options?: never;
         head?: never;
         patch?: never;
@@ -1628,7 +1853,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** List concerts for the current user */
+        /** List concerts for the current user (without their note program) */
         get: {
             parameters: {
                 query?: never;
@@ -1647,21 +1872,10 @@ export interface paths {
                         "application/json": components["schemas"]["dto.ConcertDto"][];
                     };
                 };
-                /** @description Internal Server Error */
-                500: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            [key: string]: string;
-                        };
-                    };
-                };
             };
         };
         put?: never;
-        /** Create a new concert */
+        /** Create a new concert, optionally with an ordered list of note ids */
         post: {
             parameters: {
                 query?: never;
@@ -1685,28 +1899,6 @@ export interface paths {
                         "application/json": components["schemas"]["dto.ConcertDto"];
                     };
                 };
-                /** @description Bad Request */
-                400: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            [key: string]: string;
-                        };
-                    };
-                };
-                /** @description Internal Server Error */
-                500: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            [key: string]: string;
-                        };
-                    };
-                };
             };
         };
         delete?: never;
@@ -1722,7 +1914,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get a single concert */
+        /** Get a single concert including its ordered note program */
         get: {
             parameters: {
                 query?: never;
@@ -1744,20 +1936,37 @@ export interface paths {
                         "application/json": components["schemas"]["dto.ConcertDto"];
                     };
                 };
-                /** @description Internal Server Error */
-                500: {
+            };
+        };
+        /** Update a concert and replace its ordered note program */
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Concert ID */
+                    concertId: string;
+                };
+                cookie?: never;
+            };
+            /** @description Concert payload incl. the complete ordered note id list */
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["dto.ConcertPostDto"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
                     headers: {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            [key: string]: string;
-                        };
+                        "application/json": components["schemas"]["dto.ConcertDto"];
                     };
                 };
             };
         };
-        put?: never;
         post?: never;
         /** Delete a concert */
         delete: {
@@ -1778,17 +1987,6 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content?: never;
-                };
-                /** @description Internal Server Error */
-                500: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "*/*": {
-                            [key: string]: string;
-                        };
-                    };
                 };
             };
         };
@@ -2066,7 +2264,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/elements/{elementid}": {
+    "/v1/elements/{elementId}": {
         parameters: {
             query?: never;
             header?: never;
@@ -2083,7 +2281,7 @@ export interface paths {
                 header?: never;
                 path: {
                     /** @description Element ID */
-                    elementid: string;
+                    elementId: string;
                 };
                 cookie?: never;
             };
@@ -2520,6 +2718,84 @@ export interface paths {
             };
         };
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/users/calendar-token": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get the current calendar feed token and subscription URL */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["dto.CalendarTokenDto"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            [key: string]: string;
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        /** Generate (or rotate) the personal calendar feed token. Calling this again replaces the previous token, which invalidates any previously subscribed feed URL. */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["dto.CalendarTokenDto"];
+                    };
+                };
+                /** @description Internal Server Error */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            [key: string]: string;
+                        };
+                    };
+                };
+            };
+        };
         delete?: never;
         options?: never;
         head?: never;
@@ -3138,6 +3414,10 @@ export interface components {
             external?: components["schemas"]["dto.AutocompleteWork"][];
             local?: components["schemas"]["dto.AutocompleteWork"][];
         };
+        "dto.CalendarTokenDto": {
+            token: string;
+            url: string;
+        };
         "dto.ClubChatCreateDto": {
             content: string;
             recipient_user_id: string;
@@ -3238,6 +3518,12 @@ export interface components {
             lastname: string;
             password: string;
         };
+        "dto.ClubInvitationDto": {
+            created_at: string;
+            expires_at: string;
+            invited_email: string;
+            token: string;
+        };
         "dto.ClubInvitationPublicDto": {
             club_id: string;
             club_name: string;
@@ -3300,7 +3586,11 @@ export interface components {
             hints: string;
             id: string;
             location: string;
-            noteInConcerts: components["schemas"]["dto.NoteInConcertDto"][];
+            /**
+             * @description NoteInConcerts is only populated on single-concert responses; the list
+             *     endpoint stays lean and omits it.
+             */
+            noteInConcerts?: components["schemas"]["dto.NoteInConcertDto"][];
             title: string;
         };
         "dto.ConcertPostDto": {
@@ -3308,6 +3598,8 @@ export interface components {
             dueDate: string;
             hints: string;
             location: string;
+            /** @description NoteIds is the complete ordered program of the concert (replace semantics). */
+            noteIds?: string[];
             title: string;
         };
         "dto.Event": {
@@ -3348,6 +3640,7 @@ export interface components {
             url: string;
         };
         "dto.KeycloakModel": {
+            aiEnabled?: boolean;
             clientId: string;
             realm: string;
             url: string;

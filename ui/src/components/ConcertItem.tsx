@@ -1,168 +1,167 @@
-import {ConcertDto} from "../models/ConcertDto";
-import React, {FC, DragEvent} from "react";
-import {useAppDispatch, useAppSelector} from "../store/hooks";
-import {concertActions} from "../store/slices/ConcertSlice";
-import {AddNoteToConcert} from "./modals/AddNoteToConcert";
-import {setModalOpen} from "../ModalSlice";
-import {Accordeon} from "./layout/Accordeon";
-import {FormInput} from "./form/FormInput";
-import {apiURL} from "../Keycloak";
-import { http as axios } from "@/src/api/client";
-import {AccordeonItem} from "./layout/AccordeonItem";
-import {TrashIcon} from "./icons/TrashIcon";
-import {FormTextArea} from "./form/FormTextArea";
-import {NoteInConcert} from "../models/NoteInConcert";
-import {PlusIcon} from "./form/PlusIcon";
+import {FC, DragEvent, useEffect, useState} from "react";
 import {useTranslation} from "react-i18next";
+import {useQueryClient} from "@tanstack/react-query";
+import {$api} from "@/src/api/client";
+import {Button} from "@/components/ui/button";
+import {ConcertDto} from "../models/ConcertDto";
+import {Accordeon} from "./layout/Accordeon";
+import {AccordeonItem} from "./layout/AccordeonItem";
+import {FormInput} from "./form/FormInput";
+import {FormTextArea} from "./form/FormTextArea";
+import {TrashIcon} from "./icons/TrashIcon";
 
-interface ConcertItem {
+type ProgramNote = {
+    id: string,
+    name: string,
+}
+
+interface ConcertItemProps {
     concert: ConcertDto,
     keyNum: string
 }
 
-export const ConcertItem: FC<ConcertItem> = ({concert, keyNum}) => {
-    const dispatch = useAppDispatch()
-    const openModal = useAppSelector(state => state.modalReducer.openModal)
+// NotePicker is the "add note to concert" control: a search input backed by
+// the local half of the works autocomplete endpoint.
+const NotePicker: FC<{ existingIds: string[], onPick: (note: ProgramNote) => void }> = ({existingIds, onPick}) => {
     const {t} = useTranslation()
+    const [term, setTerm] = useState("")
+    const {data} = $api.useQuery("get", "/v1/autocomplete/works", {
+        params: {query: {q: term}},
+    }, {enabled: term.length >= 2})
+    const results = (data?.local ?? []).filter(w => w.id && !existingIds.includes(w.id))
 
-    const onNoteDragStart = (e: DragEvent<HTMLDivElement>, note: NoteInConcert)=>{
-        e.dataTransfer.setData("text", JSON.stringify(note.noteInConcert.id))
-        e.dataTransfer.effectAllowed = "move"
+    return <div className="mb-4">
+        <FormInput id="noteSearch" label={t('addNoteToConcert')} value={term} onChange={setTerm}/>
+        {term.length >= 2 && <ul className="mt-2 flex flex-col items-start gap-1">
+            {results.map(w => <li key={w.id}>
+                <Button variant="outline" size="sm" onClick={() => {
+                    onPick({id: w.id!, name: w.name ?? ""})
+                    setTerm("")
+                }}>{w.name}</Button>
+            </li>)}
+            {results.length === 0 && <li className="text-sm text-gray-400">{t('noNotesFound')}</li>}
+        </ul>}
+    </div>
+}
+
+export const ConcertItem: FC<ConcertItemProps> = ({concert, keyNum}) => {
+    const {t} = useTranslation()
+    const queryClient = useQueryClient()
+
+    const [title, setTitle] = useState(concert.title)
+    const [description, setDescription] = useState(concert.description)
+    const [location, setLocation] = useState(concert.location)
+    const [hints, setHints] = useState(concert.hints)
+    const [dueDate, setDueDate] = useState(new Date(concert.dueDate).toISOString().split('T')[0])
+    const [notes, setNotes] = useState<ProgramNote[]>([])
+    const [draggedId, setDraggedId] = useState<string | null>(null)
+
+    // The list endpoint stays lean, so the note program comes from the detail endpoint.
+    const {data: detail} = $api.useQuery("get", "/v1/concerts/{concertId}", {
+        params: {path: {concertId: concert.id}},
+    })
+    useEffect(() => {
+        if (detail) {
+            setNotes((detail.noteInConcerts ?? []).map(n => ({id: n.noteInConcert.id, name: n.noteInConcert.name})))
+        }
+    }, [detail])
+
+    const invalidateConcerts = () => {
+        queryClient.invalidateQueries({queryKey: ["get", "/v1/concerts"]})
+        queryClient.invalidateQueries({queryKey: ["get", "/v1/concerts/{concertId}"]})
     }
 
+    const update = $api.useMutation("put", "/v1/concerts/{concertId}", {onSuccess: invalidateConcerts})
+    const remove = $api.useMutation("delete", "/v1/concerts/{concertId}", {onSuccess: invalidateConcerts})
+
+    // The update endpoint has replace semantics: it always carries all fields
+    // plus the complete ordered note id list.
+    const saveConcert = (noteIds: string[]) => {
+        update.mutate({
+            params: {path: {concertId: concert.id}},
+            body: {
+                title,
+                description,
+                location,
+                hints,
+                dueDate: new Date(dueDate).toISOString(),
+                noteIds,
+            },
+        })
+    }
+
+    const noteIds = notes.map(n => n.id)
+
+    const onNoteDrop = (e: DragEvent<HTMLDivElement>, target: ProgramNote) => {
+        e.preventDefault()
+        if (!draggedId || draggedId === target.id) {
+            return
+        }
+        const reordered = notes.filter(n => n.id !== draggedId)
+        const dragged = notes.find(n => n.id === draggedId)!
+        reordered.splice(reordered.findIndex(n => n.id === target.id), 0, dragged)
+        setNotes(reordered)
+        setDraggedId(null)
+    }
 
     return <Accordeon keyNum={keyNum}>
-        <div className="grid grid-cols-2 pb-2">
-            <FormInput className="text-xl" value={concert.title} onBlur={() => {
-                axios.put(apiURL + "/v1/concerts/" + concert.id, concert)
-                    .then(() => {
-
-                    })
-            }} onChange={(e) => dispatch(concertActions.updateConcert({
-                id: concert.id,
-                dueDate: concert.dueDate,
-                title: e,
-                description: concert.description,
-                noteInConcerts: concert.noteInConcerts,
-                location: concert.location,
-                hints: concert.hints
-            }))} id={"title"} label={t('concert')}/>
+        <div className="flex items-center gap-2 pb-2">
+            <div className="grow">
+                <FormInput className="text-xl" id="title" label={t('concert')} value={title}
+                           onChange={setTitle}
+                           onBlur={() => saveConcert(noteIds)}/>
+            </div>
+            <span title={t('deleteConcert')}>
+                <TrashIcon onClick={() => remove.mutate({params: {path: {concertId: concert.id}}})}/>
+            </span>
         </div>
-        <AccordeonItem title={"containedNotes"} first>
-            <PlusIcon onClick={() => {
-                dispatch(concertActions.setSelectedConcert(concert.id))
-                dispatch(setModalOpen(true))
+        <AccordeonItem title={t('containedNotes')} first>
+            <NotePicker existingIds={noteIds} onPick={(note) => {
+                const nextNotes = [...notes, note]
+                setNotes(nextNotes)
+                saveConcert(nextNotes.map(n => n.id))
             }}/>
-            {openModal && <AddNoteToConcert/>}
             <div className="grid grid-cols-1 gap-4">
-                {concert.noteInConcerts.map(note => <div className="flex" draggable onDragStart={ (e)=>{
-                    onNoteDragStart(e, note)
-                }}
-                        onDragOver={(e)=>{
-                            e.preventDefault()
-                            e.dataTransfer.dropEffect = "move"
-                        }
-                }
-                                                         onDrop={(e)=>{
-                                                             const  element= JSON.parse(e.dataTransfer.getData("text"))
-                                                             console.log(concert.noteInConcerts)
-                                                             if(element!==note.noteInConcert.id) {
-                                                                 e.preventDefault()
-                                                                 dispatch(concertActions.swapNotesInConcert({concertId: concert.id,
-                                                                     noteId1: element,
-                                                                     noteId2: note.noteInConcert.id}))
-                                                                 console.log("Changed both elements")
-                                                                 console.log(concert.noteInConcerts)
-                                                             }
-                                                         }}
-                                                        key={note.noteInConcert.id+"inplace"}>{note.noteInConcert.name}
-                <TrashIcon onClick={()=>{
-                    axios.delete(apiURL + "/v1/concerts/" + concert.id + "/" + note.noteInConcert.id)
-                        .then(()=>{
-                            dispatch(concertActions.removeNoteFromConcert({concertId: concert.id, noteId: note.noteInConcert.id}))
-                        })
-                }}/>
+                {notes.length === 0 && <div className="text-sm text-gray-400">{t('noNotesInConcert')}</div>}
+                {notes.map(note => <div key={note.id} className="flex items-center gap-2" draggable
+                                        onDragStart={(e) => {
+                                            setDraggedId(note.id)
+                                            e.dataTransfer.effectAllowed = "move"
+                                        }}
+                                        onDragOver={(e) => {
+                                            e.preventDefault()
+                                            e.dataTransfer.dropEffect = "move"
+                                        }}
+                                        onDrop={(e) => onNoteDrop(e, note)}>
+                    {note.name}
+                    <TrashIcon onClick={() => {
+                        const nextNotes = notes.filter(n => n.id !== note.id)
+                        setNotes(nextNotes)
+                        saveConcert(nextNotes.map(n => n.id))
+                    }}/>
                 </div>)}
             </div>
-            <div className="flex flex-row-reverse col-span-2">
-                <button className="bg-blue-700 text-white p-2 rounded" onClick={() => {
-                    const mapOfConcerts = concert.noteInConcerts.map(note=> {
-                        return {noteId:note.noteInConcert.id}
-                    })
-                    axios.put(apiURL + "/v1/concerts/"+concert.id+"/order", mapOfConcerts)
-                        .then(() => {
-                        })
-                }}>{t('save')}</button>
+            <div className="flex flex-row-reverse mt-4">
+                <Button disabled={update.isPending} onClick={() => saveConcert(noteIds)}>{t('save')}</Button>
             </div>
         </AccordeonItem>
 
-        <AccordeonItem title={"Hinweise"}>
+        <AccordeonItem title={t('hints')}>
             <div className="grid grid-cols-2 gap-4">
-
-                <FormInput id={"date"} type={"date"} label={"Datum"} value={new Date(concert.dueDate).toISOString().split('T')[0]}
-                           onChange={(e) => dispatch(concertActions.updateConcert({
-                    id: concert.id,
-                    dueDate: e,
-                    title: concert.title,
-                    description: concert.description,
-                    noteInConcerts: concert.noteInConcerts,
-                    location: concert.location,
-                               hints: concert.hints
-                           }))}/>
-                <FormInput id={"location"} label={"Ort"} value={concert.location}
-                           onChange={(e) => dispatch(concertActions.updateConcert({
-                    id: concert.id,
-                    dueDate: concert.dueDate,
-                    title: concert.title,
-                    description: concert.description,
-                    noteInConcerts: concert.noteInConcerts,
-                    location: e,
-                               hints: concert.hints
-                           }))}/>
-
-                <FormInput id={"description"} label={"Beschreibung"} value={concert.description}
-                           onChange={(e) => dispatch(concertActions.updateConcert({
-                    id: concert.id,
-                    dueDate: concert.dueDate,
-                    title: concert.title,
-                    description: e,
-                    noteInConcerts: concert.noteInConcerts,
-                    location: concert.location,
-                               hints: concert.hints
-                           }))}/>
-
+                <FormInput id="date" type="date" label={t('appearanceDate')} value={dueDate} onChange={setDueDate}/>
+                <FormInput id="location" label={t('location')} value={location} onChange={setLocation}/>
+                <FormInput id="description" label={t('description')} value={description} onChange={setDescription}/>
                 <div className="flex flex-row-reverse col-span-2">
-                    <button className="bg-blue-700 text-white p-2 rounded" onClick={() => {
-                        axios.put(apiURL + "/v1/concerts/" + concert.id, concert)
-                            .then(() => {
-
-                            })
-                    }}>{t('save')}</button>
+                    <Button disabled={update.isPending} onClick={() => saveConcert(noteIds)}>{t('save')}</Button>
                 </div>
             </div>
         </AccordeonItem>
 
-        <AccordeonItem title={"Weitere Hinweise"}>
-            <FormTextArea value={concert.hints} onChange={(v)=>{
-                dispatch(concertActions.updateConcert({
-                    id: concert.id,
-                    dueDate: concert.dueDate,
-                    title: concert.title,
-                    description: concert.description,
-                    noteInConcerts: concert.noteInConcerts,
-                    location: concert.location,
-                    hints: v
-                }))
-            }} />
-
-            <div className="flex flex-row-reverse col-span-2 mt-4">
-                <button className="bg-blue-700 text-white p-2 rounded" onClick={() => {
-                    axios.put(apiURL + "/v1/concerts/" + concert.id, concert)
-                        .then(() => {
-                        })
-                }}>{t('save')}</button>
+        <AccordeonItem title={t('furtherHints')}>
+            <FormTextArea value={hints} onChange={setHints}/>
+            <div className="flex flex-row-reverse mt-4">
+                <Button disabled={update.isPending} onClick={() => saveConcert(noteIds)}>{t('save')}</Button>
             </div>
         </AccordeonItem>
     </Accordeon>
-
 }

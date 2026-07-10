@@ -49,6 +49,23 @@ SELECT * FROM user WHERE id = ?;
 -- name: FindUserByEmail :one
 SELECT * FROM user WHERE email = ?;
 
+-- name: SetIcalFeedToken :exec
+UPDATE user SET ical_feed_token = ? WHERE id = ?;
+
+-- name: GetIcalFeedToken :one
+SELECT ical_feed_token FROM user WHERE id = ?;
+
+-- name: FindUserByIcalFeedToken :one
+SELECT * FROM user WHERE ical_feed_token = ?;
+
+-- name: ListClubEventsForUserFeed :many
+SELECT e.*, c.name AS club_name
+FROM club_events e
+JOIN clubs c ON c.id = e.club_id
+JOIN club_participant p ON p.club_id = e.club_id AND p.user_id = sqlc.arg(user_id)
+WHERE e.start_date > sqlc.arg(since)
+ORDER BY e.start_date;
+
 
 
 
@@ -145,6 +162,12 @@ SELECT * FROM concert WHERE user_id_fk = ? ORDER BY due_date DESC;
 -- name: FindAllNotesInConcertByPlace :many
 SELECT * FROM note_in_concert WHERE concert_id_fk = ? ORDER BY place_in_concert;
 
+-- name: CreateNoteInConcert :exec
+INSERT INTO note_in_concert (concert_id_fk, note_id_fk, place_in_concert) VALUES (?, ?, ?);
+
+-- name: UpdateConcert :exec
+UPDATE concert SET title = ?, description = ?, location = ?, due_date = ?, hints = ? WHERE id = ? AND user_id_fk = ?;
+
 -- name: DeleteNoteInConcert :exec
 DELETE FROM note_in_concert WHERE concert_id_fk = ? AND note_id_fk = ?;
 
@@ -171,7 +194,7 @@ SELECT * FROM elements WHERE parent IS NULL AND type = 'folder' AND user_id_fk =
 INSERT INTO elements (id, type, name, description, user_id_fk, parent) VALUES (?,'folder', ?, ?, ?, ?);
 
 -- name: CreateNote :execlastid
-INSERT INTO elements (id, type, name, description, user_id_fk, parent, composer_id_fk, number_of_pages, pdf_content) VALUES (?,'note', ?, ?, ?, ?, ?, ?, ?);
+INSERT INTO elements (id, type, name, description, user_id_fk, parent, composer_id_fk, arranger_id_fk, number_of_pages, pdf_content) VALUES (?,'note', ?, ?, ?, ?, ?, ?, ?, ?);
 
 -- name: FindFolderById :one
 SELECT * FROM elements WHERE id = ? and user_id_fk = ?;
@@ -190,7 +213,7 @@ SELECT COUNT(*) FROM elements WHERE name LIKE CONCAT('%', ?, '%') and type = 'fo
 DELETE FROM elements WHERE id = ? AND user_id_fk = ?;
 
 -- name: UpdateNote :exec
-UPDATE elements SET name = ?, description = ?, composer_id_fk = ?, number_of_pages = ?, pdf_content = ? WHERE id = ?;
+UPDATE elements SET name = ?, description = ?, composer_id_fk = ?, arranger_id_fk = ?, number_of_pages = ?, pdf_content = ? WHERE id = ?;
 
 -- name: UpdateFolder :exec
 UPDATE elements SET name=?, description = ?, parent = ? WHERE id = ? and user_id_fk = ?;
@@ -361,6 +384,30 @@ where token = ?;
 UPDATE club_invitation
 SET accepted_at = ?
 WHERE token = ?;
+
+-- name: FindPendingClubInvitations :many
+SELECT token, club_id, invited_email, invited_by_user_id, created_at, expires_at
+from club_invitation
+where club_id = ? and accepted_at IS NULL and expires_at > sqlc.arg(now)
+ORDER BY created_at DESC;
+
+-- name: DeleteClubInvitation :execrows
+DELETE FROM club_invitation WHERE token = ? AND club_id = ?;
+
+-- name: DeleteClubInvitationsByClub :exec
+DELETE FROM club_invitation WHERE club_id = ?;
+
+-- name: DeleteClubMember :exec
+DELETE FROM club_participant WHERE club_id = ? AND user_id = ?;
+
+-- name: DeleteClubMembersByClub :exec
+DELETE FROM club_participant WHERE club_id = ?;
+
+-- name: DeleteClub :exec
+DELETE FROM clubs WHERE id = ?;
+
+-- name: DeleteAddress :exec
+DELETE FROM address WHERE id = ?;
 
 
 -- name: DeleteFolderCasCade :exec

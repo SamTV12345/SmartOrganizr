@@ -7,6 +7,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"github.com/go-faker/faker/v4"
+	"github.com/gofiber/fiber/v3"
 	"io"
 	"net/http"
 	"testing"
@@ -159,5 +160,148 @@ func TestFindNextChildrenWithComposerlessChild(t *testing.T) {
 	}
 	if len(children) != 1 {
 		t.Fatalf("expected 1 child folder, got %d", len(children))
+	}
+}
+
+// createNoteFixture creates a parent folder, an author and a note inside the
+// folder via the API and returns the folder and note ids.
+func createNoteFixture(t *testing.T, app *fiber.App) (folderId string, noteId string) {
+	folderPost := builders.CreateParentFolderPostDto()
+	bytesEncoded, _ := json.Marshal(folderPost)
+	request, _ := http.NewRequest("POST", "http://localhost/api/v1/elements/folders", bytes.NewBuffer(bytesEncoded))
+	request.Header.Set("Content-Type", "application/json")
+	response, _ := app.Test(request)
+	if response.StatusCode != http.StatusOK {
+		t.Fatalf("expected 200 creating parent folder, got %d", response.StatusCode)
+	}
+	readBytes, _ := io.ReadAll(response.Body)
+	var folder dto.Folder
+	encodingHelper.Decode(readBytes, &folder)
+
+	authorEncoded := encodingHelper.EncodeAuthorDto(t)
+	request, _ = http.NewRequest("POST", "http://localhost/api/v1/authors", bytes.NewBuffer(authorEncoded))
+	request.Header.Set("Content-Type", "application/json")
+	response, _ = app.Test(request)
+	if response.StatusCode != http.StatusOK {
+		t.Fatalf("expected 200 creating author, got %d", response.StatusCode)
+	}
+	author := encodingHelper.DecodeAuthorDto(response, t)
+
+	notePost := dto.NotePostDto{
+		AuthorId:      author.ID,
+		Description:   faker.Word(),
+		NumberOfPages: 3,
+		ParentId:      folder.Id,
+		Name:          faker.Word(),
+	}
+	bytesEncoded, _ = json.Marshal(notePost)
+	request, _ = http.NewRequest("POST", "http://localhost/api/v1/elements/notes", bytes.NewBuffer(bytesEncoded))
+	request.Header.Set("Content-Type", "application/json")
+	response, _ = app.Test(request)
+	if response.StatusCode != http.StatusOK {
+		raw, _ := io.ReadAll(response.Body)
+		t.Fatalf("expected 200 creating note, got %d: %s", response.StatusCode, string(raw))
+	}
+	readBytes, _ = io.ReadAll(response.Body)
+	var note struct {
+		Id string `json:"id"`
+	}
+	encodingHelper.Decode(readBytes, &note)
+	if note.Id == "" {
+		t.Fatalf("expected note ID to be set, got empty string")
+	}
+	return folder.Id, note.Id
+}
+
+// countChildren lists the children of a folder and returns how many there are.
+func countChildren(t *testing.T, app *fiber.App, folderId string) int {
+	request, _ := http.NewRequest("GET", "http://localhost/api/v1/elements/"+folderId+"/children", nil)
+	response, err := app.Test(request)
+	if err != nil {
+		t.Fatalf("children request failed: %v", err)
+	}
+	if response.StatusCode != http.StatusOK {
+		t.Fatalf("expected 200 listing children, got %d", response.StatusCode)
+	}
+	raw, _ := io.ReadAll(response.Body)
+	var children []map[string]any
+	if err := json.Unmarshal(raw, &children); err != nil {
+		t.Fatalf("decode children: %v", err)
+	}
+	return len(children)
+}
+
+func TestGetParentOfNote(t *testing.T) {
+	app := SetupTest(t)
+	folderId, noteId := createNoteFixture(t, app)
+
+	request, _ := http.NewRequest("GET", "http://localhost/api/v1/elements/"+noteId+"/parent", nil)
+	response, err := app.Test(request)
+	if err != nil {
+		t.Fatalf("failed to make request: %v", err)
+	}
+	raw, _ := io.ReadAll(response.Body)
+	if response.StatusCode != http.StatusOK {
+		t.Fatalf("expected status code 200, got %d: %s", response.StatusCode, string(raw))
+	}
+	if string(raw) != folderId {
+		t.Fatalf("expected parent folder id %s, got %s", folderId, string(raw))
+	}
+}
+
+func TestDeleteElementNote(t *testing.T) {
+	app := SetupTest(t)
+	folderId, noteId := createNoteFixture(t, app)
+
+	request, _ := http.NewRequest("DELETE", "http://localhost/api/v1/elements/"+noteId, nil)
+	response, err := app.Test(request)
+	if err != nil {
+		t.Fatalf("failed to make request: %v", err)
+	}
+	if response.StatusCode != http.StatusNoContent {
+		raw, _ := io.ReadAll(response.Body)
+		t.Fatalf("expected status code 204, got %d: %s", response.StatusCode, string(raw))
+	}
+
+	// The note must be gone, but its parent folder must survive.
+	if got := countChildren(t, app, folderId); got != 0 {
+		t.Fatalf("expected 0 children after deleting note, got %d", got)
+	}
+}
+
+func TestDeleteElementFolder(t *testing.T) {
+	app := SetupTest(t)
+
+	// A non-empty folder: the contained note must be deleted with it via the
+	// cascading parent FK (the blocking legacy constraint was dropped in
+	// migration 00026).
+	folderId, _ := createNoteFixture(t, app)
+
+	request, _ := http.NewRequest("DELETE", "http://localhost/api/v1/elements/"+folderId, nil)
+	response, err := app.Test(request)
+	if err != nil {
+		t.Fatalf("failed to make request: %v", err)
+	}
+	if response.StatusCode != http.StatusNoContent {
+		raw, _ := io.ReadAll(response.Body)
+		t.Fatalf("expected status code 204, got %d: %s", response.StatusCode, string(raw))
+	}
+
+	// The folder must no longer show up as a parent deck.
+	request, _ = http.NewRequest("GET", "http://localhost/api/v1/elements/parentDecks", nil)
+	response, err = app.Test(request)
+	if err != nil {
+		t.Fatalf("failed to make request: %v", err)
+	}
+	if response.StatusCode != http.StatusOK {
+		t.Fatalf("expected status code 200, got %d", response.StatusCode)
+	}
+	raw, _ := io.ReadAll(response.Body)
+	var decks []map[string]any
+	if err := json.Unmarshal(raw, &decks); err != nil {
+		t.Fatalf("decode parent decks: %v", err)
+	}
+	if len(decks) != 0 {
+		t.Fatalf("expected 0 parent decks after deleting folder, got %d", len(decks))
 	}
 }

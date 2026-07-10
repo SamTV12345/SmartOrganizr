@@ -68,6 +68,11 @@ import {
     replaceFolder,
     replaceNote,
 } from "@/src/utils/ElementUtils";
+import {
+    findOrCreateAuthorId,
+    normalizeAuthorName,
+} from "@/src/components/CreateFolderOrNote";
+import { NoteAuthorCreateSearchBar } from "@/src/components/searchBars/NoteAuthorCreateSearchBar";
 
 /* ------------------------------------------------------------------ */
 /* Props                                                              */
@@ -108,6 +113,8 @@ export function UpdateFolderOrNote({
         description: z.string(),
         numberOfPages: z.number(),
         authorId: z.string().min(1, { message: t("fieldRequired")! }),
+        arrangerId: z.string().optional(),
+        arrangerName: z.string().optional(),
         parentId: z.string()
     });
 
@@ -140,6 +147,8 @@ export function UpdateFolderOrNote({
                 description: element.description ?? "",
                 numberOfPages: element.numberOfPages ?? 0,
                 authorId: element.author?.id ?? "",
+                arrangerId: element.arranger?.id ?? "",
+                arrangerName: element.arranger?.name ?? "",
                 parentId: element.parent?.id ?? ""
             });
         }
@@ -219,7 +228,7 @@ export function UpdateFolderOrNote({
     /* Submit                                                             */
     /* ------------------------------------------------------------------ */
 
-    const onSubmit = (values: FormValues) => {
+    const onSubmit = async (values: FormValues) => {
         if (values.type === "folder") {
             updateFolderMutation.mutate({
                 name: values.name,
@@ -227,11 +236,28 @@ export function UpdateFolderOrNote({
                 parentId: values.parentId,
             });
         } else {
+            // Arranger is optional: an explicit pick wins, a free-typed name
+            // is resolved (or created) like in the create dialog, empty clears it.
+            let arrangerId = values.arrangerId || "";
+            const arrangerName = normalizeAuthorName(values.arrangerName ?? "");
+            if (!arrangerId && arrangerName) {
+                try {
+                    arrangerId = await findOrCreateAuthorId(arrangerName);
+                } catch (error) {
+                    console.error(error);
+                    form.setError("arrangerName", {
+                        type: "manual",
+                        message: t("authorResolveFailed") as string,
+                    });
+                    return;
+                }
+            }
             updateNoteMutation.mutate({
                 name: values.name,
                 description: values.description,
                 numberOfPages: values.numberOfPages,
                 authorId: values.authorId,
+                arrangerId,
                 parentId: values.parentId,
             });
         }
@@ -333,6 +359,15 @@ export function UpdateFolderOrNote({
                                 </FormItem>
                             )}
                         />
+
+                        {form.watch("type") === "note" && (
+                            <NoteAuthorCreateSearchBar
+                                idField="arrangerId"
+                                nameField="arrangerName"
+                                labelKey="arranger"
+                                syncRedux={false}
+                            />
+                        )}
 
                         <DialogFooter>
                             {isFolder(element) && (

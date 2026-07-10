@@ -15,6 +15,7 @@ func ConvertConcertFromEntity(entity db.Concert, notes []models.NoteInConcert) m
 		NoteInConcerts: notes,
 		Description:    entity.Description.String,
 		Hints:          entity.Hints.String,
+		Location:       entity.Location.String,
 		DueDate:        entity.DueDate.Time,
 	}
 }

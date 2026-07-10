@@ -1,22 +1,18 @@
 import { ChangeEvent, FC, useMemo, useState } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { http as axios } from "@/src/api/client";
+import { useTranslation } from "react-i18next";
+import { $api, http as axios } from "@/src/api/client";
 import {
     CalendarDays,
-    CalendarRange,
     ChevronLeft,
-    ClipboardCheck,
-    DoorOpen,
     Download,
     FolderKanban,
     LayoutDashboard,
-    ListMusic,
     MessagesSquare,
-    Music2,
-    NotebookTabs,
     PencilLine,
     Settings,
+    Trash2,
     Upload,
     UserRoundCog,
     UserRoundPlus,
@@ -24,6 +20,17 @@ import {
 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+    AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { apiURL } from "@/src/Keycloak";
 import { useKeycloak } from "@/src/Keycloak/useKeycloak";
 import { Club } from "@/src/models/Club";
@@ -37,14 +44,12 @@ import { ClubPinboardSection } from "@/src/components/ClubPinboardSection";
 import { ClubFilesSection } from "@/src/components/ClubFilesSection";
 import { ClubEventsManager } from "@/src/components/club/ClubEventsManager";
 import { ClubSettingsForm } from "@/src/components/club/ClubSettingsForm";
+import { ClubDangerZone } from "@/src/components/club/ClubDangerZone";
 
 type ClubSection = {
     id: string;
     label: string;
-    description: string;
     icon: FC<{ className?: string }>;
-    primaryAction: string;
-    secondaryAction: string;
 };
 
 type InviteResult = {
@@ -62,20 +67,13 @@ const ROLE_OPTIONS = [
 ];
 
 const CLUB_SECTIONS: ClubSection[] = [
-    { id: "pinnwand", label: "Pinnwand", description: "Neuigkeiten und Hinweise.", icon: LayoutDashboard, primaryAction: "Beitrag erstellen", secondaryAction: "Beiträge filtern" },
-    { id: "termine", label: "Termine", description: "Vereinstermine verwalten und Anwesenheit prüfen.", icon: CalendarDays, primaryAction: "Termin erstellen", secondaryAction: "Termine anzeigen" },
-    { id: "nachrichten", label: "Nachrichten", description: "Direkte Kommunikation im Verein.", icon: MessagesSquare, primaryAction: "Nachricht verfassen", secondaryAction: "Posteingang öffnen" },
-    { id: "aufgaben", label: "Aufgaben", description: "Aufgaben zu Proben, Auftritten und Orga.", icon: ClipboardCheck, primaryAction: "Aufgabe anlegen", secondaryAction: "Offene Aufgaben anzeigen" },
-    { id: "dateien", label: "Dateien", description: "Ablage für Dokumente und Unterlagen.", icon: FolderKanban, primaryAction: "Datei hochladen", secondaryAction: "Ordnerstruktur öffnen" },
-    { id: "register", label: "Register", description: "Instrumenten- und Stimmenbereiche verwalten.", icon: NotebookTabs, primaryAction: "Register anlegen", secondaryAction: "Registerliste anzeigen" },
-    { id: "gruppen", label: "Gruppen", description: "Untergruppen und Teams organisieren.", icon: Users2, primaryAction: "Gruppe erstellen", secondaryAction: "Mitglieder zuweisen" },
-    { id: "mitglieder", label: "Mitglieder", description: "Mitgliederliste, Einladungen und CSV-Import/Export.", icon: Users2, primaryAction: "Mitglied einladen", secondaryAction: "CSV exportieren" },
-    { id: "rollen", label: "Rollen", description: "Berechtigungen für Leitung und Mitglieder steuern.", icon: UserRoundCog, primaryAction: "Rolle vergeben", secondaryAction: "Rechte prüfen" },
-    { id: "raeume", label: "Räume", description: "Proberäume und Orte planen.", icon: DoorOpen, primaryAction: "Raum anlegen", secondaryAction: "Belegung anzeigen" },
-    { id: "musikstuecke", label: "Musikstücke", description: "Repertoire und Stückinfos verwalten.", icon: Music2, primaryAction: "Stück hinzufügen", secondaryAction: "Repertoire ansehen" },
-    { id: "setlists", label: "Setlists", description: "Abläufe für Auftritte vorbereiten.", icon: ListMusic, primaryAction: "Setlist erstellen", secondaryAction: "Setlists vergleichen" },
-    { id: "terminvorlagen", label: "Terminvorlagen", description: "Wiederkehrende Termine als Vorlage.", icon: CalendarRange, primaryAction: "Vorlage erstellen", secondaryAction: "Vorlagen verwalten" },
-    { id: "bearbeiten", label: "Bearbeiten", description: "Vereinsdaten und Einstellungen anpassen.", icon: PencilLine, primaryAction: "Verein bearbeiten", secondaryAction: "Einstellungen öffnen" },
+    { id: "pinnwand", label: "Pinnwand", icon: LayoutDashboard },
+    { id: "termine", label: "Termine", icon: CalendarDays },
+    { id: "nachrichten", label: "Nachrichten", icon: MessagesSquare },
+    { id: "dateien", label: "Dateien", icon: FolderKanban },
+    { id: "mitglieder", label: "Mitglieder", icon: Users2 },
+    { id: "rollen", label: "Rollen", icon: UserRoundCog },
+    { id: "bearbeiten", label: "Bearbeiten", icon: PencilLine },
 ];
 
 const getInitials = (name: string) =>
@@ -104,6 +102,7 @@ const memberDisplayName = (member: ClubMember) => {
 };
 
 export const ClubDetailView: FC = () => {
+    const { t } = useTranslation();
     const navigate = useNavigate();
     const queryClient = useQueryClient();
     const { clubId } = useParams();
@@ -167,6 +166,31 @@ export const ClubDetailView: FC = () => {
     const club = useMemo(() => clubsData?.data.find((entry) => entry.id === clubId), [clubsData?.data, clubId]);
     const sectionWritable = permissions?.section_write?.[activeSection.id] ?? false;
 
+    const canManageMembers = permissions?.can_manage_roles ?? false;
+    const isLeiter = permissions?.role === "LEITER";
+    const leiterCount = members.filter((member) => member.role === "LEITER").length;
+    const isLastLeiter = isLeiter && leiterCount <= 1;
+
+    const removeMemberMutation = $api.useMutation("delete", "/v1/clubs/{clubId}/members/{memberUserId}", {
+        onSuccess: async () => {
+            await refetchMembers();
+        },
+    });
+
+    const { data: invitationsData, refetch: refetchInvitations } = $api.useQuery(
+        "get",
+        "/v1/clubs/{clubId}/invitations",
+        { params: { path: { clubId: clubId ?? "" } } },
+        { enabled: !!clubId && (permissions?.can_invite_members ?? false) },
+    );
+    const invitations = invitationsData ?? [];
+
+    const revokeInvitationMutation = $api.useMutation("delete", "/v1/clubs/{clubId}/invitations/{invitationId}", {
+        onSuccess: async () => {
+            await refetchInvitations();
+        },
+    });
+
     const onExportCSV = async () => {
         const response = await axios.get(`${apiURL}/v1/clubs/${clubId}/members/export`, { responseType: "blob" });
         const downloadURL = URL.createObjectURL(response.data);
@@ -221,7 +245,7 @@ export const ClubDetailView: FC = () => {
                             variant="secondary"
                             size="sm"
                             className="bg-white/15 text-white hover:bg-white/25 hover:text-white"
-                            onClick={() => navigate("/welcome")}
+                            onClick={() => navigate("/dashboard")}
                         >
                             <ChevronLeft className="size-4" />
                             Zurück
@@ -320,62 +344,137 @@ export const ClubDetailView: FC = () => {
                     )}
 
                     {activeSection.id === "bearbeiten" && club && (
-                        permissions?.can_manage_roles
-                            ? <ClubSettingsForm club={club} />
-                            : <p className="text-sm text-muted-foreground">Nur die Vereinsleitung kann Einstellungen bearbeiten.</p>
-                    )}
-
-                    {activeSection.id !== "rollen" && activeSection.id !== "mitglieder" && activeSection.id !== "nachrichten" && activeSection.id !== "pinnwand" && activeSection.id !== "dateien" && activeSection.id !== "termine" && activeSection.id !== "bearbeiten" && (
-                        <Card className="border-dashed">
-                            <CardHeader>
-                                <CardTitle className="flex items-center gap-2 text-xl">
-                                    <activeSection.icon className="size-5 text-accentDark" />
-                                    {activeSection.label}
-                                </CardTitle>
-                                <CardDescription>{activeSection.description}</CardDescription>
-                            </CardHeader>
-                            <CardContent className="flex flex-wrap gap-3">
-                                <Button disabled={!sectionWritable}>{activeSection.primaryAction}</Button>
-                                <Button variant="outline">{activeSection.secondaryAction}</Button>
-                                {!sectionWritable && <p className="w-full text-sm text-muted-foreground">Deine Rolle hat hier nur Leserechte.</p>}
-                            </CardContent>
-                        </Card>
+                        <div className="space-y-6">
+                            {permissions?.can_manage_roles
+                                ? <ClubSettingsForm club={club} />
+                                : <p className="text-sm text-muted-foreground">Nur die Vereinsleitung kann Einstellungen bearbeiten.</p>}
+                            <ClubDangerZone
+                                clubId={club.id}
+                                clubName={club.name}
+                                isLeiter={isLeiter}
+                                isLastLeiter={isLastLeiter}
+                            />
+                        </div>
                     )}
 
                     {activeSection.id === "mitglieder" && (
                         <div className="grid gap-4 xl:grid-cols-[1.4fr_1fr]">
-                            <Card>
-                                <CardHeader>
-                                    <CardTitle>Mitglieder</CardTitle>
-                                    <CardDescription>Aktuelle Mitglieder und Rollen im Verein.</CardDescription>
-                                </CardHeader>
-                                <CardContent className="space-y-3">
-                                    {members.map((member) => (
-                                        <div key={member.user_id} className="grid gap-2 rounded-lg border p-3 md:grid-cols-[1.6fr_1.2fr]">
-                                            <div>
-                                                <p className="font-medium">{memberDisplayName(member)}</p>
-                                                <p className="text-xs text-muted-foreground">{member.email || member.user_id}</p>
+                            <div className="space-y-4">
+                                <Card>
+                                    <CardHeader>
+                                        <CardTitle>Mitglieder</CardTitle>
+                                        <CardDescription>Aktuelle Mitglieder und Rollen im Verein.</CardDescription>
+                                    </CardHeader>
+                                    <CardContent className="space-y-3">
+                                        {members.map((member) => (
+                                            <div key={member.user_id} className="grid items-center gap-2 rounded-lg border p-3 md:grid-cols-[1.6fr_1.2fr_auto]">
+                                                <div>
+                                                    <p className="font-medium">{memberDisplayName(member)}</p>
+                                                    <p className="text-xs text-muted-foreground">{member.email || member.user_id}</p>
+                                                </div>
+                                                <Select
+                                                    value={member.role}
+                                                    onValueChange={(newRole) => newRole && roleMutation.mutate({ memberUserId: member.user_id, role: newRole })}
+                                                    disabled={!permissions?.can_manage_roles}
+                                                >
+                                                    <SelectTrigger className="w-full">
+                                                        <SelectValue />
+                                                    </SelectTrigger>
+                                                    <SelectContent>
+                                                        {ROLE_OPTIONS.map((role) => (
+                                                            <SelectItem key={role.value} value={role.value}>
+                                                                {role.label}
+                                                            </SelectItem>
+                                                        ))}
+                                                    </SelectContent>
+                                                </Select>
+                                                {canManageMembers && member.user_id !== user?.subject && (
+                                                    <AlertDialog>
+                                                        <AlertDialogTrigger
+                                                            render={<Button variant="ghost" size="sm" aria-label={t("club-remove-member")} />}
+                                                        >
+                                                            <Trash2 className="size-4 text-red-500" />
+                                                        </AlertDialogTrigger>
+                                                        <AlertDialogContent>
+                                                            <AlertDialogHeader>
+                                                                <AlertDialogTitle>{t("club-remove-member")}</AlertDialogTitle>
+                                                                <AlertDialogDescription>
+                                                                    {t("club-remove-member-confirm", { name: memberDisplayName(member) })}
+                                                                </AlertDialogDescription>
+                                                            </AlertDialogHeader>
+                                                            <AlertDialogFooter>
+                                                                <AlertDialogCancel>{t("cancel")}</AlertDialogCancel>
+                                                                <AlertDialogAction
+                                                                    onClick={() =>
+                                                                        removeMemberMutation.mutate({
+                                                                            params: { path: { clubId: club.id, memberUserId: member.user_id } },
+                                                                        })
+                                                                    }
+                                                                >
+                                                                    {t("club-remove-member")}
+                                                                </AlertDialogAction>
+                                                            </AlertDialogFooter>
+                                                        </AlertDialogContent>
+                                                    </AlertDialog>
+                                                )}
                                             </div>
-                                            <Select
-                                                value={member.role}
-                                                onValueChange={(newRole) => newRole && roleMutation.mutate({ memberUserId: member.user_id, role: newRole })}
-                                                disabled={!permissions?.can_manage_roles}
-                                            >
-                                                <SelectTrigger className="w-full">
-                                                    <SelectValue />
-                                                </SelectTrigger>
-                                                <SelectContent>
-                                                    {ROLE_OPTIONS.map((role) => (
-                                                        <SelectItem key={role.value} value={role.value}>
-                                                            {role.label}
-                                                        </SelectItem>
-                                                    ))}
-                                                </SelectContent>
-                                            </Select>
-                                        </div>
-                                    ))}
-                                </CardContent>
-                            </Card>
+                                        ))}
+                                    </CardContent>
+                                </Card>
+
+                                {permissions?.can_invite_members && (
+                                    <Card>
+                                        <CardHeader>
+                                            <CardTitle>{t("club-pending-invitations")}</CardTitle>
+                                            <CardDescription>{t("club-pending-invitations-description")}</CardDescription>
+                                        </CardHeader>
+                                        <CardContent className="space-y-3">
+                                            {invitations.length === 0 && (
+                                                <p className="text-sm text-muted-foreground">{t("club-no-pending-invitations")}</p>
+                                            )}
+                                            {invitations.map((invitation) => (
+                                                <div key={invitation.token} className="flex items-center justify-between gap-2 rounded-lg border p-3">
+                                                    <div>
+                                                        <p className="font-medium">{invitation.invited_email}</p>
+                                                        <p className="text-xs text-muted-foreground">
+                                                            {t("club-invitation-expires", {
+                                                                date: invitation.expires_at ? new Date(invitation.expires_at).toLocaleDateString() : "-",
+                                                            })}
+                                                        </p>
+                                                    </div>
+                                                    <AlertDialog>
+                                                        <AlertDialogTrigger
+                                                            render={<Button variant="ghost" size="sm" aria-label={t("club-invitation-revoke")} />}
+                                                        >
+                                                            <Trash2 className="size-4 text-red-500" />
+                                                        </AlertDialogTrigger>
+                                                        <AlertDialogContent>
+                                                            <AlertDialogHeader>
+                                                                <AlertDialogTitle>{t("club-invitation-revoke")}</AlertDialogTitle>
+                                                                <AlertDialogDescription>
+                                                                    {t("club-invitation-revoke-confirm", { email: invitation.invited_email })}
+                                                                </AlertDialogDescription>
+                                                            </AlertDialogHeader>
+                                                            <AlertDialogFooter>
+                                                                <AlertDialogCancel>{t("cancel")}</AlertDialogCancel>
+                                                                <AlertDialogAction
+                                                                    onClick={() =>
+                                                                        revokeInvitationMutation.mutate({
+                                                                            params: { path: { clubId: club.id, invitationId: invitation.token ?? "" } },
+                                                                        })
+                                                                    }
+                                                                >
+                                                                    {t("club-invitation-revoke")}
+                                                                </AlertDialogAction>
+                                                            </AlertDialogFooter>
+                                                        </AlertDialogContent>
+                                                    </AlertDialog>
+                                                </div>
+                                            ))}
+                                        </CardContent>
+                                    </Card>
+                                )}
+                            </div>
 
                             <div className="space-y-4">
                                 <Card>

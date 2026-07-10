@@ -122,6 +122,19 @@ func (f *FolderService) LoadAllFolders(userId string) ([]models.Folder, error) {
 	return modelFolders, nil
 }
 
+// FindElementTypeByIdAndUser returns the raw element type ('folder' or 'note')
+// of an element owned by the user, without loading the whole subtree.
+func (f *FolderService) FindElementTypeByIdAndUser(elementId string, userId string) (string, error) {
+	element, err := f.Queries.FindFolderById(f.Ctx, db.FindFolderByIdParams{
+		ID:       elementId,
+		UserIDFk: db.NewSQLNullString(userId),
+	})
+	if err != nil {
+		return "", err
+	}
+	return element.Type, nil
+}
+
 func (f *FolderService) FindFolderByIdAndUser(folderId string, userId string) (*models.Folder, error) {
 	folder, err := f.Queries.FindFolderById(f.Ctx, db.FindFolderByIdParams{
 		ID:       folderId,
@@ -138,21 +151,6 @@ func (f *FolderService) FindFolderByIdAndUser(folderId string, userId string) (*
 	var folderModel = mappers.ConvertFolderFromEntity(folderDb, *creator)
 	f.loadSubElements(&folderModel, *creator)
 	return &folderModel, nil
-}
-
-func (f *FolderService) FindFolderById(folderId string) (*models.Folder, *models.User, error) {
-	folder, err := f.Queries.FindFolderByIdWithoutUserId(f.Ctx, folderId)
-	if err != nil {
-		return nil, nil, err
-	}
-	var creator, errWhenLoading = f.UserService.LoadUser(folder.UserIDFk.String)
-	if errWhenLoading != nil {
-		return nil, nil, errWhenLoading
-	}
-	var folderDb = db.ConvertFolderEntityToDBVersion(folder)
-	var folderModel = mappers.ConvertFolderFromEntity(folderDb, *creator)
-	f.loadSubElements(&folderModel, *creator)
-	return &folderModel, creator, nil
 }
 
 func (f *FolderService) CreateFolder(dto dto.FolderPostDto, userId string) (*models.Folder, error) {

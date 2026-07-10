@@ -6,7 +6,6 @@ import (
 	"api_go/mappers"
 	"api_go/models"
 	"api_go/service"
-	"database/sql"
 	"errors"
 	"strconv"
 
@@ -40,9 +39,9 @@ func GetParentDecks(c fiber.Ctx) error {
 // DeleteElement godoc
 // @Summary  Delete a folder or note by id
 // @Tags     elements
-// @Param    elementid  path  string  true  "Element ID"
+// @Param    elementId  path  string  true  "Element ID"
 // @Success  204
-// @Router   /v1/elements/{elementid} [delete]
+// @Router   /v1/elements/{elementId} [delete]
 func DeleteElement(c fiber.Ctx) error {
 	var userId = GetLocal[string](c, "userId")
 	var elementId = c.Params("elementId")
@@ -50,24 +49,24 @@ func DeleteElement(c fiber.Ctx) error {
 	var folderService = GetLocal[service.FolderService](c, "folderService")
 	var noteService = GetLocal[service.NoteService](c, "noteService")
 
-	lookedUpFolder, err := folderService.FindFolderByIdAndUser(elementId, userId)
+	elementType, err := folderService.FindElementTypeByIdAndUser(elementId, userId)
 	if err != nil {
 		log.Errorf("DeleteElement failed to find element %q for user %q: %v", elementId, userId, err)
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": err.Error(),
 		})
 	}
-	if err := folderService.DeleteFolder(lookedUpFolder.Id, userId); err != nil {
-		return c.SendStatus(fiber.StatusInternalServerError)
-	}
 
-	if err := noteService.DeleteNote(userId, elementId); err != nil {
-		if !errors.Is(err, sql.ErrNoRows) {
-			log.Errorf("DeleteElement failed to delete note %q for user %q: %v", elementId, userId, err)
-			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-				"error": err.Error(),
-			})
-		}
+	if elementType == "folder" {
+		err = folderService.DeleteFolder(elementId, userId)
+	} else {
+		err = noteService.DeleteNote(userId, elementId)
+	}
+	if err != nil {
+		log.Errorf("DeleteElement failed to delete %s %q for user %q: %v", elementType, elementId, userId, err)
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": err.Error(),
+		})
 	}
 
 	return c.SendStatus(fiber.StatusNoContent)
@@ -339,6 +338,24 @@ func UpdateNote(c fiber.Ctx) error {
 	note.NumberOfPages = notePostDto.NumberOfPages
 	note.Name = notePostDto.Name
 
+	var authorService = GetLocal[service.AuthorService](c, constants.AuthorService)
+	if notePostDto.AuthorId != "" && notePostDto.AuthorId != note.Author.ID {
+		author, errAuthor := authorService.LoadAuthorById(notePostDto.AuthorId, userId)
+		if errAuthor != nil {
+			return fiber.NewError(fiber.StatusBadRequest, "composer not found")
+		}
+		note.Author = author
+	}
+	if notePostDto.ArrangerId == "" {
+		note.Arranger = nil
+	} else if note.Arranger == nil || note.Arranger.ID != notePostDto.ArrangerId {
+		arranger, errArranger := authorService.LoadAuthorById(notePostDto.ArrangerId, userId)
+		if errArranger != nil {
+			return fiber.NewError(fiber.StatusBadRequest, "arranger not found")
+		}
+		note.Arranger = &arranger
+	}
+
 	var updatedNote, errUpdate = noteService.UpdateNote(userId, note)
 	if errUpdate != nil {
 		log.Errorf("UpdateNote failed for note %q user %q: %v", noteId, userId, errUpdate)
@@ -360,8 +377,8 @@ func UpdateNote(c fiber.Ctx) error {
 func GetParentOfNote(c fiber.Ctx) error {
 	var userId = GetLocal[string](c, "userId")
 	var noteId = c.Params("noteId")
-	var folderService = GetLocal[service.FolderService](c, "noteService")
-	var element, err = folderService.FindFolderByIdAndUser(noteId, userId)
+	var noteService = GetLocal[service.NoteService](c, "noteService")
+	var note, err = noteService.LoadNote(noteId, userId)
 	if err != nil {
 		log.Errorf("GetParentOfNote failed for note %q user %q: %v", noteId, userId, err)
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
@@ -369,7 +386,7 @@ func GetParentOfNote(c fiber.Ctx) error {
 		})
 	}
 
-	return c.SendString(element.Id)
+	return c.SendString(note.Parent.Id)
 }
 
 // GetNoteasPDF godoc
@@ -434,12 +451,18 @@ func UpdatePDFOfNote(c fiber.Ctx) error {
 // @Router   /v1/elements/{folderId}/export [get]
 func ExportPDFFromNotes(c fiber.Ctx) error {
 	folderservice := GetLocal[service.FolderService](c, constants.FolderService)
-	userservice := GetLocal[service.UserService](c, constants.UserService)
 
+	var userId = GetLocal[string](c, "userId")
 	var folderId = c.Params("folderId")
-	pdfContent, err := service.GeneratePDFForFolder(folderId, folderservice, userservice)
+	pdfContent, err := service.GeneratePDFForFolder(folderId, userId, folderservice)
 	if err != nil {
-		log.Errorf("ExportPDFFromNotes failed for folder %q: %v", folderId, err)
+		log.Errorf("ExportPDFFromNotes failed for folder %q user %q: %v", folderId, userId, err)
+		var fiberErr *fiber.Error
+		if errors.As(err, &fiberErr) {
+			return c.Status(fiberErr.Code).JSON(fiber.Map{
+				"error": fiberErr.Message,
+			})
+		}
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": err.Error(),
 		})

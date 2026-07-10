@@ -34,6 +34,43 @@ const docTemplate = `{
                 }
             }
         },
+        "/public/calendar/{token}.ics": {
+            "get": {
+                "produces": [
+                    "text/calendar"
+                ],
+                "tags": [
+                    "public"
+                ],
+                "summary": "Public ICS feed of all native club events of the token owner's clubs (from 3 months in the past onward). The token is the authentication.",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Calendar feed token",
+                        "name": "token",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/public/invitations/{token}": {
             "get": {
                 "produces": [
@@ -476,6 +513,26 @@ const docTemplate = `{
             }
         },
         "/v1/clubs/{clubId}": {
+            "delete": {
+                "tags": [
+                    "clubs"
+                ],
+                "summary": "Delete a club and all of its data (LEITER only)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Club ID",
+                        "name": "clubId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    }
+                }
+            },
             "patch": {
                 "consumes": [
                     "application/json"
@@ -888,6 +945,66 @@ const docTemplate = `{
                 }
             }
         },
+        "/v1/clubs/{clubId}/invitations": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "clubs"
+                ],
+                "summary": "List pending (not accepted, not expired) invitations of a club",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Club ID",
+                        "name": "clubId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/dto.ClubInvitationDto"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/clubs/{clubId}/invitations/{invitationId}": {
+            "delete": {
+                "tags": [
+                    "clubs"
+                ],
+                "summary": "Revoke a pending club invitation",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Club ID",
+                        "name": "clubId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Invitation token",
+                        "name": "invitationId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    }
+                }
+            }
+        },
         "/v1/clubs/{clubId}/me/permissions": {
             "get": {
                 "produces": [
@@ -1042,6 +1159,57 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/dto.ClubInviteResultDto"
                         }
+                    }
+                }
+            }
+        },
+        "/v1/clubs/{clubId}/members/me": {
+            "delete": {
+                "tags": [
+                    "clubs"
+                ],
+                "summary": "Leave a club (the last LEITER must transfer the role first)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Club ID",
+                        "name": "clubId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    }
+                }
+            }
+        },
+        "/v1/clubs/{clubId}/members/{memberUserId}": {
+            "delete": {
+                "tags": [
+                    "clubs"
+                ],
+                "summary": "Remove a member from a club (managers only)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Club ID",
+                        "name": "clubId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Member user ID",
+                        "name": "memberUserId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
                     }
                 }
             }
@@ -1475,7 +1643,7 @@ const docTemplate = `{
                 "tags": [
                     "concerts"
                 ],
-                "summary": "List concerts for the current user",
+                "summary": "List concerts for the current user (without their note program)",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -1483,15 +1651,6 @@ const docTemplate = `{
                             "type": "array",
                             "items": {
                                 "$ref": "#/definitions/dto.ConcertDto"
-                            }
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
                             }
                         }
                     }
@@ -1507,7 +1666,7 @@ const docTemplate = `{
                 "tags": [
                     "concerts"
                 ],
-                "summary": "Create a new concert",
+                "summary": "Create a new concert, optionally with an ordered list of note ids",
                 "parameters": [
                     {
                         "description": "Concert payload",
@@ -1525,24 +1684,6 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/dto.ConcertDto"
                         }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
                     }
                 }
             }
@@ -1555,7 +1696,7 @@ const docTemplate = `{
                 "tags": [
                     "concerts"
                 ],
-                "summary": "Get a single concert",
+                "summary": "Get a single concert including its ordered note program",
                 "parameters": [
                     {
                         "type": "string",
@@ -1571,14 +1712,43 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/dto.ConcertDto"
                         }
+                    }
+                }
+            },
+            "put": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "concerts"
+                ],
+                "summary": "Update a concert and replace its ordered note program",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Concert ID",
+                        "name": "concertId",
+                        "in": "path",
+                        "required": true
                     },
-                    "500": {
-                        "description": "Internal Server Error",
+                    {
+                        "description": "Concert payload incl. the complete ordered note id list",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/dto.ConcertPostDto"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ConcertDto"
                         }
                     }
                 }
@@ -1600,15 +1770,6 @@ const docTemplate = `{
                 "responses": {
                     "204": {
                         "description": "No Content"
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
                     }
                 }
             }
@@ -1870,7 +2031,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/v1/elements/{elementid}": {
+        "/v1/elements/{elementId}": {
             "delete": {
                 "tags": [
                     "elements"
@@ -1880,7 +2041,7 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "description": "Element ID",
-                        "name": "elementid",
+                        "name": "elementId",
                         "in": "path",
                         "required": true
                     }
@@ -2184,6 +2345,60 @@ const docTemplate = `{
                 "responses": {
                     "200": {
                         "description": "OK"
+                    }
+                }
+            }
+        },
+        "/v1/users/calendar-token": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "users"
+                ],
+                "summary": "Get the current calendar feed token and subscription URL",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.CalendarTokenDto"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "users"
+                ],
+                "summary": "Generate (or rotate) the personal calendar feed token. Calling this again replaces the previous token, which invalidates any previously subscribed feed URL.",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.CalendarTokenDto"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
                     }
                 }
             }
@@ -2839,6 +3054,21 @@ const docTemplate = `{
                 }
             }
         },
+        "dto.CalendarTokenDto": {
+            "type": "object",
+            "required": [
+                "token",
+                "url"
+            ],
+            "properties": {
+                "token": {
+                    "type": "string"
+                },
+                "url": {
+                    "type": "string"
+                }
+            }
+        },
         "dto.ClubChatCreateDto": {
             "type": "object",
             "required": [
@@ -3175,6 +3405,29 @@ const docTemplate = `{
                 }
             }
         },
+        "dto.ClubInvitationDto": {
+            "type": "object",
+            "required": [
+                "created_at",
+                "expires_at",
+                "invited_email",
+                "token"
+            ],
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "expires_at": {
+                    "type": "string"
+                },
+                "invited_email": {
+                    "type": "string"
+                },
+                "token": {
+                    "type": "string"
+                }
+            }
+        },
         "dto.ClubInvitationPublicDto": {
             "type": "object",
             "required": [
@@ -3405,7 +3658,6 @@ const docTemplate = `{
                 "hints",
                 "id",
                 "location",
-                "noteInConcerts",
                 "title"
             ],
             "properties": {
@@ -3425,6 +3677,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "noteInConcerts": {
+                    "description": "NoteInConcerts is only populated on single-concert responses; the list\nendpoint stays lean and omits it.",
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/dto.NoteInConcertDto"
@@ -3456,6 +3709,13 @@ const docTemplate = `{
                 },
                 "location": {
                     "type": "string"
+                },
+                "noteIds": {
+                    "description": "NoteIds is the complete ordered program of the concert (replace semantics).",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
                 },
                 "title": {
                     "type": "string"
@@ -3602,6 +3862,9 @@ const docTemplate = `{
                 "url"
             ],
             "properties": {
+                "aiEnabled": {
+                    "type": "boolean"
+                },
                 "clientId": {
                     "type": "string"
                 },
