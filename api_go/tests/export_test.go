@@ -14,7 +14,6 @@ import (
 	"testing"
 
 	"github.com/go-faker/faker/v4"
-	"github.com/gofiber/fiber/v3"
 )
 
 // tinyPDF builds a minimal but valid single-page PDF with a correct xref table.
@@ -35,18 +34,6 @@ func tinyPDF() []byte {
 	}
 	fmt.Fprintf(&buf, "trailer\n<</Size 4 /Root 1 0 R>>\nstartxref\n%d\n%%%%EOF\n", xref)
 	return buf.Bytes()
-}
-
-func postJSON(t *testing.T, app *fiber.App, url string, body any) *http.Response {
-	t.Helper()
-	encoded, _ := json.Marshal(body)
-	request, _ := http.NewRequest("POST", url, bytes.NewBuffer(encoded))
-	request.Header.Set("Content-Type", "application/json")
-	response, err := app.Test(request)
-	if err != nil {
-		t.Fatalf("request to %s failed: %v", url, err)
-	}
-	return response
 }
 
 func TestExportFolderMergesNotePDFs(t *testing.T) {
