@@ -368,6 +368,30 @@ UPDATE club_invitation
 SET accepted_at = ?
 WHERE token = ?;
 
+-- name: FindPendingClubInvitations :many
+SELECT token, club_id, invited_email, invited_by_user_id, created_at, expires_at
+from club_invitation
+where club_id = ? and accepted_at IS NULL and expires_at > sqlc.arg(now)
+ORDER BY created_at DESC;
+
+-- name: DeleteClubInvitation :execrows
+DELETE FROM club_invitation WHERE token = ? AND club_id = ?;
+
+-- name: DeleteClubInvitationsByClub :exec
+DELETE FROM club_invitation WHERE club_id = ?;
+
+-- name: DeleteClubMember :exec
+DELETE FROM club_participant WHERE club_id = ? AND user_id = ?;
+
+-- name: DeleteClubMembersByClub :exec
+DELETE FROM club_participant WHERE club_id = ?;
+
+-- name: DeleteClub :exec
+DELETE FROM clubs WHERE id = ?;
+
+-- name: DeleteAddress :exec
+DELETE FROM address WHERE id = ?;
+
 
 -- name: DeleteFolderCasCade :exec
 DELETE FROM elements WHERE id = ? AND user_id_fk = ? and type = 'folder';

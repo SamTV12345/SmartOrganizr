@@ -14,7 +14,7 @@ import (
 )
 
 var ErrNoClubAccess = errors.New("no club access")
-var ErrManageForbidden = errors.New("insufficient role permissions for events")
+var ErrManageForbidden = errors.New("insufficient role permissions")
 
 type ClubEventService struct {
 	queries *db.Queries

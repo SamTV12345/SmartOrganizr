@@ -157,6 +157,31 @@ func (c *ClubService) UpdateClub(clubId string, in dto.ClubPostDto) (*models.Clu
 	return &updated, nil
 }
 
+// DeleteClub removes a club and every dependent row. club_chat, club_pinboard_post,
+// club_file and club_events all have ON DELETE CASCADE on their club FK; only
+// club_participant and club_invitation (plus the club-owned address row) need
+// explicit deletes.
+// ponytail: sequential deletes instead of a transaction — services only hold
+// *db.Queries (no *sql.DB handle for WithTx); the FK-safe order keeps a partial
+// failure re-runnable. Plumb rawDB through SetupRouter if atomicity ever matters.
+func (c *ClubService) DeleteClub(clubId string) error {
+	club, err := c.queries.FindClubByID(c.context, clubId)
+	if err != nil {
+		return err
+	}
+	if err := c.queries.DeleteClubInvitationsByClub(c.context, clubId); err != nil {
+		return err
+	}
+	if err := c.queries.DeleteClubMembersByClub(c.context, clubId); err != nil {
+		return err
+	}
+	if err := c.queries.DeleteClub(c.context, clubId); err != nil {
+		return err
+	}
+	// address rows are only ever referenced by clubs (user addresses live on the user table)
+	return c.queries.DeleteAddress(c.context, club.Club.AddressID)
+}
+
 func (c *ClubService) InviteUsersByEmail(clubId string, emails []string) ([]string, []string, error) {
 	addedEmails := make([]string, 0)
 	invitedEmails := make([]string, 0)

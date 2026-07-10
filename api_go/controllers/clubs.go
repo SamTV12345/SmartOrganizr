@@ -228,7 +228,135 @@ func PatchClubMemberRole(c fiber.Ctx) error {
 	}
 
 	if err := clubMemberService.UpdateMemberRole(requesterId, clubId, memberUserID, rolePatch.Role); err != nil {
-		return fiber.NewError(fiber.StatusForbidden, err.Error())
+		return mapServiceError(err)
+	}
+	return c.SendStatus(fiber.StatusNoContent)
+}
+
+// DeleteClubMember godoc
+// @Summary  Remove a member from a club (managers only)
+// @Tags     clubs
+// @Param    clubId        path  string  true  "Club ID"
+// @Param    memberUserId  path  string  true  "Member user ID"
+// @Success  204
+// @Router   /v1/clubs/{clubId}/members/{memberUserId} [delete]
+func DeleteClubMember(c fiber.Ctx) error {
+	clubMemberService := GetLocal[service.ClubMemberService](c, constants.ClubMemberService)
+	requesterId := GetLocal[string](c, "userId")
+
+	if err := clubMemberService.RemoveMember(requesterId, c.Params("clubId"), c.Params("memberUserId")); err != nil {
+		return mapServiceError(err)
+	}
+	return c.SendStatus(fiber.StatusNoContent)
+}
+
+// LeaveClub godoc
+// @Summary  Leave a club (the last LEITER must transfer the role first)
+// @Tags     clubs
+// @Param    clubId  path  string  true  "Club ID"
+// @Success  204
+// @Router   /v1/clubs/{clubId}/members/me [delete]
+func LeaveClub(c fiber.Ctx) error {
+	clubMemberService := GetLocal[service.ClubMemberService](c, constants.ClubMemberService)
+	requesterId := GetLocal[string](c, "userId")
+
+	if err := clubMemberService.LeaveClub(c.Params("clubId"), requesterId); err != nil {
+		return mapServiceError(err)
+	}
+	return c.SendStatus(fiber.StatusNoContent)
+}
+
+// GetClubInvitations godoc
+// @Summary  List pending (not accepted, not expired) invitations of a club
+// @Tags     clubs
+// @Produce  json
+// @Param    clubId  path  string  true  "Club ID"
+// @Success  200     {array}  dto.ClubInvitationDto
+// @Router   /v1/clubs/{clubId}/invitations [get]
+func GetClubInvitations(c fiber.Ctx) error {
+	clubInvitationService := GetLocal[service.ClubInvitationService](c, constants.ClubInvitationService)
+	clubId := c.Params("clubId")
+
+	if err := requireInvitationManager(c, clubId); err != nil {
+		return err
+	}
+
+	invitations, err := clubInvitationService.ListPendingInvitations(clubId)
+	if err != nil {
+		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
+	}
+
+	invitationDtos := make([]dto.ClubInvitationDto, 0, len(invitations))
+	for _, invitation := range invitations {
+		invitationDtos = append(invitationDtos, dto.ClubInvitationDto{
+			Token:        invitation.Token,
+			InvitedEmail: invitation.InvitedEmail,
+			CreatedAt:    invitation.CreatedAt.Format(time.RFC3339),
+			ExpiresAt:    invitation.ExpiresAt.Format(time.RFC3339),
+		})
+	}
+	return c.JSON(invitationDtos)
+}
+
+// DeleteClubInvitation godoc
+// @Summary  Revoke a pending club invitation
+// @Tags     clubs
+// @Param    clubId        path  string  true  "Club ID"
+// @Param    invitationId  path  string  true  "Invitation token"
+// @Success  204
+// @Router   /v1/clubs/{clubId}/invitations/{invitationId} [delete]
+func DeleteClubInvitation(c fiber.Ctx) error {
+	clubInvitationService := GetLocal[service.ClubInvitationService](c, constants.ClubInvitationService)
+	clubId := c.Params("clubId")
+
+	if err := requireInvitationManager(c, clubId); err != nil {
+		return err
+	}
+
+	if err := clubInvitationService.RevokeInvitation(clubId, c.Params("invitationId")); err != nil {
+		return mapServiceError(err)
+	}
+	return c.SendStatus(fiber.StatusNoContent)
+}
+
+// requireInvitationManager mirrors the invite permission: whoever may invite may
+// also see and revoke pending invitations.
+func requireInvitationManager(c fiber.Ctx, clubId string) error {
+	clubMemberService := GetLocal[service.ClubMemberService](c, constants.ClubMemberService)
+	requesterId := GetLocal[string](c, "userId")
+
+	role, err := clubMemberService.GetRoleInClub(clubId, requesterId)
+	if err != nil {
+		return fiber.NewError(fiber.StatusForbidden, "no club access")
+	}
+	if !canInviteMembers(role) {
+		return fiber.NewError(fiber.StatusForbidden, "insufficient role permissions")
+	}
+	return nil
+}
+
+// DeleteClub godoc
+// @Summary  Delete a club and all of its data (LEITER only)
+// @Tags     clubs
+// @Param    clubId  path  string  true  "Club ID"
+// @Success  204
+// @Router   /v1/clubs/{clubId} [delete]
+func DeleteClub(c fiber.Ctx) error {
+	clubMemberService := GetLocal[service.ClubMemberService](c, constants.ClubMemberService)
+	clubService := GetLocal[service.ClubService](c, constants.ClubService)
+	requesterId := GetLocal[string](c, "userId")
+	clubId := c.Params("clubId")
+
+	role, err := clubMemberService.GetRoleInClub(clubId, requesterId)
+	if err != nil {
+		return fiber.NewError(fiber.StatusForbidden, "no club access")
+	}
+	if role != models.Admin {
+		return fiber.NewError(fiber.StatusForbidden, "only a LEITER can delete the club")
+	}
+
+	if err := clubService.DeleteClub(clubId); err != nil {
+		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
 	}
 	return c.SendStatus(fiber.StatusNoContent)
 }

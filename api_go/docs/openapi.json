@@ -510,6 +510,28 @@
             }
         },
         "/v1/clubs/{clubId}": {
+            "delete": {
+                "tags": [
+                    "clubs"
+                ],
+                "summary": "Delete a club and all of its data (LEITER only)",
+                "parameters": [
+                    {
+                        "description": "Club ID",
+                        "name": "clubId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    }
+                }
+            },
             "patch": {
                 "tags": [
                     "clubs"
@@ -951,6 +973,73 @@
                 }
             }
         },
+        "/v1/clubs/{clubId}/invitations": {
+            "get": {
+                "tags": [
+                    "clubs"
+                ],
+                "summary": "List pending (not accepted, not expired) invitations of a club",
+                "parameters": [
+                    {
+                        "description": "Club ID",
+                        "name": "clubId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/dto.ClubInvitationDto"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/clubs/{clubId}/invitations/{invitationId}": {
+            "delete": {
+                "tags": [
+                    "clubs"
+                ],
+                "summary": "Revoke a pending club invitation",
+                "parameters": [
+                    {
+                        "description": "Club ID",
+                        "name": "clubId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "description": "Invitation token",
+                        "name": "invitationId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    }
+                }
+            }
+        },
         "/v1/clubs/{clubId}/me/permissions": {
             "get": {
                 "tags": [
@@ -1117,6 +1206,63 @@
                                 }
                             }
                         }
+                    }
+                }
+            }
+        },
+        "/v1/clubs/{clubId}/members/me": {
+            "delete": {
+                "tags": [
+                    "clubs"
+                ],
+                "summary": "Leave a club (the last LEITER must transfer the role first)",
+                "parameters": [
+                    {
+                        "description": "Club ID",
+                        "name": "clubId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    }
+                }
+            }
+        },
+        "/v1/clubs/{clubId}/members/{memberUserId}": {
+            "delete": {
+                "tags": [
+                    "clubs"
+                ],
+                "summary": "Remove a member from a club (managers only)",
+                "parameters": [
+                    {
+                        "description": "Club ID",
+                        "name": "clubId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "description": "Member user ID",
+                        "name": "memberUserId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
                     }
                 }
             }
@@ -3407,6 +3553,29 @@
                         "type": "string"
                     },
                     "password": {
+                        "type": "string"
+                    }
+                }
+            },
+            "dto.ClubInvitationDto": {
+                "type": "object",
+                "required": [
+                    "created_at",
+                    "expires_at",
+                    "invited_email",
+                    "token"
+                ],
+                "properties": {
+                    "created_at": {
+                        "type": "string"
+                    },
+                    "expires_at": {
+                        "type": "string"
+                    },
+                    "invited_email": {
+                        "type": "string"
+                    },
+                    "token": {
                         "type": "string"
                     }
                 }

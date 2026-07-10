@@ -1,5 +1,13 @@
 package dto
 
+// ClubInvitationDto is the manager-facing view of a pending invitation.
+type ClubInvitationDto struct {
+	Token        string `json:"token"         validate:"required"`
+	InvitedEmail string `json:"invited_email" validate:"required"`
+	CreatedAt    string `json:"created_at"    validate:"required"`
+	ExpiresAt    string `json:"expires_at"    validate:"required"`
+}
+
 type ClubInvitationPublicDto struct {
 	Token        string `json:"token"         validate:"required"`
 	ClubID       string `json:"club_id"       validate:"required"`

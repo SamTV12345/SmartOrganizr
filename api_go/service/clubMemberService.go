@@ -8,6 +8,12 @@ import (
 	"strings"
 )
 
+// ErrLastLeiter guards the invariant that every club keeps at least one LEITER.
+var ErrLastLeiter = errors.New("club requires at least one LEITER; transfer the role first")
+
+// ErrRemoveSelf: managers must use the leave endpoint for themselves.
+var ErrRemoveSelf = errors.New("cannot remove yourself; leave the club instead")
+
 type ClubMemberService struct {
 	queries     *db.Queries
 	ctx         context.Context
@@ -58,7 +64,7 @@ func (c *ClubMemberService) GetRoleInClub(clubId string, userId string) (models.
 func (c *ClubMemberService) UpdateMemberRole(requesterID string, clubId string, memberUserID string, requestedRole string) error {
 	requesterRole, err := c.GetRoleInClub(clubId, requesterID)
 	if err != nil {
-		return err
+		return ErrNoClubAccess
 	}
 
 	normalizedRole := strings.ToUpper(strings.TrimSpace(requestedRole))
@@ -68,7 +74,7 @@ func (c *ClubMemberService) UpdateMemberRole(requesterID string, clubId string, 
 	}
 
 	if requesterRole != models.Admin && requesterRole != models.CoAdmin {
-		return errors.New("insufficient role permissions")
+		return ErrManageForbidden
 	}
 
 	if requesterRole == models.CoAdmin && newRole == models.Admin {
@@ -81,15 +87,8 @@ func (c *ClubMemberService) UpdateMemberRole(requesterID string, clubId string, 
 	}
 
 	if memberRole == models.Admin && newRole != models.Admin {
-		adminCount, countErr := c.queries.CountClubMembersByRole(c.ctx, db.CountClubMembersByRoleParams{
-			ClubID: clubId,
-			Role:   db.ClubParticipantRole(models.Admin.String()),
-		})
-		if countErr != nil {
-			return countErr
-		}
-		if adminCount <= 1 {
-			return errors.New("club requires at least one leiter")
+		if err := c.requireNotLastLeiter(clubId); err != nil {
+			return err
 		}
 	}
 
@@ -97,6 +96,68 @@ func (c *ClubMemberService) UpdateMemberRole(requesterID string, clubId string, 
 		Role:   db.ClubParticipantRole(newRole.String()),
 		ClubID: clubId,
 		UserID: memberUserID,
+	})
+}
+
+// requireNotLastLeiter errors with ErrLastLeiter when the club has only one LEITER left.
+func (c *ClubMemberService) requireNotLastLeiter(clubId string) error {
+	adminCount, err := c.queries.CountClubMembersByRole(c.ctx, db.CountClubMembersByRoleParams{
+		ClubID: clubId,
+		Role:   db.ClubParticipantRole(models.Admin.String()),
+	})
+	if err != nil {
+		return err
+	}
+	if adminCount <= 1 {
+		return ErrLastLeiter
+	}
+	return nil
+}
+
+// RemoveMember lets a manager (LEITER/CO_LEITER) remove another member from the club.
+func (c *ClubMemberService) RemoveMember(requesterID string, clubId string, memberUserID string) error {
+	requesterRole, err := c.GetRoleInClub(clubId, requesterID)
+	if err != nil {
+		return ErrNoClubAccess
+	}
+	if requesterRole != models.Admin && requesterRole != models.CoAdmin {
+		return ErrManageForbidden
+	}
+	if requesterID == memberUserID {
+		return ErrRemoveSelf
+	}
+
+	memberRole, err := c.GetRoleInClub(clubId, memberUserID)
+	if err != nil {
+		return err // sql.ErrNoRows -> not a member of this club
+	}
+	if memberRole == models.Admin {
+		if err := c.requireNotLastLeiter(clubId); err != nil {
+			return err
+		}
+	}
+
+	return c.queries.DeleteClubMember(c.ctx, db.DeleteClubMemberParams{
+		ClubID: clubId,
+		UserID: memberUserID,
+	})
+}
+
+// LeaveClub removes the current user from the club; the last LEITER must transfer the role first.
+func (c *ClubMemberService) LeaveClub(clubId string, userID string) error {
+	role, err := c.GetRoleInClub(clubId, userID)
+	if err != nil {
+		return ErrNoClubAccess
+	}
+	if role == models.Admin {
+		if err := c.requireNotLastLeiter(clubId); err != nil {
+			return err
+		}
+	}
+
+	return c.queries.DeleteClubMember(c.ctx, db.DeleteClubMemberParams{
+		ClubID: clubId,
+		UserID: userID,
 	})
 }
 
