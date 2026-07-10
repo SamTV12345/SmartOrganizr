@@ -1570,7 +1570,7 @@
                 "tags": [
                     "concerts"
                 ],
-                "summary": "List concerts for the current user",
+                "summary": "List concerts for the current user (without their note program)",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -1584,19 +1584,6 @@
                                 }
                             }
                         }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "additionalProperties": {
-                                        "type": "string"
-                                    }
-                                }
-                            }
-                        }
                     }
                 }
             },
@@ -1604,7 +1591,7 @@
                 "tags": [
                     "concerts"
                 ],
-                "summary": "Create a new concert",
+                "summary": "Create a new concert, optionally with an ordered list of note ids",
                 "requestBody": {
                     "content": {
                         "application/json": {
@@ -1626,32 +1613,6 @@
                                 }
                             }
                         }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "additionalProperties": {
-                                        "type": "string"
-                                    }
-                                }
-                            }
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "additionalProperties": {
-                                        "type": "string"
-                                    }
-                                }
-                            }
-                        }
                     }
                 }
             }
@@ -1661,7 +1622,7 @@
                 "tags": [
                     "concerts"
                 ],
-                "summary": "Get a single concert",
+                "summary": "Get a single concert including its ordered note program",
                 "parameters": [
                     {
                         "description": "Concert ID",
@@ -1683,16 +1644,43 @@
                                 }
                             }
                         }
+                    }
+                }
+            },
+            "put": {
+                "tags": [
+                    "concerts"
+                ],
+                "summary": "Update a concert and replace its ordered note program",
+                "parameters": [
+                    {
+                        "description": "Concert ID",
+                        "name": "concertId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/dto.ConcertPostDto"
+                            }
+                        }
                     },
-                    "500": {
-                        "description": "Internal Server Error",
+                    "description": "Concert payload incl. the complete ordered note id list",
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "OK",
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "type": "object",
-                                    "additionalProperties": {
-                                        "type": "string"
-                                    }
+                                    "$ref": "#/components/schemas/dto.ConcertDto"
                                 }
                             }
                         }
@@ -1718,19 +1706,6 @@
                 "responses": {
                     "204": {
                         "description": "No Content"
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "content": {
-                            "*/*": {
-                                "schema": {
-                                    "type": "object",
-                                    "additionalProperties": {
-                                        "type": "string"
-                                    }
-                                }
-                            }
-                        }
                     }
                 }
             }
@@ -3666,7 +3641,6 @@
                     "hints",
                     "id",
                     "location",
-                    "noteInConcerts",
                     "title"
                 ],
                 "properties": {
@@ -3686,6 +3660,7 @@
                         "type": "string"
                     },
                     "noteInConcerts": {
+                        "description": "NoteInConcerts is only populated on single-concert responses; the list\nendpoint stays lean and omits it.",
                         "type": "array",
                         "items": {
                             "$ref": "#/components/schemas/dto.NoteInConcertDto"
@@ -3717,6 +3692,13 @@
                     },
                     "location": {
                         "type": "string"
+                    },
+                    "noteIds": {
+                        "description": "NoteIds is the complete ordered program of the concert (replace semantics).",
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
                     },
                     "title": {
                         "type": "string"

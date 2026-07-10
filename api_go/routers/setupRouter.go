@@ -257,6 +257,7 @@ func SetupRouter(queries *db.Queries, config config.AppConfig, logger *zap.Sugar
 		r.Get("/", controllers.GetConcertsOfUser)
 		r.Post("/", controllers.CreateConcert)
 		r.Get("/:concertId", controllers.GetConcert)
+		r.Put("/:concertId", controllers.UpdateConcert)
 		r.Delete("/:concertId", controllers.DeleteConcert)
 	})
 

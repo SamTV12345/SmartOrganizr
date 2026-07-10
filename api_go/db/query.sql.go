@@ -566,6 +566,21 @@ func (q *Queries) CreateNote(ctx context.Context, arg CreateNoteParams) (int64, 
 	return result.LastInsertId()
 }
 
+const createNoteInConcert = `-- name: CreateNoteInConcert :exec
+INSERT INTO note_in_concert (concert_id_fk, note_id_fk, place_in_concert) VALUES (?, ?, ?)
+`
+
+type CreateNoteInConcertParams struct {
+	ConcertIDFk    string
+	NoteIDFk       string
+	PlaceInConcert sql.NullInt32
+}
+
+func (q *Queries) CreateNoteInConcert(ctx context.Context, arg CreateNoteInConcertParams) error {
+	_, err := q.db.ExecContext(ctx, createNoteInConcert, arg.ConcertIDFk, arg.NoteIDFk, arg.PlaceInConcert)
+	return err
+}
+
 const createNoteWithWikidata = `-- name: CreateNoteWithWikidata :execlastid
 INSERT INTO elements (
   type, id, creation_date, description, name, number_of_pages,
@@ -3610,6 +3625,33 @@ type UpdateClubMemberRoleParams struct {
 
 func (q *Queries) UpdateClubMemberRole(ctx context.Context, arg UpdateClubMemberRoleParams) error {
 	_, err := q.db.ExecContext(ctx, updateClubMemberRole, arg.Role, arg.ClubID, arg.UserID)
+	return err
+}
+
+const updateConcert = `-- name: UpdateConcert :exec
+UPDATE concert SET title = ?, description = ?, location = ?, due_date = ?, hints = ? WHERE id = ? AND user_id_fk = ?
+`
+
+type UpdateConcertParams struct {
+	Title       sql.NullString
+	Description sql.NullString
+	Location    sql.NullString
+	DueDate     sql.NullTime
+	Hints       sql.NullString
+	ID          string
+	UserIDFk    sql.NullString
+}
+
+func (q *Queries) UpdateConcert(ctx context.Context, arg UpdateConcertParams) error {
+	_, err := q.db.ExecContext(ctx, updateConcert,
+		arg.Title,
+		arg.Description,
+		arg.Location,
+		arg.DueDate,
+		arg.Hints,
+		arg.ID,
+		arg.UserIDFk,
+	)
 	return err
 }
 

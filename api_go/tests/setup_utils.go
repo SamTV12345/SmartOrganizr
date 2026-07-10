@@ -85,6 +85,7 @@ func SetupTest(t *testing.T) *fiber.App {
 
 	t.Cleanup(func() {
 		rawDB.Exec("SET FOREIGN_KEY_CHECKS = 0;")
+		rawDB.Exec("DELETE FROM note_in_concert")
 		err = db.DeleteAllConcerts(ctx)
 		if err != nil {
 			t.Fatalf("failed to delete all concerts: %v", err)

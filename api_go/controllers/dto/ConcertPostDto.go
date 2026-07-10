@@ -8,4 +8,6 @@ type ConcertPostDto struct {
 	DueDate     time.Time `json:"dueDate"     validate:"required"`
 	Location    string    `json:"location"    validate:"required"`
 	Hints       string    `json:"hints"       validate:"required"`
+	// NoteIds is the complete ordered program of the concert (replace semantics).
+	NoteIds []string `json:"noteIds"`
 }
