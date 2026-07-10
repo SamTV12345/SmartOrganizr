@@ -53,28 +53,42 @@ export async function streamChatMessage(
         }
         if (done) break;
         buffer += decoder.decode(value, { stream: true });
-        let sep = buffer.indexOf("\n\n");
-        while (sep !== -1) {
-            const frame = buffer.slice(0, sep);
-            buffer = buffer.slice(sep + 2);
-            const lines = frame.split("\n");
-            const eventLine = lines.find((l) => l.startsWith("event:"));
-            const dataLine = lines.find((l) => l.startsWith("data:"));
-            if (eventLine && dataLine) {
-                const type = eventLine.slice("event:".length).trim();
-                let data: Record<string, string> = {};
-                try {
-                    data = JSON.parse(dataLine.slice("data:".length).trim());
-                } catch {
-                    // ignore malformed frame
-                }
-                if (type === "done" || type === "error") terminal = true;
-                onEvent({ type, ...data } as ChatStreamEvent);
-            }
-            sep = buffer.indexOf("\n\n");
-        }
+        ({ buffer, terminal } = drainFrames(buffer, terminal, onEvent));
     }
     if (!terminal && !signal?.aborted) {
         onEvent({ type: "error", message: "stream ended unexpectedly" });
     }
+}
+
+function drainFrames(
+    buffer: string,
+    terminal: boolean,
+    onEvent: (event: ChatStreamEvent) => void,
+): { buffer: string; terminal: boolean } {
+    let sep = buffer.indexOf("\n\n");
+    while (sep !== -1) {
+        const event = parseFrame(buffer.slice(0, sep));
+        buffer = buffer.slice(sep + 2);
+        if (event) {
+            if (event.type === "done" || event.type === "error") terminal = true;
+            onEvent(event);
+        }
+        sep = buffer.indexOf("\n\n");
+    }
+    return { buffer, terminal };
+}
+
+function parseFrame(frame: string): ChatStreamEvent | null {
+    const lines = frame.split("\n");
+    const eventLine = lines.find((l) => l.startsWith("event:"));
+    const dataLine = lines.find((l) => l.startsWith("data:"));
+    if (!eventLine || !dataLine) return null;
+    const type = eventLine.slice("event:".length).trim();
+    let data: Record<string, string> = {};
+    try {
+        data = JSON.parse(dataLine.slice("data:".length).trim());
+    } catch {
+        // ignore malformed frame
+    }
+    return { type, ...data } as ChatStreamEvent;
 }
