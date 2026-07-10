@@ -2131,12 +2131,12 @@ paths:
       summary: Update a concert and replace its ordered note program
       tags:
       - concerts
-  /v1/elements/{elementid}:
+  /v1/elements/{elementId}:
     delete:
       parameters:
       - description: Element ID
         in: path
-        name: elementid
+        name: elementId
         required: true
         type: string
       responses:

@@ -1863,7 +1863,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/v1/elements/{elementid}": {
+        "/v1/elements/{elementId}": {
             "delete": {
                 "tags": [
                     "elements"
@@ -1873,7 +1873,7 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "description": "Element ID",
-                        "name": "elementid",
+                        "name": "elementId",
                         "in": "path",
                         "required": true
                     }

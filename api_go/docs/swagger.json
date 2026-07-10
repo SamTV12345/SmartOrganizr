@@ -1860,7 +1860,7 @@
                 }
             }
         },
-        "/v1/elements/{elementid}": {
+        "/v1/elements/{elementId}": {
             "delete": {
                 "tags": [
                     "elements"
@@ -1870,7 +1870,7 @@
                     {
                         "type": "string",
                         "description": "Element ID",
-                        "name": "elementid",
+                        "name": "elementId",
                         "in": "path",
                         "required": true
                     }

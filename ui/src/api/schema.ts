@@ -2039,7 +2039,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/elements/{elementid}": {
+    "/v1/elements/{elementId}": {
         parameters: {
             query?: never;
             header?: never;
@@ -2056,7 +2056,7 @@ export interface paths {
                 header?: never;
                 path: {
                     /** @description Element ID */
-                    elementid: string;
+                    elementId: string;
                 };
                 cookie?: never;
             };
