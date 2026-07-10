@@ -20,6 +20,33 @@
     "delete-confirm": "Really delete this file?",
     "too-large": "The file exceeds the 25 MB limit."
   },
+  "clubEvents": {
+    "create": "Create event",
+    "edit": "Edit event",
+    "delete": "Delete event",
+    "delete-confirm": "Permanently delete this event? All responses will be lost.",
+    "cancel-event": "Cancel event",
+    "cancelled": "(cancelled)",
+    "field": {
+      "summary": "Title",
+      "type": "Type",
+      "start": "Start",
+      "end": "End (optional)",
+      "location": "Location",
+      "description": "Description"
+    },
+    "type": {
+      "REHEARSAL": "Rehearsal",
+      "CONCERT": "Concert",
+      "OTHER": "Other"
+    },
+    "status": {
+      "YES": "Attending",
+      "NO": "Declined",
+      "MAYBE": "Maybe",
+      "UNDECIDED": "Undecided"
+    }
+  },
   "pinboard": {
     "title": "Pinboard",
     "create": "Create post",

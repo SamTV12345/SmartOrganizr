@@ -20,6 +20,33 @@
     "delete-confirm": "Diese Datei wirklich löschen?",
     "too-large": "Die Datei überschreitet das 25-MB-Limit."
   },
+  "clubEvents": {
+    "create": "Termin erstellen",
+    "edit": "Termin bearbeiten",
+    "delete": "Termin löschen",
+    "delete-confirm": "Diesen Termin endgültig löschen? Alle Rückmeldungen gehen verloren.",
+    "cancel-event": "Absagen",
+    "cancelled": "(abgesagt)",
+    "field": {
+      "summary": "Titel",
+      "type": "Art",
+      "start": "Beginn",
+      "end": "Ende (optional)",
+      "location": "Ort",
+      "description": "Beschreibung"
+    },
+    "type": {
+      "REHEARSAL": "Probe",
+      "CONCERT": "Konzert",
+      "OTHER": "Sonstiges"
+    },
+    "status": {
+      "YES": "Zusage",
+      "NO": "Absage",
+      "MAYBE": "Vielleicht",
+      "UNDECIDED": "Unentschieden"
+    }
+  },
   "pinboard": {
     "title": "Pinnwand",
     "create": "Beitrag erstellen",
