@@ -80,6 +80,8 @@ const noteSchema = z.object({
     numberOfPages: z.number().min(1),
     authorId: z.string(),
     authorName: z.string().min(1),
+    arrangerId: z.string().optional(),
+    arrangerName: z.string().optional(),
     parentId: z.string().min(1),
     extraInformation: z.string().optional(),
 });
@@ -106,6 +108,8 @@ const NOTE_DEFAULTS: Extract<FormValues, { type: "note" }> = {
     parentId: "",
     authorId: "",
     authorName: "",
+    arrangerId: "",
+    arrangerName: "",
     numberOfPages: 1,
     extraInformation: "",
 };
@@ -145,7 +149,7 @@ const createNote = async (note: NotePostDto): Promise<NoteItem> => {
     return response.data;
 };
 
-const normalizeAuthorName = (authorName: string): string =>
+export const normalizeAuthorName = (authorName: string): string =>
     authorName.replace(/\s+/g, " ").trim();
 
 const findAuthorByName = async (authorName: string): Promise<Author | null> => {
@@ -167,7 +171,7 @@ const findAllAuthorsByExactName = async (authorName: string): Promise<Author[]> 
     );
 };
 
-const findOrCreateAuthorId = async (authorName: string): Promise<string> => {
+export const findOrCreateAuthorId = async (authorName: string): Promise<string> => {
     const normalizedName = normalizeAuthorName(authorName);
     const existingAuthor = await findAuthorByName(normalizedName);
     if (existingAuthor?.id) return existingAuthor.id;
@@ -368,6 +372,10 @@ export function CreateFolderOrNote() {
             form.setValue("authorName", work.composer.name);
             dispatch(setElementSelectedAuthorName(work.composer.name));
         }
+        if (work.arranger?.name) {
+            form.setValue("arrangerName", work.arranger.name);
+            form.setValue("arrangerId", "");
+        }
     };
 
     // submitWikidataPick performs the actual POST. Called from onSubmit and
@@ -526,16 +534,33 @@ export function CreateFolderOrNote() {
 
     // Helper used by both onSubmit and the disambiguation dialog callbacks
     // so the mutation payload stays in one place.
-    const submitNoteWithAuthorId = (
+    const submitNoteWithAuthorId = async (
         authorId: string,
         values: Extract<FormValues, { type: "note" }>,
     ) => {
+        // Arranger is optional: an explicit combobox pick wins, a free-typed
+        // name is resolved (or created) like the composer, empty means none.
+        let arrangerId = values.arrangerId || undefined;
+        const arrangerName = normalizeAuthorName(values.arrangerName ?? "");
+        if (!arrangerId && arrangerName) {
+            try {
+                arrangerId = await findOrCreateAuthorId(arrangerName);
+            } catch (error) {
+                console.error(error);
+                form.setError("arrangerName", {
+                    type: "manual",
+                    message: t("authorResolveFailed") as string,
+                });
+                return;
+            }
+        }
         createNoteMutation.mutate({
             name: values.name,
             description: values.description ?? "",
             numberOfPages: values.numberOfPages,
             parentId: values.parentId,
             authorId,
+            arrangerId,
             pdfContent: scannedPdfContent || undefined,
         });
     };
@@ -607,6 +632,8 @@ export function CreateFolderOrNote() {
                 numberOfPages: current.numberOfPages,
                 authorId: "",
                 authorName: "",
+                arrangerId: "",
+                arrangerName: "",
                 parentId: current.parentId,
                 extraInformation: "",
             });
@@ -646,6 +673,10 @@ export function CreateFolderOrNote() {
                 });
                 form.setValue("authorId", "", { shouldDirty: true });
                 dispatch(setElementSelectedAuthorName(id.composer));
+            }
+            if (!cur.arrangerName && id.arranger) {
+                form.setValue("arrangerName", id.arranger, { shouldDirty: true });
+                form.setValue("arrangerId", "", { shouldDirty: true });
             }
             if (id.notes) {
                 const existing = cur.description ?? "";
@@ -1072,6 +1103,12 @@ export function CreateFolderOrNote() {
                                 >
                                     + {t("author.createInline", "Neuen Autor anlegen")}
                                 </Button>
+                                <NoteAuthorCreateSearchBar
+                                    idField="arrangerId"
+                                    nameField="arrangerName"
+                                    labelKey="arranger"
+                                    syncRedux={false}
+                                />
                             </div>
                         )}
 
