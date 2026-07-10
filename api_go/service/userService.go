@@ -48,7 +48,8 @@ func (u *UserService) UpdateSyncFromKeycloakUser(user *models.User) error {
 		Lastname:         db.NewSQLNullString(user.Lastname),
 		Email:            db.NewSQLNullString(user.Email),
 		Telephonenumber:  db.NewSQLNullString(loadedUser.TelephoneNumber),
-		SideBarCollapsed: user.SideBarCollapsed,
+		// SideBarCollapsed is a local preference, not a Keycloak claim — keep the stored value.
+		SideBarCollapsed: loadedUser.SideBarCollapsed,
 	})
 	return err
 }
