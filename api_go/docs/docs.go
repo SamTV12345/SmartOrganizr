@@ -3602,6 +3602,9 @@ const docTemplate = `{
                 "url"
             ],
             "properties": {
+                "aiEnabled": {
+                    "type": "boolean"
+                },
                 "clientId": {
                     "type": "string"
                 },

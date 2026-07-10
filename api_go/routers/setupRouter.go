@@ -206,7 +206,6 @@ func SetupRouter(queries *db.Queries, config config.AppConfig, logger *zap.Sugar
 
 	app.Get("/public", controllers.GetIndex)
 	app.Get("/public/users/:userId/:image.png", controllers.GetUserImage)
-	app.Get("/public/:folderId/export", controllers.ExportPDFFromNotes)
 	app.Get("/api/public/invitations/:token", controllers.GetPublicClubInvitation)
 	app.Post("/api/public/invitations/:token/complete", controllers.CompletePublicClubInvitation)
 
