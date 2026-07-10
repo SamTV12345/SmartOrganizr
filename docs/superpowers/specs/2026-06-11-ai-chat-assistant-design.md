@@ -19,8 +19,12 @@ und kann später als dünne Schicht über dieselben Tools gelegt werden.
 
 ## Scope (V1)
 
-- **Suchen:** nur Musiknoten (Titel/Komponist/Arrangeur), über die bestehende
-  Notensuche, gescoped auf den eingeloggten User.
+- **Suchen:** nur Musiknoten, über die bestehende Notensuche (sucht nach
+  Titel; Komponist/Arrangeur erscheinen in den Treffern, sind aber kein
+  Suchkriterium — bekannte V1-Einschränkung), gescoped auf den eingeloggten
+  User. Hinweis: Die bestehende Suche findet keine Noten auf Wurzelebene
+  (INNER JOIN auf den Eltern-Ordner) — vorbestehende Einschränkung, als
+  Follow-up zu beheben.
 - **Navigieren:** zur Noten-Detailseite per react-router, ausgelöst durch ein
   SSE-Event vom Backend.
 - **Streaming:** Antworten erscheinen live (Token für Token).
@@ -40,9 +44,12 @@ ausschließlich über sqlc in `query.sql`, kein handgeschriebenes DB-Go.
 CREATE TABLE ai_chat_session (
     id         VARCHAR(36) PRIMARY KEY,          -- UUID
     user_fk    VARCHAR(255) COLLATE utf8mb4_general_ci NOT NULL,
-    title      VARCHAR(255) NOT NULL,            -- erste User-Nachricht, auf 80 Zeichen gekürzt
+    title      VARCHAR(255) NOT NULL DEFAULT '', -- erste User-Nachricht, auf 80 Zeichen gekürzt
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    -- kein ON UPDATE CURRENT_TIMESTAMP: updated_at wird bewusst nur über die
+    -- explizite Touch-Query fortgeschrieben, damit z.B. Titel-Updates die
+    -- Session-Sortierung nicht verändern
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT fk_ai_chat_session_user FOREIGN KEY (user_fk)
         REFERENCES user(id) ON DELETE CASCADE,
     INDEX idx_ai_chat_session_user (user_fk, updated_at)
@@ -51,7 +58,7 @@ CREATE TABLE ai_chat_session (
 CREATE TABLE ai_chat_message (
     id         BIGINT AUTO_INCREMENT PRIMARY KEY,
     session_fk VARCHAR(36) NOT NULL,
-    role       ENUM('user','assistant') NOT NULL,
+    role       VARCHAR(16) NOT NULL,             -- 'user' | 'assistant' (VARCHAR statt ENUM, Stil von club_events.event_type)
     content    TEXT NOT NULL,
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT fk_ai_chat_message_session FOREIGN KEY (session_fk)
@@ -110,6 +117,13 @@ Ablauf pro eingehender Nachricht:
      `tool`-Status-Event an den Client, Tool-Ergebnis als Tool-Message
      anhängen, erneut aufrufen.
    - Modell antwortet mit Text → Tokens live als `token`-Events durchreichen.
+   - Schleifen-Ende: Antwort ohne `tool_calls`, ODER eine Runde, in der das
+     Modell bereits Text geliefert hat und ausschließlich `navigate_to`
+     aufruft. `navigate_to` ist ein reiner UI-Seiteneffekt ohne verwertbares
+     Ergebnis; würde man danach erneut aufrufen, re-issued das Modell
+     `navigate_to` bis zum Iterationslimit und die bereits gestreamte Antwort
+     ginge als Fehler verloren. Wird das Limit dennoch erreicht, aber es liegt
+     bereits Text vor, wird dieser Text zurückgegeben (kein `error`-Event).
 5. Finale Assistant-Nachricht persistieren, `updated_at` der Session
    aktualisieren, `done`-Event senden.
 

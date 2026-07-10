@@ -154,6 +154,13 @@ func SetupRouter(queries *db.Queries, config config.AppConfig, logger *zap.Sugar
 		config.AI.Model,
 	)
 
+	var aiChatService = &service.AIChatService{
+		Queries:    queries,
+		Ctx:        context.Background(),
+		AI:         aiService,
+		NoteSearch: noteService,
+	}
+
 	noteService.FolderService = &folderService
 
 	var concertService = service.ConcertService{
@@ -182,15 +189,17 @@ func SetupRouter(queries *db.Queries, config config.AppConfig, logger *zap.Sugar
 		SetLocal[*service.NotificationHub](c, constants.NotificationHub, notificationHub)
 		SetLocal[*service.WikidataService](c, constants.WikidataService, wikidataService)
 		SetLocal[*service.AIService](c, constants.AIService, aiService)
+		SetLocal[*service.AIChatService](c, constants.AIChatService, aiChatService)
 
 		return c.Next()
 	})
 
 	app.Use(func(c fiber.Ctx) error {
 		SetLocal[dto.KeycloakModel](c, "keycloak", dto.KeycloakModel{
-			ClientId: config.SSO.FrontendClientID,
-			Url:      config.SSO.Url,
-			Realm:    config.SSO.Realm,
+			ClientId:  config.SSO.FrontendClientID,
+			Url:       config.SSO.Url,
+			Realm:     config.SSO.Realm,
+			AiEnabled: aiService.IsConfigured(),
 		})
 		return c.Next()
 	})
@@ -309,6 +318,11 @@ func SetupRouter(queries *db.Queries, config config.AppConfig, logger *zap.Sugar
 
 	profile.Route("v1/ai", func(r fiber.Router) {
 		r.Post("/identify-music", controllers.PostIdentifyMusic)
+		r.Get("/chat/sessions", controllers.GetAiChatSessions)
+		r.Post("/chat/sessions", controllers.PostAiChatSession)
+		r.Get("/chat/sessions/:sessionId/messages", controllers.GetAiChatMessages)
+		r.Post("/chat/sessions/:sessionId/messages", controllers.PostAiChatMessage)
+		r.Delete("/chat/sessions/:sessionId", controllers.DeleteAiChatSession)
 	})
 
 	profile.Route("v1/elements", func(r fiber.Router) {

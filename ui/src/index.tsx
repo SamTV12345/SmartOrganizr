@@ -91,7 +91,7 @@ const renderApp= (keycloak: Keycloak)=>
     )
 }
 
-type CachedKeycloakConfig = { clientId: string; realm: string; url: string };
+type CachedKeycloakConfig = { clientId: string; realm: string; url: string; aiEnabled?: boolean };
 
 const renderOfflineNotice = (title: string, message: string) => {
     root.render(
@@ -109,7 +109,12 @@ const bootstrapApp = async () => {
     let reachedServer = false;
     try {
         const resp = await axios.get("/../public");
-        config = { clientId: resp.data.clientId, realm: resp.data.realm, url: resp.data.url };
+        config = {
+            clientId: resp.data.clientId,
+            realm: resp.data.realm,
+            url: resp.data.url,
+            aiEnabled: resp.data.aiEnabled === true,
+        };
         localStorage.setItem(KEYCLOAK_CONFIG_CACHE_KEY, JSON.stringify(config));
         reachedServer = true;
     } catch {

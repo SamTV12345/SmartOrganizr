@@ -65,6 +65,22 @@ type Address struct {
 	Country     string
 }
 
+type AiChatMessage struct {
+	ID        int64
+	SessionFk string
+	Role      string
+	Content   string
+	CreatedAt time.Time
+}
+
+type AiChatSession struct {
+	ID        string
+	UserFk    string
+	Title     string
+	CreatedAt time.Time
+	UpdatedAt time.Time
+}
+
 type Author struct {
 	ID               string
 	ExtraInformation sql.NullString

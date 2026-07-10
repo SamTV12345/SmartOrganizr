@@ -128,5 +128,17 @@
   "fieldMustBeUrl": "This field must be a valid URL.",
   "event-current": "Upcoming events",
   "synced-feed": "Feed",
-  "club-events": "Club events"
+  "club-events": "Club events",
+  "aiChat": {
+    "title": "Assistant",
+    "newChat": "New chat",
+    "deleteChat": "Delete chat",
+    "placeholder": "Ask me e.g.: Find Eine kleine Nachtmusik",
+    "send": "Send",
+    "searching": "Searching for \"{{query}}\" ...",
+    "error": "Something went wrong. Please try again.",
+    "empty": "How can I help?",
+    "open": "Open AI assistant",
+    "close": "Close"
+  }
 }
