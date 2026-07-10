@@ -49,6 +49,23 @@ SELECT * FROM user WHERE id = ?;
 -- name: FindUserByEmail :one
 SELECT * FROM user WHERE email = ?;
 
+-- name: SetIcalFeedToken :exec
+UPDATE user SET ical_feed_token = ? WHERE id = ?;
+
+-- name: GetIcalFeedToken :one
+SELECT ical_feed_token FROM user WHERE id = ?;
+
+-- name: FindUserByIcalFeedToken :one
+SELECT * FROM user WHERE ical_feed_token = ?;
+
+-- name: ListClubEventsForUserFeed :many
+SELECT e.*, c.name AS club_name
+FROM club_events e
+JOIN clubs c ON c.id = e.club_id
+JOIN club_participant p ON p.club_id = e.club_id AND p.user_id = sqlc.arg(user_id)
+WHERE e.start_date > sqlc.arg(since)
+ORDER BY e.start_date;
+
 
 
 

@@ -1143,7 +1143,7 @@ func (q *Queries) FindAllIcalSyncsByUser(ctx context.Context, userIDFk string) (
 }
 
 const findAllMembersOfClub = `-- name: FindAllMembersOfClub :many
-SELECT club_participant.user_id, club_participant.club_id, club_participant.role, user.id, user.side_bar_collapsed, user.username, user.profile_picture, user.email, user.firstname, user.lastname, user.telephonenumber, user.birthday, user.country, user.postalcode, user.city, user.street
+SELECT club_participant.user_id, club_participant.club_id, club_participant.role, user.id, user.side_bar_collapsed, user.username, user.profile_picture, user.email, user.firstname, user.lastname, user.telephonenumber, user.birthday, user.country, user.postalcode, user.city, user.street, user.ical_feed_token
 from club_participant
          join user on user.id = club_participant.user_id
 where club_participant.club_id = ?
@@ -1180,6 +1180,7 @@ func (q *Queries) FindAllMembersOfClub(ctx context.Context, clubID string) ([]Fi
 			&i.User.Postalcode,
 			&i.User.City,
 			&i.User.Street,
+			&i.User.IcalFeedToken,
 		); err != nil {
 			return nil, err
 		}
@@ -1939,7 +1940,7 @@ func (q *Queries) FindClubInvitationByToken(ctx context.Context, token string) (
 }
 
 const findClubMemberByClubAndUser = `-- name: FindClubMemberByClubAndUser :one
-SELECT club_participant.user_id, club_participant.club_id, club_participant.role, user.id, user.side_bar_collapsed, user.username, user.profile_picture, user.email, user.firstname, user.lastname, user.telephonenumber, user.birthday, user.country, user.postalcode, user.city, user.street
+SELECT club_participant.user_id, club_participant.club_id, club_participant.role, user.id, user.side_bar_collapsed, user.username, user.profile_picture, user.email, user.firstname, user.lastname, user.telephonenumber, user.birthday, user.country, user.postalcode, user.city, user.street, user.ical_feed_token
 from club_participant
          join user on user.id = club_participant.user_id
 where club_participant.club_id = ? and club_participant.user_id = ?
@@ -1975,6 +1976,7 @@ func (q *Queries) FindClubMemberByClubAndUser(ctx context.Context, arg FindClubM
 		&i.User.Postalcode,
 		&i.User.City,
 		&i.User.Street,
+		&i.User.IcalFeedToken,
 	)
 	return i, err
 }
@@ -2208,7 +2210,7 @@ func (q *Queries) FindIcalSyncByTypeAndUser(ctx context.Context, arg FindIcalSyn
 }
 
 const findIcalSyncWithUserSinceDate = `-- name: FindIcalSyncWithUserSinceDate :many
-SELECT ical_sync.id, ical_sync.user_id_fk, ical_sync.ical_url, ical_sync.type, ical_sync.last_synced, user.id, user.side_bar_collapsed, user.username, user.profile_picture, user.email, user.firstname, user.lastname, user.telephonenumber, user.birthday, user.country, user.postalcode, user.city, user.street FROM ical_sync JOIN user ON ical_sync.user_id_fk = user.id WHERE ical_sync.last_synced > ? or ical_sync.last_synced IS NULL
+SELECT ical_sync.id, ical_sync.user_id_fk, ical_sync.ical_url, ical_sync.type, ical_sync.last_synced, user.id, user.side_bar_collapsed, user.username, user.profile_picture, user.email, user.firstname, user.lastname, user.telephonenumber, user.birthday, user.country, user.postalcode, user.city, user.street, user.ical_feed_token FROM ical_sync JOIN user ON ical_sync.user_id_fk = user.id WHERE ical_sync.last_synced > ? or ical_sync.last_synced IS NULL
 `
 
 type FindIcalSyncWithUserSinceDateRow struct {
@@ -2244,6 +2246,7 @@ func (q *Queries) FindIcalSyncWithUserSinceDate(ctx context.Context, lastSynced 
 			&i.User.Postalcode,
 			&i.User.City,
 			&i.User.Street,
+			&i.User.IcalFeedToken,
 		); err != nil {
 			return nil, err
 		}
@@ -2305,7 +2308,7 @@ func (q *Queries) FindNoteById(ctx context.Context, id string) (FindNoteByIdRow,
 }
 
 const findUserByEmail = `-- name: FindUserByEmail :one
-SELECT id, side_bar_collapsed, username, profile_picture, email, firstname, lastname, telephonenumber, birthday, country, postalcode, city, street FROM user WHERE email = ?
+SELECT id, side_bar_collapsed, username, profile_picture, email, firstname, lastname, telephonenumber, birthday, country, postalcode, city, street, ical_feed_token FROM user WHERE email = ?
 `
 
 func (q *Queries) FindUserByEmail(ctx context.Context, email sql.NullString) (User, error) {
@@ -2325,12 +2328,39 @@ func (q *Queries) FindUserByEmail(ctx context.Context, email sql.NullString) (Us
 		&i.Postalcode,
 		&i.City,
 		&i.Street,
+		&i.IcalFeedToken,
+	)
+	return i, err
+}
+
+const findUserByIcalFeedToken = `-- name: FindUserByIcalFeedToken :one
+SELECT id, side_bar_collapsed, username, profile_picture, email, firstname, lastname, telephonenumber, birthday, country, postalcode, city, street, ical_feed_token FROM user WHERE ical_feed_token = ?
+`
+
+func (q *Queries) FindUserByIcalFeedToken(ctx context.Context, icalFeedToken sql.NullString) (User, error) {
+	row := q.db.QueryRowContext(ctx, findUserByIcalFeedToken, icalFeedToken)
+	var i User
+	err := row.Scan(
+		&i.ID,
+		&i.SideBarCollapsed,
+		&i.Username,
+		&i.ProfilePicture,
+		&i.Email,
+		&i.Firstname,
+		&i.Lastname,
+		&i.Telephonenumber,
+		&i.Birthday,
+		&i.Country,
+		&i.Postalcode,
+		&i.City,
+		&i.Street,
+		&i.IcalFeedToken,
 	)
 	return i, err
 }
 
 const findUserById = `-- name: FindUserById :one
-SELECT id, side_bar_collapsed, username, profile_picture, email, firstname, lastname, telephonenumber, birthday, country, postalcode, city, street FROM user WHERE id = ?
+SELECT id, side_bar_collapsed, username, profile_picture, email, firstname, lastname, telephonenumber, birthday, country, postalcode, city, street, ical_feed_token FROM user WHERE id = ?
 `
 
 func (q *Queries) FindUserById(ctx context.Context, id string) (User, error) {
@@ -2350,6 +2380,7 @@ func (q *Queries) FindUserById(ctx context.Context, id string) (User, error) {
 		&i.Postalcode,
 		&i.City,
 		&i.Street,
+		&i.IcalFeedToken,
 	)
 	return i, err
 }
@@ -2533,6 +2564,17 @@ func (q *Queries) GetEventsOfUser(ctx context.Context, arg GetEventsOfUserParams
 		return nil, err
 	}
 	return items, nil
+}
+
+const getIcalFeedToken = `-- name: GetIcalFeedToken :one
+SELECT ical_feed_token FROM user WHERE id = ?
+`
+
+func (q *Queries) GetIcalFeedToken(ctx context.Context, id string) (sql.NullString, error) {
+	row := q.db.QueryRowContext(ctx, getIcalFeedToken, id)
+	var ical_feed_token sql.NullString
+	err := row.Scan(&ical_feed_token)
+	return ical_feed_token, err
 }
 
 const getIndexAuthorsOnPage = `-- name: GetIndexAuthorsOnPage :many
@@ -3057,6 +3099,77 @@ func (q *Queries) ListClubEventsForUser(ctx context.Context, arg ListClubEventsF
 	return items, nil
 }
 
+const listClubEventsForUserFeed = `-- name: ListClubEventsForUserFeed :many
+SELECT e.id, e.club_id, e.summary, e.description, e.location, e.geo_date_x, e.geo_date_y, e.event_type, e.start_date, e.end_date, e.cancelled, e.created_by_user_id, e.created_at, e.updated_at, c.name AS club_name
+FROM club_events e
+JOIN clubs c ON c.id = e.club_id
+JOIN club_participant p ON p.club_id = e.club_id AND p.user_id = ?
+WHERE e.start_date > ?
+ORDER BY e.start_date
+`
+
+type ListClubEventsForUserFeedParams struct {
+	UserID string
+	Since  time.Time
+}
+
+type ListClubEventsForUserFeedRow struct {
+	ID              string
+	ClubID          string
+	Summary         string
+	Description     sql.NullString
+	Location        sql.NullString
+	GeoDateX        sql.NullFloat64
+	GeoDateY        sql.NullFloat64
+	EventType       string
+	StartDate       time.Time
+	EndDate         sql.NullTime
+	Cancelled       bool
+	CreatedByUserID string
+	CreatedAt       time.Time
+	UpdatedAt       time.Time
+	ClubName        string
+}
+
+func (q *Queries) ListClubEventsForUserFeed(ctx context.Context, arg ListClubEventsForUserFeedParams) ([]ListClubEventsForUserFeedRow, error) {
+	rows, err := q.db.QueryContext(ctx, listClubEventsForUserFeed, arg.UserID, arg.Since)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ListClubEventsForUserFeedRow
+	for rows.Next() {
+		var i ListClubEventsForUserFeedRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.ClubID,
+			&i.Summary,
+			&i.Description,
+			&i.Location,
+			&i.GeoDateX,
+			&i.GeoDateY,
+			&i.EventType,
+			&i.StartDate,
+			&i.EndDate,
+			&i.Cancelled,
+			&i.CreatedByUserID,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.ClubName,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const listClubFilesForClub = `-- name: ListClubFilesForClub :many
 SELECT
     f.id,
@@ -3436,6 +3549,20 @@ func (q *Queries) SearchByFolderName(ctx context.Context, arg SearchByFolderName
 		return nil, err
 	}
 	return items, nil
+}
+
+const setIcalFeedToken = `-- name: SetIcalFeedToken :exec
+UPDATE user SET ical_feed_token = ? WHERE id = ?
+`
+
+type SetIcalFeedTokenParams struct {
+	IcalFeedToken sql.NullString
+	ID            string
+}
+
+func (q *Queries) SetIcalFeedToken(ctx context.Context, arg SetIcalFeedTokenParams) error {
+	_, err := q.db.ExecContext(ctx, setIcalFeedToken, arg.IcalFeedToken, arg.ID)
+	return err
 }
 
 const softCancelClubEvent = `-- name: SoftCancelClubEvent :exec

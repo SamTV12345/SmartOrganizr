@@ -190,6 +190,7 @@ func SetupRouter(queries *db.Queries, config config.AppConfig, logger *zap.Sugar
 		SetLocal[*service.WikidataService](c, constants.WikidataService, wikidataService)
 		SetLocal[*service.AIService](c, constants.AIService, aiService)
 		SetLocal[*service.AIChatService](c, constants.AIChatService, aiChatService)
+		SetLocal[string](c, constants.AppBaseURL, config.App.URL)
 
 		return c.Next()
 	})
@@ -205,6 +206,7 @@ func SetupRouter(queries *db.Queries, config config.AppConfig, logger *zap.Sugar
 	})
 
 	app.Get("/public", controllers.GetIndex)
+	app.Get("/public/calendar/:token.ics", controllers.GetCalendarFeed)
 	app.Get("/public/users/:userId/:image.png", controllers.GetUserImage)
 	app.Get("/public/:folderId/export", controllers.ExportPDFFromNotes)
 	app.Get("/api/public/invitations/:token", controllers.GetPublicClubInvitation)
@@ -231,6 +233,8 @@ func SetupRouter(queries *db.Queries, config config.AppConfig, logger *zap.Sugar
 	profile.Route("v1/users", func(r fiber.Router) {
 		r.Put("/", controllers.SyncUser)
 		r.Get("/token", controllers.GetUser)
+		r.Post("/calendar-token", controllers.RotateCalendarToken)
+		r.Get("/calendar-token", controllers.GetCalendarToken)
 		r.Patch("/:userId", controllers.UpdateUser)
 		r.Post("/:userId/profile", controllers.UploadProfile)
 		r.Post("/:userId/konzertmeister-url", controllers.SetKonzertmeisterUrl)
