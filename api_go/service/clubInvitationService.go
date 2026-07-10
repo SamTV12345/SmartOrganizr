@@ -63,6 +63,29 @@ func (s *ClubInvitationService) CreateAndSendInvitation(clubID string, invitedBy
 	return token, nil
 }
 
+// ListPendingInvitations returns invitations that are neither accepted nor expired.
+func (s *ClubInvitationService) ListPendingInvitations(clubID string) ([]db.FindPendingClubInvitationsRow, error) {
+	return s.queries.FindPendingClubInvitations(s.ctx, db.FindPendingClubInvitationsParams{
+		ClubID: clubID,
+		Now:    time.Now(),
+	})
+}
+
+// RevokeInvitation deletes an invitation; sql.ErrNoRows when it does not belong to the club.
+func (s *ClubInvitationService) RevokeInvitation(clubID string, token string) error {
+	affected, err := s.queries.DeleteClubInvitation(s.ctx, db.DeleteClubInvitationParams{
+		Token:  token,
+		ClubID: clubID,
+	})
+	if err != nil {
+		return err
+	}
+	if affected == 0 {
+		return sql.ErrNoRows
+	}
+	return nil
+}
+
 func (s *ClubInvitationService) GetInvitationByToken(token string) (*ClubInvitationDetails, error) {
 	invitation, err := s.queries.FindClubInvitationByToken(s.ctx, token)
 	if err != nil {

@@ -4,6 +4,7 @@ import (
 	"api_go/constants"
 	"api_go/controllers/dto"
 	"api_go/service"
+	"database/sql"
 	"errors"
 	"time"
 
@@ -22,6 +23,10 @@ func mapServiceError(err error) error {
 		return fiber.NewError(fiber.StatusForbidden, err.Error())
 	case errors.Is(err, service.ErrManageForbidden):
 		return fiber.NewError(fiber.StatusForbidden, err.Error())
+	case errors.Is(err, service.ErrLastLeiter):
+		return fiber.NewError(fiber.StatusConflict, err.Error())
+	case errors.Is(err, sql.ErrNoRows):
+		return fiber.NewError(fiber.StatusNotFound, "not found")
 	default:
 		return fiber.NewError(fiber.StatusBadRequest, err.Error())
 	}

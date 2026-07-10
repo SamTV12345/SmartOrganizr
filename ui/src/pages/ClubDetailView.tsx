@@ -1,7 +1,8 @@
 import { ChangeEvent, FC, useMemo, useState } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { http as axios } from "@/src/api/client";
+import { useTranslation } from "react-i18next";
+import { $api, http as axios } from "@/src/api/client";
 import {
     CalendarDays,
     ChevronLeft,
@@ -11,6 +12,7 @@ import {
     MessagesSquare,
     PencilLine,
     Settings,
+    Trash2,
     Upload,
     UserRoundCog,
     UserRoundPlus,
@@ -18,6 +20,17 @@ import {
 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+    AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { apiURL } from "@/src/Keycloak";
 import { useKeycloak } from "@/src/Keycloak/useKeycloak";
 import { Club } from "@/src/models/Club";
@@ -31,6 +44,7 @@ import { ClubPinboardSection } from "@/src/components/ClubPinboardSection";
 import { ClubFilesSection } from "@/src/components/ClubFilesSection";
 import { ClubEventsManager } from "@/src/components/club/ClubEventsManager";
 import { ClubSettingsForm } from "@/src/components/club/ClubSettingsForm";
+import { ClubDangerZone } from "@/src/components/club/ClubDangerZone";
 
 type ClubSection = {
     id: string;
@@ -88,6 +102,7 @@ const memberDisplayName = (member: ClubMember) => {
 };
 
 export const ClubDetailView: FC = () => {
+    const { t } = useTranslation();
     const navigate = useNavigate();
     const queryClient = useQueryClient();
     const { clubId } = useParams();
@@ -150,6 +165,31 @@ export const ClubDetailView: FC = () => {
     const members = membersData?.data ?? [];
     const club = useMemo(() => clubsData?.data.find((entry) => entry.id === clubId), [clubsData?.data, clubId]);
     const sectionWritable = permissions?.section_write?.[activeSection.id] ?? false;
+
+    const canManageMembers = permissions?.can_manage_roles ?? false;
+    const isLeiter = permissions?.role === "LEITER";
+    const leiterCount = members.filter((member) => member.role === "LEITER").length;
+    const isLastLeiter = isLeiter && leiterCount <= 1;
+
+    const removeMemberMutation = $api.useMutation("delete", "/v1/clubs/{clubId}/members/{memberUserId}", {
+        onSuccess: async () => {
+            await refetchMembers();
+        },
+    });
+
+    const { data: invitationsData, refetch: refetchInvitations } = $api.useQuery(
+        "get",
+        "/v1/clubs/{clubId}/invitations",
+        { params: { path: { clubId: clubId ?? "" } } },
+        { enabled: !!clubId && (permissions?.can_invite_members ?? false) },
+    );
+    const invitations = invitationsData ?? [];
+
+    const revokeInvitationMutation = $api.useMutation("delete", "/v1/clubs/{clubId}/invitations/{invitationId}", {
+        onSuccess: async () => {
+            await refetchInvitations();
+        },
+    });
 
     const onExportCSV = async () => {
         const response = await axios.get(`${apiURL}/v1/clubs/${clubId}/members/export`, { responseType: "blob" });
@@ -304,45 +344,137 @@ export const ClubDetailView: FC = () => {
                     )}
 
                     {activeSection.id === "bearbeiten" && club && (
-                        permissions?.can_manage_roles
-                            ? <ClubSettingsForm club={club} />
-                            : <p className="text-sm text-muted-foreground">Nur die Vereinsleitung kann Einstellungen bearbeiten.</p>
+                        <div className="space-y-6">
+                            {permissions?.can_manage_roles
+                                ? <ClubSettingsForm club={club} />
+                                : <p className="text-sm text-muted-foreground">Nur die Vereinsleitung kann Einstellungen bearbeiten.</p>}
+                            <ClubDangerZone
+                                clubId={club.id}
+                                clubName={club.name}
+                                isLeiter={isLeiter}
+                                isLastLeiter={isLastLeiter}
+                            />
+                        </div>
                     )}
 
                     {activeSection.id === "mitglieder" && (
                         <div className="grid gap-4 xl:grid-cols-[1.4fr_1fr]">
-                            <Card>
-                                <CardHeader>
-                                    <CardTitle>Mitglieder</CardTitle>
-                                    <CardDescription>Aktuelle Mitglieder und Rollen im Verein.</CardDescription>
-                                </CardHeader>
-                                <CardContent className="space-y-3">
-                                    {members.map((member) => (
-                                        <div key={member.user_id} className="grid gap-2 rounded-lg border p-3 md:grid-cols-[1.6fr_1.2fr]">
-                                            <div>
-                                                <p className="font-medium">{memberDisplayName(member)}</p>
-                                                <p className="text-xs text-muted-foreground">{member.email || member.user_id}</p>
+                            <div className="space-y-4">
+                                <Card>
+                                    <CardHeader>
+                                        <CardTitle>Mitglieder</CardTitle>
+                                        <CardDescription>Aktuelle Mitglieder und Rollen im Verein.</CardDescription>
+                                    </CardHeader>
+                                    <CardContent className="space-y-3">
+                                        {members.map((member) => (
+                                            <div key={member.user_id} className="grid items-center gap-2 rounded-lg border p-3 md:grid-cols-[1.6fr_1.2fr_auto]">
+                                                <div>
+                                                    <p className="font-medium">{memberDisplayName(member)}</p>
+                                                    <p className="text-xs text-muted-foreground">{member.email || member.user_id}</p>
+                                                </div>
+                                                <Select
+                                                    value={member.role}
+                                                    onValueChange={(newRole) => newRole && roleMutation.mutate({ memberUserId: member.user_id, role: newRole })}
+                                                    disabled={!permissions?.can_manage_roles}
+                                                >
+                                                    <SelectTrigger className="w-full">
+                                                        <SelectValue />
+                                                    </SelectTrigger>
+                                                    <SelectContent>
+                                                        {ROLE_OPTIONS.map((role) => (
+                                                            <SelectItem key={role.value} value={role.value}>
+                                                                {role.label}
+                                                            </SelectItem>
+                                                        ))}
+                                                    </SelectContent>
+                                                </Select>
+                                                {canManageMembers && member.user_id !== user?.subject && (
+                                                    <AlertDialog>
+                                                        <AlertDialogTrigger
+                                                            render={<Button variant="ghost" size="sm" aria-label={t("club-remove-member")} />}
+                                                        >
+                                                            <Trash2 className="size-4 text-red-500" />
+                                                        </AlertDialogTrigger>
+                                                        <AlertDialogContent>
+                                                            <AlertDialogHeader>
+                                                                <AlertDialogTitle>{t("club-remove-member")}</AlertDialogTitle>
+                                                                <AlertDialogDescription>
+                                                                    {t("club-remove-member-confirm", { name: memberDisplayName(member) })}
+                                                                </AlertDialogDescription>
+                                                            </AlertDialogHeader>
+                                                            <AlertDialogFooter>
+                                                                <AlertDialogCancel>{t("cancel")}</AlertDialogCancel>
+                                                                <AlertDialogAction
+                                                                    onClick={() =>
+                                                                        removeMemberMutation.mutate({
+                                                                            params: { path: { clubId: club.id, memberUserId: member.user_id } },
+                                                                        })
+                                                                    }
+                                                                >
+                                                                    {t("club-remove-member")}
+                                                                </AlertDialogAction>
+                                                            </AlertDialogFooter>
+                                                        </AlertDialogContent>
+                                                    </AlertDialog>
+                                                )}
                                             </div>
-                                            <Select
-                                                value={member.role}
-                                                onValueChange={(newRole) => newRole && roleMutation.mutate({ memberUserId: member.user_id, role: newRole })}
-                                                disabled={!permissions?.can_manage_roles}
-                                            >
-                                                <SelectTrigger className="w-full">
-                                                    <SelectValue />
-                                                </SelectTrigger>
-                                                <SelectContent>
-                                                    {ROLE_OPTIONS.map((role) => (
-                                                        <SelectItem key={role.value} value={role.value}>
-                                                            {role.label}
-                                                        </SelectItem>
-                                                    ))}
-                                                </SelectContent>
-                                            </Select>
-                                        </div>
-                                    ))}
-                                </CardContent>
-                            </Card>
+                                        ))}
+                                    </CardContent>
+                                </Card>
+
+                                {permissions?.can_invite_members && (
+                                    <Card>
+                                        <CardHeader>
+                                            <CardTitle>{t("club-pending-invitations")}</CardTitle>
+                                            <CardDescription>{t("club-pending-invitations-description")}</CardDescription>
+                                        </CardHeader>
+                                        <CardContent className="space-y-3">
+                                            {invitations.length === 0 && (
+                                                <p className="text-sm text-muted-foreground">{t("club-no-pending-invitations")}</p>
+                                            )}
+                                            {invitations.map((invitation) => (
+                                                <div key={invitation.token} className="flex items-center justify-between gap-2 rounded-lg border p-3">
+                                                    <div>
+                                                        <p className="font-medium">{invitation.invited_email}</p>
+                                                        <p className="text-xs text-muted-foreground">
+                                                            {t("club-invitation-expires", {
+                                                                date: invitation.expires_at ? new Date(invitation.expires_at).toLocaleDateString() : "-",
+                                                            })}
+                                                        </p>
+                                                    </div>
+                                                    <AlertDialog>
+                                                        <AlertDialogTrigger
+                                                            render={<Button variant="ghost" size="sm" aria-label={t("club-invitation-revoke")} />}
+                                                        >
+                                                            <Trash2 className="size-4 text-red-500" />
+                                                        </AlertDialogTrigger>
+                                                        <AlertDialogContent>
+                                                            <AlertDialogHeader>
+                                                                <AlertDialogTitle>{t("club-invitation-revoke")}</AlertDialogTitle>
+                                                                <AlertDialogDescription>
+                                                                    {t("club-invitation-revoke-confirm", { email: invitation.invited_email })}
+                                                                </AlertDialogDescription>
+                                                            </AlertDialogHeader>
+                                                            <AlertDialogFooter>
+                                                                <AlertDialogCancel>{t("cancel")}</AlertDialogCancel>
+                                                                <AlertDialogAction
+                                                                    onClick={() =>
+                                                                        revokeInvitationMutation.mutate({
+                                                                            params: { path: { clubId: club.id, invitationId: invitation.token ?? "" } },
+                                                                        })
+                                                                    }
+                                                                >
+                                                                    {t("club-invitation-revoke")}
+                                                                </AlertDialogAction>
+                                                            </AlertDialogFooter>
+                                                        </AlertDialogContent>
+                                                    </AlertDialog>
+                                                </div>
+                                            ))}
+                                        </CardContent>
+                                    </Card>
+                                )}
+                            </div>
 
                             <div className="space-y-4">
                                 <Card>

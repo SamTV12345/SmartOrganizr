@@ -679,6 +679,15 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (int64, 
 	return result.LastInsertId()
 }
 
+const deleteAddress = `-- name: DeleteAddress :exec
+DELETE FROM address WHERE id = ?
+`
+
+func (q *Queries) DeleteAddress(ctx context.Context, id string) error {
+	_, err := q.db.ExecContext(ctx, deleteAddress, id)
+	return err
+}
+
 const deleteAiChatSession = `-- name: DeleteAiChatSession :exec
 DELETE FROM ai_chat_session WHERE id = ?
 `
@@ -747,6 +756,15 @@ func (q *Queries) DeleteAuthor(ctx context.Context, arg DeleteAuthorParams) erro
 	return err
 }
 
+const deleteClub = `-- name: DeleteClub :exec
+DELETE FROM clubs WHERE id = ?
+`
+
+func (q *Queries) DeleteClub(ctx context.Context, id string) error {
+	_, err := q.db.ExecContext(ctx, deleteClub, id)
+	return err
+}
+
 const deleteClubEvent = `-- name: DeleteClubEvent :exec
 DELETE FROM club_events WHERE id = ? AND club_id = ?
 `
@@ -773,6 +791,55 @@ type DeleteClubFileParams struct {
 
 func (q *Queries) DeleteClubFile(ctx context.Context, arg DeleteClubFileParams) error {
 	_, err := q.db.ExecContext(ctx, deleteClubFile, arg.ID, arg.ClubID)
+	return err
+}
+
+const deleteClubInvitation = `-- name: DeleteClubInvitation :execrows
+DELETE FROM club_invitation WHERE token = ? AND club_id = ?
+`
+
+type DeleteClubInvitationParams struct {
+	Token  string
+	ClubID string
+}
+
+func (q *Queries) DeleteClubInvitation(ctx context.Context, arg DeleteClubInvitationParams) (int64, error) {
+	result, err := q.db.ExecContext(ctx, deleteClubInvitation, arg.Token, arg.ClubID)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected()
+}
+
+const deleteClubInvitationsByClub = `-- name: DeleteClubInvitationsByClub :exec
+DELETE FROM club_invitation WHERE club_id = ?
+`
+
+func (q *Queries) DeleteClubInvitationsByClub(ctx context.Context, clubID string) error {
+	_, err := q.db.ExecContext(ctx, deleteClubInvitationsByClub, clubID)
+	return err
+}
+
+const deleteClubMember = `-- name: DeleteClubMember :exec
+DELETE FROM club_participant WHERE club_id = ? AND user_id = ?
+`
+
+type DeleteClubMemberParams struct {
+	ClubID string
+	UserID string
+}
+
+func (q *Queries) DeleteClubMember(ctx context.Context, arg DeleteClubMemberParams) error {
+	_, err := q.db.ExecContext(ctx, deleteClubMember, arg.ClubID, arg.UserID)
+	return err
+}
+
+const deleteClubMembersByClub = `-- name: DeleteClubMembersByClub :exec
+DELETE FROM club_participant WHERE club_id = ?
+`
+
+func (q *Queries) DeleteClubMembersByClub(ctx context.Context, clubID string) error {
+	_, err := q.db.ExecContext(ctx, deleteClubMembersByClub, clubID)
 	return err
 }
 
@@ -2315,6 +2382,57 @@ func (q *Queries) FindNoteById(ctx context.Context, id string) (FindNoteByIdRow,
 		&i.Element_2.Description,
 	)
 	return i, err
+}
+
+const findPendingClubInvitations = `-- name: FindPendingClubInvitations :many
+SELECT token, club_id, invited_email, invited_by_user_id, created_at, expires_at
+from club_invitation
+where club_id = ? and accepted_at IS NULL and expires_at > ?
+ORDER BY created_at DESC
+`
+
+type FindPendingClubInvitationsParams struct {
+	ClubID string
+	Now    time.Time
+}
+
+type FindPendingClubInvitationsRow struct {
+	Token           string
+	ClubID          string
+	InvitedEmail    string
+	InvitedByUserID string
+	CreatedAt       time.Time
+	ExpiresAt       time.Time
+}
+
+func (q *Queries) FindPendingClubInvitations(ctx context.Context, arg FindPendingClubInvitationsParams) ([]FindPendingClubInvitationsRow, error) {
+	rows, err := q.db.QueryContext(ctx, findPendingClubInvitations, arg.ClubID, arg.Now)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []FindPendingClubInvitationsRow
+	for rows.Next() {
+		var i FindPendingClubInvitationsRow
+		if err := rows.Scan(
+			&i.Token,
+			&i.ClubID,
+			&i.InvitedEmail,
+			&i.InvitedByUserID,
+			&i.CreatedAt,
+			&i.ExpiresAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const findUserByEmail = `-- name: FindUserByEmail :one
