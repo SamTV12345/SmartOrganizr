@@ -58,6 +58,16 @@
   "accountSettings": "Accounteinstellungen",
   "signOut": "Ausloggen",
   "author": "Author:",
+  "arranger": "Arrangeur",
+  "calendarFeed": {
+    "title": "Kalender-Feed",
+    "description": "Abonniere deine Vereinstermine in Google oder Apple Kalender über eine persönliche Feed-URL.",
+    "noToken": "Noch kein Kalender-Feed eingerichtet.",
+    "generate": "Feed-URL erstellen",
+    "rotate": "Neue URL erzeugen",
+    "rotateHint": "Beim Erzeugen einer neuen URL wird die bisherige URL ungültig.",
+    "copy": "URL kopieren"
+  },
   "loading": "Laden",
   "numberOfPages": "Anzahl an Seiten",
   "type": "Typ",
