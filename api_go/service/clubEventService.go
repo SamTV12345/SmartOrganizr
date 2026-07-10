@@ -271,6 +271,15 @@ func (s *ClubEventService) ListForUser(userID string, since time.Time) ([]dto.Cl
 	return out, nil
 }
 
+// ListForUserFeed returns raw event rows across all of the user's clubs for
+// the ICS calendar feed. Unlike ListForUser it keeps cancelled events so the
+// feed can emit STATUS:CANCELLED instead of silently dropping them.
+func (s *ClubEventService) ListForUserFeed(userID string, since time.Time) ([]db.ListClubEventsForUserFeedRow, error) {
+	return s.queries.ListClubEventsForUserFeed(s.ctx, db.ListClubEventsForUserFeedParams{
+		UserID: userID, Since: since,
+	})
+}
+
 // Respond upserts the caller's RSVP and notifies managers.
 func (s *ClubEventService) Respond(clubID, userID, eventID string, in dto.ClubEventResponseDto) error {
 	if _, err := s.requireMember(clubID, userID); err != nil {

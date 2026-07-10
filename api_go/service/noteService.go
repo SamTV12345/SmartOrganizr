@@ -44,6 +44,25 @@ func (n NoteService) loadComposerEntity(note db.Element, userId string) db.Autho
 	return author
 }
 
+// loadArrangerModel returns the arranger author for a note element, or nil if
+// the note has no arranger (or it cannot be loaded). Same rationale as
+// loadComposerEntity: the arranger is optional, so it is loaded separately by
+// id instead of via a LEFT JOIN.
+func (n NoteService) loadArrangerModel(note db.Element, userId string) *models.Author {
+	if !note.ArrangerIDFk.Valid {
+		return nil
+	}
+	author, err := n.Queries.FindAuthorById(n.Ctx, db.FindAuthorByIdParams{
+		ID:       note.ArrangerIDFk.String,
+		UserIDFk: db.NewSQLNullString(userId),
+	})
+	if err != nil {
+		return nil
+	}
+	model := mappers.ConvertAuthorFromEntity(author)
+	return &model
+}
+
 func (n NoteService) LoadAllNotes(userId string, page *int, nameStr *string) ([]models.Note, int, error) {
 
 	var notes []NoteWithAuthor
@@ -150,7 +169,9 @@ func (n NoteService) LoadAllNotes(userId string, page *int, nameStr *string) ([]
 		var note = db.ConvertNoteEntityToDBVersion(noteDB.Note)
 		var folder = db.ConvertFolderEntityToDBVersion(noteDB.Folder)
 		var author = mappers.ConvertAuthorFromEntity(noteDB.Author)
-		modelNotes = append(modelNotes, mappers.ConvertNoteFromEntity(note, *creator, author, &folder))
+		var modelNote = mappers.ConvertNoteFromEntity(note, *creator, author, &folder)
+		modelNote.Arranger = n.loadArrangerModel(noteDB.Note, userId)
+		modelNotes = append(modelNotes, modelNote)
 	}
 
 	return modelNotes, int(numberOfElements), nil
@@ -179,7 +200,9 @@ func (n NoteService) LoadNote(noteId string, userId string) (models.Note, error)
 	var note = db.ConvertNoteEntityToDBVersion(noteDB.Element)
 	var folder = db.ConvertFolderEntityToDBVersion(noteDB.Element_2)
 	var parent = mappers.ConvertFolderFromEntity(folder, *creator)
-	return mappers.ConvertNoteFromEntityWithFolderModel(note, *creator, author, &parent), nil
+	var noteModel = mappers.ConvertNoteFromEntityWithFolderModel(note, *creator, author, &parent)
+	noteModel.Arranger = n.loadArrangerModel(noteDB.Element, userId)
+	return noteModel, nil
 }
 
 func (n NoteService) LoadNoteByParent(noteId string, userId string) (searchedNote *models.Note, previousNote *models.Note, nextNote *models.Note, index int, err error) {
@@ -262,6 +285,7 @@ func (n NoteService) CreateNote(userId string, note dto.NotePostDto) (*models.No
 		Description:   db.NewSQLNullString(note.Description),
 		UserIDFk:      db.NewSQLNullString(userId),
 		ComposerIDFk:  db.NewSQLNullString(note.AuthorId),
+		ArrangerIDFk:  db.NewNullableSQLString(note.ArrangerId),
 		Parent:        db.NewSQLNullString(note.ParentId),
 		NumberOfPages: db.NewSQLNullInt(note.NumberOfPages),
 		PdfContent:    pdfContent,
@@ -298,6 +322,11 @@ func (n NoteService) UpdateNote(userId string, note models.Note) (models.Note, e
 		}
 	}
 
+	var arrangerIDFk sql.NullString
+	if note.Arranger != nil {
+		arrangerIDFk = db.NewNullableSQLString(note.Arranger.ID)
+	}
+
 	err = n.Queries.UpdateNote(n.Ctx, db.UpdateNoteParams{
 		ID:            note.Id,
 		Description:   db.NewSQLNullString(note.Description),
@@ -305,6 +334,7 @@ func (n NoteService) UpdateNote(userId string, note models.Note) (models.Note, e
 		PdfContent:    pdfContent,
 		Name:          db.NewSQLNullString(note.Name),
 		ComposerIDFk:  db.NewSQLNullString(note.Author.ID),
+		ArrangerIDFk:  arrangerIDFk,
 	})
 
 	if err != nil {

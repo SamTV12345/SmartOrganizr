@@ -34,6 +34,43 @@ const docTemplate = `{
                 }
             }
         },
+        "/public/calendar/{token}.ics": {
+            "get": {
+                "produces": [
+                    "text/calendar"
+                ],
+                "tags": [
+                    "public"
+                ],
+                "summary": "Public ICS feed of all native club events of the token owner's clubs (from 3 months in the past onward). The token is the authentication.",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Calendar feed token",
+                        "name": "token",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/public/invitations/{token}": {
             "get": {
                 "produces": [
@@ -2312,6 +2349,60 @@ const docTemplate = `{
                 }
             }
         },
+        "/v1/users/calendar-token": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "users"
+                ],
+                "summary": "Get the current calendar feed token and subscription URL",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.CalendarTokenDto"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "users"
+                ],
+                "summary": "Generate (or rotate) the personal calendar feed token. Calling this again replaces the previous token, which invalidates any previously subscribed feed URL.",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.CalendarTokenDto"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/v1/users/me": {
             "get": {
                 "produces": [
@@ -2960,6 +3051,21 @@ const docTemplate = `{
                     "items": {
                         "$ref": "#/definitions/dto.AutocompleteWork"
                     }
+                }
+            }
+        },
+        "dto.CalendarTokenDto": {
+            "type": "object",
+            "required": [
+                "token",
+                "url"
+            ],
+            "properties": {
+                "token": {
+                    "type": "string"
+                },
+                "url": {
+                    "type": "string"
                 }
             }
         },

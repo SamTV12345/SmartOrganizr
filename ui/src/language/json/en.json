@@ -78,6 +78,16 @@
   "accountSettings": "Account settings",
   "signOut": "Sign out",
   "author": "Author:",
+  "arranger": "Arranger",
+  "calendarFeed": {
+    "title": "Calendar feed",
+    "description": "Subscribe to your club events in Google or Apple Calendar via a personal feed URL.",
+    "noToken": "No calendar feed set up yet.",
+    "generate": "Create feed URL",
+    "rotate": "Generate new URL",
+    "rotateHint": "Generating a new URL invalidates the previous one.",
+    "copy": "Copy URL"
+  },
   "loading":"Loading",
   "numberOfPages": "Number of pages",
   "type": "Type",

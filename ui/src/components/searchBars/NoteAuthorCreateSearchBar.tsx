@@ -25,12 +25,34 @@ type AuthorOption = {
     label: string
 }
 
-export const NoteAuthorCreateSearchBar = ()=> {
+type NoteAuthorCreateSearchBarProps = {
+    /** Form field that stores the picked author's id. */
+    idField?: string
+    /** Form field that stores the (possibly free-typed) author name. */
+    nameField?: string
+    /** i18n key for the field label. */
+    labelKey?: string
+    /** Sync the ElementCreateSlice (only the composer field does). */
+    syncRedux?: boolean
+}
+
+export const NoteAuthorCreateSearchBar = ({
+    idField = "authorId",
+    nameField = "authorName",
+    labelKey = "author",
+    syncRedux = true,
+}: NoteAuthorCreateSearchBarProps = {})=> {
     const dispatch = useAppDispatch()
     const {control, setValue, watch} = useFormContext()
-    const authorName = (watch("authorName") as string | undefined) ?? ""
+    const authorName = (watch(nameField) as string | undefined) ?? ""
     const [currentSearchAuthors, setCurrentSearchAuthors] = useState<Page<AuthorEmbeddedContainer<Author>>>()
     const {t} = useTranslation()
+
+    const syncSelectedName = (name: string) => {
+        if (syncRedux) {
+            dispatch(setElementSelectedAuthorName(name));
+        }
+    };
 
     const loadAuthors = async (link: string) => {
         const authorsInResponse: Page<AuthorEmbeddedContainer<Author>> = await new Promise<Page<AuthorEmbeddedContainer<Author>>>(resolve => {
@@ -64,7 +86,7 @@ export const NoteAuthorCreateSearchBar = ()=> {
 
     return <FormField
         control={control}
-        name="authorId"
+        name={idField}
         render={({ field }) => {
             const selectedAuthor = authorOptions.find((option) => option.value === field.value) ?? null;
 
@@ -73,21 +95,21 @@ export const NoteAuthorCreateSearchBar = ()=> {
                 const id = option.value;
                 const name = option.label;
                 field.onChange(id);
-                setValue("authorId", id, {
+                setValue(idField, id, {
                     shouldDirty: true,
                     shouldTouch: true,
                     shouldValidate: true,
                 });
-                setValue("authorName", name, {
+                setValue(nameField, name, {
                     shouldDirty: true,
                     shouldTouch: true,
                     shouldValidate: true,
                 });
-                dispatch(setElementSelectedAuthorName(name));
+                syncSelectedName(name);
             };
 
             return <FormItem>
-                <FormLabel>{t("author")}</FormLabel>
+                <FormLabel>{t(labelKey)}</FormLabel>
                 <FormControl>
                     <Combobox
                         items={authorOptions}
@@ -100,24 +122,24 @@ export const NoteAuthorCreateSearchBar = ()=> {
                         inputValue={authorName ?? ""}
                         onInputValueChange={(value) => {
                             const nextValue = value ?? "";
-                            setValue("authorName", nextValue, {
+                            setValue(nameField, nextValue, {
                                 shouldDirty: true,
                                 shouldTouch: true,
                                 shouldValidate: true,
                             });
-                            setValue("authorId", "", {
+                            setValue(idField, "", {
                                 shouldDirty: true,
                                 shouldTouch: true,
                                 shouldValidate: true,
                             });
-                            dispatch(setElementSelectedAuthorName(nextValue));
+                            syncSelectedName(nextValue);
                         }}
                     >
                         <ComboboxInput
                             className="w-full"
                             showTrigger
                             showClear
-                            placeholder={String(t("author"))}
+                            placeholder={String(t(labelKey))}
                         />
                         <ComboboxContent>
                             <ComboboxList>

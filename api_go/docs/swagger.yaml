@@ -150,6 +150,16 @@ definitions:
           $ref: '#/definitions/dto.AutocompleteWork'
         type: array
     type: object
+  dto.CalendarTokenDto:
+    properties:
+      token:
+        type: string
+      url:
+        type: string
+    required:
+    - token
+    - url
+    type: object
   dto.ClubChatCreateDto:
     properties:
       content:
@@ -1121,6 +1131,31 @@ paths:
           schema:
             $ref: '#/definitions/dto.KeycloakModel'
       summary: Public configuration (Keycloak realm/client)
+      tags:
+      - public
+  /public/calendar/{token}.ics:
+    get:
+      parameters:
+      - description: Calendar feed token
+        in: path
+        name: token
+        required: true
+        type: string
+      produces:
+      - text/calendar
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Public ICS feed of all native club events of the token owner's clubs
+        (from 3 months in the past onward). The token is the authentication.
       tags:
       - public
   /public/invitations/{token}:
@@ -2805,6 +2840,43 @@ paths:
               type: string
             type: object
       summary: Upload a profile picture (raw image body)
+      tags:
+      - users
+  /v1/users/calendar-token:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.CalendarTokenDto'
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get the current calendar feed token and subscription URL
+      tags:
+      - users
+    post:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.CalendarTokenDto'
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Generate (or rotate) the personal calendar feed token. Calling this
+        again replaces the previous token, which invalidates any previously subscribed
+        feed URL.
       tags:
       - users
   /v1/users/me:

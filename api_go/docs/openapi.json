@@ -27,6 +27,50 @@
                 }
             }
         },
+        "/public/calendar/{token}.ics": {
+            "get": {
+                "tags": [
+                    "public"
+                ],
+                "summary": "Public ICS feed of all native club events of the token owner's clubs (from 3 months in the past onward). The token is the authentication.",
+                "parameters": [
+                    {
+                        "description": "Calendar feed token",
+                        "name": "token",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "text/calendar": {
+                                "schema": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "content": {
+                            "text/calendar": {
+                                "schema": {
+                                    "type": "object",
+                                    "additionalProperties": {
+                                        "type": "string"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/public/invitations/{token}": {
             "get": {
                 "tags": [
@@ -2462,6 +2506,70 @@
                 }
             }
         },
+        "/v1/users/calendar-token": {
+            "get": {
+                "tags": [
+                    "users"
+                ],
+                "summary": "Get the current calendar feed token and subscription URL",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/dto.CalendarTokenDto"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "additionalProperties": {
+                                        "type": "string"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "users"
+                ],
+                "summary": "Generate (or rotate) the personal calendar feed token. Calling this again replaces the previous token, which invalidates any previously subscribed feed URL.",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/dto.CalendarTokenDto"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "additionalProperties": {
+                                        "type": "string"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/v1/users/me": {
             "get": {
                 "tags": [
@@ -3218,6 +3326,21 @@
                         "items": {
                             "$ref": "#/components/schemas/dto.AutocompleteWork"
                         }
+                    }
+                }
+            },
+            "dto.CalendarTokenDto": {
+                "type": "object",
+                "required": [
+                    "token",
+                    "url"
+                ],
+                "properties": {
+                    "token": {
+                        "type": "string"
+                    },
+                    "url": {
+                        "type": "string"
                     }
                 }
             },

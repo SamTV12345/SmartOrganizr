@@ -95,6 +95,7 @@ export const NoteDetailView = () => {
         () => [
             { label: t("title"), value: currentNote?.name || "-" },
             { label: t("author"), value: currentNote?.author?.name || "-" },
+            { label: t("arranger"), value: currentNote?.arranger?.name || "-" },
             { label: t("description"), value: currentNote?.description || "-" },
             { label: t("numberOfPages"), value: String(currentNote?.numberOfPages ?? "-") },
             { label: t("superFolder"), value: currentNote?.parent?.name || "-" },
