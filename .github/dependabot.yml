@@ -9,7 +9,15 @@ updates:
     directory: "/api_go" # Location of package manifests
     schedule:
       interval: "weekly"
+    groups:
+      gomod:
+        patterns:
+          - "*"
   - package-ecosystem: "npm" # See documentation for possible values
     directory: "/ui" # Location of package manifests
     schedule:
       interval: "weekly"
+    groups:
+      npm:
+        patterns:
+          - "*"
