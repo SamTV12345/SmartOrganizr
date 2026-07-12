@@ -33,7 +33,8 @@
       "start": "Start",
       "end": "End (optional)",
       "location": "Location",
-      "description": "Description"
+      "description": "Description",
+      "section": "Section"
     },
     "type": {
       "REHEARSAL": "Rehearsal",
@@ -45,7 +46,8 @@
       "NO": "Declined",
       "MAYBE": "Maybe",
       "UNDECIDED": "Undecided"
-    }
+    },
+    "wholeClub": "Whole club"
   },
   "pinboard": {
     "title": "Pinboard",
@@ -186,6 +188,7 @@
   "club-visibility-all-members": "All members",
   "club-visibility-only-authorized": "Only authorized members",
   "club-visibility-self": "Only your own response (leaders see all)",
+  "club-visibility-section": "Leaders and section leaders (own section each)",
   "club-member-authorized": "Authorized",
   "club-member-authorized-hint": "Authorized members can see responses and reasons when visibility is restricted to authorized members.",
   "club-representative-confirmation": "I confirm that I am officially allowed to represent this club.",
@@ -315,5 +318,19 @@
     "lookup": "Look up",
     "numberUnknown": "This number is not assigned.",
     "belongsTo": "Belongs in: {{folder}}"
+  },
+  "sections": {
+    "title": "Sections",
+    "description": "The club's instrument sections. Assign members in the list above.",
+    "empty": "No sections yet.",
+    "none": "No section",
+    "leader": "Section leader",
+    "leader-hint": "Section leaders see their section's responses when visibility is set to section leaders.",
+    "memberCount": "{{count}} members",
+    "add": "Add",
+    "namePlaceholder": "e.g. Flutes",
+    "delete": "Delete section",
+    "delete-confirm": "Delete section \"{{name}}\"? Members are kept; its events become whole-club events.",
+    "create-error": "Section could not be created (name may already be taken)."
   }
 }

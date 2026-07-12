@@ -6,5 +6,8 @@ export type ClubMember = {
     lastname: string;
     role: string;
     authorized: boolean;
+    sectionId?: string;
+    sectionName?: string;
+    sectionLeader: boolean;
 };
 

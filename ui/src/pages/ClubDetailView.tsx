@@ -36,6 +36,7 @@ import { useKeycloak } from "@/src/Keycloak/useKeycloak";
 import { Club } from "@/src/models/Club";
 import { ClubPermissions } from "@/src/models/ClubPermissions";
 import { ClubMember } from "@/src/models/ClubMember";
+import type { ClubSection as ClubSectionDto } from "@/src/api/types";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
@@ -146,6 +147,43 @@ export const ClubDetailView: FC = () => {
                 authorized: variables.authorized,
             }),
         onSuccess: async () => {
+            await refetchMembers();
+        },
+    });
+
+    const { data: sectionsData, refetch: refetchSections } = useQuery<ClubSectionDto[]>({
+        queryKey: ["club-sections", clubId],
+        queryFn: async () => (await axios.get<ClubSectionDto[]>(`${apiURL}/v1/clubs/${clubId}/sections`)).data,
+        enabled: !!clubId,
+    });
+    const sections = sectionsData ?? [];
+
+    const sectionAssignMutation = useMutation({
+        mutationFn: async (variables: { memberUserId: string; sectionId: string | null; sectionLeader: boolean }) =>
+            axios.patch(`${apiURL}/v1/clubs/${clubId}/members/${variables.memberUserId}/section`, {
+                sectionId: variables.sectionId,
+                sectionLeader: variables.sectionLeader,
+            }),
+        onSuccess: async () => {
+            await refetchMembers();
+            await refetchSections();
+        },
+    });
+
+    const [newSectionName, setNewSectionName] = useState("");
+    const createSectionMutation = useMutation({
+        mutationFn: async (name: string) =>
+            axios.post(`${apiURL}/v1/clubs/${clubId}/sections`, { name }),
+        onSuccess: async () => {
+            setNewSectionName("");
+            await refetchSections();
+        },
+    });
+    const deleteSectionMutation = useMutation({
+        mutationFn: async (sectionId: string) =>
+            axios.delete(`${apiURL}/v1/clubs/${clubId}/sections/${sectionId}`),
+        onSuccess: async () => {
+            await refetchSections();
             await refetchMembers();
         },
     });
@@ -409,6 +447,49 @@ export const ClubDetailView: FC = () => {
                                                     />
                                                     {t("club-member-authorized")}
                                                 </label>
+                                                {sections.length > 0 && (
+                                                    <div className="col-span-full flex flex-wrap items-center gap-3">
+                                                        <Select
+                                                            value={member.sectionId || "__none__"}
+                                                            onValueChange={(value) =>
+                                                                sectionAssignMutation.mutate({
+                                                                    memberUserId: member.user_id,
+                                                                    sectionId: value === "__none__" ? null : value,
+                                                                    sectionLeader: value === member.sectionId ? member.sectionLeader : false,
+                                                                })
+                                                            }
+                                                            disabled={!canManageMembers || sectionAssignMutation.isPending}
+                                                        >
+                                                            <SelectTrigger className="w-48">
+                                                                <SelectValue placeholder={t("sections.none")} />
+                                                            </SelectTrigger>
+                                                            <SelectContent>
+                                                                <SelectItem value="__none__">{t("sections.none")}</SelectItem>
+                                                                {sections.map((section) => (
+                                                                    <SelectItem key={section.id} value={section.id ?? ""}>
+                                                                        {section.name}
+                                                                    </SelectItem>
+                                                                ))}
+                                                            </SelectContent>
+                                                        </Select>
+                                                        {member.sectionId && (
+                                                            <label className="flex items-center gap-2 text-sm" title={t("sections.leader-hint") as string}>
+                                                                <Checkbox
+                                                                    checked={member.sectionLeader}
+                                                                    disabled={!canManageMembers || sectionAssignMutation.isPending}
+                                                                    onCheckedChange={(checked) =>
+                                                                        sectionAssignMutation.mutate({
+                                                                            memberUserId: member.user_id,
+                                                                            sectionId: member.sectionId ?? null,
+                                                                            sectionLeader: checked === true,
+                                                                        })
+                                                                    }
+                                                                />
+                                                                {t("sections.leader")}
+                                                            </label>
+                                                        )}
+                                                    </div>
+                                                )}
                                                 {canManageMembers && member.user_id !== user?.subject && (
                                                     <AlertDialog>
                                                         <AlertDialogTrigger
@@ -440,6 +521,74 @@ export const ClubDetailView: FC = () => {
                                                 )}
                                             </div>
                                         ))}
+                                    </CardContent>
+                                </Card>
+
+                                <Card>
+                                    <CardHeader>
+                                        <CardTitle>{t("sections.title")}</CardTitle>
+                                        <CardDescription>{t("sections.description")}</CardDescription>
+                                    </CardHeader>
+                                    <CardContent className="space-y-3">
+                                        {sections.length === 0 && (
+                                            <p className="text-muted-foreground text-sm">{t("sections.empty")}</p>
+                                        )}
+                                        {sections.map((section) => (
+                                            <div key={section.id} className="flex items-center justify-between gap-2 rounded-lg border p-2">
+                                                <p className="text-sm font-medium">
+                                                    {section.name}{" "}
+                                                    <span className="text-muted-foreground text-xs">
+                                                        ({t("sections.memberCount", { count: section.memberCount ?? 0 })})
+                                                    </span>
+                                                </p>
+                                                {canManageMembers && (
+                                                    <AlertDialog>
+                                                        <AlertDialogTrigger
+                                                            render={<Button variant="ghost" size="sm" aria-label={t("sections.delete")} />}
+                                                        >
+                                                            <Trash2 className="size-4 text-red-500" />
+                                                        </AlertDialogTrigger>
+                                                        <AlertDialogContent>
+                                                            <AlertDialogHeader>
+                                                                <AlertDialogTitle>{t("sections.delete")}</AlertDialogTitle>
+                                                                <AlertDialogDescription>
+                                                                    {t("sections.delete-confirm", { name: section.name })}
+                                                                </AlertDialogDescription>
+                                                            </AlertDialogHeader>
+                                                            <AlertDialogFooter>
+                                                                <AlertDialogCancel>{t("cancel")}</AlertDialogCancel>
+                                                                <AlertDialogAction onClick={() => deleteSectionMutation.mutate(section.id ?? "")}>
+                                                                    {t("sections.delete")}
+                                                                </AlertDialogAction>
+                                                            </AlertDialogFooter>
+                                                        </AlertDialogContent>
+                                                    </AlertDialog>
+                                                )}
+                                            </div>
+                                        ))}
+                                        {canManageMembers && (
+                                            <div className="flex gap-2">
+                                                <Input
+                                                    placeholder={t("sections.namePlaceholder") as string}
+                                                    value={newSectionName}
+                                                    onChange={(e) => setNewSectionName(e.target.value)}
+                                                    onKeyDown={(e) => {
+                                                        if (e.key === "Enter" && newSectionName.trim()) {
+                                                            createSectionMutation.mutate(newSectionName.trim());
+                                                        }
+                                                    }}
+                                                />
+                                                <Button
+                                                    onClick={() => createSectionMutation.mutate(newSectionName.trim())}
+                                                    disabled={!newSectionName.trim() || createSectionMutation.isPending}
+                                                >
+                                                    {t("sections.add")}
+                                                </Button>
+                                            </div>
+                                        )}
+                                        {createSectionMutation.isError && (
+                                            <p className="text-sm text-red-600">{t("sections.create-error")}</p>
+                                        )}
                                     </CardContent>
                                 </Card>
 

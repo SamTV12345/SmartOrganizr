@@ -28,6 +28,10 @@ import {
 } from "@/components/ui/alert-dialog"
 import { Pencil, Trash2 } from "lucide-react"
 import type { ClubEventModel } from "@/src/models/ClubEvent"
+import type { ClubSection } from "@/src/api/types"
+import { http as axios } from "@/src/api/client"
+import { apiURL } from "@/src/Keycloak"
+import { useQuery } from "@tanstack/react-query"
 
 type Props = { clubId: string; canManage: boolean }
 
@@ -49,6 +53,7 @@ type FormState = {
   endDate: string
   location: string
   description: string
+  sectionId: string // "" = whole club
 }
 
 const emptyForm: FormState = {
@@ -58,6 +63,7 @@ const emptyForm: FormState = {
   endDate: "",
   location: "",
   description: "",
+  sectionId: "",
 }
 
 export const ClubEventsManager = ({ clubId, canManage }: Props) => {
@@ -71,6 +77,12 @@ export const ClubEventsManager = ({ clubId, canManage }: Props) => {
     params: { path: { clubId }, query: { since } },
   })
   const events = (data as ClubEventModel[] | undefined) ?? []
+
+  const { data: sectionsData } = useQuery<ClubSection[]>({
+    queryKey: ["club-sections", clubId],
+    queryFn: async () => (await axios.get<ClubSection[]>(`${apiURL}/v1/clubs/${clubId}/sections`)).data,
+  })
+  const sections = sectionsData ?? []
 
   const set = <K extends keyof FormState>(key: K, value: FormState[K]) =>
     setForm((f) => ({ ...f, [key]: value }))
@@ -116,6 +128,7 @@ export const ClubEventsManager = ({ clubId, canManage }: Props) => {
       endDate: event.endDate ? toLocalInput(event.endDate) : "",
       location: event.location ?? "",
       description: event.description ?? "",
+      sectionId: event.sectionId ?? "",
     })
   }
 
@@ -130,6 +143,7 @@ export const ClubEventsManager = ({ clubId, canManage }: Props) => {
       endDate: form.endDate ? new Date(form.endDate).toISOString() : undefined,
       location: form.location.trim() || undefined,
       description: form.description.trim() || undefined,
+      sectionId: form.sectionId || undefined,
     }
     if (editingId) {
       update.mutate({ params: { path: { clubId, eventId: editingId } }, body })
@@ -175,6 +189,27 @@ export const ClubEventsManager = ({ clubId, canManage }: Props) => {
                   </SelectContent>
                 </Select>
               </div>
+              {sections.length > 0 && (
+                <div className="grid gap-2">
+                  <Label htmlFor="event-section">{t("clubEvents.field.section")}</Label>
+                  <Select
+                    value={form.sectionId || "__all__"}
+                    onValueChange={(value) => set("sectionId", value && value !== "__all__" ? value : "")}
+                  >
+                    <SelectTrigger id="event-section" className="w-full">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="__all__">{t("clubEvents.wholeClub")}</SelectItem>
+                      {sections.map((section) => (
+                        <SelectItem key={section.id} value={section.id ?? ""}>
+                          {section.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
               <div className="grid gap-2">
                 <Label htmlFor="event-start">{t("clubEvents.field.start")}</Label>
                 <Input
@@ -234,6 +269,11 @@ export const ClubEventsManager = ({ clubId, canManage }: Props) => {
                 <span className="text-muted-foreground text-xs">
                   {t(`clubEvents.type.${event.eventType}`)}
                 </span>{" "}
+                {event.sectionName ? (
+                  <span className="bg-muted text-muted-foreground rounded px-1.5 py-0.5 text-xs">
+                    {event.sectionName}
+                  </span>
+                ) : null}{" "}
                 {event.cancelled ? (
                   <span className="text-red-600">{t("clubEvents.cancelled")}</span>
                 ) : null}

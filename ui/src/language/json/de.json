@@ -33,7 +33,8 @@
       "start": "Beginn",
       "end": "Ende (optional)",
       "location": "Ort",
-      "description": "Beschreibung"
+      "description": "Beschreibung",
+      "section": "Register"
     },
     "type": {
       "REHEARSAL": "Probe",
@@ -45,7 +46,8 @@
       "NO": "Absage",
       "MAYBE": "Vielleicht",
       "UNDECIDED": "Unentschieden"
-    }
+    },
+    "wholeClub": "Ganzer Verein"
   },
   "pinboard": {
     "title": "Pinnwand",
@@ -186,6 +188,7 @@
   "club-visibility-all-members": "Alle Mitglieder",
   "club-visibility-only-authorized": "Nur Berechtigte",
   "club-visibility-self": "Nur die eigene Rückmeldung (Leiter sehen alle)",
+  "club-visibility-section": "Leiter und Registerführer (je eigenes Register)",
   "club-member-authorized": "Berechtigt",
   "club-member-authorized-hint": "Berechtigte Mitglieder sehen Rückmeldungen bzw. Begründungen, wenn die Sichtbarkeit auf „Berechtigte“ eingeschränkt ist.",
   "club-representative-confirmation": "Ich bestätige, dass ich den angegebenen Verein offiziell vertreten darf.",
@@ -315,5 +318,19 @@
     "lookup": "Suchen",
     "numberUnknown": "Diese Nummer ist nicht vergeben.",
     "belongsTo": "Gehört in: {{folder}}"
+  },
+  "sections": {
+    "title": "Register",
+    "description": "Instrumentengruppen des Vereins. Mitglieder werden in der Liste oben zugeordnet.",
+    "empty": "Noch keine Register angelegt.",
+    "none": "Kein Register",
+    "leader": "Registerführer",
+    "leader-hint": "Registerführer sehen die Rückmeldungen ihres Registers, wenn die Sichtbarkeit auf „Registerführer“ steht.",
+    "memberCount": "{{count}} Mitglieder",
+    "add": "Anlegen",
+    "namePlaceholder": "z. B. Flöten",
+    "delete": "Register löschen",
+    "delete-confirm": "Register \"{{name}}\" löschen? Mitglieder bleiben erhalten, Termine gelten wieder für den ganzen Verein.",
+    "create-error": "Register konnte nicht angelegt werden (Name evtl. schon vergeben)."
   }
 }

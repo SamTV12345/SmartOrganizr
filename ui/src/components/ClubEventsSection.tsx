@@ -33,6 +33,7 @@ export const ClubEventsSection = () => {
             <CardTitle className="text-base">
               {event.summary}
               {event.clubName ? <span className="text-muted-foreground text-xs"> · {event.clubName}</span> : null}
+              {event.sectionName ? <span className="text-muted-foreground text-xs"> · {event.sectionName}</span> : null}
               {event.cancelled ? <span className="text-xs text-red-600"> {t("clubEvents.cancelled")}</span> : null}
             </CardTitle>
           </CardHeader>
