@@ -2531,6 +2531,25 @@ const docTemplate = `{
                 }
             }
         },
+        "/v1/inventory/attention": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "inventory"
+                ],
+                "summary": "Notes missing from or incomplete in their folder's latest completed sweep",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/service.InventoryAttention"
+                        }
+                    }
+                }
+            }
+        },
         "/v1/inventory/folders/{folderId}/tag": {
             "put": {
                 "produces": [
@@ -5160,6 +5179,32 @@ const docTemplate = `{
                 }
             }
         },
+        "service.AttentionEntry": {
+            "type": "object",
+            "properties": {
+                "folderId": {
+                    "type": "string"
+                },
+                "folderName": {
+                    "type": "string"
+                },
+                "inventoryNo": {
+                    "type": "integer"
+                },
+                "lastSeenAt": {
+                    "type": "string"
+                },
+                "lastSeenFolderName": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "noteId": {
+                    "type": "string"
+                }
+            }
+        },
         "service.IdentifyCandidate": {
             "type": "object",
             "properties": {
@@ -5184,6 +5229,23 @@ const docTemplate = `{
                 },
                 "numberOfPages": {
                     "type": "integer"
+                }
+            }
+        },
+        "service.InventoryAttention": {
+            "type": "object",
+            "properties": {
+                "incomplete": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/service.AttentionEntry"
+                    }
+                },
+                "missing": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/service.AttentionEntry"
+                    }
                 }
             }
         },

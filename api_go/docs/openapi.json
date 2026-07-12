@@ -2695,6 +2695,26 @@
                 }
             }
         },
+        "/v1/inventory/attention": {
+            "get": {
+                "tags": [
+                    "inventory"
+                ],
+                "summary": "Notes missing from or incomplete in their folder's latest completed sweep",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/service.InventoryAttention"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/v1/inventory/folders/{folderId}/tag": {
             "put": {
                 "tags": [
@@ -5470,6 +5490,32 @@
                     }
                 }
             },
+            "service.AttentionEntry": {
+                "type": "object",
+                "properties": {
+                    "folderId": {
+                        "type": "string"
+                    },
+                    "folderName": {
+                        "type": "string"
+                    },
+                    "inventoryNo": {
+                        "type": "integer"
+                    },
+                    "lastSeenAt": {
+                        "type": "string"
+                    },
+                    "lastSeenFolderName": {
+                        "type": "string"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "noteId": {
+                        "type": "string"
+                    }
+                }
+            },
             "service.IdentifyCandidate": {
                 "type": "object",
                 "properties": {
@@ -5494,6 +5540,23 @@
                     },
                     "numberOfPages": {
                         "type": "integer"
+                    }
+                }
+            },
+            "service.InventoryAttention": {
+                "type": "object",
+                "properties": {
+                    "incomplete": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/service.AttentionEntry"
+                        }
+                    },
+                    "missing": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/service.AttentionEntry"
+                        }
                     }
                 }
             },

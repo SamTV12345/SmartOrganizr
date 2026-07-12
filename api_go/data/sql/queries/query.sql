@@ -829,6 +829,26 @@ FROM inventory_sighting s
 WHERE s.note_fk IN (sqlc.slice('ids'))
 ORDER BY sw.completed_at DESC;
 
+-- Newest first; Go keeps the first row per folder as that folder's latest
+-- completed sweep (timestamps have second resolution, hence the tiebreaker).
+-- name: ListCompletedSweepsForUser :many
+SELECT sw.id, sw.folder_fk, sw.completed_at, e.name AS folder_name
+FROM inventory_sweep sw
+         JOIN elements e ON e.id = sw.folder_fk
+WHERE sw.user_fk = ? AND sw.completed_at IS NOT NULL
+ORDER BY sw.completed_at DESC, sw.started_at DESC;
+
+-- name: ListSightingsForSweeps :many
+SELECT s.sweep_fk, s.note_fk, s.incomplete, e.name AS note_name, e.inventory_no
+FROM inventory_sighting s
+         JOIN elements e ON e.id = s.note_fk
+WHERE s.sweep_fk IN (sqlc.slice('ids'));
+
+-- name: FindNotesInFoldersForInventory :many
+SELECT id, name, inventory_no, parent
+FROM elements
+WHERE parent IN (sqlc.slice('parents')) AND type = 'note' AND user_id_fk = ?;
+
 -- Club sections (docs/superpowers/specs/2026-07-12-club-sections-design.md)
 
 -- name: CreateClubSection :exec

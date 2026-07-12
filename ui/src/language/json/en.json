@@ -9,6 +9,11 @@
     "clubsEmpty": "You are not in any club yet.",
     "pinboard": "Recent pinboard posts",
     "pinboardEmpty": "No recent posts.",
+    "inventory": "Inventory: needs attention",
+    "inventoryEmpty": "Everything in its place — no missing or incomplete sheets.",
+    "inventoryMissing": "Missing from {{folder}}",
+    "inventoryIncomplete": "Incomplete in {{folder}}",
+    "inventoryLastSeen": "last seen: {{folder}}, {{date}}",
     "viewAll": "View all"
   },
   "files": {

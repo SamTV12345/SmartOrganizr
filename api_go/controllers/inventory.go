@@ -202,6 +202,21 @@ func PostInventoryNumber(c fiber.Ctx) error {
 	return c.JSON(fiber.Map{"inventoryNo": no})
 }
 
+// GetInventoryAttention godoc
+// @Summary  Notes missing from or incomplete in their folder's latest completed sweep
+// @Tags     inventory
+// @Produce  json
+// @Success  200  {object}  service.InventoryAttention
+// @Router   /v1/inventory/attention [get]
+func GetInventoryAttention(c fiber.Ctx) error {
+	userID := GetLocal[string](c, "userId")
+	result, err := inventoryService(c).Attention(userID)
+	if err != nil {
+		return mapInventoryError(err)
+	}
+	return c.JSON(result)
+}
+
 // GetInventoryLastSeen godoc
 // @Summary  Last completed-sweep sighting of a note
 // @Tags     inventory

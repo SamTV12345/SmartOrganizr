@@ -2777,6 +2777,63 @@ func (q *Queries) FindNotesInFolderForInventory(ctx context.Context, arg FindNot
 	return items, nil
 }
 
+const findNotesInFoldersForInventory = `-- name: FindNotesInFoldersForInventory :many
+SELECT id, name, inventory_no, parent
+FROM elements
+WHERE parent IN (/*SLICE:parents*/?) AND type = 'note' AND user_id_fk = ?
+`
+
+type FindNotesInFoldersForInventoryParams struct {
+	Parents  []sql.NullString
+	UserIDFk sql.NullString
+}
+
+type FindNotesInFoldersForInventoryRow struct {
+	ID          string
+	Name        sql.NullString
+	InventoryNo sql.NullInt32
+	Parent      sql.NullString
+}
+
+func (q *Queries) FindNotesInFoldersForInventory(ctx context.Context, arg FindNotesInFoldersForInventoryParams) ([]FindNotesInFoldersForInventoryRow, error) {
+	query := findNotesInFoldersForInventory
+	var queryParams []interface{}
+	if len(arg.Parents) > 0 {
+		for _, v := range arg.Parents {
+			queryParams = append(queryParams, v)
+		}
+		query = strings.Replace(query, "/*SLICE:parents*/?", strings.Repeat(",?", len(arg.Parents))[1:], 1)
+	} else {
+		query = strings.Replace(query, "/*SLICE:parents*/?", "NULL", 1)
+	}
+	queryParams = append(queryParams, arg.UserIDFk)
+	rows, err := q.db.QueryContext(ctx, query, queryParams...)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []FindNotesInFoldersForInventoryRow
+	for rows.Next() {
+		var i FindNotesInFoldersForInventoryRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Name,
+			&i.InventoryNo,
+			&i.Parent,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const findPendingClubInvitations = `-- name: FindPendingClubInvitations :many
 SELECT token, club_id, invited_email, invited_by_user_id, created_at, expires_at
 from club_invitation
@@ -3820,6 +3877,51 @@ func (q *Queries) ListClubSections(ctx context.Context, clubID string) ([]ListCl
 	return items, nil
 }
 
+const listCompletedSweepsForUser = `-- name: ListCompletedSweepsForUser :many
+SELECT sw.id, sw.folder_fk, sw.completed_at, e.name AS folder_name
+FROM inventory_sweep sw
+         JOIN elements e ON e.id = sw.folder_fk
+WHERE sw.user_fk = ? AND sw.completed_at IS NOT NULL
+ORDER BY sw.completed_at DESC, sw.started_at DESC
+`
+
+type ListCompletedSweepsForUserRow struct {
+	ID          string
+	FolderFk    string
+	CompletedAt sql.NullTime
+	FolderName  sql.NullString
+}
+
+// Newest first; Go keeps the first row per folder as that folder's latest
+// completed sweep (timestamps have second resolution, hence the tiebreaker).
+func (q *Queries) ListCompletedSweepsForUser(ctx context.Context, userFk string) ([]ListCompletedSweepsForUserRow, error) {
+	rows, err := q.db.QueryContext(ctx, listCompletedSweepsForUser, userFk)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ListCompletedSweepsForUserRow
+	for rows.Next() {
+		var i ListCompletedSweepsForUserRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.FolderFk,
+			&i.CompletedAt,
+			&i.FolderName,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const listNoteNamesForUser = `-- name: ListNoteNamesForUser :many
 SELECT id, name, inventory_no, number_of_pages, parent FROM elements WHERE user_id_fk = ? AND type = 'note'
 `
@@ -4051,6 +4153,60 @@ func (q *Queries) ListSightingsForSweep(ctx context.Context, sweepFk string) ([]
 			&i.InventoryNo,
 			&i.ParentID,
 			&i.ParentName,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listSightingsForSweeps = `-- name: ListSightingsForSweeps :many
+SELECT s.sweep_fk, s.note_fk, s.incomplete, e.name AS note_name, e.inventory_no
+FROM inventory_sighting s
+         JOIN elements e ON e.id = s.note_fk
+WHERE s.sweep_fk IN (/*SLICE:ids*/?)
+`
+
+type ListSightingsForSweepsRow struct {
+	SweepFk     string
+	NoteFk      string
+	Incomplete  bool
+	NoteName    sql.NullString
+	InventoryNo sql.NullInt32
+}
+
+func (q *Queries) ListSightingsForSweeps(ctx context.Context, ids []string) ([]ListSightingsForSweepsRow, error) {
+	query := listSightingsForSweeps
+	var queryParams []interface{}
+	if len(ids) > 0 {
+		for _, v := range ids {
+			queryParams = append(queryParams, v)
+		}
+		query = strings.Replace(query, "/*SLICE:ids*/?", strings.Repeat(",?", len(ids))[1:], 1)
+	} else {
+		query = strings.Replace(query, "/*SLICE:ids*/?", "NULL", 1)
+	}
+	rows, err := q.db.QueryContext(ctx, query, queryParams...)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ListSightingsForSweepsRow
+	for rows.Next() {
+		var i ListSightingsForSweepsRow
+		if err := rows.Scan(
+			&i.SweepFk,
+			&i.NoteFk,
+			&i.Incomplete,
+			&i.NoteName,
+			&i.InventoryNo,
 		); err != nil {
 			return nil, err
 		}

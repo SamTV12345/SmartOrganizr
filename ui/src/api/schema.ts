@@ -2820,6 +2820,42 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/inventory/attention": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Notes missing from or incomplete in their folder's latest completed sweep */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["service.InventoryAttention"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/inventory/folders/{folderId}/tag": {
         parameters: {
             query?: never;
@@ -4499,6 +4535,15 @@ export interface components {
             userId?: string;
             username?: string;
         };
+        "service.AttentionEntry": {
+            folderId?: string;
+            folderName?: string;
+            inventoryNo?: number;
+            lastSeenAt?: string;
+            lastSeenFolderName?: string;
+            name?: string;
+            noteId?: string;
+        };
         "service.IdentifyCandidate": {
             confidence?: number;
             folderId?: string;
@@ -4508,6 +4553,10 @@ export interface components {
             name?: string;
             noteId?: string;
             numberOfPages?: number;
+        };
+        "service.InventoryAttention": {
+            incomplete?: components["schemas"]["service.AttentionEntry"][];
+            missing?: components["schemas"]["service.AttentionEntry"][];
         };
         "service.InventoryLookup": {
             folderId?: string;

@@ -10,7 +10,7 @@ import { Club } from "@/src/models/Club";
 import { EventModel } from "@/src/models/EventModel";
 import { PinboardPost } from "@/src/models/Pinboard";
 import { useUnreadSummary } from "@/src/notifications/useUnreadSummary";
-import { CalendarDays, LayoutDashboard, MessagesSquare, Users2 } from "lucide-react";
+import { CalendarDays, ClipboardList, LayoutDashboard, MessagesSquare, Users2 } from "lucide-react";
 import { format } from "date-fns";
 import { de } from "date-fns/locale/de";
 
@@ -188,6 +188,57 @@ const RecentPinboardCard: FC = () => {
     );
 };
 
+const InventoryAttentionCard: FC = () => {
+    const { t } = useTranslation();
+    const { data } = $api.useQuery("get", "/v1/inventory/attention");
+    const missing = (data?.missing ?? []).slice(0, 5);
+    const incomplete = (data?.incomplete ?? []).slice(0, 5);
+
+    return (
+        <Card>
+            <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                    <ClipboardList className="size-5 text-accentDark" />
+                    {t("dashboard.inventory")}
+                </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-2">
+                {missing.length === 0 && incomplete.length === 0 ? (
+                    <p className="text-sm text-muted-foreground">{t("dashboard.inventoryEmpty")}</p>
+                ) : (
+                    <>
+                        {missing.map((entry) => (
+                            <div key={entry.noteId} className="rounded-md border p-2">
+                                <p className="font-medium">{entry.name}</p>
+                                <p className="text-xs text-muted-foreground">
+                                    {t("dashboard.inventoryMissing", { folder: entry.folderName ?? "" })}
+                                    {entry.lastSeenAt
+                                        ? ` · ${t("dashboard.inventoryLastSeen", {
+                                              folder: entry.lastSeenFolderName ?? "",
+                                              date: formatDate(entry.lastSeenAt),
+                                          })}`
+                                        : ""}
+                                </p>
+                            </div>
+                        ))}
+                        {incomplete.map((entry) => (
+                            <div key={entry.noteId} className="rounded-md border p-2">
+                                <p className="font-medium">{entry.name}</p>
+                                <p className="text-xs text-muted-foreground">
+                                    {t("dashboard.inventoryIncomplete", { folder: entry.folderName ?? "" })}
+                                </p>
+                            </div>
+                        ))}
+                    </>
+                )}
+                <Link to="/inventory" className="inline-block text-sm text-accentDark hover:underline">
+                    {t("dashboard.viewAll")}
+                </Link>
+            </CardContent>
+        </Card>
+    );
+};
+
 export const DashboardView: FC = () => {
     const { t } = useTranslation();
     return (
@@ -200,6 +251,7 @@ export const DashboardView: FC = () => {
                 <UnreadMessagesCard />
                 <MyClubsCard />
                 <RecentPinboardCard />
+                <InventoryAttentionCard />
             </div>
         </section>
     );

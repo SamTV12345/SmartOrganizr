@@ -347,6 +347,7 @@ func SetupRouter(queries *db.Queries, config config.AppConfig, logger *zap.Sugar
 		r.Put("/folders/:folderId/tag", controllers.PutMappeTag)
 		r.Get("/tags/:tagId", controllers.GetMappeTag)
 		r.Get("/lookup", controllers.GetInventoryLookup)
+		r.Get("/attention", controllers.GetInventoryAttention)
 		r.Post("/notes/:noteId/number", controllers.PostInventoryNumber)
 		r.Get("/notes/:noteId/last-seen", controllers.GetInventoryLastSeen)
 	})

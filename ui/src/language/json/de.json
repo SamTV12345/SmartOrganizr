@@ -9,6 +9,11 @@
     "clubsEmpty": "Du bist noch in keinem Verein.",
     "pinboard": "Neueste Pinnwand-Beiträge",
     "pinboardEmpty": "Keine aktuellen Beiträge.",
+    "inventory": "Inventur: braucht Aufmerksamkeit",
+    "inventoryEmpty": "Alles an seinem Platz — keine fehlenden oder unvollständigen Noten.",
+    "inventoryMissing": "Fehlt in {{folder}}",
+    "inventoryIncomplete": "Unvollständig in {{folder}}",
+    "inventoryLastSeen": "zuletzt gesehen: {{folder}}, {{date}}",
     "viewAll": "Alle anzeigen"
   },
   "files": {

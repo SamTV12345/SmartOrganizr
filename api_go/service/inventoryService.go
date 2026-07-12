@@ -539,6 +539,133 @@ func (s *InventoryService) ApplyMoves(userID, sweepID string, noteIDs []string) 
 	return nil
 }
 
+/* ------------------------- attention ------------------------- */
+
+type AttentionEntry struct {
+	NoteID         string `json:"noteId"`
+	Name           string `json:"name"`
+	InventoryNo    *int32 `json:"inventoryNo,omitempty"`
+	FolderID       string `json:"folderId"`
+	FolderName     string `json:"folderName"`
+	LastSeenAt     string `json:"lastSeenAt,omitempty"`
+	LastSeenFolder string `json:"lastSeenFolderName,omitempty"`
+}
+
+type InventoryAttention struct {
+	Missing    []AttentionEntry `json:"missing"`
+	Incomplete []AttentionEntry `json:"incomplete"`
+}
+
+// Attention surfaces notes that need a physical follow-up on the dashboard:
+// notes missing from their folder's latest completed sweep, and notes flagged
+// incomplete (page-count mismatch) in that sweep. Folders that were never
+// swept are silent — no inventory, no nudge.
+func (s *InventoryService) Attention(userID string) (InventoryAttention, error) {
+	out := InventoryAttention{Missing: []AttentionEntry{}, Incomplete: []AttentionEntry{}}
+
+	sweeps, err := s.queries.ListCompletedSweepsForUser(s.ctx, userID)
+	if err != nil {
+		return out, err
+	}
+	// Rows are newest-first; the first row per folder is its latest sweep.
+	type latestSweep struct {
+		sweepID    string
+		folderName string
+	}
+	latest := map[string]latestSweep{} // folder ID -> latest completed sweep
+	var folderOrder []string
+	var sweepIDs []string
+	folderBySweep := map[string]string{}
+	for _, sw := range sweeps {
+		if _, seen := latest[sw.FolderFk]; seen {
+			continue
+		}
+		latest[sw.FolderFk] = latestSweep{sweepID: sw.ID, folderName: sw.FolderName.String}
+		folderOrder = append(folderOrder, sw.FolderFk)
+		sweepIDs = append(sweepIDs, sw.ID)
+		folderBySweep[sw.ID] = sw.FolderFk
+	}
+	if len(latest) == 0 {
+		return out, nil
+	}
+
+	folderParams := make([]sql.NullString, 0, len(folderOrder))
+	for _, id := range folderOrder {
+		folderParams = append(folderParams, db.NewSQLNullString(id))
+	}
+	notes, err := s.queries.FindNotesInFoldersForInventory(s.ctx, db.FindNotesInFoldersForInventoryParams{
+		Parents: folderParams, UserIDFk: db.NewSQLNullString(userID),
+	})
+	if err != nil {
+		return out, err
+	}
+	sightings, err := s.queries.ListSightingsForSweeps(s.ctx, sweepIDs)
+	if err != nil {
+		return out, err
+	}
+
+	sightedInFolder := map[string]map[string]bool{} // folder ID -> note IDs sighted in its latest sweep
+	for _, sg := range sightings {
+		folderID := folderBySweep[sg.SweepFk]
+		if sightedInFolder[folderID] == nil {
+			sightedInFolder[folderID] = map[string]bool{}
+		}
+		sightedInFolder[folderID][sg.NoteFk] = true
+		if sg.Incomplete {
+			entry := AttentionEntry{
+				NoteID: sg.NoteFk, Name: sg.NoteName.String,
+				FolderID: folderID, FolderName: latest[folderID].folderName,
+			}
+			if sg.InventoryNo.Valid {
+				no := sg.InventoryNo.Int32
+				entry.InventoryNo = &no
+			}
+			out.Incomplete = append(out.Incomplete, entry)
+		}
+	}
+
+	notesByFolder := map[string][]db.FindNotesInFoldersForInventoryRow{}
+	for _, n := range notes {
+		notesByFolder[n.Parent.String] = append(notesByFolder[n.Parent.String], n)
+	}
+	var missingIDs []string
+	missingIdx := map[string]int{} // note ID -> index in out.Missing
+	for _, folderID := range folderOrder {
+		for _, n := range notesByFolder[folderID] {
+			if sightedInFolder[folderID][n.ID] {
+				continue
+			}
+			entry := AttentionEntry{
+				NoteID: n.ID, Name: n.Name.String,
+				FolderID: folderID, FolderName: latest[folderID].folderName,
+			}
+			if n.InventoryNo.Valid {
+				no := n.InventoryNo.Int32
+				entry.InventoryNo = &no
+			}
+			missingIdx[n.ID] = len(out.Missing)
+			out.Missing = append(out.Missing, entry)
+			missingIDs = append(missingIDs, n.ID)
+		}
+	}
+
+	if len(missingIDs) > 0 {
+		// Newest-first; the first row per note is its last confirmed sighting
+		// (possibly in another Mappe — that is exactly the useful hint).
+		if lastSeen, err := s.queries.FindLastSightingsForNotes(s.ctx, missingIDs); err == nil {
+			for _, row := range lastSeen {
+				idx, ok := missingIdx[row.NoteFk]
+				if !ok || out.Missing[idx].LastSeenAt != "" || !row.CompletedAt.Valid {
+					continue
+				}
+				out.Missing[idx].LastSeenAt = row.CompletedAt.Time.Format("2006-01-02T15:04:05Z07:00")
+				out.Missing[idx].LastSeenFolder = row.FolderName.String
+			}
+		}
+	}
+	return out, nil
+}
+
 // LastSeen returns the newest completed-sweep sighting for a note.
 func (s *InventoryService) LastSeen(userID, noteID string) (*InventoryLookup, error) {
 	note, err := s.queries.FindFolderById(s.ctx, db.FindFolderByIdParams{ID: noteID, UserIDFk: db.NewSQLNullString(userID)})

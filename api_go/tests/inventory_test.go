@@ -7,6 +7,7 @@ import (
 	"io"
 	"net/http"
 	"testing"
+	"time"
 
 	"github.com/gofiber/fiber/v3"
 )
@@ -300,6 +301,76 @@ func TestInventoryIdentifyTextPass(t *testing.T) {
 	}
 	if candidates[0].Confidence < 90 || candidates[0].MatchedVia != "OCR" {
 		t.Fatalf("expected confident OCR match, got %+v", candidates[0])
+	}
+}
+
+func TestInventoryAttention(t *testing.T) {
+	app := SetupTest(t)
+	authorID := createInventoryAuthor(t, app)
+	mappe := createInventoryFolder(t, app, "Mappe Posaune")
+	untouched := createInventoryFolder(t, app, "Mappe Unberuehrt")
+
+	seen := createInventoryNote(t, app, authorID, mappe, "Bleibt Vorhanden", 5)
+	lost := createInventoryNote(t, app, authorID, mappe, "Geht Verloren", 3)
+	createInventoryNote(t, app, authorID, untouched, "Nie Inventarisiert", 2)
+
+	// Baseline sweep: both notes sighted, so "lost" gets last-seen data for
+	// the attention report after the second sweep.
+	baseline := startSweep(t, app, mappe)
+	addSighting(t, app, baseline, seen, false)
+	addSighting(t, app, baseline, lost, false)
+	completeSweep(t, app, baseline)
+
+	// completed_at has second resolution; make the second sweep strictly newer
+	// so it is unambiguously the folder's latest completed sweep.
+	time.Sleep(1100 * time.Millisecond)
+
+	sweep := startSweep(t, app, mappe)
+	addSighting(t, app, sweep, seen, true) // present but incomplete
+	completeSweep(t, app, sweep)
+
+	res := doRequest(t, app, "GET", "http://localhost/api/v1/inventory/attention")
+	if res.StatusCode != http.StatusOK {
+		raw, _ := io.ReadAll(res.Body)
+		t.Fatalf("attention: expected 200, got %d: %s", res.StatusCode, string(raw))
+	}
+	var attention struct {
+		Missing []struct {
+			NoteID             string `json:"noteId"`
+			Name               string `json:"name"`
+			FolderID           string `json:"folderId"`
+			FolderName         string `json:"folderName"`
+			LastSeenAt         string `json:"lastSeenAt"`
+			LastSeenFolderName string `json:"lastSeenFolderName"`
+		} `json:"missing"`
+		Incomplete []struct {
+			NoteID     string `json:"noteId"`
+			FolderID   string `json:"folderId"`
+			FolderName string `json:"folderName"`
+		} `json:"incomplete"`
+	}
+	raw, _ := io.ReadAll(res.Body)
+	if err := json.Unmarshal(raw, &attention); err != nil {
+		t.Fatalf("decode attention: %v (%s)", err, string(raw))
+	}
+
+	// Only the unsighted note of the swept folder is missing — the note in the
+	// never-swept folder must not be reported.
+	if len(attention.Missing) != 1 || attention.Missing[0].NoteID != lost {
+		t.Fatalf("missing: %+v", attention.Missing)
+	}
+	if attention.Missing[0].FolderID != mappe || attention.Missing[0].FolderName != "Mappe Posaune" {
+		t.Fatalf("missing folder: %+v", attention.Missing[0])
+	}
+	if attention.Missing[0].LastSeenAt == "" || attention.Missing[0].LastSeenFolderName != "Mappe Posaune" {
+		t.Fatalf("missing last-seen: %+v", attention.Missing[0])
+	}
+
+	if len(attention.Incomplete) != 1 || attention.Incomplete[0].NoteID != seen {
+		t.Fatalf("incomplete: %+v", attention.Incomplete)
+	}
+	if attention.Incomplete[0].FolderID != mappe || attention.Incomplete[0].FolderName != "Mappe Posaune" {
+		t.Fatalf("incomplete folder: %+v", attention.Incomplete[0])
 	}
 }
 

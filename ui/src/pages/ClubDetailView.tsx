@@ -35,8 +35,7 @@ import { apiURL } from "@/src/Keycloak";
 import { useKeycloak } from "@/src/Keycloak/useKeycloak";
 import { Club } from "@/src/models/Club";
 import { ClubPermissions } from "@/src/models/ClubPermissions";
-import { ClubMember } from "@/src/models/ClubMember";
-import type { ClubSection as ClubSectionDto } from "@/src/api/types";
+import type { ClubMember, ClubSection as ClubSectionDto } from "@/src/api/types";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
@@ -455,7 +454,7 @@ export const ClubDetailView: FC = () => {
                                                                 sectionAssignMutation.mutate({
                                                                     memberUserId: member.user_id,
                                                                     sectionId: value === "__none__" ? null : value,
-                                                                    sectionLeader: value === member.sectionId ? member.sectionLeader : false,
+                                                                    sectionLeader: value === member.sectionId ? (member.sectionLeader ?? false) : false,
                                                                 })
                                                             }
                                                             disabled={!canManageMembers || sectionAssignMutation.isPending}
