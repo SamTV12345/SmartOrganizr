@@ -317,7 +317,13 @@
     "orphanHint": "Enter the stamped number — the app tells you where the sheet belongs.",
     "lookup": "Look up",
     "numberUnknown": "This number is not assigned.",
-    "belongsTo": "Belongs in: {{folder}}"
+    "belongsTo": "Belongs in: {{folder}}",
+    "offlineBanner": "Offline mode: matching runs locally against the downloaded library, without AI identification.",
+    "offlineNoNumber": "The inventory number is assigned after syncing.",
+    "localReportHint": "Pieces recorded in this offline sweep. The full reconciliation (new here / missing) follows after syncing.",
+    "offlineSynced": "Offline sweep synced: {{count}} folders",
+    "pendingCount": "{{count}} offline sweep(s) waiting to sync.",
+    "syncNow": "Sync now"
   },
   "sections": {
     "title": "Sections",

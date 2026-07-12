@@ -15,6 +15,21 @@ import {
     DialogTitle,
 } from "@/components/ui/dialog";
 import { compressImageForAI } from "@/src/utils/ImageUtils";
+import { useOnlineStatus } from "@/src/offline/useOnlineStatus";
+import { getAllNotes, getRootFolders } from "@/src/offline/offlineDb";
+import { rankOfflineCandidates } from "@/src/offline/inventoryMatching";
+import {
+    addPendingSighting,
+    completePendingSweep,
+    createPendingSweep,
+    deleteIncompletePendingSweepsForFolder,
+} from "@/src/offline/pendingSweeps";
+import {
+    dismissSyncedReports,
+    pushPendingSweepsNow,
+    refreshPendingCount,
+    usePendingSweepSync,
+} from "@/src/offline/pendingSweepSync";
 import type {
     Folder,
     IdentifyCandidate,
@@ -29,8 +44,12 @@ const AUTO_ACCEPT_CONFIDENCE = 90;
 
 type SweepState =
     | { phase: "idle" }
-    | { phase: "sweeping"; sweepId: string; folderId: string; folderName: string }
-    | { phase: "report"; sweepId: string; folderName: string; report: SweepReport };
+    // While sweeping offline, sweepId is the id of the local pending sweep. For reports of
+    // pushed offline sweeps it is the server-side sweep id, so apply-moves works there too.
+    | { phase: "sweeping"; sweepId: string; folderId: string; folderName: string; offline: boolean }
+    | { phase: "report"; sweepId: string; folderName: string; report: SweepReport }
+    // Local-only summary after finishing an offline sweep (full diff comes after sync).
+    | { phase: "localReport"; folderName: string; entries: SightedEntry[] };
 
 type SightedEntry = { noteId: string; name: string; inventoryNo: number; incomplete: boolean };
 
@@ -58,10 +77,15 @@ export const InventoryView = () => {
     const [pageCheck, setPageCheck] = useState<{ candidate: IdentifyCandidate; via: string } | null>(null);
     const [lastStamp, setLastStamp] = useState<SightedEntry | null>(null);
     const cameraInputRef = useRef<HTMLInputElement>(null);
+    const online = useOnlineStatus();
+    const { pendingCount, syncedReports } = usePendingSweepSync();
 
     const { data: foldersData } = useQuery<Folder[]>({
-        queryKey: ["inventory-folders"],
-        queryFn: async () => (await axios.get<Folder[]>(`${apiURL}/v1/elements/parentDecks`)).data,
+        queryKey: ["inventory-folders", online],
+        queryFn: async () =>
+            online
+                ? (await axios.get<Folder[]>(`${apiURL}/v1/elements/parentDecks`)).data
+                : await getRootFolders(),
     });
     const folders = foldersData ?? [];
 
@@ -91,32 +115,56 @@ export const InventoryView = () => {
     }, [tagParam]);
 
     const startSweep = async (folderId: string, folderName: string) => {
-        const created = (await axios.post(`${apiURL}/v1/inventory/sweeps`, { folderId })).data as {
-            sweepId: string;
-        };
+        let sweepId: string;
+        if (online) {
+            const created = (await axios.post(`${apiURL}/v1/inventory/sweeps`, { folderId })).data as {
+                sweepId: string;
+            };
+            sweepId = created.sweepId;
+        } else {
+            // No backend reachable: queue the sweep locally and sync it on reconnect.
+            await deleteIncompletePendingSweepsForFolder(folderId);
+            sweepId = (await createPendingSweep(folderId, folderName)).id;
+        }
         setSighted([]);
         setLastStamp(null);
         setScanError(null);
-        setState({ phase: "sweeping", sweepId: created.sweepId, folderId, folderName });
+        setState({ phase: "sweeping", sweepId, folderId, folderName, offline: !online });
     };
 
     const recordSighting = async (candidate: IdentifyCandidate, via: string, incomplete: boolean) => {
         if (state.phase !== "sweeping") return;
-        const result = (
-            await axios.post(`${apiURL}/v1/inventory/sweeps/${state.sweepId}/sightings`, {
-                noteId: candidate.noteId,
-                matchedVia: via,
-                confidence: candidate.confidence,
+        let entry: SightedEntry;
+        let alreadySighted: boolean;
+        if (state.offline) {
+            const result = await addPendingSighting(state.sweepId, {
+                noteId: candidate.noteId ?? "",
+                name: candidate.name ?? "",
+                matchedVia: via === "MANUAL" ? "MANUAL" : "OCR",
+                confidence: via === "MANUAL" ? undefined : candidate.confidence,
                 incomplete,
-            })
-        ).data as SightingResult;
-        const entry: SightedEntry = {
-            noteId: candidate.noteId ?? "",
-            name: result.noteName ?? candidate.name ?? "",
-            inventoryNo: result.inventoryNo ?? 0,
-            incomplete,
-        };
-        if (!result.alreadySighted) {
+            });
+            alreadySighted = result.alreadySighted;
+            // Inventory numbers are assigned server-side — 0 means "after sync".
+            entry = { noteId: candidate.noteId ?? "", name: candidate.name ?? "", inventoryNo: 0, incomplete };
+        } else {
+            const result = (
+                await axios.post(`${apiURL}/v1/inventory/sweeps/${state.sweepId}/sightings`, {
+                    noteId: candidate.noteId,
+                    matchedVia: via,
+                    confidence: candidate.confidence,
+                    incomplete,
+                })
+            ).data as SightingResult;
+            alreadySighted = result.alreadySighted ?? false;
+            entry = {
+                noteId: candidate.noteId ?? "",
+                name: result.noteName ?? candidate.name ?? "",
+                inventoryNo: result.inventoryNo ?? 0,
+                incomplete,
+            };
+        }
+        if (!alreadySighted) {
             setSighted((prev) => [entry, ...prev]);
         }
         setLastStamp(entry);
@@ -132,14 +180,20 @@ export const InventoryView = () => {
         setScanError(null);
         try {
             const ocrText = await ocrImage(file);
-            const { base64, mimeType } = await compressImageForAI(file);
-            const found = (
-                await axios.post(`${apiURL}/v1/inventory/identify`, {
-                    ocrText,
-                    imageBase64: base64,
-                    mimeType,
-                })
-            ).data as IdentifyCandidate[];
+            let found: IdentifyCandidate[];
+            if (state.offline) {
+                // Local matching against the cached library — no AI fallback offline.
+                found = rankOfflineCandidates(ocrText, await getAllNotes());
+            } else {
+                const { base64, mimeType } = await compressImageForAI(file);
+                found = (
+                    await axios.post(`${apiURL}/v1/inventory/identify`, {
+                        ocrText,
+                        imageBase64: base64,
+                        mimeType,
+                    })
+                ).data as IdentifyCandidate[];
+            }
             if (found.length === 0) {
                 setScanError(t("inventory.noMatch") as string);
             } else if ((found[0].confidence ?? 0) >= AUTO_ACCEPT_CONFIDENCE) {
@@ -156,6 +210,12 @@ export const InventoryView = () => {
 
     const completeSweep = async () => {
         if (state.phase !== "sweeping") return;
+        if (state.offline) {
+            await completePendingSweep(state.sweepId);
+            await refreshPendingCount();
+            setState({ phase: "localReport", folderName: state.folderName, entries: sighted });
+            return;
+        }
         const report = (
             await axios.post(`${apiURL}/v1/inventory/sweeps/${state.sweepId}/complete`, {})
         ).data as SweepReport;
@@ -188,6 +248,48 @@ export const InventoryView = () => {
 
             {state.phase === "idle" && (
                 <>
+                    {syncedReports && syncedReports.length > 0 && (
+                        <div className="space-y-2 rounded-lg border bg-muted/40 p-3">
+                            <div className="flex items-center justify-between gap-2">
+                                <p className="text-sm font-medium">
+                                    {t("inventory.offlineSynced", { count: syncedReports.length })}
+                                </p>
+                                <Button variant="ghost" size="icon" onClick={dismissSyncedReports}>
+                                    <X className="size-4" />
+                                </Button>
+                            </div>
+                            {syncedReports.map((pushed) => (
+                                <Button
+                                    key={pushed.sweepId}
+                                    variant="outline"
+                                    size="sm"
+                                    className="w-full justify-start"
+                                    onClick={() =>
+                                        setState({
+                                            phase: "report",
+                                            sweepId: pushed.sweepId,
+                                            folderName: pushed.folderName,
+                                            report: pushed.report,
+                                        })
+                                    }
+                                >
+                                    {t("inventory.reportTitle", { folder: pushed.folderName })}
+                                </Button>
+                            ))}
+                        </div>
+                    )}
+                    {pendingCount > 0 && (
+                        <div className="flex items-center justify-between gap-2 rounded-lg border p-3">
+                            <p className="text-muted-foreground text-sm">
+                                {t("inventory.pendingCount", { count: pendingCount })}
+                            </p>
+                            {online && (
+                                <Button variant="outline" size="sm" onClick={() => pushPendingSweepsNow()}>
+                                    {t("inventory.syncNow")}
+                                </Button>
+                            )}
+                        </div>
+                    )}
                     <Card>
                         <CardHeader>
                             <CardTitle>{t("inventory.pickFolder")}</CardTitle>
@@ -201,6 +303,7 @@ export const InventoryView = () => {
                                 <FolderRow
                                     key={folder.id}
                                     folder={folder}
+                                    online={online}
                                     onStart={() => startSweep(folder.id ?? "", folder.name ?? "")}
                                 />
                             ))}
@@ -217,6 +320,9 @@ export const InventoryView = () => {
                             {t("inventory.sweeping", { folder: state.folderName })}
                         </CardTitle>
                         <CardDescription>{t("inventory.sweepingHint")}</CardDescription>
+                        {state.offline && (
+                            <p className="text-muted-foreground text-xs">{t("inventory.offlineBanner")}</p>
+                        )}
                     </CardHeader>
                     <CardContent className="space-y-4">
                         <input
@@ -244,10 +350,18 @@ export const InventoryView = () => {
                         {lastStamp && (
                             <div className="rounded-lg border bg-muted/40 p-3 text-center">
                                 <p className="text-muted-foreground text-xs">{lastStamp.name}</p>
-                                <p className="text-2xl font-bold">
-                                    {t("inventory.stamp", { no: lastStamp.inventoryNo })}
-                                </p>
-                                <p className="text-muted-foreground text-xs">{t("inventory.stampHint")}</p>
+                                {lastStamp.inventoryNo > 0 ? (
+                                    <>
+                                        <p className="text-2xl font-bold">
+                                            {t("inventory.stamp", { no: lastStamp.inventoryNo })}
+                                        </p>
+                                        <p className="text-muted-foreground text-xs">{t("inventory.stampHint")}</p>
+                                    </>
+                                ) : (
+                                    <p className="text-muted-foreground text-sm">
+                                        {t("inventory.offlineNoNumber")}
+                                    </p>
+                                )}
                             </div>
                         )}
 
@@ -258,7 +372,8 @@ export const InventoryView = () => {
                             <ul className="space-y-1">
                                 {sighted.map((entry) => (
                                     <li key={entry.noteId} className="text-muted-foreground text-sm">
-                                        Nr. {entry.inventoryNo} · {entry.name}
+                                        {entry.inventoryNo > 0 ? `Nr. ${entry.inventoryNo} · ` : ""}
+                                        {entry.name}
                                         {entry.incomplete ? ` — ${t("inventory.incompleteBadge")}` : ""}
                                     </li>
                                 ))}
@@ -310,6 +425,38 @@ export const InventoryView = () => {
                                 {t("inventory.done")}
                             </Button>
                         </div>
+                    </CardContent>
+                </Card>
+            )}
+
+            {state.phase === "localReport" && (
+                <Card>
+                    <CardHeader>
+                        <CardTitle>{t("inventory.reportTitle", { folder: state.folderName })}</CardTitle>
+                        <CardDescription>{t("inventory.localReportHint")}</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                        <div>
+                            <p className="mb-1 text-sm font-semibold">
+                                {t("inventory.present")} ({state.entries.length})
+                            </p>
+                            <ul className="space-y-1">
+                                {state.entries.map((entry) => (
+                                    <li key={entry.noteId} className="text-sm">
+                                        {entry.name}
+                                        {entry.incomplete ? (
+                                            <span className="text-xs text-red-600">
+                                                {" "}
+                                                — {t("inventory.incompleteBadge")}
+                                            </span>
+                                        ) : null}
+                                    </li>
+                                ))}
+                            </ul>
+                        </div>
+                        <Button variant="outline" onClick={() => setState({ phase: "idle" })}>
+                            {t("inventory.done")}
+                        </Button>
                     </CardContent>
                 </Card>
             )}
@@ -369,7 +516,7 @@ export const InventoryView = () => {
     );
 };
 
-const FolderRow = ({ folder, onStart }: { folder: Folder; onStart: () => void }) => {
+const FolderRow = ({ folder, online, onStart }: { folder: Folder; online: boolean; onStart: () => void }) => {
     const { t } = useTranslation();
     const [tag, setTag] = useState<MappeTagResponse | null>(null);
     const [copied, setCopied] = useState(false);
@@ -395,10 +542,12 @@ const FolderRow = ({ folder, onStart }: { folder: Folder; onStart: () => void })
             <div className="flex items-center justify-between gap-2">
                 <p className="font-medium">{folder.name}</p>
                 <div className="flex gap-2">
-                    <Button variant="outline" size="sm" onClick={bindTag} title={t("inventory.bindTagHint") as string}>
-                        <Tag className="mr-1 size-4" />
-                        {t("inventory.bindTag")}
-                    </Button>
+                    {online && (
+                        <Button variant="outline" size="sm" onClick={bindTag} title={t("inventory.bindTagHint") as string}>
+                            <Tag className="mr-1 size-4" />
+                            {t("inventory.bindTag")}
+                        </Button>
+                    )}
                     <Button size="sm" onClick={onStart}>
                         <Camera className="mr-1 size-4" />
                         {t("inventory.start")}

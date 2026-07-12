@@ -7,17 +7,19 @@ import {
 } from "./offlineQueries";
 
 const DB_NAME = "smartorganizr-offline";
-const DB_VERSION = 1;
+// v2: adds the pendingSweeps store (offline inventory sweeps awaiting sync).
+const DB_VERSION = 2;
 const META_KEY_LAST_SYNCED = "lastSyncedAt";
 
 type DataStore = "authors" | "folders" | "notes";
 let dbPromise: Promise<IDBPDatabase> | null = null;
 
-function getDb(): Promise<IDBPDatabase> {
+/** Shared handle to the offline database (also used by pendingSweeps.ts). */
+export function getOfflineDb(): Promise<IDBPDatabase> {
   if (!dbPromise) {
     dbPromise = openDB(DB_NAME, DB_VERSION, {
       upgrade(db) {
-        for (const name of ["authors", "folders", "notes"]) {
+        for (const name of ["authors", "folders", "notes", "pendingSweeps"]) {
           if (!db.objectStoreNames.contains(name)) db.createObjectStore(name, { keyPath: "id" });
         }
         if (!db.objectStoreNames.contains("meta")) db.createObjectStore("meta");
@@ -26,6 +28,8 @@ function getDb(): Promise<IDBPDatabase> {
   }
   return dbPromise;
 }
+
+const getDb = getOfflineDb;
 
 export async function replaceAll<T>(store: DataStore, items: T[]): Promise<void> {
   const db = await getDb();
@@ -77,15 +81,16 @@ export async function getLastSyncedAt(): Promise<number | undefined> {
   return (await (await getDb()).get("meta", META_KEY_LAST_SYNCED)) as number | undefined;
 }
 
-/** Test/utility helper: wipe all data and meta. */
+/** Test/utility helper: wipe all data, meta and pending sweeps. */
 export async function clearOfflineData(): Promise<void> {
   const db = await getDb();
-  const tx = db.transaction(["authors", "folders", "notes", "meta"], "readwrite");
+  const tx = db.transaction(["authors", "folders", "notes", "meta", "pendingSweeps"], "readwrite");
   await Promise.all([
     tx.objectStore("authors").clear(),
     tx.objectStore("folders").clear(),
     tx.objectStore("notes").clear(),
     tx.objectStore("meta").clear(),
+    tx.objectStore("pendingSweeps").clear(),
   ]);
   await tx.done;
 }
