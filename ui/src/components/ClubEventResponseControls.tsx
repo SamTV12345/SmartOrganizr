@@ -1,4 +1,5 @@
 import { useState } from "react"
+import { useTranslation } from "react-i18next"
 import { $api } from "@/src/api/client"
 import { useQueryClient } from "@tanstack/react-query"
 import { Button } from "@/components/ui/button"
@@ -14,6 +15,7 @@ const STATUSES: { value: Exclude<ClubEventResponseStatus, "">; label: string }[]
 ]
 
 export const ClubEventResponseControls = ({ event }: Props) => {
+  const { t } = useTranslation()
   const queryClient = useQueryClient()
   const [reason, setReason] = useState(event.myReason ?? "")
 
@@ -29,6 +31,11 @@ export const ClubEventResponseControls = ({ event }: Props) => {
       params: { path: { clubId: event.clubId, eventId: event.id } },
       body: { status, reason: reason.trim() === "" ? undefined : reason },
     })
+  }
+
+  // The server rejects responses to cancelled events; don't offer the buttons.
+  if (event.cancelled) {
+    return <p className="text-sm text-red-600">{t("clubEvents.cancelled")}</p>
   }
 
   return (

@@ -648,6 +648,39 @@ const docTemplate = `{
             }
         },
         "/v1/clubs/{clubId}/events/{eventId}": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "club-events"
+                ],
+                "summary": "Get a single native club event",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Club ID",
+                        "name": "clubId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Event ID",
+                        "name": "eventId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ClubEventDto"
+                        }
+                    }
+                }
+            },
             "put": {
                 "consumes": [
                     "application/json"
@@ -1205,6 +1238,47 @@ const docTemplate = `{
                         "name": "memberUserId",
                         "in": "path",
                         "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    }
+                }
+            }
+        },
+        "/v1/clubs/{clubId}/members/{memberUserId}/authorized": {
+            "patch": {
+                "consumes": [
+                    "application/json"
+                ],
+                "tags": [
+                    "clubs"
+                ],
+                "summary": "Grant or revoke a member's \"authorized\" flag (managers only)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Club ID",
+                        "name": "clubId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Member user ID",
+                        "name": "memberUserId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Authorized payload",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.ClubMemberAuthorizedPatchDto"
+                        }
                     }
                 ],
                 "responses": {
@@ -3505,6 +3579,17 @@ const docTemplate = `{
                 }
             }
         },
+        "dto.ClubMemberAuthorizedPatchDto": {
+            "type": "object",
+            "required": [
+                "authorized"
+            ],
+            "properties": {
+                "authorized": {
+                    "type": "boolean"
+                }
+            }
+        },
         "dto.ClubMemberDto": {
             "type": "object",
             "required": [
@@ -3516,6 +3601,9 @@ const docTemplate = `{
                 "username"
             ],
             "properties": {
+                "authorized": {
+                    "type": "boolean"
+                },
                 "email": {
                     "type": "string"
                 },

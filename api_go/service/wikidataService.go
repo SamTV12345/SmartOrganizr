@@ -9,6 +9,7 @@ import (
 	"net/url"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 )
 
@@ -27,15 +28,32 @@ type WikidataWork struct {
 	Name        string          `json:"name"`
 	Description string          `json:"description"`
 	Composer    *WikidataAuthor `json:"composer,omitempty"`
-	Year        *int16          `json:"year,omitempty"`
-	Genre       string          `json:"genre,omitempty"`
+	// CoComposers holds any further composers beyond the primary one; the data
+	// model links a single composer, so these end up as a note on the work.
+	CoComposers []WikidataAuthor `json:"coComposers,omitempty"`
+	Year        *int16           `json:"year,omitempty"`
+	Genre       string           `json:"genre,omitempty"`
 }
+
+const (
+	wikidataRateLimitBackoff  = time.Second
+	wikidataRateLimitCooldown = 5 * time.Minute
+)
 
 // WikidataService queries the public Wikidata SPARQL endpoint.
 type WikidataService struct {
 	Endpoint  string
 	UserAgent string
 	Client    *http.Client
+
+	// 429 handling: one short backoff retry; a repeated 429 opens a cooldown
+	// window during which external lookups fail fast and callers degrade to
+	// local-only results. Wikidata rate-limits per client IP, so one shared
+	// window (rather than per user) is what actually stops the hammering.
+	mu            sync.Mutex
+	cooldownUntil time.Time
+	now           func() time.Time
+	sleep         func(time.Duration)
 }
 
 func NewWikidataService(endpoint, userAgent string) *WikidataService {
@@ -43,6 +61,8 @@ func NewWikidataService(endpoint, userAgent string) *WikidataService {
 		Endpoint:  endpoint,
 		UserAgent: userAgent,
 		Client:    &http.Client{Timeout: 10 * time.Second},
+		now:       time.Now,
+		sleep:     time.Sleep,
 	}
 }
 
@@ -58,17 +78,52 @@ type sparqlResponse struct {
 }
 
 func (s *WikidataService) runQuery(sparql string) (*sparqlResponse, error) {
+	if until, active := s.cooldownActive(); active {
+		return nil, fmt.Errorf("wikidata rate-limit cooldown active until %s", until.Format(time.RFC3339))
+	}
+	resp, err := s.doSparqlRequest(sparql)
+	if isRateLimited(err) {
+		// One short backoff; if the endpoint is still rate-limiting after that,
+		// stop hitting it for a while instead of failing every user keystroke.
+		log.Printf("wikidata returned 429, backing off %s and retrying once", wikidataRateLimitBackoff)
+		s.sleep(wikidataRateLimitBackoff)
+		resp, err = s.doSparqlRequest(sparql)
+		if isRateLimited(err) {
+			s.startCooldown()
+			log.Printf("wikidata still rate-limited, pausing external lookups for %s", wikidataRateLimitCooldown)
+		}
+		return resp, err
+	}
 	// Wikidata's public endpoint sporadically returns 502/503 for a few seconds
 	// during load spikes. One quick retry catches most of these without making
 	// the user re-type. Anything beyond a single retry is the user's problem
 	// to recover from (or we'd need real backoff + cache, which is YAGNI here).
-	resp, err := s.doSparqlRequest(sparql)
 	if shouldRetry(resp, err) {
 		log.Printf("wikidata transient failure, retrying once after 500ms")
-		time.Sleep(500 * time.Millisecond)
+		s.sleep(500 * time.Millisecond)
 		resp, err = s.doSparqlRequest(sparql)
 	}
 	return resp, err
+}
+
+func (s *WikidataService) cooldownActive() (time.Time, bool) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	if s.now().Before(s.cooldownUntil) {
+		return s.cooldownUntil, true
+	}
+	return time.Time{}, false
+}
+
+func (s *WikidataService) startCooldown() {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.cooldownUntil = s.now().Add(wikidataRateLimitCooldown)
+}
+
+func isRateLimited(err error) bool {
+	var httpErr *wikidataHTTPError
+	return errAs(err, &httpErr) && httpErr.Status == http.StatusTooManyRequests
 }
 
 func (s *WikidataService) doSparqlRequest(sparql string) (*sparqlResponse, error) {
@@ -259,6 +314,8 @@ func (s *WikidataService) SearchAuthors(term string) ([]WikidataAuthor, error) {
 
 // GetWorkDetail fetches a single work by QID, preferring P86 (composer) over
 // P50 (author) over P175 (performer) for the resolved primary-author link.
+// Works with several composers (e.g. Andersson/Ulvaeus) keep the first as the
+// primary and expose the rest via CoComposers.
 func (s *WikidataService) GetWorkDetail(qid string) (*WikidataWork, error) {
 	sparql := `SELECT ?workLabel ?workDescription ?composer ?composerLabel ?author ?authorLabel ?performer ?performerLabel ?year ?genreLabel WHERE {
 	  BIND(wd:` + qid + ` AS ?work)
@@ -270,7 +327,7 @@ func (s *WikidataService) GetWorkDetail(qid string) (*WikidataWork, error) {
 	  BIND(COALESCE(?inceptionYear, ?pubYear) AS ?year)
 	  OPTIONAL { ?work wdt:P136 ?genre . }
 	  SERVICE wikibase:label { bd:serviceParam wikibase:language "de,en" . }
-	} LIMIT 1`
+	} LIMIT 10`
 
 	resp, err := s.runQuery(sparql)
 	if err != nil {
@@ -287,12 +344,29 @@ func (s *WikidataService) GetWorkDetail(qid string) (*WikidataWork, error) {
 		Year:        parseYear(row["year"].Value),
 		Genre:       row["genreLabel"].Value,
 	}
+	// Multi-valued OPTIONALs multiply rows, so collect distinct persons across
+	// all rows for the highest-priority role that is present at all.
 	for _, key := range []string{"composer", "author", "performer"} {
-		if v, ok := row[key]; ok && v.Value != "" {
-			work.Composer = &WikidataAuthor{
-				WikidataID: qidFromURI(v.Value),
-				Name:       row[key+"Label"].Value,
+		var persons []WikidataAuthor
+		seen := map[string]bool{}
+		for _, r := range resp.Results.Bindings {
+			v, ok := r[key]
+			if !ok || v.Value == "" {
+				continue
 			}
+			personQID := qidFromURI(v.Value)
+			if seen[personQID] {
+				continue
+			}
+			seen[personQID] = true
+			persons = append(persons, WikidataAuthor{
+				WikidataID: personQID,
+				Name:       r[key+"Label"].Value,
+			})
+		}
+		if len(persons) > 0 {
+			work.Composer = &persons[0]
+			work.CoComposers = persons[1:]
 			break
 		}
 	}

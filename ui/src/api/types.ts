@@ -44,6 +44,13 @@ export type ClubChatPostMessage = Schemas["dto.ClubChatPostMessageDto"];
 export type ClubInvitePost = Schemas["dto.ClubInvitePostDto"];
 export type ClubMemberRolePatch = Schemas["dto.ClubMemberRolePatchDto"];
 
+export type AutocompleteAuthor = Schemas["dto.AutocompleteAuthor"];
+export type AutocompleteWork = Schemas["dto.AutocompleteWork"];
+export type AutocompleteAuthorsResponse = Schemas["dto.AutocompleteAuthorsResponse"];
+export type AutocompleteWorksResponse = Schemas["dto.AutocompleteWorksResponse"];
+export type WorkFromWikidataRequest = Schemas["dto.WorkFromWikidataRequest"];
+export type WorkFromWikidataConflict = Schemas["dto.WorkFromWikidataConflictResponse"];
+
 // TreeNode is a frontend-only shape: a Folder annotated with its lazily-loaded
 // children. The schema doesn't carry `elements` (the children come from a
 // separate /children endpoint), so we extend Folder here instead of forcing the

@@ -185,6 +185,9 @@
   "club-visibility-leaders-and-authorized": "Nur Leiter, Co-Leiter und Berechtigte",
   "club-visibility-all-members": "Alle Mitglieder",
   "club-visibility-only-authorized": "Nur Berechtigte",
+  "club-visibility-self": "Nur die eigene Rückmeldung (Leiter sehen alle)",
+  "club-member-authorized": "Berechtigt",
+  "club-member-authorized-hint": "Berechtigte Mitglieder sehen Rückmeldungen bzw. Begründungen, wenn die Sichtbarkeit auf „Berechtigte“ eingeschränkt ist.",
   "club-representative-confirmation": "Ich bestätige, dass ich den angegebenen Verein offiziell vertreten darf.",
   "club-create-success-title": "Verein erfolgreich erstellt",
   "club-create-success-description": "\"{{name}}\" wurde angelegt. Du kannst jetzt direkt Mitglieder einladen.",
@@ -229,5 +232,44 @@
     "empty": "Womit kann ich helfen?",
     "open": "AI-Assistent öffnen",
     "close": "Schließen"
+  },
+  "wikidata": {
+    "badgeTitle": "Aus Wikidata angereichert ({{id}})",
+    "parentRequired": "Bitte zuerst einen übergeordneten Ordner wählen.",
+    "createFailed": "Werk konnte nicht angelegt werden.",
+    "linkFailed": "Verknüpfen fehlgeschlagen."
+  },
+  "authorConflict": {
+    "title": "Autor bereits vorhanden?",
+    "link": "Mit {{name}} verknüpfen",
+    "createNew": "Als neuen Autor anlegen",
+    "createNewHint": "Beide Autoren bleiben getrennt"
+  },
+  "workAutocomplete": {
+    "placeholder": "Titel suchen…",
+    "searching": "Suche…",
+    "local": "Aus meiner Sammlung",
+    "external": "Aus Wikidata"
+  },
+  "authorAutocomplete": {
+    "local": "Meine Autoren",
+    "external": "Aus Wikidata"
+  },
+  "common": {
+    "cancel": "Abbrechen"
+  },
+  "offline": {
+    "banner": "Offline — deine heruntergeladene Bibliothek wird angezeigt. Verbinde dich, um zu synchronisieren, PDFs anzusehen oder Änderungen vorzunehmen.",
+    "lastSynced": "Zuletzt synchronisiert: {{time}}",
+    "neverSynced": "Noch nie synchronisiert",
+    "syncNow": "Jetzt synchronisieren",
+    "syncing": "Synchronisiere…",
+    "syncFailed": "Offline-Synchronisierung fehlgeschlagen. Deine lokale Bibliothek ist möglicherweise veraltet.",
+    "cardTitle": "Offline-Bibliothek",
+    "cardDescription": "Deine Autoren, Ordner und Noten werden auf diesem Gerät gespeichert, damit du sie auch ohne Internet ansehen kannst.",
+    "pdfPlaceholder": "Mit dem Internet verbinden, um Noten-PDFs anzusehen.",
+    "dismiss": "Schließen",
+    "updateAvailable": "Eine neue Version ist verfügbar.",
+    "reload": "Neu laden"
   }
 }

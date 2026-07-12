@@ -11,12 +11,16 @@ import (
 type PinboardService struct {
 	queries *db.Queries
 	ctx     context.Context
+	members ClubMemberService
+	hub     *NotificationHub
 }
 
-func NewPinboardService(queries *db.Queries) PinboardService {
+func NewPinboardService(queries *db.Queries, members ClubMemberService, hub *NotificationHub) PinboardService {
 	return PinboardService{
 		queries: queries,
 		ctx:     context.Background(),
+		members: members,
+		hub:     hub,
 	}
 }
 
@@ -54,7 +58,30 @@ func (p *PinboardService) Create(clubID string, authorID string, title string, b
 	}); err != nil {
 		return models.PinboardPost{}, err
 	}
-	return p.get(clubID, id)
+	post, err := p.get(clubID, id)
+	if err == nil {
+		p.notifyMembers(clubID, id, authorID, title)
+	}
+	return post, err
+}
+
+// notifyMembers pushes a pinboard_post notification to every club member except the author.
+func (p *PinboardService) notifyMembers(clubID, postID, authorID, preview string) {
+	if p.hub == nil {
+		return
+	}
+	members, err := p.members.GetAllMembersForClub(clubID)
+	if err != nil {
+		return
+	}
+	for _, m := range *members {
+		if m.User.UserId == authorID {
+			continue
+		}
+		p.hub.Publish(m.User.UserId, NotificationEvent{
+			Type: NotifPinboardPost, ClubID: clubID, PostID: postID, Preview: preview,
+		})
+	}
 }
 
 func (p *PinboardService) Update(clubID string, id string, title string, body string, pinned bool) (models.PinboardPost, error) {

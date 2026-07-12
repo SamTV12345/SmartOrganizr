@@ -692,6 +692,44 @@
             }
         },
         "/v1/clubs/{clubId}/events/{eventId}": {
+            "get": {
+                "tags": [
+                    "club-events"
+                ],
+                "summary": "Get a single native club event",
+                "parameters": [
+                    {
+                        "description": "Club ID",
+                        "name": "clubId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "description": "Event ID",
+                        "name": "eventId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/dto.ClubEventDto"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
             "put": {
                 "tags": [
                     "club-events"
@@ -1304,6 +1342,50 @@
                         }
                     }
                 ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    }
+                }
+            }
+        },
+        "/v1/clubs/{clubId}/members/{memberUserId}/authorized": {
+            "patch": {
+                "tags": [
+                    "clubs"
+                ],
+                "summary": "Grant or revoke a member's \"authorized\" flag (managers only)",
+                "parameters": [
+                    {
+                        "description": "Club ID",
+                        "name": "clubId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "description": "Member user ID",
+                        "name": "memberUserId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/dto.ClubMemberAuthorizedPatchDto"
+                            }
+                        }
+                    },
+                    "description": "Authorized payload",
+                    "required": true
+                },
                 "responses": {
                     "204": {
                         "description": "No Content"
@@ -3780,6 +3862,17 @@
                     }
                 }
             },
+            "dto.ClubMemberAuthorizedPatchDto": {
+                "type": "object",
+                "required": [
+                    "authorized"
+                ],
+                "properties": {
+                    "authorized": {
+                        "type": "boolean"
+                    }
+                }
+            },
             "dto.ClubMemberDto": {
                 "type": "object",
                 "required": [
@@ -3791,6 +3884,9 @@
                     "username"
                 ],
                 "properties": {
+                    "authorized": {
+                        "type": "boolean"
+                    },
                     "email": {
                         "type": "string"
                     },

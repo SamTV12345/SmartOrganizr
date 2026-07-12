@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 import { Input } from "@/components/ui/input";
 import { useDebouncedAutocomplete } from "@/src/hooks/useDebouncedAutocomplete";
 import { fetchWorksAutocomplete } from "@/src/api/autocomplete";
-import type { AutocompleteWork } from "@/src/models/Autocomplete";
+import type { AutocompleteWork } from "@/src/api/types";
 
 interface Props {
     value: string;

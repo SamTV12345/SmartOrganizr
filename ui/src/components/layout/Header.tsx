@@ -14,6 +14,7 @@ import {useNavigate} from "react-router-dom";
 import {Button} from "@/components/ui/button";
 import {Menu} from "lucide-react";
 import { useOnlineStatus } from "@/src/offline/useOnlineStatus";
+import { useSyncStatus } from "@/src/offline/syncStore";
 
 
 export const Header = ()=>{
@@ -24,6 +25,7 @@ export const Header = ()=>{
     const keycloak = useKeycloak()
     const navigate = useNavigate()
     const isOnline = useOnlineStatus()
+    const { lastSyncedAt } = useSyncStatus()
     const {data, isLoading} = useQuery<User>({
         queryKey: ['user'],
         queryFn: async () => {
@@ -44,7 +46,8 @@ export const Header = ()=>{
         <div className="bg-background border-b col-span-6 w-full">
             {!isOnline && (
                 <div style={{ background: "#92400e", color: "white", textAlign: "center", padding: "0.25rem 0.5rem", fontSize: "0.85rem" }}>
-                    Offline — showing your downloaded library. Connect to sync, view PDFs, or make changes.
+                    {t("offline.banner")}
+                    {lastSyncedAt ? ` · ${t("offline.lastSynced", { time: new Date(lastSyncedAt).toLocaleString() })}` : ""}
                 </div>
             )}
             <div className="flex h-14 items-center justify-between px-2 md:px-4">

@@ -30,6 +30,9 @@ SELECT COUNT(*) FROM authors a WHERE a.name<? ORDER BY a.name,a.id;
 -- name: FindAuthorById :one
 SELECT * FROM authors WHERE id = ? and user_id_fk = ?;
 
+-- name: FindAuthorsByUserAndIds :many
+SELECT * FROM authors WHERE user_id_fk = ? AND id IN (sqlc.slice('ids'));
+
 -- name: UpdateAuthor :exec
 UPDATE authors
 SET name = ?, extra_information = ?, wikidata_id = ?, birth_year = ?, death_year = ?
@@ -357,6 +360,11 @@ where club_participant.club_id = ? and club_participant.user_id = ?;
 -- name: UpdateClubMemberRole :exec
 UPDATE club_participant
 SET role = ?
+WHERE club_id = ? and user_id = ?;
+
+-- name: UpdateClubMemberAuthorized :exec
+UPDATE club_participant
+SET authorized = ?
 WHERE club_id = ? and user_id = ?;
 
 -- name: CountClubMembersByRole :one

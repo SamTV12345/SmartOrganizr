@@ -24,6 +24,9 @@ func TestGetClubs0Clubs(t *testing.T) {
 
 func TestGetclubs1Clubs(t *testing.T) {
 	app := SetupTest(t)
+	createClubForTest(t, app)
+
+	// The path param is ignored; the endpoint lists the authenticated user's clubs.
 	request, _ := http.NewRequest("GET", "http://localhost/api/v1/clubs/123", nil)
 	res, err := app.Test(request)
 	if err != nil {
@@ -33,8 +36,7 @@ func TestGetclubs1Clubs(t *testing.T) {
 		t.Fatalf("expected status code 200, got %d", res.StatusCode)
 	}
 	clubsList := encodingHelper.DecodeClubs(res, t)
-	// TODO add club to db
-	if len(clubsList) != 0 {
-		t.Fatalf("got %d clubs list", len(clubsList))
+	if len(clubsList) != 1 {
+		t.Fatalf("expected 1 club, got %d", len(clubsList))
 	}
 }

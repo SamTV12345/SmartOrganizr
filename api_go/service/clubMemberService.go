@@ -44,21 +44,49 @@ func (c *ClubMemberService) GetAllMembersForClub(clubId string) (*[]models.ClubM
 				Firstname: member.User.Firstname.String,
 				Lastname:  member.User.Lastname.String,
 			},
-			Role: memberRole,
+			Role:       memberRole,
+			Authorized: member.ClubParticipant.Authorized,
 		})
 	}
 	return &memberModels, nil
 }
 
 func (c *ClubMemberService) GetRoleInClub(clubId string, userId string) (models.ClubRole, error) {
+	role, _, err := c.GetMembershipInClub(clubId, userId)
+	return role, err
+}
+
+// GetMembershipInClub returns the member's role together with the
+// manager-granted authorized flag.
+func (c *ClubMemberService) GetMembershipInClub(clubId string, userId string) (models.ClubRole, bool, error) {
 	member, err := c.queries.FindClubMemberByClubAndUser(c.ctx, db.FindClubMemberByClubAndUserParams{
 		ClubID: clubId,
 		UserID: userId,
 	})
 	if err != nil {
-		return "", err
+		return "", false, err
 	}
-	return models.ClubRole(member.ClubParticipant.Role), nil
+	return models.ClubRole(member.ClubParticipant.Role), member.ClubParticipant.Authorized, nil
+}
+
+// SetMemberAuthorized grants or revokes the "Berechtigt" flag. Managers only;
+// the target must be a member of the club.
+func (c *ClubMemberService) SetMemberAuthorized(requesterID string, clubId string, memberUserID string, authorized bool) error {
+	requesterRole, err := c.GetRoleInClub(clubId, requesterID)
+	if err != nil {
+		return ErrNoClubAccess
+	}
+	if requesterRole != models.Admin && requesterRole != models.CoAdmin {
+		return ErrManageForbidden
+	}
+	if _, _, err := c.GetMembershipInClub(clubId, memberUserID); err != nil {
+		return errors.New("member not found")
+	}
+	return c.queries.UpdateClubMemberAuthorized(c.ctx, db.UpdateClubMemberAuthorizedParams{
+		Authorized: authorized,
+		ClubID:     clubId,
+		UserID:     memberUserID,
+	})
 }
 
 func (c *ClubMemberService) UpdateMemberRole(requesterID string, clubId string, memberUserID string, requestedRole string) error {

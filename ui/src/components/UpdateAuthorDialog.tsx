@@ -35,7 +35,6 @@ export function UpdateAuthorDialog() {
             return axios.patch(apiURL + `/v1/authors/${author.id}`, {name: author.name, extraInformation: author.extraInformation} as AuthorPatchDto)
         },
         onSuccess: async (data, variables) => {
-            console.log(data, variables)
             queryClient.setQueryData(['authors'], (oldData: InfiniteData<Page<AuthorEmbeddedContainer<Author>>, unknown>) => {
                 return {
                     ...oldData,

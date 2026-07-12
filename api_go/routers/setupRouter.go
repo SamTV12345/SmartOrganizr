@@ -139,7 +139,7 @@ func SetupRouter(queries *db.Queries, config config.AppConfig, logger *zap.Sugar
 	var clubMemberService = service.NewClubMemberService(queries, clubService)
 	var notificationHub = service.NewNotificationHub()
 	var messageService = service.NewMessageService(queries, notificationHub)
-	var pinboardService = service.NewPinboardService(queries)
+	var pinboardService = service.NewPinboardService(queries, clubMemberService, notificationHub)
 	var clubFileService = service.NewClubFileService(queries)
 	var clubEventService = service.NewClubEventService(queries, clubMemberService, notificationHub)
 
@@ -273,6 +273,7 @@ func SetupRouter(queries *db.Queries, config config.AppConfig, logger *zap.Sugar
 		r.Get("/:clubId/me/permissions", controllers.GetMyClubPermissions)
 		r.Get("/:clubId/members", controllers.GetClubMembers)
 		r.Patch("/:clubId/members/:memberUserId/role", controllers.PatchClubMemberRole)
+		r.Patch("/:clubId/members/:memberUserId/authorized", controllers.PatchClubMemberAuthorized)
 		// "/members/me" must be registered before "/members/:memberUserId"
 		r.Delete("/:clubId/members/me", controllers.LeaveClub)
 		r.Delete("/:clubId/members/:memberUserId", controllers.DeleteClubMember)
@@ -297,6 +298,7 @@ func SetupRouter(queries *db.Queries, config config.AppConfig, logger *zap.Sugar
 		r.Delete("/:clubId/files/:fileId", controllers.DeleteClubFile)
 		r.Get("/:clubId/events", controllers.ListClubEvents)
 		r.Post("/:clubId/events", controllers.CreateClubEvent)
+		r.Get("/:clubId/events/:eventId", controllers.GetClubEvent)
 		r.Put("/:clubId/events/:eventId", controllers.UpdateClubEvent)
 		r.Post("/:clubId/events/:eventId/cancel", controllers.CancelClubEvent)
 		r.Delete("/:clubId/events/:eventId", controllers.DeleteClubEvent)

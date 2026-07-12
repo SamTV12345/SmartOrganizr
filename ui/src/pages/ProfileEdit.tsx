@@ -7,6 +7,7 @@ import { GeburtstagAdresseEdit } from "@/src/components/profile/GeburtstagAdress
 import { PasswordReset } from "@/src/components/profile/PasswordReset";
 import { KonzertMeisterRestURL } from "@/src/components/profile/KonzertMeisterRestURL";
 import { CalendarFeed } from "@/src/components/profile/CalendarFeed";
+import { OfflineSyncCard } from "@/src/components/profile/OfflineSyncCard";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { getInitialTheme, setTheme, type AppTheme } from "@/src/utils/ThemeUtils";
@@ -73,6 +74,7 @@ export const ProfileEdit = () => {
                     <div className="flex flex-col gap-4">
                         <KonzertMeisterRestURL />
                         <CalendarFeed />
+                        <OfflineSyncCard />
                     </div>
                 </div>
             </div>

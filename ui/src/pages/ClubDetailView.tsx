@@ -37,6 +37,7 @@ import { Club } from "@/src/models/Club";
 import { ClubPermissions } from "@/src/models/ClubPermissions";
 import { ClubMember } from "@/src/models/ClubMember";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
@@ -134,6 +135,16 @@ export const ClubDetailView: FC = () => {
     const roleMutation = useMutation({
         mutationFn: async (variables: { memberUserId: string; role: string }) =>
             axios.patch(`${apiURL}/v1/clubs/${clubId}/members/${variables.memberUserId}/role`, { role: variables.role }),
+        onSuccess: async () => {
+            await refetchMembers();
+        },
+    });
+
+    const authorizedMutation = useMutation({
+        mutationFn: async (variables: { memberUserId: string; authorized: boolean }) =>
+            axios.patch(`${apiURL}/v1/clubs/${clubId}/members/${variables.memberUserId}/authorized`, {
+                authorized: variables.authorized,
+            }),
         onSuccess: async () => {
             await refetchMembers();
         },
@@ -367,7 +378,7 @@ export const ClubDetailView: FC = () => {
                                     </CardHeader>
                                     <CardContent className="space-y-3">
                                         {members.map((member) => (
-                                            <div key={member.user_id} className="grid items-center gap-2 rounded-lg border p-3 md:grid-cols-[1.6fr_1.2fr_auto]">
+                                            <div key={member.user_id} className="grid items-center gap-2 rounded-lg border p-3 md:grid-cols-[1.6fr_1.2fr_auto_auto]">
                                                 <div>
                                                     <p className="font-medium">{memberDisplayName(member)}</p>
                                                     <p className="text-xs text-muted-foreground">{member.email || member.user_id}</p>
@@ -388,6 +399,16 @@ export const ClubDetailView: FC = () => {
                                                         ))}
                                                     </SelectContent>
                                                 </Select>
+                                                <label className="flex items-center gap-2 text-sm" title={t("club-member-authorized-hint") as string}>
+                                                    <Checkbox
+                                                        checked={member.authorized}
+                                                        disabled={!canManageMembers || authorizedMutation.isPending}
+                                                        onCheckedChange={(checked) =>
+                                                            authorizedMutation.mutate({ memberUserId: member.user_id, authorized: checked === true })
+                                                        }
+                                                    />
+                                                    {t("club-member-authorized")}
+                                                </label>
                                                 {canManageMembers && member.user_id !== user?.subject && (
                                                     <AlertDialog>
                                                         <AlertDialogTrigger

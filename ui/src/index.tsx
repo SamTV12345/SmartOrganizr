@@ -14,8 +14,9 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import {queryClient} from "@/src/utils/QueryClient";
 import { applyTheme, getInitialTheme } from "@/src/utils/ThemeUtils";
 import { getLastSyncedAt } from "@/src/offline/offlineDb";
-import { syncNow } from "@/src/offline/offlineSync";
+import { runSync } from "@/src/offline/syncStore";
 import { setOfflineBoot } from "@/src/offline/useOnlineStatus";
+import { notifyAppUpdate } from "@/src/offline/appUpdateStore";
 
 const KEYCLOAK_CONFIG_CACHE_KEY = "smartorganizr-keycloak-config";
 
@@ -26,6 +27,19 @@ applyTheme(getInitialTheme());
 if (process.env.NODE_ENV === "production" && "serviceWorker" in navigator) {
   window.addEventListener("load", () => {
     navigator.serviceWorker.register("/ui/sw.js", { scope: "/ui/" })
+      .then((registration) => {
+        // The SW uses skipWaiting + clients.claim, so a newly installed version takes
+        // over immediately; surface a non-blocking "reload for the new version" prompt.
+        registration.addEventListener("updatefound", () => {
+          const newWorker = registration.installing;
+          if (!newWorker) return;
+          newWorker.addEventListener("statechange", () => {
+            if (newWorker.state === "installed" && navigator.serviceWorker.controller) {
+              notifyAppUpdate();
+            }
+          });
+        });
+      })
       .catch((err) => console.log("Service worker registration failed", err));
   });
 }
@@ -141,7 +155,8 @@ const bootstrapApp = async () => {
     if (reachedServer) {
         try { await initKeycloak(keycloak); } catch (error) { console.error("Keycloak init failed", error); }
         renderApp(keycloak);
-        syncNow().catch((error) => console.log("Background offline sync failed", error));
+        // Records failures in the sync store so the UI can show a non-blocking toast.
+        void runSync();
         return;
     }
 

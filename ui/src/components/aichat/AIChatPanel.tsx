@@ -94,10 +94,6 @@ export const AIChatPanel = () => {
                     refreshSessions();
                     break;
                 case "error":
-                    // TEMP diagnostic: surface which error path fired (backend
-                    // "AI request failed" / "failed to store reply" vs frontend
-                    // "stream ended unexpectedly" / "network" / "HTTP nnn").
-                    console.error("[aichat] stream error:", event.message);
                     setToolStatus(null);
                     markLastAssistantError();
                     appendToLastAssistant(t("aiChat.error"));

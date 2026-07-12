@@ -762,7 +762,32 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get?: never;
+        /** Get a single native club event */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Club ID */
+                    clubId: string;
+                    /** @description Event ID */
+                    eventId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["dto.ClubEventDto"];
+                    };
+                };
+            };
+        };
         /** Update a native club event */
         put: {
             parameters: {
@@ -1421,6 +1446,50 @@ export interface paths {
         options?: never;
         head?: never;
         patch?: never;
+        trace?: never;
+    };
+    "/v1/clubs/{clubId}/members/{memberUserId}/authorized": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Grant or revoke a member's "authorized" flag (managers only) */
+        patch: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Club ID */
+                    clubId: string;
+                    /** @description Member user ID */
+                    memberUserId: string;
+                };
+                cookie?: never;
+            };
+            /** @description Authorized payload */
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["dto.ClubMemberAuthorizedPatchDto"];
+                };
+            };
+            responses: {
+                /** @description No Content */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
         trace?: never;
     };
     "/v1/clubs/{clubId}/members/{memberUserId}/role": {
@@ -3541,7 +3610,11 @@ export interface components {
             failed_emails: string[];
             invited_emails: string[];
         };
+        "dto.ClubMemberAuthorizedPatchDto": {
+            authorized: boolean;
+        };
         "dto.ClubMemberDto": {
+            authorized?: boolean;
             email: string;
             firstname: string;
             lastname: string;

@@ -26,6 +26,7 @@ import {MyMessagesView} from "@/src/pages/MyMessagesView";
 import {DashboardView} from "@/src/pages/DashboardView";
 import {NotificationProvider} from "@/src/notifications/NotificationProvider";
 import {AIChatLauncher} from "@/src/components/aichat/AIChatLauncher";
+import {AppStatusToasts} from "@/src/components/AppStatusToasts";
 
 function RootLayout() {
     return (
@@ -40,6 +41,7 @@ function RootLayout() {
                 </div>
             </div>
             <AIChatLauncher />
+            <AppStatusToasts />
         </NotificationProvider>
     );
 }

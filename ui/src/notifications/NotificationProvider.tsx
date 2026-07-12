@@ -22,10 +22,47 @@ export const NotificationProvider: FC<{ children: ReactNode }> = ({ children }) 
         let reader: ReadableStreamDefaultReader<Uint8Array> | null = null;
         let retryTimer: ReturnType<typeof setTimeout> | null = null;
 
-        const refresh = () => {
-            queryClient.invalidateQueries({ queryKey: ["unread-summary"] });
+        const refreshChats = () => {
             queryClient.invalidateQueries({ queryKey: ["club-chats"] });
             queryClient.invalidateQueries({ queryKey: ["club-chat-messages"] });
+        };
+        const refreshClubEvents = () => {
+            queryClient.invalidateQueries({ queryKey: ["get", "/v1/club-events"] });
+            queryClient.invalidateQueries({ queryKey: ["get", "/v1/clubs/{clubId}/events"] });
+            queryClient.invalidateQueries({ queryKey: ["get", "/v1/clubs/{clubId}/events/{eventId}/attendance"] });
+        };
+        const refreshPinboard = (clubId?: string) => {
+            queryClient.invalidateQueries({
+                queryKey: clubId ? ["club-pinboard", clubId] : ["club-pinboard"],
+            });
+            queryClient.invalidateQueries({ queryKey: ["pinboard-recent"] });
+        };
+
+        const refresh = (payload: string) => {
+            queryClient.invalidateQueries({ queryKey: ["unread-summary"] });
+            let event: { type?: string; clubId?: string } = {};
+            try {
+                event = JSON.parse(payload);
+            } catch {
+                // not JSON (e.g. keepalive) — refresh everything below
+            }
+            switch (event.type) {
+                case "message":
+                    refreshChats();
+                    break;
+                case "club_event_created":
+                case "club_event_cancelled":
+                case "club_event_response":
+                    refreshClubEvents();
+                    break;
+                case "pinboard_post":
+                    refreshPinboard(event.clubId);
+                    break;
+                default:
+                    refreshChats();
+                    refreshClubEvents();
+                    refreshPinboard(event.clubId);
+            }
         };
 
         const scheduleReconnect = () => {
@@ -55,7 +92,7 @@ export const NotificationProvider: FC<{ children: ReactNode }> = ({ children }) 
                         buffer = buffer.slice(separator + 2);
                         const dataLine = frame.split("\n").find((line) => line.startsWith("data:"));
                         if (dataLine) {
-                            refresh();
+                            refresh(dataLine.slice("data:".length).trim());
                         }
                         separator = buffer.indexOf("\n\n");
                     }

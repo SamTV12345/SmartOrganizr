@@ -5,5 +5,6 @@ export type ClubMember = {
     firstname: string;
     lastname: string;
     role: string;
+    authorized: boolean;
 };
 

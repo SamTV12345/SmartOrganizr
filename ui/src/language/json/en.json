@@ -88,7 +88,7 @@
     "rotateHint": "Generating a new URL invalidates the previous one.",
     "copy": "Copy URL"
   },
-  "loading":"Loading",
+  "loading": "Loading",
   "numberOfPages": "Number of pages",
   "type": "Type",
   "folder": "Folder",
@@ -185,6 +185,9 @@
   "club-visibility-leaders-and-authorized": "Only leaders, co-leaders and authorized members",
   "club-visibility-all-members": "All members",
   "club-visibility-only-authorized": "Only authorized members",
+  "club-visibility-self": "Only your own response (leaders see all)",
+  "club-member-authorized": "Authorized",
+  "club-member-authorized-hint": "Authorized members can see responses and reasons when visibility is restricted to authorized members.",
   "club-representative-confirmation": "I confirm that I am officially allowed to represent this club.",
   "club-create-success-title": "Club created successfully",
   "club-create-success-description": "\"{{name}}\" was created. You can invite members now.",
@@ -229,5 +232,44 @@
     "empty": "How can I help?",
     "open": "Open AI assistant",
     "close": "Close"
+  },
+  "wikidata": {
+    "badgeTitle": "Enriched from Wikidata ({{id}})",
+    "parentRequired": "Please choose a parent folder first.",
+    "createFailed": "The work could not be created.",
+    "linkFailed": "Linking failed."
+  },
+  "authorConflict": {
+    "title": "Author already exists?",
+    "link": "Link with {{name}}",
+    "createNew": "Create as new author",
+    "createNewHint": "Both authors stay separate"
+  },
+  "workAutocomplete": {
+    "placeholder": "Search title…",
+    "searching": "Searching…",
+    "local": "From my collection",
+    "external": "From Wikidata"
+  },
+  "authorAutocomplete": {
+    "local": "My authors",
+    "external": "From Wikidata"
+  },
+  "common": {
+    "cancel": "Cancel"
+  },
+  "offline": {
+    "banner": "Offline — showing your downloaded library. Connect to sync, view PDFs, or make changes.",
+    "lastSynced": "Last synced: {{time}}",
+    "neverSynced": "Never synced yet",
+    "syncNow": "Sync now",
+    "syncing": "Syncing…",
+    "syncFailed": "Offline sync failed. Your local library may be out of date.",
+    "cardTitle": "Offline library",
+    "cardDescription": "Your authors, folders and sheet music are stored on this device so you can view them without internet.",
+    "pdfPlaceholder": "Connect to the internet to view sheet music PDFs.",
+    "dismiss": "Dismiss",
+    "updateAvailable": "A new version is available.",
+    "reload": "Reload"
   }
 }

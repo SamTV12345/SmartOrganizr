@@ -41,7 +41,6 @@ export const ProfileGeneralEdit = ()=>{
 
 
     const onSubmitOfUser = (values: z.infer<typeof formSchemaUser>)=>{
-        console.log("Submitting user form", values)
         updateUser.mutate({
             firstname: values.firstname,
             lastname: values.lastname,

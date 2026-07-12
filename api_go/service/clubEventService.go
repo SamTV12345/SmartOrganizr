@@ -359,8 +359,15 @@ func (s *ClubEventService) Attendance(clubID, userID, eventID string) (dto.Atten
 	}
 
 	isManager := canManage(role)
-	showStatuses := visibilityAllows(club.Club.FeedbackVisibility, isManager)
-	showReasons := visibilityAllows(club.Club.ReasonVisibility, isManager)
+	isAuthorized := false
+	for _, m := range *members {
+		if m.User.UserId == userID {
+			isAuthorized = m.Authorized
+			break
+		}
+	}
+	showStatuses := visibilityAllows(club.Club.FeedbackVisibility, isManager, isAuthorized)
+	showReasons := visibilityAllows(club.Club.ReasonVisibility, isManager, isAuthorized)
 
 	if !showStatuses {
 		// Caller may not see others: return only their own row + counts.
@@ -393,17 +400,29 @@ func (s *ClubEventService) Attendance(clubID, userID, eventID string) (dto.Atten
 // visibilityAllows reports whether a caller may see others' data given a club
 // visibility token (as stored by the club create/settings form). Unknown,
 // non-empty tokens fail safe to manager-only.
-func visibilityAllows(token string, isManager bool) bool {
+func visibilityAllows(token string, isManager, isAuthorized bool) bool {
 	switch strings.ToLower(strings.TrimSpace(token)) {
 	case "", "all", "all-members":
 		return true
-	case "leaders-and-authorized", "only-authorized", "managers", "section": // TODO: sections — only-authorized gets a stricter rule once registers exist
+	case "leaders-and-authorized":
+		return isManager || isAuthorized
+	case "only-authorized":
+		// Strictly the manager-granted flag: even a LEITER without it sees
+		// only their own row (they can grant themselves the flag if needed).
+		return isAuthorized
+	case "managers", "section": // section-targeted visibility is reserved until instrument sections exist
 		return isManager
 	case "self":
 		return false
 	default:
 		return isManager
 	}
+}
+
+// GetOne returns a single event for a club member, including cancelled or past
+// events that the since-filtered lists no longer contain.
+func (s *ClubEventService) GetOne(clubID, userID, eventID string) (dto.ClubEventDto, error) {
+	return s.getOne(clubID, userID, eventID)
 }
 
 func (s *ClubEventService) getOne(clubID, userID, eventID string) (dto.ClubEventDto, error) {

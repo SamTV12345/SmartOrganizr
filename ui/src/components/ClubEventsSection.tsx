@@ -1,10 +1,12 @@
 import { useState } from "react"
+import { useTranslation } from "react-i18next"
 import { $api } from "@/src/api/client"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { ClubEventResponseControls } from "@/src/components/ClubEventResponseControls"
 import type { ClubEventModel } from "@/src/models/ClubEvent"
 
 export const ClubEventsSection = () => {
+  const { t } = useTranslation()
   // Stable for the component lifetime: recomputing on each render would change the
   // query key every render and trigger an infinite refetch loop.
   const [since] = useState(() => new Date().toISOString())
@@ -31,6 +33,7 @@ export const ClubEventsSection = () => {
             <CardTitle className="text-base">
               {event.summary}
               {event.clubName ? <span className="text-muted-foreground text-xs"> · {event.clubName}</span> : null}
+              {event.cancelled ? <span className="text-xs text-red-600"> {t("clubEvents.cancelled")}</span> : null}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">

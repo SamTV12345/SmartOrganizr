@@ -195,12 +195,13 @@ func GetClubMembers(c fiber.Ctx) error {
 	memberDtos := make([]dto.ClubMemberDto, 0, len(*members))
 	for _, member := range *members {
 		memberDtos = append(memberDtos, dto.ClubMemberDto{
-			UserID:    member.UserId,
-			Username:  member.Username,
-			Email:     member.Email,
-			Firstname: member.Firstname,
-			Lastname:  member.Lastname,
-			Role:      member.Role.String(),
+			UserID:     member.UserId,
+			Username:   member.Username,
+			Email:      member.Email,
+			Firstname:  member.Firstname,
+			Lastname:   member.Lastname,
+			Role:       member.Role.String(),
+			Authorized: member.Authorized,
 		})
 	}
 
@@ -228,6 +229,33 @@ func PatchClubMemberRole(c fiber.Ctx) error {
 	}
 
 	if err := clubMemberService.UpdateMemberRole(requesterId, clubId, memberUserID, rolePatch.Role); err != nil {
+		return mapServiceError(err)
+	}
+	return c.SendStatus(fiber.StatusNoContent)
+}
+
+// PatchClubMemberAuthorized godoc
+// @Summary  Grant or revoke a member's "authorized" flag (managers only)
+// @Tags     clubs
+// @Accept   json
+// @Param    clubId        path  string                            true  "Club ID"
+// @Param    memberUserId  path  string                            true  "Member user ID"
+// @Param    body          body  dto.ClubMemberAuthorizedPatchDto  true  "Authorized payload"
+// @Success  204
+// @Router   /v1/clubs/{clubId}/members/{memberUserId}/authorized [patch]
+func PatchClubMemberAuthorized(c fiber.Ctx) error {
+	clubMemberService := GetLocal[service.ClubMemberService](c, constants.ClubMemberService)
+	requesterId := GetLocal[string](c, "userId")
+
+	var patch dto.ClubMemberAuthorizedPatchDto
+	if err := c.Bind().Body(&patch); err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, err.Error())
+	}
+	if patch.Authorized == nil {
+		return fiber.NewError(fiber.StatusBadRequest, "authorized is required")
+	}
+
+	if err := clubMemberService.SetMemberAuthorized(requesterId, c.Params("clubId"), c.Params("memberUserId"), *patch.Authorized); err != nil {
 		return mapServiceError(err)
 	}
 	return c.SendStatus(fiber.StatusNoContent)

@@ -9,6 +9,8 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"strings"
+
 	"github.com/google/uuid"
 )
 
@@ -22,26 +24,31 @@ type NoteService struct {
 
 type NoteWithAuthor struct {
 	Note   db.Element
-	Author db.Author
 	Folder db.Element
 }
 
-// loadComposerEntity returns the composer author entity for a note element, or
-// an empty Author if the note has no composer or it cannot be loaded. Replaces
-// the previous LEFT JOIN + sqlc.embed of authors, which failed to scan NULL
-// (no composer) into the non-nullable author id.
-func (n NoteService) loadComposerEntity(note db.Element, userId string) db.Author {
-	if !note.ComposerIDFk.Valid {
-		return db.Author{}
+// loadAuthorsByIds returns the user's authors for the given ids in a single
+// query, keyed by id. It replaces per-note FindAuthorById lookups (N+1) — a
+// LEFT JOIN + sqlc.embed of authors is not an option because embed cannot scan
+// a NULL row (note without composer) into the non-nullable author columns.
+// Missing or unloadable ids are simply absent from the map; callers fall back
+// to an empty author, matching the previous per-id behavior.
+func (n NoteService) loadAuthorsByIds(userId string, ids []string) map[string]db.Author {
+	if len(ids) == 0 {
+		return map[string]db.Author{}
 	}
-	author, err := n.Queries.FindAuthorById(n.Ctx, db.FindAuthorByIdParams{
-		ID:       note.ComposerIDFk.String,
+	authors, err := n.Queries.FindAuthorsByUserAndIds(n.Ctx, db.FindAuthorsByUserAndIdsParams{
 		UserIDFk: db.NewSQLNullString(userId),
+		Ids:      ids,
 	})
 	if err != nil {
-		return db.Author{}
+		return map[string]db.Author{}
 	}
-	return author
+	byID := make(map[string]db.Author, len(authors))
+	for _, a := range authors {
+		byID[a.ID] = a
+	}
+	return byID
 }
 
 // loadArrangerModel returns the arranger author for a note element, or nil if
@@ -76,7 +83,6 @@ func (n NoteService) LoadAllNotes(userId string, page *int, nameStr *string) ([]
 			for _, note := range notesRetrieved {
 				notes = append(notes, NoteWithAuthor{
 					Note:   note.Element,
-					Author: n.loadComposerEntity(note.Element, userId),
 					Folder: note.Element_2,
 				})
 			}
@@ -95,7 +101,6 @@ func (n NoteService) LoadAllNotes(userId string, page *int, nameStr *string) ([]
 			for _, note := range notesRetrieved {
 				notes = append(notes, NoteWithAuthor{
 					Note:   note.Element,
-					Author: n.loadComposerEntity(note.Element, userId),
 					Folder: note.Element_2,
 				})
 			}
@@ -120,7 +125,6 @@ func (n NoteService) LoadAllNotes(userId string, page *int, nameStr *string) ([]
 			for _, note := range notesRetrieved {
 				notes = append(notes, NoteWithAuthor{
 					Note:   note.Element,
-					Author: n.loadComposerEntity(note.Element, userId),
 					Folder: note.Element_2,
 				})
 			}
@@ -141,7 +145,6 @@ func (n NoteService) LoadAllNotes(userId string, page *int, nameStr *string) ([]
 			for _, note := range notesRetrieved {
 				notes = append(notes, NoteWithAuthor{
 					Note:   note.Element,
-					Author: n.loadComposerEntity(note.Element, userId),
 					Folder: note.Element_2,
 				})
 			}
@@ -154,6 +157,18 @@ func (n NoteService) LoadAllNotes(userId string, page *int, nameStr *string) ([]
 			}
 		}
 	}
+
+	authorIDs := make([]string, 0, len(notes))
+	seenAuthorIDs := make(map[string]bool, len(notes))
+	for _, noteDB := range notes {
+		for _, fk := range []sql.NullString{noteDB.Note.ComposerIDFk, noteDB.Note.ArrangerIDFk} {
+			if fk.Valid && !seenAuthorIDs[fk.String] {
+				seenAuthorIDs[fk.String] = true
+				authorIDs = append(authorIDs, fk.String)
+			}
+		}
+	}
+	authorsByID := n.loadAuthorsByIds(userId, authorIDs)
 
 	var creator *models.User
 	var modelNotes = make([]models.Note, 0)
@@ -168,9 +183,18 @@ func (n NoteService) LoadAllNotes(userId string, page *int, nameStr *string) ([]
 		}
 		var note = db.ConvertNoteEntityToDBVersion(noteDB.Note)
 		var folder = db.ConvertFolderEntityToDBVersion(noteDB.Folder)
-		var author = mappers.ConvertAuthorFromEntity(noteDB.Author)
+		var composer db.Author
+		if noteDB.Note.ComposerIDFk.Valid {
+			composer = authorsByID[noteDB.Note.ComposerIDFk.String]
+		}
+		var author = mappers.ConvertAuthorFromEntity(composer)
 		var modelNote = mappers.ConvertNoteFromEntity(note, *creator, author, &folder)
-		modelNote.Arranger = n.loadArrangerModel(noteDB.Note, userId)
+		if noteDB.Note.ArrangerIDFk.Valid {
+			if arranger, ok := authorsByID[noteDB.Note.ArrangerIDFk.String]; ok {
+				arrangerModel := mappers.ConvertAuthorFromEntity(arranger)
+				modelNote.Arranger = &arrangerModel
+			}
+		}
 		modelNotes = append(modelNotes, modelNote)
 	}
 
@@ -384,9 +408,20 @@ func (n *NoteService) CreateNoteFromWikidata(userId, parentId string, work Wikid
 	if work.Year != nil {
 		compYear = sql.NullInt16{Int16: *work.Year, Valid: true}
 	}
+	// The schema links a single composer, so further composers survive as a
+	// note on the work itself (not on the author, whose record is shared
+	// across all of their works).
+	description := work.Description
+	if coNote := coComposerNote(work.CoComposers); coNote != "" {
+		if description != "" {
+			description += " — " + coNote
+		} else {
+			description = coNote
+		}
+	}
 	_, err := n.Queries.CreateNoteWithWikidata(context.Background(), db.CreateNoteWithWikidataParams{
 		ID:              noteId.String(),
-		Description:     db.NewSQLNullString(work.Description),
+		Description:     db.NewSQLNullString(description),
 		Name:            db.NewSQLNullString(work.Name),
 		NumberOfPages:   sql.NullInt32{},
 		UserIDFk:        db.NewSQLNullString(userId),
@@ -401,4 +436,17 @@ func (n *NoteService) CreateNoteFromWikidata(userId, parentId string, work Wikid
 		return models.Note{}, err
 	}
 	return n.LoadNote(noteId.String(), userId)
+}
+
+func coComposerNote(coComposers []WikidataAuthor) string {
+	names := make([]string, 0, len(coComposers))
+	for _, c := range coComposers {
+		if c.Name != "" {
+			names = append(names, c.Name)
+		}
+	}
+	if len(names) == 0 {
+		return ""
+	}
+	return "Co-composed with " + strings.Join(names, ", ")
 }

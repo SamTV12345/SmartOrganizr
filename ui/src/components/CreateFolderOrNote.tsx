@@ -60,7 +60,7 @@ import type {
     AutocompleteAuthor,
     AutocompleteWork,
     WorkFromWikidataConflict,
-} from "@/src/models/Autocomplete";
+} from "@/src/api/types";
 
 /* ------------------------------------------------------------------ */
 /* Zod schemas (module-level, never recreated)                         */
@@ -364,7 +364,7 @@ export function CreateFolderOrNote() {
     const handleWikidataPick = (work: AutocompleteWork) => {
         setWikidataError(null);
         setPendingWikidata(work);
-        form.setValue("name", work.name);
+        form.setValue("name", work.name ?? "");
         if (work.description) {
             form.setValue("description", work.description);
         }
@@ -427,9 +427,9 @@ export function CreateFolderOrNote() {
             await axios.patch(`${apiURL}/v1/authors/${candidate.id}`, {
                 name: candidate.name,
                 extraInformation: "",
-                wikidataId: conflict.incoming.wikidataId,
-                birthYear: conflict.incoming.birthYear,
-                deathYear: conflict.incoming.deathYear,
+                wikidataId: conflict.incoming?.wikidataId,
+                birthYear: conflict.incoming?.birthYear,
+                deathYear: conflict.incoming?.deathYear,
             });
         } catch (err) {
             console.error(err);
@@ -456,15 +456,6 @@ export function CreateFolderOrNote() {
     /* ------------------------------------------------------------------ */
 
     const onSubmit = async (values: FormValues) => {
-        console.log("CreateFolderOrNote submit values:", {
-            type: values.type,
-            parentId: values.parentId,
-            authorId: values.type === "note" ? values.authorId : undefined,
-            authorName: values.type === "note" ? values.authorName : undefined,
-            name: values.name,
-            wikidata: pendingWikidata?.wikidataId,
-        });
-
         // Wikidata branch: short-circuit the normal create path. The backend
         // resolves the composer (and may return 409 -> conflict dialog).
         if (values.type === "note" && pendingWikidata) {
@@ -900,7 +891,7 @@ export function CreateFolderOrNote() {
                                                 onPickLocal={(w) => {
                                                     // Local hit: fill name + author from
                                                     // composer if present. Don't auto-submit.
-                                                    form.setValue("name", w.name);
+                                                    form.setValue("name", w.name ?? "");
                                                     if (w.composer) {
                                                         if (w.composer.id) {
                                                             form.setValue("authorId", w.composer.id);

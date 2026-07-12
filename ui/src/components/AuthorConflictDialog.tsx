@@ -10,7 +10,7 @@ import {
 import type {
     AutocompleteAuthor,
     WorkFromWikidataConflict,
-} from "@/src/models/Autocomplete";
+} from "@/src/api/types";
 
 interface Props {
     conflict: WorkFromWikidataConflict | null;
@@ -50,14 +50,14 @@ export function AuthorConflictDialog({
                                 "authorConflict.body",
                                 "Du hast bereits einen Autor mit diesem Namen. Ist das derselbe wie",
                             )}{" "}
-                            <strong>{conflict.incoming.name}</strong>
-                            {conflict.incoming.description && (
+                            <strong>{conflict.incoming?.name}</strong>
+                            {conflict.incoming?.description && (
                                 <> ({conflict.incoming.description})</>
                             )}
                             ?
                         </p>
                         <div className="space-y-2">
-                            {conflict.candidates.map(c => (
+                            {(conflict.candidates ?? []).map(c => (
                                 <Button
                                     key={c.id}
                                     variant="outline"

@@ -15,7 +15,7 @@ import { AuthorAutocompleteInput } from "@/src/components/searchBars/AuthorAutoc
 import { http as axios } from "@/src/api/client";
 import { apiURL } from "@/src/Keycloak";
 import type { Author } from "@/src/models/Author";
-import type { AutocompleteAuthor } from "@/src/models/Autocomplete";
+import type { AutocompleteAuthor } from "@/src/api/types";
 
 interface Props {
     open: boolean;
@@ -79,7 +79,7 @@ export function InlineAuthorCreateDialog({
     const handlePickExternal = (a: AutocompleteAuthor) => {
         // Picking a Wikidata entry pre-fills the form — user still confirms
         // with Submit. Lets them tweak ExtraInformation before saving.
-        setSearchName(a.name);
+        setSearchName(a.name ?? "");
         setWikidataId(a.wikidataId);
         setBirthYear(a.birthYear);
         setDeathYear(a.deathYear);

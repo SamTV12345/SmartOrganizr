@@ -81,6 +81,23 @@ func CreateClubEvent(c fiber.Ctx) error {
 	return c.JSON(event)
 }
 
+// GetClubEvent godoc
+// @Summary  Get a single native club event
+// @Tags     club-events
+// @Produce  json
+// @Param    clubId   path  string  true  "Club ID"
+// @Param    eventId  path  string  true  "Event ID"
+// @Success  200      {object} dto.ClubEventDto
+// @Router   /v1/clubs/{clubId}/events/{eventId} [get]
+func GetClubEvent(c fiber.Ctx) error {
+	userID := GetLocal[string](c, "userId")
+	event, err := clubEventService(c).GetOne(c.Params("clubId"), userID, c.Params("eventId"))
+	if err != nil {
+		return mapServiceError(err)
+	}
+	return c.JSON(event)
+}
+
 // UpdateClubEvent godoc
 // @Summary  Update a native club event
 // @Tags     club-events

@@ -16,11 +16,13 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import { useOnlineStatus } from "@/src/offline/useOnlineStatus";
 
 export const NoteDetailView = () => {
     const { id } = useParams();
     const navigate = useNavigate();
     const { t } = useTranslation();
+    const isOnline = useOnlineStatus();
 
     const { data: rawData, isLoading } = $api.useQuery(
         "get",
@@ -204,6 +206,11 @@ export const NoteDetailView = () => {
                             PDF
                         </CardTitle>
                     </CardHeader>
+                    {!isOnline ? (
+                        <CardContent>
+                            <p className="text-muted-foreground text-sm">{t("offline.pdfPlaceholder")}</p>
+                        </CardContent>
+                    ) : (
                     <CardContent className="space-y-4">
                         <div className="flex flex-wrap gap-3">
                             <Button onClick={onTogglePdf} disabled={pdfLoading}>
@@ -228,6 +235,7 @@ export const NoteDetailView = () => {
                             />
                         )}
                     </CardContent>
+                    )}
                 </Card>
             )}
         </main>

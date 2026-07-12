@@ -461,8 +461,17 @@ definitions:
     - failed_emails
     - invited_emails
     type: object
+  dto.ClubMemberAuthorizedPatchDto:
+    properties:
+      authorized:
+        type: boolean
+    required:
+    - authorized
+    type: object
   dto.ClubMemberDto:
     properties:
+      authorized:
+        type: boolean
       email:
         type: string
       firstname:
@@ -1550,6 +1559,28 @@ paths:
       summary: Delete a native club event
       tags:
       - club-events
+    get:
+      parameters:
+      - description: Club ID
+        in: path
+        name: clubId
+        required: true
+        type: string
+      - description: Event ID
+        in: path
+        name: eventId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.ClubEventDto'
+      summary: Get a single native club event
+      tags:
+      - club-events
     put:
       consumes:
       - application/json
@@ -1821,6 +1852,33 @@ paths:
         "204":
           description: No Content
       summary: Remove a member from a club (managers only)
+      tags:
+      - clubs
+  /v1/clubs/{clubId}/members/{memberUserId}/authorized:
+    patch:
+      consumes:
+      - application/json
+      parameters:
+      - description: Club ID
+        in: path
+        name: clubId
+        required: true
+        type: string
+      - description: Member user ID
+        in: path
+        name: memberUserId
+        required: true
+        type: string
+      - description: Authorized payload
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.ClubMemberAuthorizedPatchDto'
+      responses:
+        "204":
+          description: No Content
+      summary: Grant or revoke a member's "authorized" flag (managers only)
       tags:
       - clubs
   /v1/clubs/{clubId}/members/{memberUserId}/role:
