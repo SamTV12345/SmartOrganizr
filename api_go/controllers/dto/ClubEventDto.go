@@ -1,16 +1,24 @@
 package dto
 
+// ClubEventRepeatDto describes an optional recurrence for event creation.
+// Occurrences are materialized as independent events sharing one series id.
+type ClubEventRepeatDto struct {
+	Frequency string `json:"frequency" validate:"required"` // WEEKLY | BIWEEKLY | MONTHLY
+	Until     string `json:"until" validate:"required"`     // RFC3339, inclusive upper bound
+}
+
 // ClubEventUpsertDto is the create/edit payload.
 type ClubEventUpsertDto struct {
-	Summary     string   `json:"summary" validate:"required"`
-	Description *string  `json:"description"`
-	Location    *string  `json:"location"`
-	GeoDateX    *float64 `json:"geoDateX"`
-	GeoDateY    *float64 `json:"geoDateY"`
-	EventType   string   `json:"eventType"`                     // REHEARSAL | CONCERT | OTHER
-	StartDate   string   `json:"startDate" validate:"required"` // RFC3339
-	EndDate     *string  `json:"endDate"`                       // RFC3339 or null
-	SectionID   *string  `json:"sectionId"`                     // null/empty = whole club
+	Summary     string              `json:"summary" validate:"required"`
+	Description *string             `json:"description"`
+	Location    *string             `json:"location"`
+	GeoDateX    *float64            `json:"geoDateX"`
+	GeoDateY    *float64            `json:"geoDateY"`
+	EventType   string              `json:"eventType"`                     // REHEARSAL | CONCERT | OTHER
+	StartDate   string              `json:"startDate" validate:"required"` // RFC3339
+	EndDate     *string             `json:"endDate"`                       // RFC3339 or null
+	SectionID   *string             `json:"sectionId"`                     // null/empty = whole club
+	Repeat      *ClubEventRepeatDto `json:"repeat"`                        // null = single event; only honoured on create
 }
 
 // ClubEventDto is a single event as returned to a member, including their own
@@ -28,6 +36,7 @@ type ClubEventDto struct {
 	StartDate      string   `json:"startDate"`
 	EndDate        string   `json:"endDate"`
 	Cancelled      bool     `json:"cancelled"`
+	SeriesID       string   `json:"seriesId,omitempty"`
 	SectionID      string   `json:"sectionId,omitempty"`
 	SectionName    string   `json:"sectionName,omitempty"`
 	MyStatus       string   `json:"myStatus"` // YES|NO|MAYBE|"" (=undecided)

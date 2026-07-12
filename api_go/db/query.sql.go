@@ -296,8 +296,8 @@ func (q *Queries) CreateClubChatMessage(ctx context.Context, arg CreateClubChatM
 const createClubEvent = `-- name: CreateClubEvent :exec
 INSERT INTO club_events (
     id, club_id, summary, description, location, geo_date_x, geo_date_y,
-    event_type, start_date, end_date, created_by_user_id, section_fk
-) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    event_type, start_date, end_date, created_by_user_id, section_fk, series_id
+) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 `
 
 type CreateClubEventParams struct {
@@ -313,6 +313,7 @@ type CreateClubEventParams struct {
 	EndDate         sql.NullTime
 	CreatedByUserID string
 	SectionFk       sql.NullString
+	SeriesID        sql.NullString
 }
 
 func (q *Queries) CreateClubEvent(ctx context.Context, arg CreateClubEventParams) error {
@@ -329,6 +330,7 @@ func (q *Queries) CreateClubEvent(ctx context.Context, arg CreateClubEventParams
 		arg.EndDate,
 		arg.CreatedByUserID,
 		arg.SectionFk,
+		arg.SeriesID,
 	)
 	return err
 }
@@ -865,6 +867,23 @@ type DeleteClubEventParams struct {
 func (q *Queries) DeleteClubEvent(ctx context.Context, arg DeleteClubEventParams) error {
 	_, err := q.db.ExecContext(ctx, deleteClubEvent, arg.ID, arg.ClubID)
 	return err
+}
+
+const deleteClubEventSeries = `-- name: DeleteClubEventSeries :execrows
+DELETE FROM club_events WHERE series_id = ? AND club_id = ?
+`
+
+type DeleteClubEventSeriesParams struct {
+	SeriesID sql.NullString
+	ClubID   string
+}
+
+func (q *Queries) DeleteClubEventSeries(ctx context.Context, arg DeleteClubEventSeriesParams) (int64, error) {
+	result, err := q.db.ExecContext(ctx, deleteClubEventSeries, arg.SeriesID, arg.ClubID)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected()
 }
 
 const deleteClubFile = `-- name: DeleteClubFile :exec
@@ -2907,7 +2926,7 @@ func (q *Queries) FindUserById(ctx context.Context, id string) (User, error) {
 }
 
 const getClubEventByID = `-- name: GetClubEventByID :one
-SELECT id, club_id, summary, description, location, geo_date_x, geo_date_y, event_type, start_date, end_date, cancelled, created_by_user_id, created_at, updated_at, section_fk FROM club_events WHERE id = ? AND club_id = ?
+SELECT id, club_id, summary, description, location, geo_date_x, geo_date_y, event_type, start_date, end_date, cancelled, created_by_user_id, created_at, updated_at, section_fk, series_id FROM club_events WHERE id = ? AND club_id = ?
 `
 
 type GetClubEventByIDParams struct {
@@ -2934,6 +2953,7 @@ func (q *Queries) GetClubEventByID(ctx context.Context, arg GetClubEventByIDPara
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.SectionFk,
+		&i.SeriesID,
 	)
 	return i, err
 }
@@ -3443,7 +3463,7 @@ func (q *Queries) ListClubEventResponses(ctx context.Context, eventID string) ([
 
 const listClubEventsForClub = `-- name: ListClubEventsForClub :many
 SELECT
-    e.id, e.club_id, e.summary, e.description, e.location, e.geo_date_x, e.geo_date_y, e.event_type, e.start_date, e.end_date, e.cancelled, e.created_by_user_id, e.created_at, e.updated_at, e.section_fk,
+    e.id, e.club_id, e.summary, e.description, e.location, e.geo_date_x, e.geo_date_y, e.event_type, e.start_date, e.end_date, e.cancelled, e.created_by_user_id, e.created_at, e.updated_at, e.section_fk, e.series_id,
     sec.name AS section_name,
     (SELECT COUNT(*) FROM club_event_response r WHERE r.event_id = e.id AND r.status = 'YES')   AS yes_count,
     (SELECT COUNT(*) FROM club_event_response r WHERE r.event_id = e.id AND r.status = 'NO')    AS no_count,
@@ -3483,6 +3503,7 @@ type ListClubEventsForClubRow struct {
 	CreatedAt       time.Time
 	UpdatedAt       time.Time
 	SectionFk       sql.NullString
+	SeriesID        sql.NullString
 	SectionName     sql.NullString
 	YesCount        int64
 	NoCount         int64
@@ -3522,6 +3543,7 @@ func (q *Queries) ListClubEventsForClub(ctx context.Context, arg ListClubEventsF
 			&i.CreatedAt,
 			&i.UpdatedAt,
 			&i.SectionFk,
+			&i.SeriesID,
 			&i.SectionName,
 			&i.YesCount,
 			&i.NoCount,
@@ -3545,7 +3567,7 @@ func (q *Queries) ListClubEventsForClub(ctx context.Context, arg ListClubEventsF
 
 const listClubEventsForUser = `-- name: ListClubEventsForUser :many
 SELECT
-    e.id, e.club_id, e.summary, e.description, e.location, e.geo_date_x, e.geo_date_y, e.event_type, e.start_date, e.end_date, e.cancelled, e.created_by_user_id, e.created_at, e.updated_at, e.section_fk,
+    e.id, e.club_id, e.summary, e.description, e.location, e.geo_date_x, e.geo_date_y, e.event_type, e.start_date, e.end_date, e.cancelled, e.created_by_user_id, e.created_at, e.updated_at, e.section_fk, e.series_id,
     c.name AS club_name,
     sec.name AS section_name,
     (SELECT COUNT(*) FROM club_event_response r WHERE r.event_id = e.id AND r.status = 'YES')   AS yes_count,
@@ -3586,6 +3608,7 @@ type ListClubEventsForUserRow struct {
 	CreatedAt       time.Time
 	UpdatedAt       time.Time
 	SectionFk       sql.NullString
+	SeriesID        sql.NullString
 	ClubName        string
 	SectionName     sql.NullString
 	YesCount        int64
@@ -3621,6 +3644,7 @@ func (q *Queries) ListClubEventsForUser(ctx context.Context, arg ListClubEventsF
 			&i.CreatedAt,
 			&i.UpdatedAt,
 			&i.SectionFk,
+			&i.SeriesID,
 			&i.ClubName,
 			&i.SectionName,
 			&i.YesCount,
@@ -3644,7 +3668,7 @@ func (q *Queries) ListClubEventsForUser(ctx context.Context, arg ListClubEventsF
 }
 
 const listClubEventsForUserFeed = `-- name: ListClubEventsForUserFeed :many
-SELECT e.id, e.club_id, e.summary, e.description, e.location, e.geo_date_x, e.geo_date_y, e.event_type, e.start_date, e.end_date, e.cancelled, e.created_by_user_id, e.created_at, e.updated_at, e.section_fk, c.name AS club_name
+SELECT e.id, e.club_id, e.summary, e.description, e.location, e.geo_date_x, e.geo_date_y, e.event_type, e.start_date, e.end_date, e.cancelled, e.created_by_user_id, e.created_at, e.updated_at, e.section_fk, e.series_id, c.name AS club_name
 FROM club_events e
 JOIN clubs c ON c.id = e.club_id
 JOIN club_participant p ON p.club_id = e.club_id AND p.user_id = ?
@@ -3674,6 +3698,7 @@ type ListClubEventsForUserFeedRow struct {
 	CreatedAt       time.Time
 	UpdatedAt       time.Time
 	SectionFk       sql.NullString
+	SeriesID        sql.NullString
 	ClubName        string
 }
 
@@ -3702,6 +3727,7 @@ func (q *Queries) ListClubEventsForUserFeed(ctx context.Context, arg ListClubEve
 			&i.CreatedAt,
 			&i.UpdatedAt,
 			&i.SectionFk,
+			&i.SeriesID,
 			&i.ClubName,
 		); err != nil {
 			return nil, err

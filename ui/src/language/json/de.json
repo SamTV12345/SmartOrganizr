@@ -47,7 +47,18 @@
       "MAYBE": "Vielleicht",
       "UNDECIDED": "Unentschieden"
     },
-    "wholeClub": "Ganzer Verein"
+    "wholeClub": "Ganzer Verein",
+    "series": "Serie",
+    "delete-series": "Serie löschen",
+    "delete-series-confirm": "Alle Termine dieser Serie endgültig löschen? Alle Rückmeldungen gehen verloren.",
+    "repeat": {
+      "label": "Wiederholung",
+      "NONE": "Einmalig",
+      "WEEKLY": "Wöchentlich",
+      "BIWEEKLY": "Alle 2 Wochen",
+      "MONTHLY": "Monatlich",
+      "until": "Wiederholen bis"
+    }
   },
   "pinboard": {
     "title": "Pinnwand",

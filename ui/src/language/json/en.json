@@ -47,7 +47,18 @@
       "MAYBE": "Maybe",
       "UNDECIDED": "Undecided"
     },
-    "wholeClub": "Whole club"
+    "wholeClub": "Whole club",
+    "series": "Series",
+    "delete-series": "Delete series",
+    "delete-series-confirm": "Permanently delete all events of this series? All responses will be lost.",
+    "repeat": {
+      "label": "Repeat",
+      "NONE": "One-off",
+      "WEEKLY": "Weekly",
+      "BIWEEKLY": "Every 2 weeks",
+      "MONTHLY": "Monthly",
+      "until": "Repeat until"
+    }
   },
   "pinboard": {
     "title": "Pinboard",

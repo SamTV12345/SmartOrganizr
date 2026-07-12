@@ -38,6 +38,9 @@ type Props = { clubId: string; canManage: boolean }
 const EVENT_TYPES = ["REHEARSAL", "CONCERT", "OTHER"] as const
 type EventType = (typeof EVENT_TYPES)[number]
 
+const REPEAT_FREQUENCIES = ["NONE", "WEEKLY", "BIWEEKLY", "MONTHLY"] as const
+type RepeatFrequency = (typeof REPEAT_FREQUENCIES)[number]
+
 const toLocalInput = (iso: string) => {
   try {
     return format(new Date(iso), "yyyy-MM-dd'T'HH:mm")
@@ -54,6 +57,8 @@ type FormState = {
   location: string
   description: string
   sectionId: string // "" = whole club
+  repeatFrequency: RepeatFrequency // NONE = single event
+  repeatUntil: string
 }
 
 const emptyForm: FormState = {
@@ -64,6 +69,8 @@ const emptyForm: FormState = {
   location: "",
   description: "",
   sectionId: "",
+  repeatFrequency: "NONE",
+  repeatUntil: "",
 }
 
 export const ClubEventsManager = ({ clubId, canManage }: Props) => {
@@ -119,6 +126,10 @@ export const ClubEventsManager = ({ clubId, canManage }: Props) => {
     onSuccess: invalidate,
   })
 
+  const removeSeries = $api.useMutation("delete", "/v1/clubs/{clubId}/events/{eventId}/series", {
+    onSuccess: invalidate,
+  })
+
   const startEdit = (event: ClubEventModel) => {
     setEditingId(event.id)
     setForm({
@@ -129,11 +140,19 @@ export const ClubEventsManager = ({ clubId, canManage }: Props) => {
       location: event.location ?? "",
       description: event.description ?? "",
       sectionId: event.sectionId ?? "",
+      // Series editing is out of scope: edits always target the single occurrence.
+      repeatFrequency: "NONE",
+      repeatUntil: "",
     })
   }
 
   const isSaving = create.isPending || update.isPending
-  const canSubmit = form.summary.trim() !== "" && form.startDate !== "" && !isSaving
+  const isRepeating = !editingId && form.repeatFrequency !== "NONE"
+  const canSubmit =
+    form.summary.trim() !== "" &&
+    form.startDate !== "" &&
+    (!isRepeating || form.repeatUntil !== "") &&
+    !isSaving
 
   const onSubmit = () => {
     const body = {
@@ -144,6 +163,13 @@ export const ClubEventsManager = ({ clubId, canManage }: Props) => {
       location: form.location.trim() || undefined,
       description: form.description.trim() || undefined,
       sectionId: form.sectionId || undefined,
+      repeat: isRepeating
+        ? {
+            frequency: form.repeatFrequency,
+            // End of the chosen day so the last matching occurrence is included.
+            until: new Date(`${form.repeatUntil}T23:59:59`).toISOString(),
+          }
+        : undefined,
     }
     if (editingId) {
       update.mutate({ params: { path: { clubId, eventId: editingId } }, body })
@@ -228,6 +254,37 @@ export const ClubEventsManager = ({ clubId, canManage }: Props) => {
                   onChange={(e) => set("endDate", e.target.value)}
                 />
               </div>
+              {!editingId && (
+                <div className="grid gap-2">
+                  <Label htmlFor="event-repeat">{t("clubEvents.repeat.label")}</Label>
+                  <Select
+                    value={form.repeatFrequency}
+                    onValueChange={(value) => set("repeatFrequency", value as RepeatFrequency)}
+                  >
+                    <SelectTrigger id="event-repeat" className="w-full">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {REPEAT_FREQUENCIES.map((frequency) => (
+                        <SelectItem key={frequency} value={frequency}>
+                          {t(`clubEvents.repeat.${frequency}`)}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+              {isRepeating && (
+                <div className="grid gap-2">
+                  <Label htmlFor="event-repeat-until">{t("clubEvents.repeat.until")}</Label>
+                  <Input
+                    id="event-repeat-until"
+                    type="date"
+                    value={form.repeatUntil}
+                    onChange={(e) => set("repeatUntil", e.target.value)}
+                  />
+                </div>
+              )}
             </div>
             <div className="grid gap-2">
               <Label htmlFor="event-location">{t("clubEvents.field.location")}</Label>
@@ -274,6 +331,11 @@ export const ClubEventsManager = ({ clubId, canManage }: Props) => {
                     {event.sectionName}
                   </span>
                 ) : null}{" "}
+                {event.seriesId ? (
+                  <span className="bg-muted text-muted-foreground rounded px-1.5 py-0.5 text-xs">
+                    {t("clubEvents.series")}
+                  </span>
+                ) : null}{" "}
                 {event.cancelled ? (
                   <span className="text-red-600">{t("clubEvents.cancelled")}</span>
                 ) : null}
@@ -306,6 +368,35 @@ export const ClubEventsManager = ({ clubId, canManage }: Props) => {
                       </AlertDialogFooter>
                     </AlertDialogContent>
                   </AlertDialog>
+                  {event.seriesId && (
+                    <AlertDialog>
+                      <AlertDialogTrigger
+                        render={<Button variant="ghost" size="sm" className="text-red-500" />}
+                      >
+                        {t("clubEvents.delete-series")}
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>{t("clubEvents.delete-series")}</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            {t("clubEvents.delete-series-confirm")}
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>{t("cancel")}</AlertDialogCancel>
+                          <AlertDialogAction
+                            onClick={() =>
+                              removeSeries.mutate({
+                                params: { path: { clubId, eventId: event.id } },
+                              })
+                            }
+                          >
+                            {t("clubEvents.delete-series")}
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  )}
                 </div>
               )}
             </div>

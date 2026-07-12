@@ -13,6 +13,7 @@ export type ClubEventModel = {
   startDate: string
   endDate: string
   cancelled: boolean
+  seriesId?: string
   sectionId?: string
   sectionName?: string
   myStatus: ClubEventResponseStatus
