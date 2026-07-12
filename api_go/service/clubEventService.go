@@ -102,7 +102,40 @@ func nullableFloat(v *float64) sql.NullFloat64 {
 	return sql.NullFloat64{Float64: *v, Valid: true}
 }
 
+// maxSeriesOccurrences is the hard cap on materialized occurrences per series.
+const maxSeriesOccurrences = 52
+
+// seriesOccurrenceStarts expands a recurrence into concrete start times
+// (including the initial start). Frequencies advance via AddDate so MONTHLY
+// respects calendar-month lengths. `until` is an inclusive upper bound.
+func seriesOccurrenceStarts(start time.Time, frequency string, until time.Time) ([]time.Time, error) {
+	var addYears, addMonths, addDays int
+	switch strings.ToUpper(strings.TrimSpace(frequency)) {
+	case "WEEKLY":
+		addDays = 7
+	case "BIWEEKLY":
+		addDays = 14
+	case "MONTHLY":
+		addMonths = 1
+	default:
+		return nil, errors.New("repeat.frequency must be WEEKLY, BIWEEKLY or MONTHLY")
+	}
+	if !until.After(start) {
+		return nil, errors.New("repeat.until must be after startDate")
+	}
+	starts := []time.Time{start}
+	for next := start.AddDate(addYears, addMonths, addDays); !next.After(until); next = next.AddDate(addYears, addMonths, addDays) {
+		starts = append(starts, next)
+		if len(starts) > maxSeriesOccurrences {
+			return nil, errors.New("a series may contain at most 52 occurrences")
+		}
+	}
+	return starts, nil
+}
+
 // Create inserts a new event (manager only) and notifies all club members.
+// With a repeat payload it materializes the whole series as independent event
+// rows sharing one series id; members are notified once for the series.
 func (s *ClubEventService) Create(clubID, userID string, in dto.ClubEventUpsertDto) (dto.ClubEventDto, error) {
 	if err := s.requireManager(clubID, userID); err != nil {
 		return dto.ClubEventDto{}, err
@@ -125,25 +158,56 @@ func (s *ClubEventService) Create(clubID, userID string, in dto.ClubEventUpsertD
 	if err != nil {
 		return dto.ClubEventDto{}, err
 	}
-	id := uuid.NewString()
-	if err := s.queries.CreateClubEvent(s.ctx, db.CreateClubEventParams{
-		ID:              id,
-		ClubID:          clubID,
-		Summary:         in.Summary,
-		Description:     nullableString(in.Description),
-		Location:        nullableString(in.Location),
-		GeoDateX:        nullableFloat(in.GeoDateX),
-		GeoDateY:        nullableFloat(in.GeoDateY),
-		EventType:       normalizeEventType(in.EventType),
-		StartDate:       start.Time,
-		EndDate:         end,
-		CreatedByUserID: userID,
-		SectionFk:       sectionFk,
-	}); err != nil {
-		return dto.ClubEventDto{}, err
+
+	starts := []time.Time{start.Time}
+	var seriesID sql.NullString
+	if in.Repeat != nil {
+		until, err := parseRFC3339(in.Repeat.Until)
+		if err != nil || !until.Valid {
+			return dto.ClubEventDto{}, errors.New("repeat.until must be a valid RFC3339 timestamp")
+		}
+		starts, err = seriesOccurrenceStarts(start.Time, in.Repeat.Frequency, until.Time)
+		if err != nil {
+			return dto.ClubEventDto{}, err
+		}
+		seriesID = sql.NullString{String: uuid.NewString(), Valid: true}
 	}
-	s.notifyMembers(clubID, id, NotifClubEventCreated, in.Summary, sectionFk)
-	return s.getOne(clubID, userID, id)
+	var duration time.Duration
+	if end.Valid {
+		duration = end.Time.Sub(start.Time)
+	}
+
+	firstID := ""
+	for _, occStart := range starts {
+		occEnd := sql.NullTime{}
+		if end.Valid {
+			occEnd = sql.NullTime{Time: occStart.Add(duration), Valid: true}
+		}
+		id := uuid.NewString()
+		if firstID == "" {
+			firstID = id
+		}
+		if err := s.queries.CreateClubEvent(s.ctx, db.CreateClubEventParams{
+			ID:              id,
+			ClubID:          clubID,
+			Summary:         in.Summary,
+			Description:     nullableString(in.Description),
+			Location:        nullableString(in.Location),
+			GeoDateX:        nullableFloat(in.GeoDateX),
+			GeoDateY:        nullableFloat(in.GeoDateY),
+			EventType:       normalizeEventType(in.EventType),
+			StartDate:       occStart,
+			EndDate:         occEnd,
+			CreatedByUserID: userID,
+			SectionFk:       sectionFk,
+			SeriesID:        seriesID,
+		}); err != nil {
+			return dto.ClubEventDto{}, err
+		}
+	}
+	// One notification per series, not per occurrence.
+	s.notifyMembers(clubID, firstID, NotifClubEventCreated, in.Summary, sectionFk)
+	return s.getOne(clubID, userID, firstID)
 }
 
 // resolveSection validates an optional section id against the club.
@@ -214,12 +278,32 @@ func (s *ClubEventService) Cancel(clubID, userID, eventID string) error {
 	return nil
 }
 
-// Delete permanently removes an event (manager only).
+// Delete permanently removes an event (manager only). Deleting one occurrence
+// of a series leaves the remaining occurrences untouched.
 func (s *ClubEventService) Delete(clubID, userID, eventID string) error {
 	if err := s.requireManager(clubID, userID); err != nil {
 		return err
 	}
 	return s.queries.DeleteClubEvent(s.ctx, db.DeleteClubEventParams{ID: eventID, ClubID: clubID})
+}
+
+// DeleteSeries permanently removes every occurrence of the series the given
+// event belongs to (manager only). Events without a series are rejected.
+func (s *ClubEventService) DeleteSeries(clubID, userID, eventID string) error {
+	if err := s.requireManager(clubID, userID); err != nil {
+		return err
+	}
+	ev, err := s.queries.GetClubEventByID(s.ctx, db.GetClubEventByIDParams{ID: eventID, ClubID: clubID})
+	if err != nil {
+		return errors.New("event not found")
+	}
+	if !ev.SeriesID.Valid {
+		return errors.New("event is not part of a series")
+	}
+	_, err = s.queries.DeleteClubEventSeries(s.ctx, db.DeleteClubEventSeriesParams{
+		SeriesID: ev.SeriesID, ClubID: clubID,
+	})
+	return err
 }
 
 // ListForClub returns a club's upcoming events with the caller's own response.
@@ -247,6 +331,7 @@ func (s *ClubEventService) ListForClub(clubID, userID string, since time.Time) (
 			StartDate:      r.StartDate.Format(time.RFC3339),
 			EndDate:        nullTimeRFC(r.EndDate),
 			Cancelled:      r.Cancelled,
+			SeriesID:       r.SeriesID.String,
 			SectionID:      r.SectionFk.String,
 			SectionName:    r.SectionName.String,
 			MyStatus:       r.MyStatus.String,
@@ -283,6 +368,7 @@ func (s *ClubEventService) ListForUser(userID string, since time.Time) ([]dto.Cl
 			StartDate:      r.StartDate.Format(time.RFC3339),
 			EndDate:        nullTimeRFC(r.EndDate),
 			Cancelled:      r.Cancelled,
+			SeriesID:       r.SeriesID.String,
 			SectionID:      r.SectionFk.String,
 			SectionName:    r.SectionName.String,
 			MyStatus:       r.MyStatus.String,
@@ -483,7 +569,7 @@ func (s *ClubEventService) getOne(clubID, userID, eventID string) (dto.ClubEvent
 		ID: ev.ID, ClubID: ev.ClubID, Summary: ev.Summary, Description: ev.Description.String,
 		Location: ev.Location.String, GeoDateX: nullFloatPtr(ev.GeoDateX), GeoDateY: nullFloatPtr(ev.GeoDateY),
 		EventType: ev.EventType, StartDate: ev.StartDate.Format(time.RFC3339), EndDate: nullTimeRFC(ev.EndDate),
-		Cancelled: ev.Cancelled, SectionID: ev.SectionFk.String,
+		Cancelled: ev.Cancelled, SeriesID: ev.SeriesID.String, SectionID: ev.SectionFk.String,
 	}
 	if ev.SectionFk.Valid {
 		if section, err := s.queries.FindClubSection(s.ctx, db.FindClubSectionParams{ID: ev.SectionFk.String, ClubID: clubID}); err == nil {

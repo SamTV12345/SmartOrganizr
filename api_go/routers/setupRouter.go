@@ -312,6 +312,7 @@ func SetupRouter(queries *db.Queries, config config.AppConfig, logger *zap.Sugar
 		r.Put("/:clubId/events/:eventId", controllers.UpdateClubEvent)
 		r.Post("/:clubId/events/:eventId/cancel", controllers.CancelClubEvent)
 		r.Delete("/:clubId/events/:eventId", controllers.DeleteClubEvent)
+		r.Delete("/:clubId/events/:eventId/series", controllers.DeleteClubEventSeries)
 		r.Put("/:clubId/events/:eventId/response", controllers.RespondToClubEvent)
 		r.Get("/:clubId/events/:eventId/attendance", controllers.GetClubEventAttendance)
 	})

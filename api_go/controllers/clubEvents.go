@@ -151,6 +151,21 @@ func DeleteClubEvent(c fiber.Ctx) error {
 	return c.SendStatus(fiber.StatusNoContent)
 }
 
+// DeleteClubEventSeries godoc
+// @Summary  Delete all occurrences of the event's series
+// @Tags     club-events
+// @Param    clubId   path  string  true  "Club ID"
+// @Param    eventId  path  string  true  "Event ID (any occurrence of the series)"
+// @Success  204
+// @Router   /v1/clubs/{clubId}/events/{eventId}/series [delete]
+func DeleteClubEventSeries(c fiber.Ctx) error {
+	userID := GetLocal[string](c, "userId")
+	if err := clubEventService(c).DeleteSeries(c.Params("clubId"), userID, c.Params("eventId")); err != nil {
+		return mapServiceError(err)
+	}
+	return c.SendStatus(fiber.StatusNoContent)
+}
+
 // RespondToClubEvent godoc
 // @Summary  Upsert the caller's RSVP to a club event
 // @Tags     club-events

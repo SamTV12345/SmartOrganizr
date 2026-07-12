@@ -186,3 +186,28 @@ Go tests matching the `tests/` patterns (testcontainers / MySQL):
   memberships to avoid leaking other clubs' events.
 - Keep the feed mirror and native events visually labelled so members never
   confuse a read-only synced item with one they can RSVP to.
+
+## Recurrence (2026-07-12)
+
+Recurring events (Serientermine) shipped as a pragmatic materialized-series v1
+— no virtual RRULE expansion:
+
+- `club_events.series_id` (nullable `varchar(36)`, indexed; migration
+  `00030_club_event_series.sql`). Occurrences are ordinary, fully independent
+  event rows that merely share a `series_id` UUID.
+- `POST /v1/clubs/{clubId}/events` accepts an optional
+  `repeat: {frequency: WEEKLY|BIWEEKLY|MONTHLY, until: RFC3339}`. The server
+  validates `until > startDate`, expands occurrences (WEEKLY +7d, BIWEEKLY
+  +14d, MONTHLY +1 calendar month via Go `AddDate`; `until` inclusive), keeps
+  the start/end duration per occurrence, and hard-caps a series at 52
+  occurrences (400 above that). Members are notified ONCE per series, not per
+  occurrence. Section targeting applies to every occurrence.
+- `DELETE /v1/clubs/{clubId}/events/{eventId}/series` (manager only) deletes
+  ALL occurrences of the event's series; 400 if the event has no series.
+- `ClubEventDto` exposes `seriesId` so clients can badge occurrences and offer
+  series deletion.
+
+**Limitation (by design):** update and cancel remain single-event operations —
+editing or cancelling one occurrence never touches its siblings, and there is
+no "edit whole series". RSVPs are per occurrence. Series-wide editing is
+possible future work on top of the shared `series_id`.

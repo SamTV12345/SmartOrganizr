@@ -673,8 +673,8 @@ GROUP BY cc.club_id, c.name;
 -- name: CreateClubEvent :exec
 INSERT INTO club_events (
     id, club_id, summary, description, location, geo_date_x, geo_date_y,
-    event_type, start_date, end_date, created_by_user_id, section_fk
-) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+    event_type, start_date, end_date, created_by_user_id, section_fk, series_id
+) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
 
 -- name: UpdateClubEvent :exec
 UPDATE club_events
@@ -688,6 +688,9 @@ WHERE id = ? AND club_id = ?;
 
 -- name: DeleteClubEvent :exec
 DELETE FROM club_events WHERE id = ? AND club_id = ?;
+
+-- name: DeleteClubEventSeries :execrows
+DELETE FROM club_events WHERE series_id = ? AND club_id = ?;
 
 -- name: GetClubEventByID :one
 SELECT * FROM club_events WHERE id = ? AND club_id = ?;

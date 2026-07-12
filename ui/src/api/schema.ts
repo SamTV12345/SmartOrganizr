@@ -968,6 +968,45 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/clubs/{clubId}/events/{eventId}/series": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Delete all occurrences of the event's series */
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Club ID */
+                    clubId: string;
+                    /** @description Event ID (any occurrence of the series) */
+                    eventId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description No Content */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/clubs/{clubId}/files": {
         parameters: {
             query?: never;
@@ -4158,10 +4197,17 @@ export interface components {
             noCount?: number;
             sectionId?: string;
             sectionName?: string;
+            seriesId?: string;
             startDate?: string;
             summary?: string;
             undecidedCount?: number;
             yesCount?: number;
+        };
+        "dto.ClubEventRepeatDto": {
+            /** @description WEEKLY | BIWEEKLY | MONTHLY */
+            frequency: string;
+            /** @description RFC3339, inclusive upper bound */
+            until: string;
         };
         "dto.ClubEventResponseDto": {
             reason?: string;
@@ -4177,6 +4223,8 @@ export interface components {
             geoDateX?: number;
             geoDateY?: number;
             location?: string;
+            /** @description null = single event; only honoured on create */
+            repeat?: components["schemas"]["dto.ClubEventRepeatDto"];
             /** @description null/empty = whole club */
             sectionId?: string;
             /** @description RFC3339 */

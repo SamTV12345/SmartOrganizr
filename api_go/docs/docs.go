@@ -859,6 +859,35 @@ const docTemplate = `{
                 }
             }
         },
+        "/v1/clubs/{clubId}/events/{eventId}/series": {
+            "delete": {
+                "tags": [
+                    "club-events"
+                ],
+                "summary": "Delete all occurrences of the event's series",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Club ID",
+                        "name": "clubId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Event ID (any occurrence of the series)",
+                        "name": "eventId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    }
+                }
+            }
+        },
         "/v1/clubs/{clubId}/files": {
             "get": {
                 "produces": [
@@ -3879,6 +3908,9 @@ const docTemplate = `{
                 "sectionName": {
                     "type": "string"
                 },
+                "seriesId": {
+                    "type": "string"
+                },
                 "startDate": {
                     "type": "string"
                 },
@@ -3890,6 +3922,23 @@ const docTemplate = `{
                 },
                 "yesCount": {
                     "type": "integer"
+                }
+            }
+        },
+        "dto.ClubEventRepeatDto": {
+            "type": "object",
+            "required": [
+                "frequency",
+                "until"
+            ],
+            "properties": {
+                "frequency": {
+                    "description": "WEEKLY | BIWEEKLY | MONTHLY",
+                    "type": "string"
+                },
+                "until": {
+                    "description": "RFC3339, inclusive upper bound",
+                    "type": "string"
                 }
             }
         },
@@ -3934,6 +3983,14 @@ const docTemplate = `{
                 },
                 "location": {
                     "type": "string"
+                },
+                "repeat": {
+                    "description": "null = single event; only honoured on create",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/dto.ClubEventRepeatDto"
+                        }
+                    ]
                 },
                 "sectionId": {
                     "description": "null/empty = whole club",

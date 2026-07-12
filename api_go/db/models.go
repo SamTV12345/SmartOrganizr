@@ -184,6 +184,7 @@ type ClubEvent struct {
 	CreatedAt       time.Time
 	UpdatedAt       time.Time
 	SectionFk       sql.NullString
+	SeriesID        sql.NullString
 }
 
 type ClubEventResponse struct {

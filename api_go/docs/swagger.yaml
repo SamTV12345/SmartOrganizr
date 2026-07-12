@@ -317,6 +317,8 @@ definitions:
         type: string
       sectionName:
         type: string
+      seriesId:
+        type: string
       startDate:
         type: string
       summary:
@@ -325,6 +327,18 @@ definitions:
         type: integer
       yesCount:
         type: integer
+    type: object
+  dto.ClubEventRepeatDto:
+    properties:
+      frequency:
+        description: WEEKLY | BIWEEKLY | MONTHLY
+        type: string
+      until:
+        description: RFC3339, inclusive upper bound
+        type: string
+    required:
+    - frequency
+    - until
     type: object
   dto.ClubEventResponseDto:
     properties:
@@ -352,6 +366,10 @@ definitions:
         type: number
       location:
         type: string
+      repeat:
+        allOf:
+        - $ref: '#/definitions/dto.ClubEventRepeatDto'
+        description: null = single event; only honoured on create
       sectionId:
         description: null/empty = whole club
         type: string
@@ -1884,6 +1902,25 @@ paths:
         "204":
           description: No Content
       summary: Upsert the caller's RSVP to a club event
+      tags:
+      - club-events
+  /v1/clubs/{clubId}/events/{eventId}/series:
+    delete:
+      parameters:
+      - description: Club ID
+        in: path
+        name: clubId
+        required: true
+        type: string
+      - description: Event ID (any occurrence of the series)
+        in: path
+        name: eventId
+        required: true
+        type: string
+      responses:
+        "204":
+          description: No Content
+      summary: Delete all occurrences of the event's series
       tags:
       - club-events
   /v1/clubs/{clubId}/files:
