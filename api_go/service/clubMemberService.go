@@ -44,11 +44,26 @@ func (c *ClubMemberService) GetAllMembersForClub(clubId string) (*[]models.ClubM
 				Firstname: member.User.Firstname.String,
 				Lastname:  member.User.Lastname.String,
 			},
-			Role:       memberRole,
-			Authorized: member.ClubParticipant.Authorized,
+			Role:          memberRole,
+			Authorized:    member.ClubParticipant.Authorized,
+			SectionID:     member.ClubParticipant.SectionFk.String,
+			SectionName:   member.SectionName.String,
+			SectionLeader: member.ClubParticipant.SectionLeader,
 		})
 	}
 	return &memberModels, nil
+}
+
+// GetParticipant returns the raw membership row (role, authorized, section).
+func (c *ClubMemberService) GetParticipant(clubId string, userId string) (db.ClubParticipant, error) {
+	member, err := c.queries.FindClubMemberByClubAndUser(c.ctx, db.FindClubMemberByClubAndUserParams{
+		ClubID: clubId,
+		UserID: userId,
+	})
+	if err != nil {
+		return db.ClubParticipant{}, err
+	}
+	return member.ClubParticipant, nil
 }
 
 func (c *ClubMemberService) GetRoleInClub(clubId string, userId string) (models.ClubRole, error) {

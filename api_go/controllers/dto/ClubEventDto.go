@@ -10,6 +10,7 @@ type ClubEventUpsertDto struct {
 	EventType   string   `json:"eventType"`                     // REHEARSAL | CONCERT | OTHER
 	StartDate   string   `json:"startDate" validate:"required"` // RFC3339
 	EndDate     *string  `json:"endDate"`                       // RFC3339 or null
+	SectionID   *string  `json:"sectionId"`                     // null/empty = whole club
 }
 
 // ClubEventDto is a single event as returned to a member, including their own
@@ -27,6 +28,8 @@ type ClubEventDto struct {
 	StartDate      string   `json:"startDate"`
 	EndDate        string   `json:"endDate"`
 	Cancelled      bool     `json:"cancelled"`
+	SectionID      string   `json:"sectionId,omitempty"`
+	SectionName    string   `json:"sectionName,omitempty"`
 	MyStatus       string   `json:"myStatus"` // YES|NO|MAYBE|"" (=undecided)
 	MyReason       string   `json:"myReason"`
 	YesCount       int      `json:"yesCount"`

@@ -121,6 +121,10 @@ func (s *ClubEventService) Create(clubID, userID string, in dto.ClubEventUpsertD
 	if strings.TrimSpace(in.Summary) == "" {
 		return dto.ClubEventDto{}, errors.New("summary is required")
 	}
+	sectionFk, err := s.resolveSection(clubID, in.SectionID)
+	if err != nil {
+		return dto.ClubEventDto{}, err
+	}
 	id := uuid.NewString()
 	if err := s.queries.CreateClubEvent(s.ctx, db.CreateClubEventParams{
 		ID:              id,
@@ -134,11 +138,23 @@ func (s *ClubEventService) Create(clubID, userID string, in dto.ClubEventUpsertD
 		StartDate:       start.Time,
 		EndDate:         end,
 		CreatedByUserID: userID,
+		SectionFk:       sectionFk,
 	}); err != nil {
 		return dto.ClubEventDto{}, err
 	}
-	s.notifyMembers(clubID, id, NotifClubEventCreated, in.Summary)
+	s.notifyMembers(clubID, id, NotifClubEventCreated, in.Summary, sectionFk)
 	return s.getOne(clubID, userID, id)
+}
+
+// resolveSection validates an optional section id against the club.
+func (s *ClubEventService) resolveSection(clubID string, sectionID *string) (sql.NullString, error) {
+	if sectionID == nil || *sectionID == "" {
+		return sql.NullString{}, nil
+	}
+	if _, err := s.queries.FindClubSection(s.ctx, db.FindClubSectionParams{ID: *sectionID, ClubID: clubID}); err != nil {
+		return sql.NullString{}, errors.New("section not found in this club")
+	}
+	return db.NewSQLNullString(*sectionID), nil
 }
 
 // Update edits an event (manager only).
@@ -160,6 +176,10 @@ func (s *ClubEventService) Update(clubID, userID, eventID string, in dto.ClubEve
 			return dto.ClubEventDto{}, errors.New("endDate must be a valid RFC3339 timestamp")
 		}
 	}
+	sectionFk, err := s.resolveSection(clubID, in.SectionID)
+	if err != nil {
+		return dto.ClubEventDto{}, err
+	}
 	if err := s.queries.UpdateClubEvent(s.ctx, db.UpdateClubEventParams{
 		Summary:     in.Summary,
 		Description: nullableString(in.Description),
@@ -169,6 +189,7 @@ func (s *ClubEventService) Update(clubID, userID, eventID string, in dto.ClubEve
 		EventType:   normalizeEventType(in.EventType),
 		StartDate:   start.Time,
 		EndDate:     end,
+		SectionFk:   sectionFk,
 		ID:          eventID,
 		ClubID:      clubID,
 	}); err != nil {
@@ -189,7 +210,7 @@ func (s *ClubEventService) Cancel(clubID, userID, eventID string) error {
 	if err := s.queries.SoftCancelClubEvent(s.ctx, db.SoftCancelClubEventParams{ID: eventID, ClubID: clubID}); err != nil {
 		return err
 	}
-	s.notifyMembers(clubID, eventID, NotifClubEventCancelled, ev.Summary)
+	s.notifyMembers(clubID, eventID, NotifClubEventCancelled, ev.Summary, ev.SectionFk)
 	return nil
 }
 
@@ -226,6 +247,8 @@ func (s *ClubEventService) ListForClub(clubID, userID string, since time.Time) (
 			StartDate:      r.StartDate.Format(time.RFC3339),
 			EndDate:        nullTimeRFC(r.EndDate),
 			Cancelled:      r.Cancelled,
+			SectionID:      r.SectionFk.String,
+			SectionName:    r.SectionName.String,
 			MyStatus:       r.MyStatus.String,
 			MyReason:       r.MyReason.String,
 			YesCount:       int(r.YesCount),
@@ -260,6 +283,8 @@ func (s *ClubEventService) ListForUser(userID string, since time.Time) ([]dto.Cl
 			StartDate:      r.StartDate.Format(time.RFC3339),
 			EndDate:        nullTimeRFC(r.EndDate),
 			Cancelled:      r.Cancelled,
+			SectionID:      r.SectionFk.String,
+			SectionName:    r.SectionName.String,
 			MyStatus:       r.MyStatus.String,
 			MyReason:       r.MyReason.String,
 			YesCount:       int(r.YesCount),
@@ -292,6 +317,14 @@ func (s *ClubEventService) Respond(clubID, userID, eventID string, in dto.ClubEv
 	if ev.Cancelled {
 		return errors.New("cannot respond to a cancelled event")
 	}
+	if ev.SectionFk.Valid {
+		// Section events collect responses from that section only — a Leiter
+		// who doesn't play in the register isn't part of the audience either.
+		participant, err := s.members.GetParticipant(clubID, userID)
+		if err != nil || participant.SectionFk.String != ev.SectionFk.String {
+			return errors.New("this event is limited to a section you are not part of")
+		}
+	}
 	status, err := normalizeStatus(in.Status)
 	if err != nil {
 		return err
@@ -311,7 +344,8 @@ func (s *ClubEventService) Attendance(clubID, userID, eventID string) (dto.Atten
 	if err != nil {
 		return dto.AttendanceDto{}, err
 	}
-	if _, err := s.queries.GetClubEventByID(s.ctx, db.GetClubEventByIDParams{ID: eventID, ClubID: clubID}); err != nil {
+	ev, err := s.queries.GetClubEventByID(s.ctx, db.GetClubEventByIDParams{ID: eventID, ClubID: clubID})
+	if err != nil {
 		return dto.AttendanceDto{}, errors.New("event not found")
 	}
 	club, err := s.queries.FindClubByID(s.ctx, clubID)
@@ -327,14 +361,32 @@ func (s *ClubEventService) Attendance(clubID, userID, eventID string) (dto.Atten
 		return dto.AttendanceDto{}, err
 	}
 
-	// Index responses by user.
-	byUser := make(map[string]db.ListClubEventResponsesRow, len(responses))
-	for _, r := range responses {
-		byUser[r.UserID] = r
+	// Section events only concern that section's members: the matrix, the
+	// counts and the undecided denominator are all scoped to the audience.
+	audience := make([]models.ClubMember, 0, len(*members))
+	var viewer models.ClubMember
+	for _, m := range *members {
+		if m.User.UserId == userID {
+			viewer = m
+		}
+		if !ev.SectionFk.Valid || m.SectionID == ev.SectionFk.String {
+			audience = append(audience, m)
+		}
+	}
+	inAudience := make(map[string]bool, len(audience))
+	for _, m := range audience {
+		inAudience[m.User.UserId] = true
 	}
 
+	// Index responses by user; count only audience responses (targeting may
+	// have changed after people responded).
+	byUser := make(map[string]db.ListClubEventResponsesRow, len(responses))
 	var yes, no, maybe int
 	for _, r := range responses {
+		if !inAudience[r.UserID] {
+			continue
+		}
+		byUser[r.UserID] = r
 		switch r.Status {
 		case "YES":
 			yes++
@@ -344,8 +396,7 @@ func (s *ClubEventService) Attendance(clubID, userID, eventID string) (dto.Atten
 			maybe++
 		}
 	}
-	total := len(*members)
-	undecidedCount := total - (yes + no + maybe)
+	undecidedCount := len(audience) - (yes + no + maybe)
 	if undecidedCount < 0 {
 		undecidedCount = 0
 	}
@@ -359,28 +410,11 @@ func (s *ClubEventService) Attendance(clubID, userID, eventID string) (dto.Atten
 	}
 
 	isManager := canManage(role)
-	isAuthorized := false
-	for _, m := range *members {
-		if m.User.UserId == userID {
-			isAuthorized = m.Authorized
-			break
+	for _, m := range audience {
+		own := m.User.UserId == userID
+		if !own && !rowVisible(club.Club.FeedbackVisibility, isManager, viewer, m) {
+			continue
 		}
-	}
-	showStatuses := visibilityAllows(club.Club.FeedbackVisibility, isManager, isAuthorized)
-	showReasons := visibilityAllows(club.Club.ReasonVisibility, isManager, isAuthorized)
-
-	if !showStatuses {
-		// Caller may not see others: return only their own row + counts.
-		if own, ok := byUser[userID]; ok {
-			result.Rows = append(result.Rows, dto.AttendanceRowDto{
-				UserID: userID, DisplayName: buildDisplayName(own.Firstname.String, own.Lastname.String, own.Username.String, userID),
-				Status: own.Status, Reason: own.Reason.String,
-			})
-		}
-		return result, nil
-	}
-
-	for _, m := range *members {
 		row := dto.AttendanceRowDto{
 			UserID:      m.User.UserId,
 			DisplayName: buildDisplayName(m.User.Firstname, m.User.Lastname, m.User.Username, m.User.UserId),
@@ -388,7 +422,7 @@ func (s *ClubEventService) Attendance(clubID, userID, eventID string) (dto.Atten
 		}
 		if r, ok := byUser[m.User.UserId]; ok {
 			row.Status = r.Status
-			if showReasons || m.User.UserId == userID {
+			if own || rowVisible(club.Club.ReasonVisibility, isManager, viewer, m) {
 				row.Reason = r.Reason.String
 			}
 		}
@@ -397,21 +431,27 @@ func (s *ClubEventService) Attendance(clubID, userID, eventID string) (dto.Atten
 	return result, nil
 }
 
-// visibilityAllows reports whether a caller may see others' data given a club
-// visibility token (as stored by the club create/settings form). Unknown,
-// non-empty tokens fail safe to manager-only.
-func visibilityAllows(token string, isManager, isAuthorized bool) bool {
+// rowVisible reports whether the viewer may see another member's row data
+// given a club visibility token (as stored by the club create/settings form).
+// Unknown, non-empty tokens fail safe to manager-only.
+func rowVisible(token string, isManager bool, viewer, row models.ClubMember) bool {
 	switch strings.ToLower(strings.TrimSpace(token)) {
 	case "", "all", "all-members":
 		return true
 	case "leaders-and-authorized":
-		return isManager || isAuthorized
+		return isManager || viewer.Authorized
 	case "only-authorized":
 		// Strictly the manager-granted flag: even a LEITER without it sees
 		// only their own row (they can grant themselves the flag if needed).
-		return isAuthorized
-	case "managers", "section": // section-targeted visibility is reserved until instrument sections exist
+		return viewer.Authorized
+	case "managers":
 		return isManager
+	case "section":
+		// Registerführer see the members of their own section; managers all.
+		if isManager {
+			return true
+		}
+		return viewer.SectionLeader && viewer.SectionID != "" && viewer.SectionID == row.SectionID
 	case "self":
 		return false
 	default:
@@ -439,15 +479,23 @@ func (s *ClubEventService) getOne(clubID, userID, eventID string) (dto.ClubEvent
 	if err != nil {
 		return dto.ClubEventDto{}, err
 	}
-	return dto.ClubEventDto{
+	out := dto.ClubEventDto{
 		ID: ev.ID, ClubID: ev.ClubID, Summary: ev.Summary, Description: ev.Description.String,
 		Location: ev.Location.String, GeoDateX: nullFloatPtr(ev.GeoDateX), GeoDateY: nullFloatPtr(ev.GeoDateY),
 		EventType: ev.EventType, StartDate: ev.StartDate.Format(time.RFC3339), EndDate: nullTimeRFC(ev.EndDate),
-		Cancelled: ev.Cancelled,
-	}, nil
+		Cancelled: ev.Cancelled, SectionID: ev.SectionFk.String,
+	}
+	if ev.SectionFk.Valid {
+		if section, err := s.queries.FindClubSection(s.ctx, db.FindClubSectionParams{ID: ev.SectionFk.String, ClubID: clubID}); err == nil {
+			out.SectionName = section.Name
+		}
+	}
+	return out, nil
 }
 
-func (s *ClubEventService) notifyMembers(clubID, eventID, notifType, preview string) {
+// notifyMembers publishes to the event's audience: everyone for whole-club
+// events, the section's members plus managers for section events.
+func (s *ClubEventService) notifyMembers(clubID, eventID, notifType, preview string, sectionFk sql.NullString) {
 	if s.hub == nil {
 		return
 	}
@@ -456,6 +504,9 @@ func (s *ClubEventService) notifyMembers(clubID, eventID, notifType, preview str
 		return
 	}
 	for _, m := range *members {
+		if sectionFk.Valid && m.SectionID != sectionFk.String && !canManage(m.Role) {
+			continue
+		}
 		s.hub.Publish(m.User.UserId, NotificationEvent{
 			Type: notifType, ClubID: clubID, EventID: eventID, Preview: preview,
 		})

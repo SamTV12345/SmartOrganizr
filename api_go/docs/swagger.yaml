@@ -313,6 +313,10 @@ definitions:
         type: string
       noCount:
         type: integer
+      sectionId:
+        type: string
+      sectionName:
+        type: string
       startDate:
         type: string
       summary:
@@ -347,6 +351,9 @@ definitions:
       geoDateY:
         type: number
       location:
+        type: string
+      sectionId:
+        description: null/empty = whole club
         type: string
       startDate:
         description: RFC3339
@@ -480,6 +487,12 @@ definitions:
         type: string
       role:
         type: string
+      sectionId:
+        type: string
+      sectionLeader:
+        type: boolean
+      sectionName:
+        type: string
       user_id:
         type: string
       username:
@@ -498,6 +511,14 @@ definitions:
         type: string
     required:
     - role
+    type: object
+  dto.ClubMemberSectionPatchDto:
+    properties:
+      sectionId:
+        description: SectionID nil/empty removes the member from any section.
+        type: string
+      sectionLeader:
+        type: boolean
     type: object
   dto.ClubMessageCandidateDto:
     properties:
@@ -571,6 +592,22 @@ definitions:
     - postal_code
     - reason_visibility
     - street
+    type: object
+  dto.ClubSectionDto:
+    properties:
+      id:
+        type: string
+      memberCount:
+        type: integer
+      name:
+        type: string
+    type: object
+  dto.ClubSectionUpsertDto:
+    properties:
+      name:
+        type: string
+    required:
+    - name
     type: object
   dto.ConcertDto:
     properties:
@@ -2049,6 +2086,34 @@ paths:
       summary: Change a club member's role
       tags:
       - clubs
+  /v1/clubs/{clubId}/members/{memberUserId}/section:
+    patch:
+      consumes:
+      - application/json
+      parameters:
+      - description: Club ID
+        in: path
+        name: clubId
+        required: true
+        type: string
+      - description: Member user ID
+        in: path
+        name: memberUserId
+        required: true
+        type: string
+      - description: Section assignment
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.ClubMemberSectionPatchDto'
+      responses:
+        "204":
+          description: No Content
+      summary: Assign a member to a section and set the Registerführer flag (managers
+        only)
+      tags:
+      - clubs
   /v1/clubs/{clubId}/members/export:
     get:
       parameters:
@@ -2356,6 +2421,96 @@ paths:
       summary: Update a pinboard post
       tags:
       - pinboard
+  /v1/clubs/{clubId}/sections:
+    get:
+      parameters:
+      - description: Club ID
+        in: path
+        name: clubId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/dto.ClubSectionDto'
+            type: array
+      summary: List a club's instrument sections (Register)
+      tags:
+      - clubs
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Club ID
+        in: path
+        name: clubId
+        required: true
+        type: string
+      - description: Section payload
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.ClubSectionUpsertDto'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.ClubSectionDto'
+      summary: Create a section (managers only)
+      tags:
+      - clubs
+  /v1/clubs/{clubId}/sections/{sectionId}:
+    delete:
+      parameters:
+      - description: Club ID
+        in: path
+        name: clubId
+        required: true
+        type: string
+      - description: Section ID
+        in: path
+        name: sectionId
+        required: true
+        type: string
+      responses:
+        "204":
+          description: No Content
+      summary: Delete a section (managers only; members/events fall back to whole-club)
+      tags:
+      - clubs
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: Club ID
+        in: path
+        name: clubId
+        required: true
+        type: string
+      - description: Section ID
+        in: path
+        name: sectionId
+        required: true
+        type: string
+      - description: Section payload
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.ClubSectionUpsertDto'
+      responses:
+        "204":
+          description: No Content
+      summary: Rename a section (managers only)
+      tags:
+      - clubs
   /v1/clubs/{userId}:
     get:
       parameters:

@@ -183,6 +183,7 @@ type ClubEvent struct {
 	CreatedByUserID string
 	CreatedAt       time.Time
 	UpdatedAt       time.Time
+	SectionFk       sql.NullString
 }
 
 type ClubEventResponse struct {
@@ -215,10 +216,12 @@ type ClubInvitation struct {
 }
 
 type ClubParticipant struct {
-	UserID     string
-	ClubID     string
-	Role       ClubParticipantRole
-	Authorized bool
+	UserID        string
+	ClubID        string
+	Role          ClubParticipantRole
+	Authorized    bool
+	SectionFk     sql.NullString
+	SectionLeader bool
 }
 
 type ClubPinboardPost struct {
@@ -230,6 +233,12 @@ type ClubPinboardPost struct {
 	Pinned       bool
 	CreatedAt    time.Time
 	UpdatedAt    time.Time
+}
+
+type ClubSection struct {
+	ID     string
+	ClubID string
+	Name   string
 }
 
 type Concert struct {

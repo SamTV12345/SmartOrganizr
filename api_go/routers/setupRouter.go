@@ -162,6 +162,7 @@ func SetupRouter(queries *db.Queries, config config.AppConfig, logger *zap.Sugar
 	}
 
 	var inventoryService = service.NewInventoryService(queries, aiService)
+	var clubSectionService = service.NewClubSectionService(queries, clubMemberService)
 
 	noteService.FolderService = &folderService
 
@@ -193,6 +194,7 @@ func SetupRouter(queries *db.Queries, config config.AppConfig, logger *zap.Sugar
 		SetLocal[*service.AIService](c, constants.AIService, aiService)
 		SetLocal[*service.AIChatService](c, constants.AIChatService, aiChatService)
 		SetLocal[service.InventoryService](c, constants.InventoryService, inventoryService)
+		SetLocal[service.ClubSectionService](c, constants.ClubSectionService, clubSectionService)
 		SetLocal[string](c, constants.AppBaseURL, config.App.URL)
 
 		return c.Next()
@@ -277,6 +279,11 @@ func SetupRouter(queries *db.Queries, config config.AppConfig, logger *zap.Sugar
 		r.Get("/:clubId/members", controllers.GetClubMembers)
 		r.Patch("/:clubId/members/:memberUserId/role", controllers.PatchClubMemberRole)
 		r.Patch("/:clubId/members/:memberUserId/authorized", controllers.PatchClubMemberAuthorized)
+		r.Patch("/:clubId/members/:memberUserId/section", controllers.PatchClubMemberSection)
+		r.Get("/:clubId/sections", controllers.GetClubSections)
+		r.Post("/:clubId/sections", controllers.PostClubSection)
+		r.Put("/:clubId/sections/:sectionId", controllers.PutClubSection)
+		r.Delete("/:clubId/sections/:sectionId", controllers.DeleteClubSection)
 		// "/members/me" must be registered before "/members/:memberUserId"
 		r.Delete("/:clubId/members/me", controllers.LeaveClub)
 		r.Delete("/:clubId/members/:memberUserId", controllers.DeleteClubMember)

@@ -43,6 +43,7 @@ export type ClubChatCreate = Schemas["dto.ClubChatCreateDto"];
 export type ClubChatPostMessage = Schemas["dto.ClubChatPostMessageDto"];
 export type ClubInvitePost = Schemas["dto.ClubInvitePostDto"];
 export type ClubMemberRolePatch = Schemas["dto.ClubMemberRolePatchDto"];
+export type ClubSection = Schemas["dto.ClubSectionDto"];
 
 export type IdentifyCandidate = Schemas["service.IdentifyCandidate"];
 export type SweepReport = Schemas["service.SweepReport"];

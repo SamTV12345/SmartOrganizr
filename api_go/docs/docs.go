@@ -1329,6 +1329,47 @@ const docTemplate = `{
                 }
             }
         },
+        "/v1/clubs/{clubId}/members/{memberUserId}/section": {
+            "patch": {
+                "consumes": [
+                    "application/json"
+                ],
+                "tags": [
+                    "clubs"
+                ],
+                "summary": "Assign a member to a section and set the Registerführer flag (managers only)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Club ID",
+                        "name": "clubId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Member user ID",
+                        "name": "memberUserId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Section assignment",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.ClubMemberSectionPatchDto"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    }
+                }
+            }
+        },
         "/v1/clubs/{clubId}/messages/candidates": {
             "get": {
                 "produces": [
@@ -1674,6 +1715,143 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/dto.PinboardPostDto"
                         }
+                    }
+                }
+            }
+        },
+        "/v1/clubs/{clubId}/sections": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "clubs"
+                ],
+                "summary": "List a club's instrument sections (Register)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Club ID",
+                        "name": "clubId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/dto.ClubSectionDto"
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "clubs"
+                ],
+                "summary": "Create a section (managers only)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Club ID",
+                        "name": "clubId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Section payload",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.ClubSectionUpsertDto"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ClubSectionDto"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/clubs/{clubId}/sections/{sectionId}": {
+            "put": {
+                "consumes": [
+                    "application/json"
+                ],
+                "tags": [
+                    "clubs"
+                ],
+                "summary": "Rename a section (managers only)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Club ID",
+                        "name": "clubId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Section ID",
+                        "name": "sectionId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Section payload",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.ClubSectionUpsertDto"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "clubs"
+                ],
+                "summary": "Delete a section (managers only; members/events fall back to whole-club)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Club ID",
+                        "name": "clubId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Section ID",
+                        "name": "sectionId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
                     }
                 }
             }
@@ -3676,6 +3854,12 @@ const docTemplate = `{
                 "noCount": {
                     "type": "integer"
                 },
+                "sectionId": {
+                    "type": "string"
+                },
+                "sectionName": {
+                    "type": "string"
+                },
                 "startDate": {
                     "type": "string"
                 },
@@ -3730,6 +3914,10 @@ const docTemplate = `{
                     "type": "number"
                 },
                 "location": {
+                    "type": "string"
+                },
+                "sectionId": {
+                    "description": "null/empty = whole club",
                     "type": "string"
                 },
                 "startDate": {
@@ -3930,6 +4118,15 @@ const docTemplate = `{
                 "role": {
                     "type": "string"
                 },
+                "sectionId": {
+                    "type": "string"
+                },
+                "sectionLeader": {
+                    "type": "boolean"
+                },
+                "sectionName": {
+                    "type": "string"
+                },
                 "user_id": {
                     "type": "string"
                 },
@@ -3946,6 +4143,18 @@ const docTemplate = `{
             "properties": {
                 "role": {
                     "type": "string"
+                }
+            }
+        },
+        "dto.ClubMemberSectionPatchDto": {
+            "type": "object",
+            "properties": {
+                "sectionId": {
+                    "description": "SectionID nil/empty removes the member from any section.",
+                    "type": "string"
+                },
+                "sectionLeader": {
+                    "type": "boolean"
                 }
             }
         },
@@ -4048,6 +4257,31 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "street": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.ClubSectionDto": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "memberCount": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.ClubSectionUpsertDto": {
+            "type": "object",
+            "required": [
+                "name"
+            ],
+            "properties": {
+                "name": {
                     "type": "string"
                 }
             }

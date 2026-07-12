@@ -195,13 +195,16 @@ func GetClubMembers(c fiber.Ctx) error {
 	memberDtos := make([]dto.ClubMemberDto, 0, len(*members))
 	for _, member := range *members {
 		memberDtos = append(memberDtos, dto.ClubMemberDto{
-			UserID:     member.UserId,
-			Username:   member.Username,
-			Email:      member.Email,
-			Firstname:  member.Firstname,
-			Lastname:   member.Lastname,
-			Role:       member.Role.String(),
-			Authorized: member.Authorized,
+			UserID:        member.UserId,
+			Username:      member.Username,
+			Email:         member.Email,
+			Firstname:     member.Firstname,
+			Lastname:      member.Lastname,
+			Role:          member.Role.String(),
+			Authorized:    member.Authorized,
+			SectionID:     member.SectionID,
+			SectionName:   member.SectionName,
+			SectionLeader: member.SectionLeader,
 		})
 	}
 

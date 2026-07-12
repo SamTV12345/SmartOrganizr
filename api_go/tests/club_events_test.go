@@ -24,6 +24,7 @@ type clubEvent struct {
 
 type attendance struct {
 	YesCount       int `json:"yesCount"`
+	NoCount        int `json:"noCount"`
 	UndecidedCount int `json:"undecidedCount"`
 	Rows           []struct {
 		UserID string `json:"userId"`

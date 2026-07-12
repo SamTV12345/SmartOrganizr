@@ -1536,6 +1536,50 @@ export interface paths {
         };
         trace?: never;
     };
+    "/v1/clubs/{clubId}/members/{memberUserId}/section": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Assign a member to a section and set the Registerführer flag (managers only) */
+        patch: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Club ID */
+                    clubId: string;
+                    /** @description Member user ID */
+                    memberUserId: string;
+                };
+                cookie?: never;
+            };
+            /** @description Section assignment */
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["dto.ClubMemberSectionPatchDto"];
+                };
+            };
+            responses: {
+                /** @description No Content */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        trace?: never;
+    };
     "/v1/clubs/{clubId}/messages/candidates": {
         parameters: {
             query?: never;
@@ -1874,6 +1918,130 @@ export interface paths {
                 };
             };
         };
+        trace?: never;
+    };
+    "/v1/clubs/{clubId}/sections": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List a club's instrument sections (Register) */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Club ID */
+                    clubId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["dto.ClubSectionDto"][];
+                    };
+                };
+            };
+        };
+        put?: never;
+        /** Create a section (managers only) */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Club ID */
+                    clubId: string;
+                };
+                cookie?: never;
+            };
+            requestBody: components["requestBodies"]["dto.ClubSectionUpsertDto"];
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["dto.ClubSectionDto"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/clubs/{clubId}/sections/{sectionId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Rename a section (managers only) */
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Club ID */
+                    clubId: string;
+                    /** @description Section ID */
+                    sectionId: string;
+                };
+                cookie?: never;
+            };
+            requestBody: components["requestBodies"]["dto.ClubSectionUpsertDto"];
+            responses: {
+                /** @description No Content */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        post?: never;
+        /** Delete a section (managers only; members/events fall back to whole-club) */
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Club ID */
+                    clubId: string;
+                    /** @description Section ID */
+                    sectionId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description No Content */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
         trace?: never;
     };
     "/v1/clubs/{userId}": {
@@ -3952,6 +4120,8 @@ export interface components {
             /** @description YES|NO|MAYBE|"" (=undecided) */
             myStatus?: string;
             noCount?: number;
+            sectionId?: string;
+            sectionName?: string;
             startDate?: string;
             summary?: string;
             undecidedCount?: number;
@@ -3971,6 +4141,8 @@ export interface components {
             geoDateX?: number;
             geoDateY?: number;
             location?: string;
+            /** @description null/empty = whole club */
+            sectionId?: string;
             /** @description RFC3339 */
             startDate: string;
             summary: string;
@@ -4023,11 +4195,19 @@ export interface components {
             firstname: string;
             lastname: string;
             role: string;
+            sectionId?: string;
+            sectionLeader?: boolean;
+            sectionName?: string;
             user_id: string;
             username: string;
         };
         "dto.ClubMemberRolePatchDto": {
             role: string;
+        };
+        "dto.ClubMemberSectionPatchDto": {
+            /** @description SectionID nil/empty removes the member from any section. */
+            sectionId?: string;
+            sectionLeader?: boolean;
         };
         "dto.ClubMessageCandidateDto": {
             display_name: string;
@@ -4056,6 +4236,14 @@ export interface components {
             postal_code: string;
             reason_visibility: string;
             street: string;
+        };
+        "dto.ClubSectionDto": {
+            id?: string;
+            memberCount?: number;
+            name?: string;
+        };
+        "dto.ClubSectionUpsertDto": {
+            name: string;
         };
         "dto.ConcertDto": {
             description: string;
@@ -4374,6 +4562,12 @@ export interface components {
         "dto.PinboardPostUpsertDto": {
             content: {
                 "application/json": components["schemas"]["dto.PinboardPostUpsertDto"];
+            };
+        };
+        /** @description Section payload */
+        "dto.ClubSectionUpsertDto": {
+            content: {
+                "application/json": components["schemas"]["dto.ClubSectionUpsertDto"];
             };
         };
         /** @description Note payload */
