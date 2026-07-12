@@ -12,6 +12,15 @@ import (
 	"time"
 )
 
+const completeInventorySweep = `-- name: CompleteInventorySweep :exec
+UPDATE inventory_sweep SET completed_at = CURRENT_TIMESTAMP WHERE id = ?
+`
+
+func (q *Queries) CompleteInventorySweep(ctx context.Context, id string) error {
+	_, err := q.db.ExecContext(ctx, completeInventorySweep, id)
+	return err
+}
+
 const countClubMembersByRole = `-- name: CountClubMembersByRole :one
 SELECT COUNT(*)
 from club_participant
@@ -512,6 +521,63 @@ func (q *Queries) CreateIcalSync(ctx context.Context, arg CreateIcalSyncParams) 
 	return result.LastInsertId()
 }
 
+const createInventorySighting = `-- name: CreateInventorySighting :execrows
+INSERT IGNORE INTO inventory_sighting (sweep_fk, note_fk, matched_via, confidence, incomplete)
+VALUES (?, ?, ?, ?, ?)
+`
+
+type CreateInventorySightingParams struct {
+	SweepFk    string
+	NoteFk     string
+	MatchedVia InventorySightingMatchedVia
+	Confidence sql.NullInt16
+	Incomplete bool
+}
+
+func (q *Queries) CreateInventorySighting(ctx context.Context, arg CreateInventorySightingParams) (int64, error) {
+	result, err := q.db.ExecContext(ctx, createInventorySighting,
+		arg.SweepFk,
+		arg.NoteFk,
+		arg.MatchedVia,
+		arg.Confidence,
+		arg.Incomplete,
+	)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected()
+}
+
+const createInventorySweep = `-- name: CreateInventorySweep :exec
+INSERT INTO inventory_sweep (id, folder_fk, user_fk) VALUES (?, ?, ?)
+`
+
+type CreateInventorySweepParams struct {
+	ID       string
+	FolderFk string
+	UserFk   string
+}
+
+func (q *Queries) CreateInventorySweep(ctx context.Context, arg CreateInventorySweepParams) error {
+	_, err := q.db.ExecContext(ctx, createInventorySweep, arg.ID, arg.FolderFk, arg.UserFk)
+	return err
+}
+
+const createMappeTag = `-- name: CreateMappeTag :exec
+INSERT INTO mappe_tag (tag_id, folder_fk, user_fk) VALUES (?, ?, ?)
+`
+
+type CreateMappeTagParams struct {
+	TagID    string
+	FolderFk string
+	UserFk   string
+}
+
+func (q *Queries) CreateMappeTag(ctx context.Context, arg CreateMappeTagParams) error {
+	_, err := q.db.ExecContext(ctx, createMappeTag, arg.TagID, arg.FolderFk, arg.UserFk)
+	return err
+}
+
 const createMemberInClub = `-- name: CreateMemberInClub :exec
 INSERT IGNORE INTO club_participant(
         user_id,
@@ -869,6 +935,15 @@ func (q *Queries) DeleteFolderCasCade(ctx context.Context, arg DeleteFolderCasCa
 	return err
 }
 
+const deleteMappeTagForFolder = `-- name: DeleteMappeTagForFolder :exec
+DELETE FROM mappe_tag WHERE folder_fk = ?
+`
+
+func (q *Queries) DeleteMappeTagForFolder(ctx context.Context, folderFk string) error {
+	_, err := q.db.ExecContext(ctx, deleteMappeTagForFolder, folderFk)
+	return err
+}
+
 const deleteNote = `-- name: DeleteNote :exec
 DELETE FROM elements WHERE id = ? AND user_id_fk = ?
 `
@@ -1150,7 +1225,7 @@ func (q *Queries) FindAllAuthorsByCreatorUnpaged(ctx context.Context, userIDFk s
 }
 
 const findAllFoldersByCreator = `-- name: FindAllFoldersByCreator :many
-SELECT type, id, creation_date, name, number_of_pages, user_id_fk, parent, pdf_content, wikidata_id, composition_year, genre, composer_id_fk, arranger_id_fk, description FROM elements as folders WHERE type ='folder' AND user_id_fk = ? ORDER BY name
+SELECT type, id, creation_date, name, number_of_pages, user_id_fk, parent, pdf_content, wikidata_id, composition_year, genre, composer_id_fk, arranger_id_fk, description, inventory_no FROM elements as folders WHERE type ='folder' AND user_id_fk = ? ORDER BY name
 `
 
 // type: Folder
@@ -1178,6 +1253,7 @@ func (q *Queries) FindAllFoldersByCreator(ctx context.Context, userIDFk sql.Null
 			&i.ComposerIDFk,
 			&i.ArrangerIDFk,
 			&i.Description,
+			&i.InventoryNo,
 		); err != nil {
 			return nil, err
 		}
@@ -1280,7 +1356,7 @@ func (q *Queries) FindAllMembersOfClub(ctx context.Context, clubID string) ([]Fi
 }
 
 const findAllNotesByAuthor = `-- name: FindAllNotesByAuthor :many
-SELECT type, id, creation_date, name, number_of_pages, user_id_fk, parent, pdf_content, wikidata_id, composition_year, genre, composer_id_fk, arranger_id_fk, description FROM elements
+SELECT type, id, creation_date, name, number_of_pages, user_id_fk, parent, pdf_content, wikidata_id, composition_year, genre, composer_id_fk, arranger_id_fk, description, inventory_no FROM elements
 WHERE type ='note' AND user_id_fk = ?
   AND (composer_id_fk = ? OR arranger_id_fk = ?)
 ORDER BY name
@@ -1316,6 +1392,7 @@ func (q *Queries) FindAllNotesByAuthor(ctx context.Context, arg FindAllNotesByAu
 			&i.ComposerIDFk,
 			&i.ArrangerIDFk,
 			&i.Description,
+			&i.InventoryNo,
 		); err != nil {
 			return nil, err
 		}
@@ -1332,8 +1409,8 @@ func (q *Queries) FindAllNotesByAuthor(ctx context.Context, arg FindAllNotesByAu
 
 const findAllNotesByCreator = `-- name: FindAllNotesByCreator :many
 SELECT
-  note.type, note.id, note.creation_date, note.name, note.number_of_pages, note.user_id_fk, note.parent, note.pdf_content, note.wikidata_id, note.composition_year, note.genre, note.composer_id_fk, note.arranger_id_fk, note.description,
-  p.type, p.id, p.creation_date, p.name, p.number_of_pages, p.user_id_fk, p.parent, p.pdf_content, p.wikidata_id, p.composition_year, p.genre, p.composer_id_fk, p.arranger_id_fk, p.description
+  note.type, note.id, note.creation_date, note.name, note.number_of_pages, note.user_id_fk, note.parent, note.pdf_content, note.wikidata_id, note.composition_year, note.genre, note.composer_id_fk, note.arranger_id_fk, note.description, note.inventory_no,
+  p.type, p.id, p.creation_date, p.name, p.number_of_pages, p.user_id_fk, p.parent, p.pdf_content, p.wikidata_id, p.composition_year, p.genre, p.composer_id_fk, p.arranger_id_fk, p.description, p.inventory_no
 FROM elements as note
 JOIN elements p ON p.id = note.parent
 WHERE note.type ='note' AND note.user_id_fk = ?
@@ -1369,6 +1446,7 @@ func (q *Queries) FindAllNotesByCreator(ctx context.Context, userIDFk sql.NullSt
 			&i.Element.ComposerIDFk,
 			&i.Element.ArrangerIDFk,
 			&i.Element.Description,
+			&i.Element.InventoryNo,
 			&i.Element_2.Type,
 			&i.Element_2.ID,
 			&i.Element_2.CreationDate,
@@ -1383,6 +1461,7 @@ func (q *Queries) FindAllNotesByCreator(ctx context.Context, userIDFk sql.NullSt
 			&i.Element_2.ComposerIDFk,
 			&i.Element_2.ArrangerIDFk,
 			&i.Element_2.Description,
+			&i.Element_2.InventoryNo,
 		); err != nil {
 			return nil, err
 		}
@@ -1399,8 +1478,8 @@ func (q *Queries) FindAllNotesByCreator(ctx context.Context, userIDFk sql.NullSt
 
 const findAllNotesByCreatorPaged = `-- name: FindAllNotesByCreatorPaged :many
 SELECT
-  note.type, note.id, note.creation_date, note.name, note.number_of_pages, note.user_id_fk, note.parent, note.pdf_content, note.wikidata_id, note.composition_year, note.genre, note.composer_id_fk, note.arranger_id_fk, note.description,
-  p.type, p.id, p.creation_date, p.name, p.number_of_pages, p.user_id_fk, p.parent, p.pdf_content, p.wikidata_id, p.composition_year, p.genre, p.composer_id_fk, p.arranger_id_fk, p.description
+  note.type, note.id, note.creation_date, note.name, note.number_of_pages, note.user_id_fk, note.parent, note.pdf_content, note.wikidata_id, note.composition_year, note.genre, note.composer_id_fk, note.arranger_id_fk, note.description, note.inventory_no,
+  p.type, p.id, p.creation_date, p.name, p.number_of_pages, p.user_id_fk, p.parent, p.pdf_content, p.wikidata_id, p.composition_year, p.genre, p.composer_id_fk, p.arranger_id_fk, p.description, p.inventory_no
 FROM elements as note
 JOIN elements p ON p.id = note.parent
 WHERE note.type ='note' AND note.user_id_fk = ?
@@ -1442,6 +1521,7 @@ func (q *Queries) FindAllNotesByCreatorPaged(ctx context.Context, arg FindAllNot
 			&i.Element.ComposerIDFk,
 			&i.Element.ArrangerIDFk,
 			&i.Element.Description,
+			&i.Element.InventoryNo,
 			&i.Element_2.Type,
 			&i.Element_2.ID,
 			&i.Element_2.CreationDate,
@@ -1456,6 +1536,7 @@ func (q *Queries) FindAllNotesByCreatorPaged(ctx context.Context, arg FindAllNot
 			&i.Element_2.ComposerIDFk,
 			&i.Element_2.ArrangerIDFk,
 			&i.Element_2.Description,
+			&i.Element_2.InventoryNo,
 		); err != nil {
 			return nil, err
 		}
@@ -1472,8 +1553,8 @@ func (q *Queries) FindAllNotesByCreatorPaged(ctx context.Context, arg FindAllNot
 
 const findAllNotesByCreatorPagedWithSearch = `-- name: FindAllNotesByCreatorPagedWithSearch :many
 SELECT
-  note.type, note.id, note.creation_date, note.name, note.number_of_pages, note.user_id_fk, note.parent, note.pdf_content, note.wikidata_id, note.composition_year, note.genre, note.composer_id_fk, note.arranger_id_fk, note.description,
-  p.type, p.id, p.creation_date, p.name, p.number_of_pages, p.user_id_fk, p.parent, p.pdf_content, p.wikidata_id, p.composition_year, p.genre, p.composer_id_fk, p.arranger_id_fk, p.description
+  note.type, note.id, note.creation_date, note.name, note.number_of_pages, note.user_id_fk, note.parent, note.pdf_content, note.wikidata_id, note.composition_year, note.genre, note.composer_id_fk, note.arranger_id_fk, note.description, note.inventory_no,
+  p.type, p.id, p.creation_date, p.name, p.number_of_pages, p.user_id_fk, p.parent, p.pdf_content, p.wikidata_id, p.composition_year, p.genre, p.composer_id_fk, p.arranger_id_fk, p.description, p.inventory_no
 FROM elements as note
 JOIN elements p ON p.id = note.parent
 WHERE note.type ='note'
@@ -1523,6 +1604,7 @@ func (q *Queries) FindAllNotesByCreatorPagedWithSearch(ctx context.Context, arg 
 			&i.Element.ComposerIDFk,
 			&i.Element.ArrangerIDFk,
 			&i.Element.Description,
+			&i.Element.InventoryNo,
 			&i.Element_2.Type,
 			&i.Element_2.ID,
 			&i.Element_2.CreationDate,
@@ -1537,6 +1619,7 @@ func (q *Queries) FindAllNotesByCreatorPagedWithSearch(ctx context.Context, arg 
 			&i.Element_2.ComposerIDFk,
 			&i.Element_2.ArrangerIDFk,
 			&i.Element_2.Description,
+			&i.Element_2.InventoryNo,
 		); err != nil {
 			return nil, err
 		}
@@ -1553,8 +1636,8 @@ func (q *Queries) FindAllNotesByCreatorPagedWithSearch(ctx context.Context, arg 
 
 const findAllNotesByCreatorWithSearch = `-- name: FindAllNotesByCreatorWithSearch :many
 SELECT
-  note.type, note.id, note.creation_date, note.name, note.number_of_pages, note.user_id_fk, note.parent, note.pdf_content, note.wikidata_id, note.composition_year, note.genre, note.composer_id_fk, note.arranger_id_fk, note.description,
-  p.type, p.id, p.creation_date, p.name, p.number_of_pages, p.user_id_fk, p.parent, p.pdf_content, p.wikidata_id, p.composition_year, p.genre, p.composer_id_fk, p.arranger_id_fk, p.description
+  note.type, note.id, note.creation_date, note.name, note.number_of_pages, note.user_id_fk, note.parent, note.pdf_content, note.wikidata_id, note.composition_year, note.genre, note.composer_id_fk, note.arranger_id_fk, note.description, note.inventory_no,
+  p.type, p.id, p.creation_date, p.name, p.number_of_pages, p.user_id_fk, p.parent, p.pdf_content, p.wikidata_id, p.composition_year, p.genre, p.composer_id_fk, p.arranger_id_fk, p.description, p.inventory_no
 FROM elements as note
 JOIN elements p ON p.id = note.parent
 WHERE note.type ='note'
@@ -1597,6 +1680,7 @@ func (q *Queries) FindAllNotesByCreatorWithSearch(ctx context.Context, arg FindA
 			&i.Element.ComposerIDFk,
 			&i.Element.ArrangerIDFk,
 			&i.Element.Description,
+			&i.Element.InventoryNo,
 			&i.Element_2.Type,
 			&i.Element_2.ID,
 			&i.Element_2.CreationDate,
@@ -1611,6 +1695,7 @@ func (q *Queries) FindAllNotesByCreatorWithSearch(ctx context.Context, arg FindA
 			&i.Element_2.ComposerIDFk,
 			&i.Element_2.ArrangerIDFk,
 			&i.Element_2.Description,
+			&i.Element_2.InventoryNo,
 		); err != nil {
 			return nil, err
 		}
@@ -1653,7 +1738,7 @@ func (q *Queries) FindAllNotesInConcertByPlace(ctx context.Context, concertIDFk 
 }
 
 const findAllParentFolders = `-- name: FindAllParentFolders :many
-SELECT type, id, creation_date, name, number_of_pages, user_id_fk, parent, pdf_content, wikidata_id, composition_year, genre, composer_id_fk, arranger_id_fk, description FROM elements WHERE parent IS NULL AND type = 'folder' AND user_id_fk = ? ORDER BY name
+SELECT type, id, creation_date, name, number_of_pages, user_id_fk, parent, pdf_content, wikidata_id, composition_year, genre, composer_id_fk, arranger_id_fk, description, inventory_no FROM elements WHERE parent IS NULL AND type = 'folder' AND user_id_fk = ? ORDER BY name
 `
 
 func (q *Queries) FindAllParentFolders(ctx context.Context, userIDFk sql.NullString) ([]Element, error) {
@@ -1680,6 +1765,7 @@ func (q *Queries) FindAllParentFolders(ctx context.Context, userIDFk sql.NullStr
 			&i.ComposerIDFk,
 			&i.ArrangerIDFk,
 			&i.Description,
+			&i.InventoryNo,
 		); err != nil {
 			return nil, err
 		}
@@ -1695,7 +1781,7 @@ func (q *Queries) FindAllParentFolders(ctx context.Context, userIDFk sql.NullStr
 }
 
 const findAllSubElements = `-- name: FindAllSubElements :many
-SELECT elements.type, elements.id, elements.creation_date, elements.name, elements.number_of_pages, elements.user_id_fk, elements.parent, elements.pdf_content, elements.wikidata_id, elements.composition_year, elements.genre, elements.composer_id_fk, elements.arranger_id_fk, elements.description
+SELECT elements.type, elements.id, elements.creation_date, elements.name, elements.number_of_pages, elements.user_id_fk, elements.parent, elements.pdf_content, elements.wikidata_id, elements.composition_year, elements.genre, elements.composer_id_fk, elements.arranger_id_fk, elements.description, elements.inventory_no
 FROM elements
 WHERE parent = ? AND elements.user_id_fk = ?
 ORDER BY elements.name
@@ -1734,6 +1820,7 @@ func (q *Queries) FindAllSubElements(ctx context.Context, arg FindAllSubElements
 			&i.Element.ComposerIDFk,
 			&i.Element.ArrangerIDFk,
 			&i.Element.Description,
+			&i.Element.InventoryNo,
 		); err != nil {
 			return nil, err
 		}
@@ -2196,7 +2283,7 @@ func (q *Queries) FindConcertsOfUserSortedByDate(ctx context.Context, userIDFk s
 }
 
 const findElementsByUserAndNameLike = `-- name: FindElementsByUserAndNameLike :many
-SELECT type, id, creation_date, name, number_of_pages, user_id_fk, parent, pdf_content, wikidata_id, composition_year, genre, composer_id_fk, arranger_id_fk, description FROM elements
+SELECT type, id, creation_date, name, number_of_pages, user_id_fk, parent, pdf_content, wikidata_id, composition_year, genre, composer_id_fk, arranger_id_fk, description, inventory_no FROM elements
 WHERE user_id_fk = ? AND type = 'note' AND name LIKE CONCAT('%', ?, '%')
 ORDER BY name LIMIT 10
 `
@@ -2230,6 +2317,7 @@ func (q *Queries) FindElementsByUserAndNameLike(ctx context.Context, arg FindEle
 			&i.ComposerIDFk,
 			&i.ArrangerIDFk,
 			&i.Description,
+			&i.InventoryNo,
 		); err != nil {
 			return nil, err
 		}
@@ -2245,7 +2333,7 @@ func (q *Queries) FindElementsByUserAndNameLike(ctx context.Context, arg FindEle
 }
 
 const findFolderById = `-- name: FindFolderById :one
-SELECT type, id, creation_date, name, number_of_pages, user_id_fk, parent, pdf_content, wikidata_id, composition_year, genre, composer_id_fk, arranger_id_fk, description FROM elements WHERE id = ? and user_id_fk = ?
+SELECT type, id, creation_date, name, number_of_pages, user_id_fk, parent, pdf_content, wikidata_id, composition_year, genre, composer_id_fk, arranger_id_fk, description, inventory_no FROM elements WHERE id = ? and user_id_fk = ?
 `
 
 type FindFolderByIdParams struct {
@@ -2271,12 +2359,13 @@ func (q *Queries) FindFolderById(ctx context.Context, arg FindFolderByIdParams) 
 		&i.ComposerIDFk,
 		&i.ArrangerIDFk,
 		&i.Description,
+		&i.InventoryNo,
 	)
 	return i, err
 }
 
 const findFolderByIdWithoutUserId = `-- name: FindFolderByIdWithoutUserId :one
-SELECT type, id, creation_date, name, number_of_pages, user_id_fk, parent, pdf_content, wikidata_id, composition_year, genre, composer_id_fk, arranger_id_fk, description FROM elements WHERE id = ?
+SELECT type, id, creation_date, name, number_of_pages, user_id_fk, parent, pdf_content, wikidata_id, composition_year, genre, composer_id_fk, arranger_id_fk, description, inventory_no FROM elements WHERE id = ?
 `
 
 func (q *Queries) FindFolderByIdWithoutUserId(ctx context.Context, id string) (Element, error) {
@@ -2297,6 +2386,7 @@ func (q *Queries) FindFolderByIdWithoutUserId(ctx context.Context, id string) (E
 		&i.ComposerIDFk,
 		&i.ArrangerIDFk,
 		&i.Description,
+		&i.InventoryNo,
 	)
 	return i, err
 }
@@ -2397,8 +2487,116 @@ func (q *Queries) FindIcalSyncWithUserSinceDate(ctx context.Context, lastSynced 
 	return items, nil
 }
 
+const findInventorySweep = `-- name: FindInventorySweep :one
+SELECT id, folder_fk, user_fk, started_at, completed_at FROM inventory_sweep WHERE id = ?
+`
+
+func (q *Queries) FindInventorySweep(ctx context.Context, id string) (InventorySweep, error) {
+	row := q.db.QueryRowContext(ctx, findInventorySweep, id)
+	var i InventorySweep
+	err := row.Scan(
+		&i.ID,
+		&i.FolderFk,
+		&i.UserFk,
+		&i.StartedAt,
+		&i.CompletedAt,
+	)
+	return i, err
+}
+
+const findLastSightingsForNotes = `-- name: FindLastSightingsForNotes :many
+SELECT s.note_fk, sw.folder_fk, sw.completed_at, e.name AS folder_name
+FROM inventory_sighting s
+         JOIN inventory_sweep sw ON sw.id = s.sweep_fk AND sw.completed_at IS NOT NULL
+         JOIN elements e ON e.id = sw.folder_fk
+WHERE s.note_fk IN (/*SLICE:ids*/?)
+ORDER BY sw.completed_at DESC
+`
+
+type FindLastSightingsForNotesRow struct {
+	NoteFk      string
+	FolderFk    string
+	CompletedAt sql.NullTime
+	FolderName  sql.NullString
+}
+
+func (q *Queries) FindLastSightingsForNotes(ctx context.Context, ids []string) ([]FindLastSightingsForNotesRow, error) {
+	query := findLastSightingsForNotes
+	var queryParams []interface{}
+	if len(ids) > 0 {
+		for _, v := range ids {
+			queryParams = append(queryParams, v)
+		}
+		query = strings.Replace(query, "/*SLICE:ids*/?", strings.Repeat(",?", len(ids))[1:], 1)
+	} else {
+		query = strings.Replace(query, "/*SLICE:ids*/?", "NULL", 1)
+	}
+	rows, err := q.db.QueryContext(ctx, query, queryParams...)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []FindLastSightingsForNotesRow
+	for rows.Next() {
+		var i FindLastSightingsForNotesRow
+		if err := rows.Scan(
+			&i.NoteFk,
+			&i.FolderFk,
+			&i.CompletedAt,
+			&i.FolderName,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const findMappeTag = `-- name: FindMappeTag :one
+SELECT mappe_tag.tag_id, mappe_tag.folder_fk, mappe_tag.user_fk, elements.name AS folder_name
+FROM mappe_tag
+         JOIN elements ON elements.id = mappe_tag.folder_fk
+WHERE mappe_tag.tag_id = ?
+`
+
+type FindMappeTagRow struct {
+	TagID      string
+	FolderFk   string
+	UserFk     string
+	FolderName sql.NullString
+}
+
+func (q *Queries) FindMappeTag(ctx context.Context, tagID string) (FindMappeTagRow, error) {
+	row := q.db.QueryRowContext(ctx, findMappeTag, tagID)
+	var i FindMappeTagRow
+	err := row.Scan(
+		&i.TagID,
+		&i.FolderFk,
+		&i.UserFk,
+		&i.FolderName,
+	)
+	return i, err
+}
+
+const findMappeTagForFolder = `-- name: FindMappeTagForFolder :one
+SELECT tag_id FROM mappe_tag WHERE folder_fk = ?
+`
+
+func (q *Queries) FindMappeTagForFolder(ctx context.Context, folderFk string) (string, error) {
+	row := q.db.QueryRowContext(ctx, findMappeTagForFolder, folderFk)
+	var tag_id string
+	err := row.Scan(&tag_id)
+	return tag_id, err
+}
+
 const findNoteById = `-- name: FindNoteById :one
-SELECT note.type, note.id, note.creation_date, note.name, note.number_of_pages, note.user_id_fk, note.parent, note.pdf_content, note.wikidata_id, note.composition_year, note.genre, note.composer_id_fk, note.arranger_id_fk, note.description,folder.type, folder.id, folder.creation_date, folder.name, folder.number_of_pages, folder.user_id_fk, folder.parent, folder.pdf_content, folder.wikidata_id, folder.composition_year, folder.genre, folder.composer_id_fk, folder.arranger_id_fk, folder.description FROM elements note join elements folder ON note.parent = folder.id  WHERE note.type ='note' AND note.id = ?
+SELECT note.type, note.id, note.creation_date, note.name, note.number_of_pages, note.user_id_fk, note.parent, note.pdf_content, note.wikidata_id, note.composition_year, note.genre, note.composer_id_fk, note.arranger_id_fk, note.description, note.inventory_no,folder.type, folder.id, folder.creation_date, folder.name, folder.number_of_pages, folder.user_id_fk, folder.parent, folder.pdf_content, folder.wikidata_id, folder.composition_year, folder.genre, folder.composer_id_fk, folder.arranger_id_fk, folder.description, folder.inventory_no FROM elements note join elements folder ON note.parent = folder.id  WHERE note.type ='note' AND note.id = ?
 `
 
 type FindNoteByIdRow struct {
@@ -2425,6 +2623,7 @@ func (q *Queries) FindNoteById(ctx context.Context, id string) (FindNoteByIdRow,
 		&i.Element.ComposerIDFk,
 		&i.Element.ArrangerIDFk,
 		&i.Element.Description,
+		&i.Element.InventoryNo,
 		&i.Element_2.Type,
 		&i.Element_2.ID,
 		&i.Element_2.CreationDate,
@@ -2439,8 +2638,84 @@ func (q *Queries) FindNoteById(ctx context.Context, id string) (FindNoteByIdRow,
 		&i.Element_2.ComposerIDFk,
 		&i.Element_2.ArrangerIDFk,
 		&i.Element_2.Description,
+		&i.Element_2.InventoryNo,
 	)
 	return i, err
+}
+
+const findNoteByUserAndInventoryNo = `-- name: FindNoteByUserAndInventoryNo :one
+SELECT note.id, note.name, note.parent, p.name AS parent_name
+FROM elements note
+         LEFT JOIN elements p ON p.id = note.parent
+WHERE note.user_id_fk = ? AND note.inventory_no = ? AND note.type = 'note'
+`
+
+type FindNoteByUserAndInventoryNoParams struct {
+	UserIDFk    sql.NullString
+	InventoryNo sql.NullInt32
+}
+
+type FindNoteByUserAndInventoryNoRow struct {
+	ID         string
+	Name       sql.NullString
+	Parent     sql.NullString
+	ParentName sql.NullString
+}
+
+func (q *Queries) FindNoteByUserAndInventoryNo(ctx context.Context, arg FindNoteByUserAndInventoryNoParams) (FindNoteByUserAndInventoryNoRow, error) {
+	row := q.db.QueryRowContext(ctx, findNoteByUserAndInventoryNo, arg.UserIDFk, arg.InventoryNo)
+	var i FindNoteByUserAndInventoryNoRow
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.Parent,
+		&i.ParentName,
+	)
+	return i, err
+}
+
+const findNotesInFolderForInventory = `-- name: FindNotesInFolderForInventory :many
+SELECT id, name, number_of_pages, inventory_no FROM elements WHERE parent = ? AND type = 'note' AND user_id_fk = ?
+`
+
+type FindNotesInFolderForInventoryParams struct {
+	Parent   sql.NullString
+	UserIDFk sql.NullString
+}
+
+type FindNotesInFolderForInventoryRow struct {
+	ID            string
+	Name          sql.NullString
+	NumberOfPages sql.NullInt32
+	InventoryNo   sql.NullInt32
+}
+
+func (q *Queries) FindNotesInFolderForInventory(ctx context.Context, arg FindNotesInFolderForInventoryParams) ([]FindNotesInFolderForInventoryRow, error) {
+	rows, err := q.db.QueryContext(ctx, findNotesInFolderForInventory, arg.Parent, arg.UserIDFk)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []FindNotesInFolderForInventoryRow
+	for rows.Next() {
+		var i FindNotesInFolderForInventoryRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Name,
+			&i.NumberOfPages,
+			&i.InventoryNo,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const findPendingClubInvitations = `-- name: FindPendingClubInvitations :many
@@ -3422,6 +3697,47 @@ func (q *Queries) ListClubFilesForClub(ctx context.Context, clubID string) ([]Li
 	return items, nil
 }
 
+const listNoteNamesForUser = `-- name: ListNoteNamesForUser :many
+SELECT id, name, inventory_no, number_of_pages, parent FROM elements WHERE user_id_fk = ? AND type = 'note'
+`
+
+type ListNoteNamesForUserRow struct {
+	ID            string
+	Name          sql.NullString
+	InventoryNo   sql.NullInt32
+	NumberOfPages sql.NullInt32
+	Parent        sql.NullString
+}
+
+func (q *Queries) ListNoteNamesForUser(ctx context.Context, userIDFk sql.NullString) ([]ListNoteNamesForUserRow, error) {
+	rows, err := q.db.QueryContext(ctx, listNoteNamesForUser, userIDFk)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ListNoteNamesForUserRow
+	for rows.Next() {
+		var i ListNoteNamesForUserRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Name,
+			&i.InventoryNo,
+			&i.NumberOfPages,
+			&i.Parent,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const listPinboardPostsForClub = `-- name: ListPinboardPostsForClub :many
 SELECT
     p.id,
@@ -3568,6 +3884,64 @@ func (q *Queries) ListRecentPinboardPostsForUser(ctx context.Context, arg ListRe
 	return items, nil
 }
 
+const listSightingsForSweep = `-- name: ListSightingsForSweep :many
+SELECT s.note_fk,
+       s.matched_via,
+       s.confidence,
+       s.incomplete,
+       e.name         AS note_name,
+       e.inventory_no,
+       e.parent       AS parent_id,
+       p.name         AS parent_name
+FROM inventory_sighting s
+         JOIN elements e ON e.id = s.note_fk
+         LEFT JOIN elements p ON p.id = e.parent
+WHERE s.sweep_fk = ?
+`
+
+type ListSightingsForSweepRow struct {
+	NoteFk      string
+	MatchedVia  InventorySightingMatchedVia
+	Confidence  sql.NullInt16
+	Incomplete  bool
+	NoteName    sql.NullString
+	InventoryNo sql.NullInt32
+	ParentID    sql.NullString
+	ParentName  sql.NullString
+}
+
+func (q *Queries) ListSightingsForSweep(ctx context.Context, sweepFk string) ([]ListSightingsForSweepRow, error) {
+	rows, err := q.db.QueryContext(ctx, listSightingsForSweep, sweepFk)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ListSightingsForSweepRow
+	for rows.Next() {
+		var i ListSightingsForSweepRow
+		if err := rows.Scan(
+			&i.NoteFk,
+			&i.MatchedVia,
+			&i.Confidence,
+			&i.Incomplete,
+			&i.NoteName,
+			&i.InventoryNo,
+			&i.ParentID,
+			&i.ParentName,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const markClubInvitationAccepted = `-- name: MarkClubInvitationAccepted :exec
 UPDATE club_invitation
 SET accepted_at = ?
@@ -3582,6 +3956,19 @@ type MarkClubInvitationAcceptedParams struct {
 func (q *Queries) MarkClubInvitationAccepted(ctx context.Context, arg MarkClubInvitationAcceptedParams) error {
 	_, err := q.db.ExecContext(ctx, markClubInvitationAccepted, arg.AcceptedAt, arg.Token)
 	return err
+}
+
+const maxInventoryNoForUser = `-- name: MaxInventoryNoForUser :one
+
+SELECT COALESCE(MAX(inventory_no), 0) FROM elements WHERE user_id_fk = ?
+`
+
+// Inventory sweep (docs/superpowers/specs/2026-07-12-inventory-sweep-design.md)
+func (q *Queries) MaxInventoryNoForUser(ctx context.Context, userIDFk sql.NullString) (interface{}, error) {
+	row := q.db.QueryRowContext(ctx, maxInventoryNoForUser, userIDFk)
+	var coalesce interface{}
+	err := row.Scan(&coalesce)
+	return coalesce, err
 }
 
 const moveToFolder = `-- name: MoveToFolder :exec
@@ -3685,7 +4072,7 @@ func (q *Queries) SaveClub(ctx context.Context, arg SaveClubParams) error {
 }
 
 const searchByFolderName = `-- name: SearchByFolderName :many
-SELECT type, id, creation_date, name, number_of_pages, user_id_fk, parent, pdf_content, wikidata_id, composition_year, genre, composer_id_fk, arranger_id_fk, description FROM elements WHERE name LIKE CONCAT('%', ?, '%') and type = 'folder' AND user_id_fk = ? ORDER BY name LIMIT ? OFFSET ?
+SELECT type, id, creation_date, name, number_of_pages, user_id_fk, parent, pdf_content, wikidata_id, composition_year, genre, composer_id_fk, arranger_id_fk, description, inventory_no FROM elements WHERE name LIKE CONCAT('%', ?, '%') and type = 'folder' AND user_id_fk = ? ORDER BY name LIMIT ? OFFSET ?
 `
 
 type SearchByFolderNameParams struct {
@@ -3724,6 +4111,7 @@ func (q *Queries) SearchByFolderName(ctx context.Context, arg SearchByFolderName
 			&i.ComposerIDFk,
 			&i.ArrangerIDFk,
 			&i.Description,
+			&i.InventoryNo,
 		); err != nil {
 			return nil, err
 		}
@@ -3750,6 +4138,24 @@ type SetIcalFeedTokenParams struct {
 func (q *Queries) SetIcalFeedToken(ctx context.Context, arg SetIcalFeedTokenParams) error {
 	_, err := q.db.ExecContext(ctx, setIcalFeedToken, arg.IcalFeedToken, arg.ID)
 	return err
+}
+
+const setNoteInventoryNo = `-- name: SetNoteInventoryNo :execrows
+UPDATE elements SET inventory_no = ? WHERE id = ? AND user_id_fk = ? AND inventory_no IS NULL
+`
+
+type SetNoteInventoryNoParams struct {
+	InventoryNo sql.NullInt32
+	ID          string
+	UserIDFk    sql.NullString
+}
+
+func (q *Queries) SetNoteInventoryNo(ctx context.Context, arg SetNoteInventoryNoParams) (int64, error) {
+	result, err := q.db.ExecContext(ctx, setNoteInventoryNo, arg.InventoryNo, arg.ID, arg.UserIDFk)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected()
 }
 
 const softCancelClubEvent = `-- name: SoftCancelClubEvent :exec

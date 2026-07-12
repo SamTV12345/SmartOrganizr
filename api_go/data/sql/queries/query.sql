@@ -747,3 +747,73 @@ WHERE id = ?;
 UPDATE address
 SET street = ?, house_number = ?, location = ?, postal_code = ?, country = ?
 WHERE id = ?;
+
+-- Inventory sweep (docs/superpowers/specs/2026-07-12-inventory-sweep-design.md)
+
+-- name: MaxInventoryNoForUser :one
+SELECT COALESCE(MAX(inventory_no), 0) FROM elements WHERE user_id_fk = ?;
+
+-- name: SetNoteInventoryNo :execrows
+UPDATE elements SET inventory_no = ? WHERE id = ? AND user_id_fk = ? AND inventory_no IS NULL;
+
+-- name: FindNoteByUserAndInventoryNo :one
+SELECT note.id, note.name, note.parent, p.name AS parent_name
+FROM elements note
+         LEFT JOIN elements p ON p.id = note.parent
+WHERE note.user_id_fk = ? AND note.inventory_no = ? AND note.type = 'note';
+
+-- name: ListNoteNamesForUser :many
+SELECT id, name, inventory_no, number_of_pages, parent FROM elements WHERE user_id_fk = ? AND type = 'note';
+
+-- name: DeleteMappeTagForFolder :exec
+DELETE FROM mappe_tag WHERE folder_fk = ?;
+
+-- name: CreateMappeTag :exec
+INSERT INTO mappe_tag (tag_id, folder_fk, user_fk) VALUES (?, ?, ?);
+
+-- name: FindMappeTag :one
+SELECT mappe_tag.tag_id, mappe_tag.folder_fk, mappe_tag.user_fk, elements.name AS folder_name
+FROM mappe_tag
+         JOIN elements ON elements.id = mappe_tag.folder_fk
+WHERE mappe_tag.tag_id = ?;
+
+-- name: FindMappeTagForFolder :one
+SELECT tag_id FROM mappe_tag WHERE folder_fk = ?;
+
+-- name: CreateInventorySweep :exec
+INSERT INTO inventory_sweep (id, folder_fk, user_fk) VALUES (?, ?, ?);
+
+-- name: FindInventorySweep :one
+SELECT * FROM inventory_sweep WHERE id = ?;
+
+-- name: CompleteInventorySweep :exec
+UPDATE inventory_sweep SET completed_at = CURRENT_TIMESTAMP WHERE id = ?;
+
+-- name: CreateInventorySighting :execrows
+INSERT IGNORE INTO inventory_sighting (sweep_fk, note_fk, matched_via, confidence, incomplete)
+VALUES (?, ?, ?, ?, ?);
+
+-- name: ListSightingsForSweep :many
+SELECT s.note_fk,
+       s.matched_via,
+       s.confidence,
+       s.incomplete,
+       e.name         AS note_name,
+       e.inventory_no,
+       e.parent       AS parent_id,
+       p.name         AS parent_name
+FROM inventory_sighting s
+         JOIN elements e ON e.id = s.note_fk
+         LEFT JOIN elements p ON p.id = e.parent
+WHERE s.sweep_fk = ?;
+
+-- name: FindNotesInFolderForInventory :many
+SELECT id, name, number_of_pages, inventory_no FROM elements WHERE parent = ? AND type = 'note' AND user_id_fk = ?;
+
+-- name: FindLastSightingsForNotes :many
+SELECT s.note_fk, sw.folder_fk, sw.completed_at, e.name AS folder_name
+FROM inventory_sighting s
+         JOIN inventory_sweep sw ON sw.id = s.sweep_fk AND sw.completed_at IS NOT NULL
+         JOIN elements e ON e.id = sw.folder_fk
+WHERE s.note_fk IN (sqlc.slice('ids'))
+ORDER BY sw.completed_at DESC;

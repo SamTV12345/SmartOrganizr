@@ -716,6 +716,55 @@ definitions:
     - id
     - url
     type: object
+  dto.InventoryApplyMovesRequest:
+    properties:
+      noteIds:
+        items:
+          type: string
+        type: array
+    required:
+    - noteIds
+    type: object
+  dto.InventoryIdentifyRequest:
+    properties:
+      imageBase64:
+        description: 'ImageBase64 (optional, no data: prefix) enables the AI vision
+          fallback.'
+        type: string
+      mimeType:
+        type: string
+      ocrText:
+        description: OcrText is the client-side tesseract output for the photographed
+          page.
+        type: string
+    type: object
+  dto.InventorySightingRequest:
+    properties:
+      confidence:
+        type: integer
+      incomplete:
+        type: boolean
+      matchedVia:
+        description: OCR | AI | MANUAL
+        type: string
+      noteId:
+        type: string
+    required:
+    - matchedVia
+    - noteId
+    type: object
+  dto.InventorySweepCreateRequest:
+    properties:
+      folderId:
+        type: string
+    required:
+    - folderId
+    type: object
+  dto.InventorySweepCreatedResponse:
+    properties:
+      sweepId:
+        type: string
+    type: object
   dto.KeycloakModel:
     properties:
       aiEnabled:
@@ -730,6 +779,13 @@ definitions:
     - clientId
     - realm
     - url
+    type: object
+  dto.MappeTagResponse:
+    properties:
+      tagId:
+        type: string
+      url:
+        type: string
     type: object
   dto.Note:
     properties:
@@ -1111,6 +1167,39 @@ definitions:
       username:
         type: string
     type: object
+  service.IdentifyCandidate:
+    properties:
+      confidence:
+        type: integer
+      folderId:
+        type: string
+      inventoryNo:
+        type: integer
+      matchedVia:
+        description: OCR or AI
+        type: string
+      name:
+        type: string
+      noteId:
+        type: string
+      numberOfPages:
+        type: integer
+    type: object
+  service.InventoryLookup:
+    properties:
+      folderId:
+        type: string
+      folderName:
+        type: string
+      lastSeenAt:
+        type: string
+      lastSeenFolder:
+        type: string
+      name:
+        type: string
+      noteId:
+        type: string
+    type: object
   service.MusicIdentification:
     properties:
       arranger:
@@ -1123,6 +1212,58 @@ definitions:
         type: string
       title:
         type: string
+    type: object
+  service.ReportEntry:
+    properties:
+      incomplete:
+        type: boolean
+      inventoryNo:
+        type: integer
+      lastSeenAt:
+        type: string
+      lastSeenFolderName:
+        type: string
+      name:
+        type: string
+      noteId:
+        type: string
+      previousFolderName:
+        type: string
+    type: object
+  service.ResolvedTag:
+    properties:
+      folderId:
+        type: string
+      folderName:
+        type: string
+    type: object
+  service.SightingResult:
+    properties:
+      alreadySighted:
+        type: boolean
+      inventoryNo:
+        type: integer
+      noteName:
+        type: string
+    type: object
+  service.SweepReport:
+    properties:
+      incomplete:
+        items:
+          $ref: '#/definitions/service.ReportEntry'
+        type: array
+      missing:
+        items:
+          $ref: '#/definitions/service.ReportEntry'
+        type: array
+      newHere:
+        items:
+          $ref: '#/definitions/service.ReportEntry'
+        type: array
+      present:
+        items:
+          $ref: '#/definitions/service.ReportEntry'
+        type: array
     type: object
 info:
   contact: {}
@@ -2652,6 +2793,208 @@ paths:
       summary: List events for a user since a given date
       tags:
       - events
+  /v1/inventory/folders/{folderId}/tag:
+    put:
+      parameters:
+      - description: Folder ID
+        in: path
+        name: folderId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.MappeTagResponse'
+      summary: Bind (or rotate) the NFC/QR tag of a folder
+      tags:
+      - inventory
+  /v1/inventory/identify:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: OCR text and optional image for the AI fallback
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.InventoryIdentifyRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/service.IdentifyCandidate'
+            type: array
+      summary: Match a photographed first page against the user's notes
+      tags:
+      - inventory
+  /v1/inventory/lookup:
+    get:
+      parameters:
+      - description: Stamped inventory number
+        in: query
+        name: "no"
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/service.InventoryLookup'
+      summary: Resolve a stamped inventory number (orphan page) to its piece and Mappe
+      tags:
+      - inventory
+  /v1/inventory/notes/{noteId}/last-seen:
+    get:
+      parameters:
+      - description: Note ID
+        in: path
+        name: noteId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/service.InventoryLookup'
+      summary: Last completed-sweep sighting of a note
+      tags:
+      - inventory
+  /v1/inventory/notes/{noteId}/number:
+    post:
+      parameters:
+      - description: Note ID
+        in: path
+        name: noteId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: integer
+            type: object
+      summary: Assign the next free inventory number to a note (idempotent)
+      tags:
+      - inventory
+  /v1/inventory/sweeps:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Folder to sweep
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.InventorySweepCreateRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.InventorySweepCreatedResponse'
+      summary: Start an inventory sweep for a folder (Mappe)
+      tags:
+      - inventory
+  /v1/inventory/sweeps/{sweepId}/apply-moves:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Sweep ID
+        in: path
+        name: sweepId
+        required: true
+        type: string
+      - description: Notes to move
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.InventoryApplyMovesRequest'
+      responses:
+        "204":
+          description: No Content
+      summary: Move sighted notes into the swept folder
+      tags:
+      - inventory
+  /v1/inventory/sweeps/{sweepId}/complete:
+    post:
+      parameters:
+      - description: Sweep ID
+        in: path
+        name: sweepId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/service.SweepReport'
+      summary: Complete a sweep and get the reconciliation report
+      tags:
+      - inventory
+  /v1/inventory/sweeps/{sweepId}/sightings:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Sweep ID
+        in: path
+        name: sweepId
+        required: true
+        type: string
+      - description: Sighting payload
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.InventorySightingRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/service.SightingResult'
+      summary: Record a sighted note in a running sweep (assigns the inventory number)
+      tags:
+      - inventory
+  /v1/inventory/tags/{tagId}:
+    get:
+      parameters:
+      - description: Tag ID
+        in: path
+        name: tagId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/service.ResolvedTag'
+      summary: Resolve a scanned tag to its folder
+      tags:
+      - inventory
   /v1/invitations/{token}/accept:
     post:
       parameters:

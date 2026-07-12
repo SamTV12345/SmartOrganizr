@@ -2652,6 +2652,410 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/inventory/folders/{folderId}/tag": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Bind (or rotate) the NFC/QR tag of a folder */
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Folder ID */
+                    folderId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["dto.MappeTagResponse"];
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/inventory/identify": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Match a photographed first page against the user's notes */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            /** @description OCR text and optional image for the AI fallback */
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["dto.InventoryIdentifyRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["service.IdentifyCandidate"][];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/inventory/lookup": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Resolve a stamped inventory number (orphan page) to its piece and Mappe */
+        get: {
+            parameters: {
+                query: {
+                    /** @description Stamped inventory number */
+                    no: number;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["service.InventoryLookup"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/inventory/notes/{noteId}/last-seen": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Last completed-sweep sighting of a note */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Note ID */
+                    noteId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["service.InventoryLookup"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/inventory/notes/{noteId}/number": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Assign the next free inventory number to a note (idempotent) */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Note ID */
+                    noteId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            [key: string]: number;
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/inventory/sweeps": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Start an inventory sweep for a folder (Mappe) */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            /** @description Folder to sweep */
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["dto.InventorySweepCreateRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["dto.InventorySweepCreatedResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/inventory/sweeps/{sweepId}/apply-moves": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Move sighted notes into the swept folder */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Sweep ID */
+                    sweepId: string;
+                };
+                cookie?: never;
+            };
+            /** @description Notes to move */
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["dto.InventoryApplyMovesRequest"];
+                };
+            };
+            responses: {
+                /** @description No Content */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/inventory/sweeps/{sweepId}/complete": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Complete a sweep and get the reconciliation report */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Sweep ID */
+                    sweepId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["service.SweepReport"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/inventory/sweeps/{sweepId}/sightings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Record a sighted note in a running sweep (assigns the inventory number) */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Sweep ID */
+                    sweepId: string;
+                };
+                cookie?: never;
+            };
+            /** @description Sighting payload */
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["dto.InventorySightingRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["service.SightingResult"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/inventory/tags/{tagId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Resolve a scanned tag to its folder */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Tag ID */
+                    tagId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["service.ResolvedTag"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/invitations/{token}/accept": {
         parameters: {
             query?: never;
@@ -3712,11 +4116,38 @@ export interface components {
             id: string;
             url: string;
         };
+        "dto.InventoryApplyMovesRequest": {
+            noteIds: string[];
+        };
+        "dto.InventoryIdentifyRequest": {
+            /** @description ImageBase64 (optional, no data: prefix) enables the AI vision fallback. */
+            imageBase64?: string;
+            mimeType?: string;
+            /** @description OcrText is the client-side tesseract output for the photographed page. */
+            ocrText?: string;
+        };
+        "dto.InventorySightingRequest": {
+            confidence?: number;
+            incomplete?: boolean;
+            /** @description OCR | AI | MANUAL */
+            matchedVia: string;
+            noteId: string;
+        };
+        "dto.InventorySweepCreateRequest": {
+            folderId: string;
+        };
+        "dto.InventorySweepCreatedResponse": {
+            sweepId?: string;
+        };
         "dto.KeycloakModel": {
             aiEnabled?: boolean;
             clientId: string;
             realm: string;
             url: string;
+        };
+        "dto.MappeTagResponse": {
+            tagId?: string;
+            url?: string;
         };
         "dto.Note": {
             arranger?: components["schemas"]["dto.Author"];
@@ -3880,12 +4311,54 @@ export interface components {
             userId?: string;
             username?: string;
         };
+        "service.IdentifyCandidate": {
+            confidence?: number;
+            folderId?: string;
+            inventoryNo?: number;
+            /** @description OCR or AI */
+            matchedVia?: string;
+            name?: string;
+            noteId?: string;
+            numberOfPages?: number;
+        };
+        "service.InventoryLookup": {
+            folderId?: string;
+            folderName?: string;
+            lastSeenAt?: string;
+            lastSeenFolder?: string;
+            name?: string;
+            noteId?: string;
+        };
         "service.MusicIdentification": {
             arranger?: string;
             composer?: string;
             confidence?: number;
             notes?: string;
             title?: string;
+        };
+        "service.ReportEntry": {
+            incomplete?: boolean;
+            inventoryNo?: number;
+            lastSeenAt?: string;
+            lastSeenFolderName?: string;
+            name?: string;
+            noteId?: string;
+            previousFolderName?: string;
+        };
+        "service.ResolvedTag": {
+            folderId?: string;
+            folderName?: string;
+        };
+        "service.SightingResult": {
+            alreadySighted?: boolean;
+            inventoryNo?: number;
+            noteName?: string;
+        };
+        "service.SweepReport": {
+            incomplete?: components["schemas"]["service.ReportEntry"][];
+            missing?: components["schemas"]["service.ReportEntry"][];
+            newHere?: components["schemas"]["service.ReportEntry"][];
+            present?: components["schemas"]["service.ReportEntry"][];
         };
     };
     responses: never;

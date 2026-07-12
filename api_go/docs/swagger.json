@@ -2350,6 +2350,320 @@
                 }
             }
         },
+        "/v1/inventory/folders/{folderId}/tag": {
+            "put": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "inventory"
+                ],
+                "summary": "Bind (or rotate) the NFC/QR tag of a folder",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Folder ID",
+                        "name": "folderId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.MappeTagResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/inventory/identify": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "inventory"
+                ],
+                "summary": "Match a photographed first page against the user's notes",
+                "parameters": [
+                    {
+                        "description": "OCR text and optional image for the AI fallback",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.InventoryIdentifyRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/service.IdentifyCandidate"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/inventory/lookup": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "inventory"
+                ],
+                "summary": "Resolve a stamped inventory number (orphan page) to its piece and Mappe",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Stamped inventory number",
+                        "name": "no",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/service.InventoryLookup"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/inventory/notes/{noteId}/last-seen": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "inventory"
+                ],
+                "summary": "Last completed-sweep sighting of a note",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Note ID",
+                        "name": "noteId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/service.InventoryLookup"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/inventory/notes/{noteId}/number": {
+            "post": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "inventory"
+                ],
+                "summary": "Assign the next free inventory number to a note (idempotent)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Note ID",
+                        "name": "noteId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "integer"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/inventory/sweeps": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "inventory"
+                ],
+                "summary": "Start an inventory sweep for a folder (Mappe)",
+                "parameters": [
+                    {
+                        "description": "Folder to sweep",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.InventorySweepCreateRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.InventorySweepCreatedResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/inventory/sweeps/{sweepId}/apply-moves": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "tags": [
+                    "inventory"
+                ],
+                "summary": "Move sighted notes into the swept folder",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Sweep ID",
+                        "name": "sweepId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Notes to move",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.InventoryApplyMovesRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    }
+                }
+            }
+        },
+        "/v1/inventory/sweeps/{sweepId}/complete": {
+            "post": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "inventory"
+                ],
+                "summary": "Complete a sweep and get the reconciliation report",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Sweep ID",
+                        "name": "sweepId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/service.SweepReport"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/inventory/sweeps/{sweepId}/sightings": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "inventory"
+                ],
+                "summary": "Record a sighted note in a running sweep (assigns the inventory number)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Sweep ID",
+                        "name": "sweepId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Sighting payload",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.InventorySightingRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/service.SightingResult"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/inventory/tags/{tagId}": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "inventory"
+                ],
+                "summary": "Resolve a scanned tag to its folder",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Tag ID",
+                        "name": "tagId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/service.ResolvedTag"
+                        }
+                    }
+                }
+            }
+        },
         "/v1/invitations/{token}/accept": {
             "post": {
                 "tags": [
@@ -3939,6 +4253,77 @@
                 }
             }
         },
+        "dto.InventoryApplyMovesRequest": {
+            "type": "object",
+            "required": [
+                "noteIds"
+            ],
+            "properties": {
+                "noteIds": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "dto.InventoryIdentifyRequest": {
+            "type": "object",
+            "properties": {
+                "imageBase64": {
+                    "description": "ImageBase64 (optional, no data: prefix) enables the AI vision fallback.",
+                    "type": "string"
+                },
+                "mimeType": {
+                    "type": "string"
+                },
+                "ocrText": {
+                    "description": "OcrText is the client-side tesseract output for the photographed page.",
+                    "type": "string"
+                }
+            }
+        },
+        "dto.InventorySightingRequest": {
+            "type": "object",
+            "required": [
+                "matchedVia",
+                "noteId"
+            ],
+            "properties": {
+                "confidence": {
+                    "type": "integer"
+                },
+                "incomplete": {
+                    "type": "boolean"
+                },
+                "matchedVia": {
+                    "description": "OCR | AI | MANUAL",
+                    "type": "string"
+                },
+                "noteId": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.InventorySweepCreateRequest": {
+            "type": "object",
+            "required": [
+                "folderId"
+            ],
+            "properties": {
+                "folderId": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.InventorySweepCreatedResponse": {
+            "type": "object",
+            "properties": {
+                "sweepId": {
+                    "type": "string"
+                }
+            }
+        },
         "dto.KeycloakModel": {
             "type": "object",
             "required": [
@@ -3954,6 +4339,17 @@
                     "type": "string"
                 },
                 "realm": {
+                    "type": "string"
+                },
+                "url": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.MappeTagResponse": {
+            "type": "object",
+            "properties": {
+                "tagId": {
                     "type": "string"
                 },
                 "url": {
@@ -4527,6 +4923,56 @@
                 }
             }
         },
+        "service.IdentifyCandidate": {
+            "type": "object",
+            "properties": {
+                "confidence": {
+                    "type": "integer"
+                },
+                "folderId": {
+                    "type": "string"
+                },
+                "inventoryNo": {
+                    "type": "integer"
+                },
+                "matchedVia": {
+                    "description": "OCR or AI",
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "noteId": {
+                    "type": "string"
+                },
+                "numberOfPages": {
+                    "type": "integer"
+                }
+            }
+        },
+        "service.InventoryLookup": {
+            "type": "object",
+            "properties": {
+                "folderId": {
+                    "type": "string"
+                },
+                "folderName": {
+                    "type": "string"
+                },
+                "lastSeenAt": {
+                    "type": "string"
+                },
+                "lastSeenFolder": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "noteId": {
+                    "type": "string"
+                }
+            }
+        },
         "service.MusicIdentification": {
             "type": "object",
             "properties": {
@@ -4544,6 +4990,86 @@
                 },
                 "title": {
                     "type": "string"
+                }
+            }
+        },
+        "service.ReportEntry": {
+            "type": "object",
+            "properties": {
+                "incomplete": {
+                    "type": "boolean"
+                },
+                "inventoryNo": {
+                    "type": "integer"
+                },
+                "lastSeenAt": {
+                    "type": "string"
+                },
+                "lastSeenFolderName": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "noteId": {
+                    "type": "string"
+                },
+                "previousFolderName": {
+                    "type": "string"
+                }
+            }
+        },
+        "service.ResolvedTag": {
+            "type": "object",
+            "properties": {
+                "folderId": {
+                    "type": "string"
+                },
+                "folderName": {
+                    "type": "string"
+                }
+            }
+        },
+        "service.SightingResult": {
+            "type": "object",
+            "properties": {
+                "alreadySighted": {
+                    "type": "boolean"
+                },
+                "inventoryNo": {
+                    "type": "integer"
+                },
+                "noteName": {
+                    "type": "string"
+                }
+            }
+        },
+        "service.SweepReport": {
+            "type": "object",
+            "properties": {
+                "incomplete": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/service.ReportEntry"
+                    }
+                },
+                "missing": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/service.ReportEntry"
+                    }
+                },
+                "newHere": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/service.ReportEntry"
+                    }
+                },
+                "present": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/service.ReportEntry"
+                    }
                 }
             }
         }

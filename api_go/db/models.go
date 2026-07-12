@@ -56,6 +56,49 @@ func (ns NullClubParticipantRole) Value() (driver.Value, error) {
 	return string(ns.ClubParticipantRole), nil
 }
 
+type InventorySightingMatchedVia string
+
+const (
+	InventorySightingMatchedViaOCR    InventorySightingMatchedVia = "OCR"
+	InventorySightingMatchedViaAI     InventorySightingMatchedVia = "AI"
+	InventorySightingMatchedViaMANUAL InventorySightingMatchedVia = "MANUAL"
+)
+
+func (e *InventorySightingMatchedVia) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = InventorySightingMatchedVia(s)
+	case string:
+		*e = InventorySightingMatchedVia(s)
+	default:
+		return fmt.Errorf("unsupported scan type for InventorySightingMatchedVia: %T", src)
+	}
+	return nil
+}
+
+type NullInventorySightingMatchedVia struct {
+	InventorySightingMatchedVia InventorySightingMatchedVia
+	Valid                       bool // Valid is true if InventorySightingMatchedVia is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullInventorySightingMatchedVia) Scan(value interface{}) error {
+	if value == nil {
+		ns.InventorySightingMatchedVia, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.InventorySightingMatchedVia.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullInventorySightingMatchedVia) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.InventorySightingMatchedVia), nil
+}
+
 type Address struct {
 	ID          string
 	Street      string
@@ -214,6 +257,7 @@ type Element struct {
 	ComposerIDFk    sql.NullString
 	ArrangerIDFk    sql.NullString
 	Description     sql.NullString
+	InventoryNo     sql.NullInt32
 }
 
 type Event struct {
@@ -236,6 +280,30 @@ type IcalSync struct {
 	IcalUrl    string
 	Type       string
 	LastSynced sql.NullTime
+}
+
+type InventorySighting struct {
+	SweepFk    string
+	NoteFk     string
+	MatchedVia InventorySightingMatchedVia
+	Confidence sql.NullInt16
+	Incomplete bool
+	CreatedAt  time.Time
+}
+
+type InventorySweep struct {
+	ID          string
+	FolderFk    string
+	UserFk      string
+	StartedAt   time.Time
+	CompletedAt sql.NullTime
+}
+
+type MappeTag struct {
+	TagID     string
+	FolderFk  string
+	UserFk    string
+	CreatedAt time.Time
 }
 
 type NoteInConcert struct {

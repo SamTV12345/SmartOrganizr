@@ -161,6 +161,8 @@ func SetupRouter(queries *db.Queries, config config.AppConfig, logger *zap.Sugar
 		NoteSearch: noteService,
 	}
 
+	var inventoryService = service.NewInventoryService(queries, aiService)
+
 	noteService.FolderService = &folderService
 
 	var concertService = service.ConcertService{
@@ -190,6 +192,7 @@ func SetupRouter(queries *db.Queries, config config.AppConfig, logger *zap.Sugar
 		SetLocal[*service.WikidataService](c, constants.WikidataService, wikidataService)
 		SetLocal[*service.AIService](c, constants.AIService, aiService)
 		SetLocal[*service.AIChatService](c, constants.AIChatService, aiChatService)
+		SetLocal[service.InventoryService](c, constants.InventoryService, inventoryService)
 		SetLocal[string](c, constants.AppBaseURL, config.App.URL)
 
 		return c.Next()
@@ -326,6 +329,19 @@ func SetupRouter(queries *db.Queries, config config.AppConfig, logger *zap.Sugar
 
 	profile.Route("v1/works", func(r fiber.Router) {
 		r.Post("/from-wikidata", controllers.PostWorkFromWikidata)
+	})
+
+	profile.Route("v1/inventory", func(r fiber.Router) {
+		r.Post("/identify", controllers.PostInventoryIdentify)
+		r.Post("/sweeps", controllers.PostInventorySweep)
+		r.Post("/sweeps/:sweepId/sightings", controllers.PostInventorySighting)
+		r.Post("/sweeps/:sweepId/complete", controllers.PostInventorySweepComplete)
+		r.Post("/sweeps/:sweepId/apply-moves", controllers.PostInventoryApplyMoves)
+		r.Put("/folders/:folderId/tag", controllers.PutMappeTag)
+		r.Get("/tags/:tagId", controllers.GetMappeTag)
+		r.Get("/lookup", controllers.GetInventoryLookup)
+		r.Post("/notes/:noteId/number", controllers.PostInventoryNumber)
+		r.Get("/notes/:noteId/last-seen", controllers.GetInventoryLastSeen)
 	})
 
 	profile.Route("v1/ai", func(r fiber.Router) {

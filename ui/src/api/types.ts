@@ -44,6 +44,14 @@ export type ClubChatPostMessage = Schemas["dto.ClubChatPostMessageDto"];
 export type ClubInvitePost = Schemas["dto.ClubInvitePostDto"];
 export type ClubMemberRolePatch = Schemas["dto.ClubMemberRolePatchDto"];
 
+export type IdentifyCandidate = Schemas["service.IdentifyCandidate"];
+export type SweepReport = Schemas["service.SweepReport"];
+export type SweepReportEntry = Schemas["service.ReportEntry"];
+export type SightingResult = Schemas["service.SightingResult"];
+export type InventoryLookup = Schemas["service.InventoryLookup"];
+export type ResolvedTag = Schemas["service.ResolvedTag"];
+export type MappeTagResponse = Schemas["dto.MappeTagResponse"];
+
 export type AutocompleteAuthor = Schemas["dto.AutocompleteAuthor"];
 export type AutocompleteWork = Schemas["dto.AutocompleteWork"];
 export type AutocompleteAuthorsResponse = Schemas["dto.AutocompleteAuthorsResponse"];
