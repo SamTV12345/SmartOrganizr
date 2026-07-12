@@ -1,6 +1,7 @@
 import { useSyncExternalStore } from "react";
 import { syncNow } from "./offlineSync";
 import { getLastSyncedAt } from "./offlineDb";
+import { pushPendingSweepsNow } from "./pendingSweepSync";
 
 export type SyncStatus = {
   syncing: boolean;
@@ -56,6 +57,9 @@ export async function runSync(): Promise<boolean> {
   try {
     await syncNow();
     setState({ syncing: false, lastSyncedAt: Date.now() });
+    // Replay inventory sweeps captured offline. Fire-and-forget: failures keep the
+    // sweeps queued for the next sync and never fail the data sync itself.
+    void pushPendingSweepsNow();
     return true;
   } catch (error) {
     setState({ syncing: false, lastError: error instanceof Error ? error.message : String(error) });

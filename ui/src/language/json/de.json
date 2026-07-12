@@ -333,7 +333,13 @@
     "orphanHint": "Gestempelte Nummer eingeben — die App sagt dir, wohin das Blatt gehört.",
     "lookup": "Suchen",
     "numberUnknown": "Diese Nummer ist nicht vergeben.",
-    "belongsTo": "Gehört in: {{folder}}"
+    "belongsTo": "Gehört in: {{folder}}",
+    "offlineBanner": "Offline-Modus: Abgleich lokal gegen die heruntergeladene Bibliothek, ohne KI-Erkennung.",
+    "offlineNoNumber": "Inventarnummer wird nach der Synchronisierung vergeben.",
+    "localReportHint": "Erfasste Stücke dieser Offline-Inventur. Der vollständige Abgleich (neu hier / fehlt) folgt nach der Synchronisierung.",
+    "offlineSynced": "Offline-Inventur synchronisiert: {{count}} Mappen",
+    "pendingCount": "{{count}} Offline-Inventur(en) warten auf Synchronisierung.",
+    "syncNow": "Jetzt synchronisieren"
   },
   "sections": {
     "title": "Register",
