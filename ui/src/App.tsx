@@ -24,6 +24,7 @@ import {ClubDetailView} from "@/src/pages/ClubDetailView";
 import {InviteAcceptView} from "@/src/pages/InviteAcceptView";
 import {MyMessagesView} from "@/src/pages/MyMessagesView";
 import {DashboardView} from "@/src/pages/DashboardView";
+import {InventoryView} from "@/src/pages/InventoryView";
 import {NotificationProvider} from "@/src/notifications/NotificationProvider";
 import {AIChatLauncher} from "@/src/components/aichat/AIChatLauncher";
 import {AppStatusToasts} from "@/src/components/AppStatusToasts";
@@ -73,6 +74,7 @@ function App() {
                   <Route path={"/noteManagement"} element={<MyManagement/>}/>
                   <Route path="/profile/edit" element={<ProfileEdit/>}/>
                   <Route path="/myDates" element={<EventView/>}/>
+                  <Route path="/inventory" element={<InventoryView/>}/>
                   <Route path="/myMessages" element={<MyMessagesView/>}/>
                   <Route path="/createClub" element={<Suspense><ClubView/></Suspense>} />
                   <Route path="/clubs/:clubId" element={<Suspense><ClubDetailView/></Suspense>} />

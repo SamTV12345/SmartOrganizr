@@ -17,9 +17,18 @@ import {
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { useOnlineStatus } from "@/src/offline/useOnlineStatus";
+import { useQuery } from "@tanstack/react-query";
+import { http as axios } from "@/src/api/client";
+import type { InventoryLookup } from "@/src/api/types";
 
 export const NoteDetailView = () => {
     const { id } = useParams();
+    const { data: lastSeen } = useQuery<InventoryLookup>({
+        queryKey: ["inventory-last-seen", id],
+        queryFn: async () =>
+            (await axios.get<InventoryLookup>(`${apiURL}/v1/inventory/notes/${id}/last-seen`)).data,
+        enabled: !!id,
+    });
     const navigate = useNavigate();
     const { t } = useTranslation();
     const isOnline = useOnlineStatus();
@@ -142,6 +151,14 @@ export const NoteDetailView = () => {
                         <p className="text-muted-foreground mt-2 text-sm">
                             {currentNote.author?.name} · {currentNote.parent?.name}
                         </p>
+                        {lastSeen?.lastSeenAt && (
+                            <p className="text-muted-foreground mt-1 text-xs">
+                                {t("inventory.lastSeen", {
+                                    folder: lastSeen.lastSeenFolder,
+                                    date: new Date(lastSeen.lastSeenAt).toLocaleDateString(),
+                                })}
+                            </p>
+                        )}
                     </div>
                     <Button variant="outline" onClick={() => navigate("/noteManagement/notes")}>
                         <ArrowLeft className="mr-2 size-4" />

@@ -65,6 +65,12 @@ const SidebarContent = ({ onNavigate }: { onNavigate?: () => void }) => {
                         translationkey={t("noteManagement")}
                         icon={<i className="fa-solid fa-bars-progress" />}
                     />
+                    <SideBarItem
+                        onNavigate={onNavigate}
+                        highlightPath={"/inventory"}
+                        translationkey={t("inventory.title")}
+                        icon={<i className="fa-solid fa-clipboard-check" />}
+                    />
                 </ul>
             </div>
         </div>
