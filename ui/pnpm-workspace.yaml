@@ -13,3 +13,6 @@ minimumReleaseAge: 0
 overrides:
   # Security fix: js-yaml ReDoS, pinned by transitive deps below patched range
   js-yaml@^4.0.0: '^4.1.2'
+  # Security fix: brace-expansion ReDoS (CVE-2025-5889), transitive
+  brace-expansion@1: '^1.1.16'
+  brace-expansion@2: '^2.1.2'
