@@ -17,6 +17,7 @@ import {
     UserRoundCog,
     UserRoundPlus,
     Users2,
+    Vote,
 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -44,6 +45,7 @@ import { Label } from "@/components/ui/label";
 import { ClubPinboardSection } from "@/src/components/ClubPinboardSection";
 import { ClubFilesSection } from "@/src/components/ClubFilesSection";
 import { ClubEventsManager } from "@/src/components/club/ClubEventsManager";
+import { ClubPollsSection } from "@/src/components/club/ClubPollsSection";
 import { ClubSettingsForm } from "@/src/components/club/ClubSettingsForm";
 import { ClubDangerZone } from "@/src/components/club/ClubDangerZone";
 
@@ -70,6 +72,7 @@ const ROLE_OPTIONS = [
 const CLUB_SECTIONS: ClubSection[] = [
     { id: "pinnwand", label: "Pinnwand", icon: LayoutDashboard },
     { id: "termine", label: "Termine", icon: CalendarDays },
+    { id: "umfragen", label: "Umfragen", icon: Vote },
     { id: "nachrichten", label: "Nachrichten", icon: MessagesSquare },
     { id: "dateien", label: "Dateien", icon: FolderKanban },
     { id: "mitglieder", label: "Mitglieder", icon: Users2 },
@@ -389,6 +392,10 @@ export const ClubDetailView: FC = () => {
 
                     {activeSection.id === "termine" && (
                         <ClubEventsManager clubId={club.id} canManage={permissions?.can_manage_events ?? false} />
+                    )}
+
+                    {activeSection.id === "umfragen" && (
+                        <ClubPollsSection clubId={club.id} canManage={permissions?.can_manage_events ?? false} />
                     )}
 
                     {activeSection.id === "bearbeiten" && club && (

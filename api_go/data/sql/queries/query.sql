@@ -876,3 +876,45 @@ ORDER BY s.name;
 
 -- name: UpdateClubMemberSection :exec
 UPDATE club_participant SET section_fk = ?, section_leader = ? WHERE club_id = ? AND user_id = ?;
+
+-- ==== polls ====
+
+-- name: CreateClubPoll :exec
+INSERT INTO club_poll (id, club_id, question, created_by_user_id, multiple_choice, closes_at)
+VALUES (?, ?, ?, ?, ?, ?);
+
+-- name: CreateClubPollOption :exec
+INSERT INTO club_poll_option (id, poll_id, label, position) VALUES (?, ?, ?, ?);
+
+-- name: GetClubPollByID :one
+SELECT * FROM club_poll WHERE id = ? AND club_id = ?;
+
+-- name: ListClubPolls :many
+SELECT * FROM club_poll WHERE club_id = ? ORDER BY created_at DESC;
+
+-- name: CloseClubPoll :execrows
+UPDATE club_poll SET closed = 1 WHERE id = ? AND club_id = ?;
+
+-- name: DeleteClubPoll :execrows
+DELETE FROM club_poll WHERE id = ? AND club_id = ?;
+
+-- name: FindClubPollOption :one
+SELECT * FROM club_poll_option WHERE id = ? AND poll_id = ?;
+
+-- name: ListClubPollOptionsWithCounts :many
+SELECT
+    o.id,
+    o.poll_id,
+    o.label,
+    o.position,
+    (SELECT COUNT(*) FROM club_poll_vote v WHERE v.option_id = o.id)                                    AS vote_count,
+    (SELECT COUNT(*) FROM club_poll_vote v WHERE v.option_id = o.id AND v.user_id = sqlc.arg(user_id)) AS voted_by_me
+FROM club_poll_option o
+WHERE o.poll_id = sqlc.arg(poll_id)
+ORDER BY o.position, o.id;
+
+-- name: DeleteUserClubPollVotes :exec
+DELETE FROM club_poll_vote WHERE poll_id = ? AND user_id = ?;
+
+-- name: InsertClubPollVote :exec
+INSERT IGNORE INTO club_poll_vote (poll_id, option_id, user_id) VALUES (?, ?, ?);

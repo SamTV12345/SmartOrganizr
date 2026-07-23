@@ -571,6 +571,70 @@ definitions:
     - role
     - section_write
     type: object
+  dto.ClubPollCreateDto:
+    properties:
+      closesAt:
+        description: RFC3339 or null
+        type: string
+      multipleChoice:
+        type: boolean
+      options:
+        items:
+          type: string
+        type: array
+      question:
+        type: string
+    required:
+    - options
+    - question
+    type: object
+  dto.ClubPollDto:
+    properties:
+      closed:
+        type: boolean
+      closesAt:
+        type: string
+      clubId:
+        type: string
+      createdAt:
+        type: string
+      createdByUserId:
+        type: string
+      id:
+        type: string
+      multipleChoice:
+        type: boolean
+      options:
+        items:
+          $ref: '#/definitions/dto.ClubPollOptionDto'
+        type: array
+      question:
+        type: string
+      totalVotes:
+        type: integer
+    type: object
+  dto.ClubPollOptionDto:
+    properties:
+      id:
+        type: string
+      label:
+        type: string
+      position:
+        type: integer
+      voteCount:
+        type: integer
+      votedByMe:
+        type: boolean
+    type: object
+  dto.ClubPollVoteDto:
+    properties:
+      optionIds:
+        items:
+          type: string
+        type: array
+    required:
+    - optionIds
+    type: object
   dto.ClubPostDto:
     properties:
       club_type:
@@ -2486,6 +2550,116 @@ paths:
       summary: Update a pinboard post
       tags:
       - pinboard
+  /v1/clubs/{clubId}/polls:
+    get:
+      parameters:
+      - description: Club ID
+        in: path
+        name: clubId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/dto.ClubPollDto'
+            type: array
+      summary: List a club's polls with results
+      tags:
+      - club-polls
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Club ID
+        in: path
+        name: clubId
+        required: true
+        type: string
+      - description: Poll payload
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.ClubPollCreateDto'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.ClubPollDto'
+      summary: Create a poll (manager only)
+      tags:
+      - club-polls
+  /v1/clubs/{clubId}/polls/{pollId}:
+    delete:
+      parameters:
+      - description: Club ID
+        in: path
+        name: clubId
+        required: true
+        type: string
+      - description: Poll ID
+        in: path
+        name: pollId
+        required: true
+        type: string
+      responses:
+        "204":
+          description: No Content
+      summary: Delete a poll (manager only)
+      tags:
+      - club-polls
+  /v1/clubs/{clubId}/polls/{pollId}/close:
+    post:
+      parameters:
+      - description: Club ID
+        in: path
+        name: clubId
+        required: true
+        type: string
+      - description: Poll ID
+        in: path
+        name: pollId
+        required: true
+        type: string
+      responses:
+        "204":
+          description: No Content
+      summary: Close a poll (manager only)
+      tags:
+      - club-polls
+  /v1/clubs/{clubId}/polls/{pollId}/vote:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Club ID
+        in: path
+        name: clubId
+        required: true
+        type: string
+      - description: Poll ID
+        in: path
+        name: pollId
+        required: true
+        type: string
+      - description: Ballot
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.ClubPollVoteDto'
+      responses:
+        "204":
+          description: No Content
+      summary: Cast or replace the caller's vote
+      tags:
+      - club-polls
   /v1/clubs/{clubId}/sections:
     get:
       parameters:
