@@ -43,6 +43,19 @@ definitions:
       userId:
         type: string
     type: object
+  dto.AttendanceStatsDto:
+    properties:
+      members:
+        items:
+          $ref: '#/definitions/dto.MemberAttendanceDto'
+        type: array
+      sections:
+        items:
+          $ref: '#/definitions/dto.SectionAttendanceDto'
+        type: array
+      windowDays:
+        type: integer
+    type: object
   dto.Author:
     properties:
       birthYear:
@@ -159,6 +172,39 @@ definitions:
     required:
     - token
     - url
+    type: object
+  dto.ClubAbsenceDto:
+    properties:
+      clubId:
+        type: string
+      createdAt:
+        type: string
+      displayName:
+        type: string
+      endDate:
+        description: YYYY-MM-DD
+        type: string
+      id:
+        type: string
+      reason:
+        type: string
+      startDate:
+        description: YYYY-MM-DD
+        type: string
+      userId:
+        type: string
+    type: object
+  dto.ClubAbsenceUpsertDto:
+    properties:
+      endDate:
+        type: string
+      reason:
+        type: string
+      startDate:
+        type: string
+    required:
+    - endDate
+    - startDate
     type: object
   dto.ClubChatCreateDto:
     properties:
@@ -327,6 +373,30 @@ definitions:
         type: integer
       yesCount:
         type: integer
+    type: object
+  dto.ClubEventProgramEntryDto:
+    properties:
+      durationMinutes:
+        type: integer
+      id:
+        type: string
+      noteId:
+        type: string
+      noteText:
+        type: string
+      position:
+        type: integer
+      title:
+        type: string
+    required:
+    - title
+    type: object
+  dto.ClubEventProgramReplaceDto:
+    properties:
+      entries:
+        items:
+          $ref: '#/definitions/dto.ClubEventProgramEntryDto'
+        type: array
     type: object
   dto.ClubEventRepeatDto:
     properties:
@@ -571,6 +641,70 @@ definitions:
     - role
     - section_write
     type: object
+  dto.ClubPollCreateDto:
+    properties:
+      closesAt:
+        description: RFC3339 or null
+        type: string
+      multipleChoice:
+        type: boolean
+      options:
+        items:
+          type: string
+        type: array
+      question:
+        type: string
+    required:
+    - options
+    - question
+    type: object
+  dto.ClubPollDto:
+    properties:
+      closed:
+        type: boolean
+      closesAt:
+        type: string
+      clubId:
+        type: string
+      createdAt:
+        type: string
+      createdByUserId:
+        type: string
+      id:
+        type: string
+      multipleChoice:
+        type: boolean
+      options:
+        items:
+          $ref: '#/definitions/dto.ClubPollOptionDto'
+        type: array
+      question:
+        type: string
+      totalVotes:
+        type: integer
+    type: object
+  dto.ClubPollOptionDto:
+    properties:
+      id:
+        type: string
+      label:
+        type: string
+      position:
+        type: integer
+      voteCount:
+        type: integer
+      votedByMe:
+        type: boolean
+    type: object
+  dto.ClubPollVoteDto:
+    properties:
+      optionIds:
+        items:
+          type: string
+        type: array
+    required:
+    - optionIds
+    type: object
   dto.ClubPostDto:
     properties:
       club_type:
@@ -711,6 +845,33 @@ definitions:
     - uid
     - url
     type: object
+  dto.EventAvailabilityDto:
+    properties:
+      eventId:
+        type: string
+      expectedCount:
+        type: integer
+      rows:
+        items:
+          $ref: '#/definitions/dto.EventAvailabilityRowDto'
+        type: array
+      totalCount:
+        type: integer
+    type: object
+  dto.EventAvailabilityRowDto:
+    properties:
+      available:
+        type: boolean
+      displayName:
+        type: string
+      source:
+        type: string
+      status:
+        description: RSVP status when Source == "rsvp"
+        type: string
+      userId:
+        type: string
+    type: object
   dto.Folder:
     properties:
       creationDate:
@@ -840,6 +1001,29 @@ definitions:
       tagId:
         type: string
       url:
+        type: string
+    type: object
+  dto.MemberAttendanceDto:
+    properties:
+      attendedTotal:
+        type: integer
+      attendedWindow:
+        type: integer
+      displayName:
+        type: string
+      eligibleTotal:
+        type: integer
+      eligibleWindow:
+        type: integer
+      rateTotal:
+        type: number
+      rateWindow:
+        type: number
+      sectionId:
+        type: string
+      sectionName:
+        type: string
+      userId:
         type: string
     type: object
   dto.Note:
@@ -1043,6 +1227,27 @@ definitions:
       pinned:
         type: boolean
       title:
+        type: string
+    type: object
+  dto.SectionAttendanceDto:
+    properties:
+      attendedTotal:
+        type: integer
+      attendedWindow:
+        type: integer
+      eligibleTotal:
+        type: integer
+      eligibleWindow:
+        type: integer
+      memberCount:
+        type: integer
+      rateTotal:
+        type: number
+      rateWindow:
+        type: number
+      sectionId:
+        type: string
+      sectionName:
         type: string
     type: object
   dto.UnreadByClubDto:
@@ -1715,6 +1920,90 @@ paths:
       summary: Update a club's settings (manager only)
       tags:
       - clubs
+  /v1/clubs/{clubId}/absences:
+    get:
+      parameters:
+      - description: Club ID
+        in: path
+        name: clubId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/dto.ClubAbsenceDto'
+            type: array
+      summary: List the caller's own absences in a club
+      tags:
+      - club-absence
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Club ID
+        in: path
+        name: clubId
+        required: true
+        type: string
+      - description: Absence payload
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.ClubAbsenceUpsertDto'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.ClubAbsenceDto'
+      summary: Declare an absence range for the caller
+      tags:
+      - club-absence
+  /v1/clubs/{clubId}/absences/{absenceId}:
+    delete:
+      parameters:
+      - description: Club ID
+        in: path
+        name: clubId
+        required: true
+        type: string
+      - description: Absence ID
+        in: path
+        name: absenceId
+        required: true
+        type: string
+      responses:
+        "204":
+          description: No Content
+      summary: Delete one of the caller's own absences
+      tags:
+      - club-absence
+  /v1/clubs/{clubId}/absences/overview:
+    get:
+      parameters:
+      - description: Club ID
+        in: path
+        name: clubId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/dto.ClubAbsenceDto'
+            type: array
+      summary: List all members' absences (managers only)
+      tags:
+      - club-absence
   /v1/clubs/{clubId}/events:
     get:
       parameters:
@@ -1858,6 +2147,29 @@ paths:
       summary: Get the visibility-filtered attendance matrix
       tags:
       - club-events
+  /v1/clubs/{clubId}/events/{eventId}/availability:
+    get:
+      parameters:
+      - description: Club ID
+        in: path
+        name: clubId
+        required: true
+        type: string
+      - description: Event ID
+        in: path
+        name: eventId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.EventAvailabilityDto'
+      summary: Inferred expected attendance for an event derived from absences
+      tags:
+      - club-absence
   /v1/clubs/{clubId}/events/{eventId}/cancel:
     post:
       parameters:
@@ -1877,6 +2189,63 @@ paths:
       summary: Soft-cancel a native club event
       tags:
       - club-events
+  /v1/clubs/{clubId}/events/{eventId}/program:
+    get:
+      parameters:
+      - description: Club ID
+        in: path
+        name: clubId
+        required: true
+        type: string
+      - description: Event ID
+        in: path
+        name: eventId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/dto.ClubEventProgramEntryDto'
+            type: array
+      summary: Get the ordered program (setlist) of a club event
+      tags:
+      - club-event-program
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: Club ID
+        in: path
+        name: clubId
+        required: true
+        type: string
+      - description: Event ID
+        in: path
+        name: eventId
+        required: true
+        type: string
+      - description: Ordered program entries
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.ClubEventProgramReplaceDto'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/dto.ClubEventProgramEntryDto'
+            type: array
+      summary: Replace the whole ordered program of a club event
+      tags:
+      - club-event-program
   /v1/clubs/{clubId}/events/{eventId}/response:
     put:
       consumes:
@@ -2486,6 +2855,116 @@ paths:
       summary: Update a pinboard post
       tags:
       - pinboard
+  /v1/clubs/{clubId}/polls:
+    get:
+      parameters:
+      - description: Club ID
+        in: path
+        name: clubId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/dto.ClubPollDto'
+            type: array
+      summary: List a club's polls with results
+      tags:
+      - club-polls
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Club ID
+        in: path
+        name: clubId
+        required: true
+        type: string
+      - description: Poll payload
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.ClubPollCreateDto'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.ClubPollDto'
+      summary: Create a poll (manager only)
+      tags:
+      - club-polls
+  /v1/clubs/{clubId}/polls/{pollId}:
+    delete:
+      parameters:
+      - description: Club ID
+        in: path
+        name: clubId
+        required: true
+        type: string
+      - description: Poll ID
+        in: path
+        name: pollId
+        required: true
+        type: string
+      responses:
+        "204":
+          description: No Content
+      summary: Delete a poll (manager only)
+      tags:
+      - club-polls
+  /v1/clubs/{clubId}/polls/{pollId}/close:
+    post:
+      parameters:
+      - description: Club ID
+        in: path
+        name: clubId
+        required: true
+        type: string
+      - description: Poll ID
+        in: path
+        name: pollId
+        required: true
+        type: string
+      responses:
+        "204":
+          description: No Content
+      summary: Close a poll (manager only)
+      tags:
+      - club-polls
+  /v1/clubs/{clubId}/polls/{pollId}/vote:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Club ID
+        in: path
+        name: clubId
+        required: true
+        type: string
+      - description: Poll ID
+        in: path
+        name: pollId
+        required: true
+        type: string
+      - description: Ballot
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.ClubPollVoteDto'
+      responses:
+        "204":
+          description: No Content
+      summary: Cast or replace the caller's vote
+      tags:
+      - club-polls
   /v1/clubs/{clubId}/sections:
     get:
       parameters:
@@ -2574,6 +3053,28 @@ paths:
         "204":
           description: No Content
       summary: Rename a section (managers only)
+      tags:
+      - clubs
+  /v1/clubs/{clubId}/stats/attendance:
+    get:
+      parameters:
+      - description: Club ID
+        in: path
+        name: clubId
+        required: true
+        type: string
+      - description: Recent-window size in days (default 90)
+        in: query
+        name: windowDays
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.AttendanceStatsDto'
+      summary: Per-member and per-section attendance rates for a club
       tags:
       - clubs
   /v1/clubs/{userId}:

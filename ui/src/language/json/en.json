@@ -32,6 +32,7 @@
     "delete-confirm": "Permanently delete this event? All responses will be lost.",
     "cancel-event": "Cancel event",
     "cancelled": "(cancelled)",
+    "expected": "expected",
     "field": {
       "summary": "Title",
       "type": "Type",
@@ -77,6 +78,21 @@
       "title": "Title",
       "body": "Content"
     }
+  },
+  "absence": {
+    "create": "Report absence",
+    "description": "Enter date ranges when you are unavailable.",
+    "start": "From",
+    "end": "To",
+    "reason": "Reason (optional)",
+    "reasonPlaceholder": "e.g. vacation",
+    "add": "Add",
+    "mine": "My absences",
+    "empty": "No absences yet.",
+    "delete": "Delete",
+    "deleteConfirm": "Really delete this absence?",
+    "overview": "All members overview",
+    "overviewDescription": "All reported absences in the club."
   },
   "homepage": "Homepage",
   "fast": "Fast",
@@ -354,5 +370,24 @@
     "delete": "Delete section",
     "delete-confirm": "Delete section \"{{name}}\"? Members are kept; its events become whole-club events.",
     "create-error": "Section could not be created (name may already be taken)."
+  },
+  "polls": {
+    "title": "Polls",
+    "create": "Create poll",
+    "question": "Question",
+    "questionPlaceholder": "What should be decided?",
+    "option": "Answer option",
+    "addOption": "Add option",
+    "multiple": "Allow multiple choices",
+    "submit": "Vote",
+    "vote": "Vote",
+    "close": "Close",
+    "closed": "Closed",
+    "delete": "Delete",
+    "delete-confirm": "Really delete this poll?",
+    "empty": "No polls yet.",
+    "votes": "{{count}} votes",
+    "totalVotes": "{{count}} votes total",
+    "needTwoOptions": "Please provide at least two options."
   }
 }

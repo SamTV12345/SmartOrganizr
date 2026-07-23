@@ -7,6 +7,11 @@
 node_modules/
 dist/
 
+# Playwright e2e artifacts
+test-results/
+playwright-report/
+*.tsbuildinfo
+
 # Compiled Java class files
 *.class
 
@@ -67,3 +72,6 @@ api_go/.env.local
 img.png
 img-*.png
 screenshot*.png
+
+# git worktrees created by background agents
+.claude/worktrees/

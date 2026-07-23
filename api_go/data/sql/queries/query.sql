@@ -876,3 +876,126 @@ ORDER BY s.name;
 
 -- name: UpdateClubMemberSection :exec
 UPDATE club_participant SET section_fk = ?, section_leader = ? WHERE club_id = ? AND user_id = ?;
+
+-- ==== member absence ====
+
+-- name: CreateClubAbsence :exec
+INSERT INTO club_absence (id, club_id, user_id, start_date, end_date, reason)
+VALUES (?, ?, ?, ?, ?, ?);
+
+-- name: GetClubAbsenceByID :one
+SELECT * FROM club_absence WHERE id = ? AND club_id = ?;
+
+-- name: DeleteClubAbsence :execrows
+DELETE FROM club_absence WHERE id = ? AND club_id = ? AND user_id = ?;
+
+-- name: ListMyClubAbsences :many
+SELECT * FROM club_absence
+WHERE club_id = ? AND user_id = ?
+ORDER BY start_date;
+
+-- name: ListClubAbsences :many
+SELECT a.*, u.firstname, u.lastname, u.username
+FROM club_absence a
+JOIN user u ON u.id = a.user_id
+WHERE a.club_id = ?
+ORDER BY a.start_date;
+
+-- name: ListClubAbsencesCoveringDate :many
+SELECT user_id FROM club_absence
+WHERE club_id = sqlc.arg(club_id)
+  AND start_date <= sqlc.arg(on_date) AND end_date >= sqlc.arg(on_date);
+-- ==== polls ====
+
+-- name: CreateClubPoll :exec
+INSERT INTO club_poll (id, club_id, question, created_by_user_id, multiple_choice, closes_at)
+VALUES (?, ?, ?, ?, ?, ?);
+
+-- name: CreateClubPollOption :exec
+INSERT INTO club_poll_option (id, poll_id, label, position) VALUES (?, ?, ?, ?);
+
+-- name: GetClubPollByID :one
+SELECT * FROM club_poll WHERE id = ? AND club_id = ?;
+
+-- name: ListClubPolls :many
+SELECT * FROM club_poll WHERE club_id = ? ORDER BY created_at DESC;
+
+-- name: CloseClubPoll :execrows
+UPDATE club_poll SET closed = 1 WHERE id = ? AND club_id = ?;
+
+-- name: DeleteClubPoll :execrows
+DELETE FROM club_poll WHERE id = ? AND club_id = ?;
+
+-- name: FindClubPollOption :one
+SELECT * FROM club_poll_option WHERE id = ? AND poll_id = ?;
+
+-- name: ListClubPollOptionsWithCounts :many
+SELECT
+    o.id,
+    o.poll_id,
+    o.label,
+    o.position,
+    (SELECT COUNT(*) FROM club_poll_vote v WHERE v.option_id = o.id)                                    AS vote_count,
+    (SELECT COUNT(*) FROM club_poll_vote v WHERE v.option_id = o.id AND v.user_id = sqlc.arg(user_id)) AS voted_by_me
+FROM club_poll_option o
+WHERE o.poll_id = sqlc.arg(poll_id)
+ORDER BY o.position, o.id;
+
+-- name: DeleteUserClubPollVotes :exec
+DELETE FROM club_poll_vote WHERE poll_id = ? AND user_id = ?;
+
+-- name: InsertClubPollVote :exec
+INSERT IGNORE INTO club_poll_vote (poll_id, option_id, user_id) VALUES (?, ?, ?);
+-- ==== event program ====
+-- docs/superpowers/specs/2026-07-23-club-event-program-design.md
+-- A program is replaced wholesale (delete-all + re-insert ordered), so no per-row update query.
+
+-- name: ListEventProgram :many
+SELECT id, event_id, note_id, title, position, duration_minutes, note_text
+FROM club_event_program
+WHERE event_id = ?
+ORDER BY position;
+
+-- name: DeleteEventProgram :exec
+DELETE FROM club_event_program WHERE event_id = ?;
+
+-- name: CreateEventProgramEntry :exec
+INSERT INTO club_event_program (id, event_id, note_id, title, position, duration_minutes, note_text)
+VALUES (?, ?, ?, ?, ?, ?, ?);
+-- ==== attendance stats ====
+-- Per-member attendance over a club's past, non-cancelled events. A member is
+-- "eligible" for whole-club events plus their own section's events; "attended"
+-- means their response status is YES. Correlated COUNT(*) subqueries keep the
+-- columns cleanly typed as int64 (COALESCE(SUM(..)) types poorly under MySQL)
+-- and let members with zero responses / no section still appear with 0 counts.
+-- Section aggregates are folded from these rows in Go (see ClubStatsService).
+
+-- name: MemberAttendanceStats :many
+SELECT
+    p.user_id    AS user_id,
+    u.firstname  AS firstname,
+    u.lastname   AS lastname,
+    u.username   AS username,
+    p.section_fk AS section_id,
+    cs.name      AS section_name,
+    (SELECT COUNT(*) FROM club_events e
+        WHERE e.club_id = p.club_id AND e.cancelled = 0 AND e.start_date < NOW()
+          AND (e.section_fk IS NULL OR e.section_fk = p.section_fk)) AS eligible_total,
+    (SELECT COUNT(*) FROM club_events e
+        JOIN club_event_response r ON r.event_id = e.id AND r.user_id = p.user_id AND r.status = 'YES'
+        WHERE e.club_id = p.club_id AND e.cancelled = 0 AND e.start_date < NOW()
+          AND (e.section_fk IS NULL OR e.section_fk = p.section_fk)) AS attended_total,
+    (SELECT COUNT(*) FROM club_events e
+        WHERE e.club_id = p.club_id AND e.cancelled = 0 AND e.start_date < NOW()
+          AND e.start_date >= sqlc.arg(window_start)
+          AND (e.section_fk IS NULL OR e.section_fk = p.section_fk)) AS eligible_window,
+    (SELECT COUNT(*) FROM club_events e
+        JOIN club_event_response r ON r.event_id = e.id AND r.user_id = p.user_id AND r.status = 'YES'
+        WHERE e.club_id = p.club_id AND e.cancelled = 0 AND e.start_date < NOW()
+          AND e.start_date >= sqlc.arg(window_start)
+          AND (e.section_fk IS NULL OR e.section_fk = p.section_fk)) AS attended_window
+FROM club_participant p
+JOIN user u ON u.id = p.user_id
+LEFT JOIN club_section cs ON cs.id = p.section_fk
+WHERE p.club_id = sqlc.arg(club_id)
+ORDER BY u.lastname, u.firstname, p.user_id;

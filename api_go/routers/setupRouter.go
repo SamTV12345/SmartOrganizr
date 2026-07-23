@@ -142,6 +142,7 @@ func SetupRouter(queries *db.Queries, config config.AppConfig, logger *zap.Sugar
 	var pinboardService = service.NewPinboardService(queries, clubMemberService, notificationHub)
 	var clubFileService = service.NewClubFileService(queries)
 	var clubEventService = service.NewClubEventService(queries, clubMemberService, notificationHub)
+	var clubAbsenceService = service.NewClubAbsenceService(queries, clubMemberService)
 
 	var wikidataService = service.NewWikidataService(
 		"https://query.wikidata.org/sparql",
@@ -163,6 +164,9 @@ func SetupRouter(queries *db.Queries, config config.AppConfig, logger *zap.Sugar
 
 	var inventoryService = service.NewInventoryService(queries, aiService)
 	var clubSectionService = service.NewClubSectionService(queries, clubMemberService)
+	var clubPollService = service.NewClubPollService(queries, clubMemberService)
+	var clubEventProgramService = service.NewClubEventProgramService(queries, clubMemberService)
+	var clubStatsService = service.NewClubStatsService(queries, clubMemberService)
 
 	noteService.FolderService = &folderService
 
@@ -189,12 +193,16 @@ func SetupRouter(queries *db.Queries, config config.AppConfig, logger *zap.Sugar
 		SetLocal[service.PinboardService](c, constants.PinboardService, pinboardService)
 		SetLocal[service.ClubFileService](c, constants.ClubFileService, clubFileService)
 		SetLocal[service.ClubEventService](c, constants.ClubEventService, clubEventService)
+		SetLocal[service.ClubAbsenceService](c, constants.ClubAbsenceService, clubAbsenceService)
 		SetLocal[*service.NotificationHub](c, constants.NotificationHub, notificationHub)
 		SetLocal[*service.WikidataService](c, constants.WikidataService, wikidataService)
 		SetLocal[*service.AIService](c, constants.AIService, aiService)
 		SetLocal[*service.AIChatService](c, constants.AIChatService, aiChatService)
 		SetLocal[service.InventoryService](c, constants.InventoryService, inventoryService)
 		SetLocal[service.ClubSectionService](c, constants.ClubSectionService, clubSectionService)
+		SetLocal[service.ClubPollService](c, constants.ClubPollService, clubPollService)
+		SetLocal[service.ClubEventProgramService](c, constants.ClubEventProgramService, clubEventProgramService)
+		SetLocal[service.ClubStatsService](c, constants.ClubStatsService, clubStatsService)
 		SetLocal[string](c, constants.AppBaseURL, config.App.URL)
 
 		return c.Next()
@@ -315,6 +323,20 @@ func SetupRouter(queries *db.Queries, config config.AppConfig, logger *zap.Sugar
 		r.Delete("/:clubId/events/:eventId/series", controllers.DeleteClubEventSeries)
 		r.Put("/:clubId/events/:eventId/response", controllers.RespondToClubEvent)
 		r.Get("/:clubId/events/:eventId/attendance", controllers.GetClubEventAttendance)
+		r.Get("/:clubId/events/:eventId/availability", controllers.GetClubEventAvailability)
+		// "/absences/overview" must be registered before the "/absences/:absenceId" param route
+		r.Get("/:clubId/absences/overview", controllers.ListClubAbsences)
+		r.Get("/:clubId/absences", controllers.ListMyClubAbsences)
+		r.Post("/:clubId/absences", controllers.CreateClubAbsence)
+		r.Delete("/:clubId/absences/:absenceId", controllers.DeleteClubAbsence)
+		r.Get("/:clubId/polls", controllers.ListClubPolls)
+		r.Post("/:clubId/polls", controllers.CreateClubPoll)
+		r.Post("/:clubId/polls/:pollId/vote", controllers.VoteClubPoll)
+		r.Post("/:clubId/polls/:pollId/close", controllers.CloseClubPoll)
+		r.Delete("/:clubId/polls/:pollId", controllers.DeleteClubPoll)
+		r.Get("/:clubId/events/:eventId/program", controllers.GetClubEventProgram)
+		r.Put("/:clubId/events/:eventId/program", controllers.ReplaceClubEventProgram)
+		r.Get("/:clubId/stats/attendance", controllers.GetClubAttendanceStats)
 	})
 
 	profile.Route("v1/club-events", func(r fiber.Router) {

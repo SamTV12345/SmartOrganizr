@@ -572,6 +572,135 @@ const docTemplate = `{
                 }
             }
         },
+        "/v1/clubs/{clubId}/absences": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "club-absence"
+                ],
+                "summary": "List the caller's own absences in a club",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Club ID",
+                        "name": "clubId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/dto.ClubAbsenceDto"
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "club-absence"
+                ],
+                "summary": "Declare an absence range for the caller",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Club ID",
+                        "name": "clubId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Absence payload",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.ClubAbsenceUpsertDto"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ClubAbsenceDto"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/clubs/{clubId}/absences/overview": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "club-absence"
+                ],
+                "summary": "List all members' absences (managers only)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Club ID",
+                        "name": "clubId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/dto.ClubAbsenceDto"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/clubs/{clubId}/absences/{absenceId}": {
+            "delete": {
+                "tags": [
+                    "club-absence"
+                ],
+                "summary": "Delete one of the caller's own absences",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Club ID",
+                        "name": "clubId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Absence ID",
+                        "name": "absenceId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    }
+                }
+            }
+        },
         "/v1/clubs/{clubId}/events": {
             "get": {
                 "produces": [
@@ -789,6 +918,41 @@ const docTemplate = `{
                 }
             }
         },
+        "/v1/clubs/{clubId}/events/{eventId}/availability": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "club-absence"
+                ],
+                "summary": "Inferred expected attendance for an event derived from absences",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Club ID",
+                        "name": "clubId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Event ID",
+                        "name": "eventId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.EventAvailabilityDto"
+                        }
+                    }
+                }
+            }
+        },
         "/v1/clubs/{clubId}/events/{eventId}/cancel": {
             "post": {
                 "tags": [
@@ -814,6 +978,92 @@ const docTemplate = `{
                 "responses": {
                     "204": {
                         "description": "No Content"
+                    }
+                }
+            }
+        },
+        "/v1/clubs/{clubId}/events/{eventId}/program": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "club-event-program"
+                ],
+                "summary": "Get the ordered program (setlist) of a club event",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Club ID",
+                        "name": "clubId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Event ID",
+                        "name": "eventId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/dto.ClubEventProgramEntryDto"
+                            }
+                        }
+                    }
+                }
+            },
+            "put": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "club-event-program"
+                ],
+                "summary": "Replace the whole ordered program of a club event",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Club ID",
+                        "name": "clubId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Event ID",
+                        "name": "eventId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Ordered program entries",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.ClubEventProgramReplaceDto"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/dto.ClubEventProgramEntryDto"
+                            }
+                        }
                     }
                 }
             }
@@ -1748,6 +1998,174 @@ const docTemplate = `{
                 }
             }
         },
+        "/v1/clubs/{clubId}/polls": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "club-polls"
+                ],
+                "summary": "List a club's polls with results",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Club ID",
+                        "name": "clubId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/dto.ClubPollDto"
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "club-polls"
+                ],
+                "summary": "Create a poll (manager only)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Club ID",
+                        "name": "clubId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Poll payload",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.ClubPollCreateDto"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ClubPollDto"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/clubs/{clubId}/polls/{pollId}": {
+            "delete": {
+                "tags": [
+                    "club-polls"
+                ],
+                "summary": "Delete a poll (manager only)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Club ID",
+                        "name": "clubId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Poll ID",
+                        "name": "pollId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    }
+                }
+            }
+        },
+        "/v1/clubs/{clubId}/polls/{pollId}/close": {
+            "post": {
+                "tags": [
+                    "club-polls"
+                ],
+                "summary": "Close a poll (manager only)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Club ID",
+                        "name": "clubId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Poll ID",
+                        "name": "pollId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    }
+                }
+            }
+        },
+        "/v1/clubs/{clubId}/polls/{pollId}/vote": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "tags": [
+                    "club-polls"
+                ],
+                "summary": "Cast or replace the caller's vote",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Club ID",
+                        "name": "clubId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Poll ID",
+                        "name": "pollId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Ballot",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.ClubPollVoteDto"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    }
+                }
+            }
+        },
         "/v1/clubs/{clubId}/sections": {
             "get": {
                 "produces": [
@@ -1881,6 +2299,40 @@ const docTemplate = `{
                 "responses": {
                     "204": {
                         "description": "No Content"
+                    }
+                }
+            }
+        },
+        "/v1/clubs/{clubId}/stats/attendance": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "clubs"
+                ],
+                "summary": "Per-member and per-section attendance rates for a club",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Club ID",
+                        "name": "clubId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Recent-window size in days (default 90)",
+                        "name": "windowDays",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.AttendanceStatsDto"
+                        }
                     }
                 }
             }
@@ -3506,6 +3958,26 @@ const docTemplate = `{
                 }
             }
         },
+        "dto.AttendanceStatsDto": {
+            "type": "object",
+            "properties": {
+                "members": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.MemberAttendanceDto"
+                    }
+                },
+                "sections": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.SectionAttendanceDto"
+                    }
+                },
+                "windowDays": {
+                    "type": "integer"
+                }
+            }
+        },
         "dto.Author": {
             "type": "object",
             "required": [
@@ -3679,6 +4151,55 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "url": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.ClubAbsenceDto": {
+            "type": "object",
+            "properties": {
+                "clubId": {
+                    "type": "string"
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "displayName": {
+                    "type": "string"
+                },
+                "endDate": {
+                    "description": "YYYY-MM-DD",
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "reason": {
+                    "type": "string"
+                },
+                "startDate": {
+                    "description": "YYYY-MM-DD",
+                    "type": "string"
+                },
+                "userId": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.ClubAbsenceUpsertDto": {
+            "type": "object",
+            "required": [
+                "endDate",
+                "startDate"
+            ],
+            "properties": {
+                "endDate": {
+                    "type": "string"
+                },
+                "reason": {
+                    "type": "string"
+                },
+                "startDate": {
                     "type": "string"
                 }
             }
@@ -3922,6 +4443,43 @@ const docTemplate = `{
                 },
                 "yesCount": {
                     "type": "integer"
+                }
+            }
+        },
+        "dto.ClubEventProgramEntryDto": {
+            "type": "object",
+            "required": [
+                "title"
+            ],
+            "properties": {
+                "durationMinutes": {
+                    "type": "integer"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "noteId": {
+                    "type": "string"
+                },
+                "noteText": {
+                    "type": "string"
+                },
+                "position": {
+                    "type": "integer"
+                },
+                "title": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.ClubEventProgramReplaceDto": {
+            "type": "object",
+            "properties": {
+                "entries": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.ClubEventProgramEntryDto"
+                    }
                 }
             }
         },
@@ -4282,6 +4840,103 @@ const docTemplate = `{
                 }
             }
         },
+        "dto.ClubPollCreateDto": {
+            "type": "object",
+            "required": [
+                "options",
+                "question"
+            ],
+            "properties": {
+                "closesAt": {
+                    "description": "RFC3339 or null",
+                    "type": "string"
+                },
+                "multipleChoice": {
+                    "type": "boolean"
+                },
+                "options": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "question": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.ClubPollDto": {
+            "type": "object",
+            "properties": {
+                "closed": {
+                    "type": "boolean"
+                },
+                "closesAt": {
+                    "type": "string"
+                },
+                "clubId": {
+                    "type": "string"
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "createdByUserId": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "multipleChoice": {
+                    "type": "boolean"
+                },
+                "options": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.ClubPollOptionDto"
+                    }
+                },
+                "question": {
+                    "type": "string"
+                },
+                "totalVotes": {
+                    "type": "integer"
+                }
+            }
+        },
+        "dto.ClubPollOptionDto": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "label": {
+                    "type": "string"
+                },
+                "position": {
+                    "type": "integer"
+                },
+                "voteCount": {
+                    "type": "integer"
+                },
+                "votedByMe": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "dto.ClubPollVoteDto": {
+            "type": "object",
+            "required": [
+                "optionIds"
+            ],
+            "properties": {
+                "optionIds": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
         "dto.ClubPostDto": {
             "type": "object",
             "required": [
@@ -4478,6 +5133,47 @@ const docTemplate = `{
                 }
             }
         },
+        "dto.EventAvailabilityDto": {
+            "type": "object",
+            "properties": {
+                "eventId": {
+                    "type": "string"
+                },
+                "expectedCount": {
+                    "type": "integer"
+                },
+                "rows": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.EventAvailabilityRowDto"
+                    }
+                },
+                "totalCount": {
+                    "type": "integer"
+                }
+            }
+        },
+        "dto.EventAvailabilityRowDto": {
+            "type": "object",
+            "properties": {
+                "available": {
+                    "type": "boolean"
+                },
+                "displayName": {
+                    "type": "string"
+                },
+                "source": {
+                    "type": "string"
+                },
+                "status": {
+                    "description": "RSVP status when Source == \"rsvp\"",
+                    "type": "string"
+                },
+                "userId": {
+                    "type": "string"
+                }
+            }
+        },
         "dto.Folder": {
             "type": "object",
             "required": [
@@ -4666,6 +5362,41 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "url": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.MemberAttendanceDto": {
+            "type": "object",
+            "properties": {
+                "attendedTotal": {
+                    "type": "integer"
+                },
+                "attendedWindow": {
+                    "type": "integer"
+                },
+                "displayName": {
+                    "type": "string"
+                },
+                "eligibleTotal": {
+                    "type": "integer"
+                },
+                "eligibleWindow": {
+                    "type": "integer"
+                },
+                "rateTotal": {
+                    "type": "number"
+                },
+                "rateWindow": {
+                    "type": "number"
+                },
+                "sectionId": {
+                    "type": "string"
+                },
+                "sectionName": {
+                    "type": "string"
+                },
+                "userId": {
                     "type": "string"
                 }
             }
@@ -4968,6 +5699,38 @@ const docTemplate = `{
                     "type": "boolean"
                 },
                 "title": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.SectionAttendanceDto": {
+            "type": "object",
+            "properties": {
+                "attendedTotal": {
+                    "type": "integer"
+                },
+                "attendedWindow": {
+                    "type": "integer"
+                },
+                "eligibleTotal": {
+                    "type": "integer"
+                },
+                "eligibleWindow": {
+                    "type": "integer"
+                },
+                "memberCount": {
+                    "type": "integer"
+                },
+                "rateTotal": {
+                    "type": "number"
+                },
+                "rateWindow": {
+                    "type": "number"
+                },
+                "sectionId": {
+                    "type": "string"
+                },
+                "sectionName": {
                     "type": "string"
                 }
             }
