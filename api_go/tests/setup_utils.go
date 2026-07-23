@@ -108,6 +108,7 @@ func SetupTest(t *testing.T) *fiber.App {
 			"inventory_sighting",
 			"inventory_sweep",
 			"mappe_tag",
+			"club_absence",
 			"club_section",
 			"club_file",
 			"club_pinboard_post",

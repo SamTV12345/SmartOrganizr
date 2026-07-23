@@ -690,6 +690,151 @@ export interface paths {
         };
         trace?: never;
     };
+    "/v1/clubs/{clubId}/absences": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List the caller's own absences in a club */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Club ID */
+                    clubId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["dto.ClubAbsenceDto"][];
+                    };
+                };
+            };
+        };
+        put?: never;
+        /** Declare an absence range for the caller */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Club ID */
+                    clubId: string;
+                };
+                cookie?: never;
+            };
+            /** @description Absence payload */
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["dto.ClubAbsenceUpsertDto"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["dto.ClubAbsenceDto"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/clubs/{clubId}/absences/overview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List all members' absences (managers only) */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Club ID */
+                    clubId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["dto.ClubAbsenceDto"][];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/clubs/{clubId}/absences/{absenceId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Delete one of the caller's own absences */
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Club ID */
+                    clubId: string;
+                    /** @description Absence ID */
+                    absenceId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description No Content */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/clubs/{clubId}/events": {
         parameters: {
             query?: never;
@@ -873,6 +1018,47 @@ export interface paths {
                     };
                     content: {
                         "application/json": components["schemas"]["dto.AttendanceDto"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/clubs/{clubId}/events/{eventId}/availability": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Inferred expected attendance for an event derived from absences */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Club ID */
+                    clubId: string;
+                    /** @description Event ID */
+                    eventId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["dto.EventAvailabilityDto"];
                     };
                 };
             };
@@ -4134,6 +4320,23 @@ export interface components {
             token: string;
             url: string;
         };
+        "dto.ClubAbsenceDto": {
+            clubId?: string;
+            createdAt?: string;
+            displayName?: string;
+            /** @description YYYY-MM-DD */
+            endDate?: string;
+            id?: string;
+            reason?: string;
+            /** @description YYYY-MM-DD */
+            startDate?: string;
+            userId?: string;
+        };
+        "dto.ClubAbsenceUpsertDto": {
+            endDate: string;
+            reason?: string;
+            startDate: string;
+        };
         "dto.ClubChatCreateDto": {
             content: string;
             recipient_user_id: string;
@@ -4363,6 +4566,20 @@ export interface components {
             tzId?: string;
             uid: string;
             url: string;
+        };
+        "dto.EventAvailabilityDto": {
+            eventId?: string;
+            expectedCount?: number;
+            rows?: components["schemas"]["dto.EventAvailabilityRowDto"][];
+            totalCount?: number;
+        };
+        "dto.EventAvailabilityRowDto": {
+            available?: boolean;
+            displayName?: string;
+            source?: string;
+            /** @description RSVP status when Source == "rsvp" */
+            status?: string;
+            userId?: string;
         };
         "dto.Folder": {
             creationDate: string;

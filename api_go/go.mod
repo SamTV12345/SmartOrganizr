@@ -1,12 +1,12 @@
 module api_go
 
-go 1.25.7
+go 1.26.0
 
 require (
 	github.com/Nerzal/gocloak/v13 v13.9.0
 	github.com/arran4/golang-ical v0.3.5
 	github.com/coreos/go-oidc/v3 v3.20.0
-	github.com/go-faker/faker/v4 v4.9.0
+	github.com/go-faker/faker/v4 v4.10.0
 	github.com/go-playground/validator/v10 v10.30.3
 	github.com/go-sql-driver/mysql v1.10.0
 	github.com/gofiber/fiber/v3 v3.4.0
