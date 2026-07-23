@@ -9,7 +9,8 @@
     "preview": "rsbuild preview",
     "gen:api": "swagger2openapi ../api_go/docs/swagger.json -o ../api_go/docs/openapi.json && openapi-typescript ../api_go/docs/openapi.json -o src/api/schema.ts",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "e2e": "playwright test"
   },
   "dependencies": {
     "@base-ui/react": "^1.6.0",
@@ -53,6 +54,7 @@
     "zustand": "^5.0.14"
   },
   "devDependencies": {
+    "@playwright/test": "^1.61.1",
     "@rsbuild/plugin-type-check": "^1.5.0",
     "@tailwindcss/postcss": "^4.3.2",
     "@types/node": "^26.1.1",
