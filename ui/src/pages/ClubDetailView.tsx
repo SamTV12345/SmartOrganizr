@@ -4,6 +4,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { $api, http as axios } from "@/src/api/client";
 import {
+    BarChart3,
     CalendarDays,
     CalendarOff,
     ChevronLeft,
@@ -52,6 +53,7 @@ import { ClubPollsSection } from "@/src/components/club/ClubPollsSection";
 import { ClubProgramSection } from "@/src/components/club/ClubProgramSection";
 import { ClubSettingsForm } from "@/src/components/club/ClubSettingsForm";
 import { ClubDangerZone } from "@/src/components/club/ClubDangerZone";
+import { ClubStatsSection } from "@/src/components/club/ClubStatsSection";
 
 type ClubSection = {
     id: string;
@@ -79,6 +81,7 @@ const CLUB_SECTIONS: ClubSection[] = [
     { id: "abwesenheiten", label: "Abwesenheiten", icon: CalendarOff },
     { id: "umfragen", label: "Umfragen", icon: Vote },
     { id: "programm", label: "Programm", icon: ListMusic },
+    { id: "statistik", label: "Statistik", icon: BarChart3 },
     { id: "nachrichten", label: "Nachrichten", icon: MessagesSquare },
     { id: "dateien", label: "Dateien", icon: FolderKanban },
     { id: "mitglieder", label: "Mitglieder", icon: Users2 },
@@ -410,6 +413,10 @@ export const ClubDetailView: FC = () => {
 
                     {activeSection.id === "programm" && (
                         <ClubProgramSection clubId={club.id} canManage={permissions?.can_manage_events ?? false} />
+                    )}
+
+                    {activeSection.id === "statistik" && (
+                        <ClubStatsSection clubId={club.id} />
                     )}
 
                     {activeSection.id === "bearbeiten" && club && (

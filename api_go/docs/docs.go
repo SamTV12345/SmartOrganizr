@@ -2303,6 +2303,40 @@ const docTemplate = `{
                 }
             }
         },
+        "/v1/clubs/{clubId}/stats/attendance": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "clubs"
+                ],
+                "summary": "Per-member and per-section attendance rates for a club",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Club ID",
+                        "name": "clubId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Recent-window size in days (default 90)",
+                        "name": "windowDays",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.AttendanceStatsDto"
+                        }
+                    }
+                }
+            }
+        },
         "/v1/clubs/{userId}": {
             "get": {
                 "produces": [
@@ -3924,6 +3958,26 @@ const docTemplate = `{
                 }
             }
         },
+        "dto.AttendanceStatsDto": {
+            "type": "object",
+            "properties": {
+                "members": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.MemberAttendanceDto"
+                    }
+                },
+                "sections": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.SectionAttendanceDto"
+                    }
+                },
+                "windowDays": {
+                    "type": "integer"
+                }
+            }
+        },
         "dto.Author": {
             "type": "object",
             "required": [
@@ -5312,6 +5366,41 @@ const docTemplate = `{
                 }
             }
         },
+        "dto.MemberAttendanceDto": {
+            "type": "object",
+            "properties": {
+                "attendedTotal": {
+                    "type": "integer"
+                },
+                "attendedWindow": {
+                    "type": "integer"
+                },
+                "displayName": {
+                    "type": "string"
+                },
+                "eligibleTotal": {
+                    "type": "integer"
+                },
+                "eligibleWindow": {
+                    "type": "integer"
+                },
+                "rateTotal": {
+                    "type": "number"
+                },
+                "rateWindow": {
+                    "type": "number"
+                },
+                "sectionId": {
+                    "type": "string"
+                },
+                "sectionName": {
+                    "type": "string"
+                },
+                "userId": {
+                    "type": "string"
+                }
+            }
+        },
         "dto.Note": {
             "type": "object",
             "required": [
@@ -5610,6 +5699,38 @@ const docTemplate = `{
                     "type": "boolean"
                 },
                 "title": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.SectionAttendanceDto": {
+            "type": "object",
+            "properties": {
+                "attendedTotal": {
+                    "type": "integer"
+                },
+                "attendedWindow": {
+                    "type": "integer"
+                },
+                "eligibleTotal": {
+                    "type": "integer"
+                },
+                "eligibleWindow": {
+                    "type": "integer"
+                },
+                "memberCount": {
+                    "type": "integer"
+                },
+                "rateTotal": {
+                    "type": "number"
+                },
+                "rateWindow": {
+                    "type": "number"
+                },
+                "sectionId": {
+                    "type": "string"
+                },
+                "sectionName": {
                     "type": "string"
                 }
             }

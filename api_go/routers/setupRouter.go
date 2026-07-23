@@ -166,6 +166,7 @@ func SetupRouter(queries *db.Queries, config config.AppConfig, logger *zap.Sugar
 	var clubSectionService = service.NewClubSectionService(queries, clubMemberService)
 	var clubPollService = service.NewClubPollService(queries, clubMemberService)
 	var clubEventProgramService = service.NewClubEventProgramService(queries, clubMemberService)
+	var clubStatsService = service.NewClubStatsService(queries, clubMemberService)
 
 	noteService.FolderService = &folderService
 
@@ -201,6 +202,7 @@ func SetupRouter(queries *db.Queries, config config.AppConfig, logger *zap.Sugar
 		SetLocal[service.ClubSectionService](c, constants.ClubSectionService, clubSectionService)
 		SetLocal[service.ClubPollService](c, constants.ClubPollService, clubPollService)
 		SetLocal[service.ClubEventProgramService](c, constants.ClubEventProgramService, clubEventProgramService)
+		SetLocal[service.ClubStatsService](c, constants.ClubStatsService, clubStatsService)
 		SetLocal[string](c, constants.AppBaseURL, config.App.URL)
 
 		return c.Next()
@@ -334,6 +336,7 @@ func SetupRouter(queries *db.Queries, config config.AppConfig, logger *zap.Sugar
 		r.Delete("/:clubId/polls/:pollId", controllers.DeleteClubPoll)
 		r.Get("/:clubId/events/:eventId/program", controllers.GetClubEventProgram)
 		r.Put("/:clubId/events/:eventId/program", controllers.ReplaceClubEventProgram)
+		r.Get("/:clubId/stats/attendance", controllers.GetClubAttendanceStats)
 	})
 
 	profile.Route("v1/club-events", func(r fiber.Router) {

@@ -119,30 +119,6 @@ const renderOfflineNotice = (title: string, message: string) => {
 const bootstrapApp = async () => {
     if (keycloak !== undefined) return;
 
-    // ponytail: e2e escape hatch. Playwright sets window.__E2E_AUTH__ (via addInitScript)
-    // so tests can drive the real UI without a live Keycloak/IdP — we skip the /public
-    // config fetch + Keycloak redirect and render with a stub token. Never set in normal use.
-    const e2e = (window as unknown as { __E2E_AUTH__?: { sub?: string; name?: string; email?: string } }).__E2E_AUTH__;
-    if (e2e) {
-        const sub = e2e.sub ?? "e2e-user";
-        const stub = {
-            authenticated: true,
-            token: "e2e-token",
-            subject: sub,
-            tokenParsed: { sub, preferred_username: e2e.name ?? "E2E", name: e2e.name ?? "E2E User", email: e2e.email ?? "e2e@test.local" },
-            idTokenParsed: { sub },
-            updateToken: () => Promise.resolve(false),
-            hasRealmRole: () => false,
-            hasResourceRole: () => false,
-            login: () => {},
-            logout: () => {},
-            accountManagement: () => {},
-        } as unknown as Keycloak;
-        setLoadedKeycloak(stub);
-        renderApp(stub);
-        return;
-    }
-
     let config: CachedKeycloakConfig | null = null;
     let reachedServer = false;
     try {

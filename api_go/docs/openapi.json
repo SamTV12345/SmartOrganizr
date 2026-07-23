@@ -2473,6 +2473,45 @@
                 }
             }
         },
+        "/v1/clubs/{clubId}/stats/attendance": {
+            "get": {
+                "tags": [
+                    "clubs"
+                ],
+                "summary": "Per-member and per-section attendance rates for a club",
+                "parameters": [
+                    {
+                        "description": "Club ID",
+                        "name": "clubId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "description": "Recent-window size in days (default 90)",
+                        "name": "windowDays",
+                        "in": "query",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/dto.AttendanceStatsDto"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/v1/clubs/{userId}": {
             "get": {
                 "tags": [
@@ -4281,6 +4320,26 @@
                     }
                 }
             },
+            "dto.AttendanceStatsDto": {
+                "type": "object",
+                "properties": {
+                    "members": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/dto.MemberAttendanceDto"
+                        }
+                    },
+                    "sections": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/dto.SectionAttendanceDto"
+                        }
+                    },
+                    "windowDays": {
+                        "type": "integer"
+                    }
+                }
+            },
             "dto.Author": {
                 "type": "object",
                 "required": [
@@ -5669,6 +5728,41 @@
                     }
                 }
             },
+            "dto.MemberAttendanceDto": {
+                "type": "object",
+                "properties": {
+                    "attendedTotal": {
+                        "type": "integer"
+                    },
+                    "attendedWindow": {
+                        "type": "integer"
+                    },
+                    "displayName": {
+                        "type": "string"
+                    },
+                    "eligibleTotal": {
+                        "type": "integer"
+                    },
+                    "eligibleWindow": {
+                        "type": "integer"
+                    },
+                    "rateTotal": {
+                        "type": "number"
+                    },
+                    "rateWindow": {
+                        "type": "number"
+                    },
+                    "sectionId": {
+                        "type": "string"
+                    },
+                    "sectionName": {
+                        "type": "string"
+                    },
+                    "userId": {
+                        "type": "string"
+                    }
+                }
+            },
             "dto.Note": {
                 "type": "object",
                 "required": [
@@ -5967,6 +6061,38 @@
                         "type": "boolean"
                     },
                     "title": {
+                        "type": "string"
+                    }
+                }
+            },
+            "dto.SectionAttendanceDto": {
+                "type": "object",
+                "properties": {
+                    "attendedTotal": {
+                        "type": "integer"
+                    },
+                    "attendedWindow": {
+                        "type": "integer"
+                    },
+                    "eligibleTotal": {
+                        "type": "integer"
+                    },
+                    "eligibleWindow": {
+                        "type": "integer"
+                    },
+                    "memberCount": {
+                        "type": "integer"
+                    },
+                    "rateTotal": {
+                        "type": "number"
+                    },
+                    "rateWindow": {
+                        "type": "number"
+                    },
+                    "sectionId": {
+                        "type": "string"
+                    },
+                    "sectionName": {
                         "type": "string"
                     }
                 }
