@@ -32,6 +32,7 @@
     "delete-confirm": "Diesen Termin endgültig löschen? Alle Rückmeldungen gehen verloren.",
     "cancel-event": "Absagen",
     "cancelled": "(abgesagt)",
+    "expected": "erwartet",
     "field": {
       "summary": "Titel",
       "type": "Art",

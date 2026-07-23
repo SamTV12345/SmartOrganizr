@@ -410,8 +410,11 @@ export const ClubEventsManager = ({ clubId, canManage }: Props) => {
             {event.description ? (
               <p className="whitespace-pre-wrap text-sm">{event.description}</p>
             ) : null}
-            <p className="text-xs">
-              {"✅"} {event.yesCount} {"·"} {"\u{1F914}"} {event.maybeCount} {"·"} {"❌"} {event.noCount} {"·"} {"❔"} {event.undecidedCount}
+            <p className="flex items-center gap-2 text-xs">
+              <span>
+                {"✅"} {event.yesCount} {"·"} {"\u{1F914}"} {event.maybeCount} {"·"} {"❌"} {event.noCount} {"·"} {"❔"} {event.undecidedCount}
+              </span>
+              <ExpectedBadge clubId={clubId} eventId={event.id} />
             </p>
             <AttendanceMatrix clubId={clubId} eventId={event.id} />
             {canManage && !event.cancelled && (
@@ -432,6 +435,29 @@ export const ClubEventsManager = ({ clubId, canManage }: Props) => {
 }
 
 type MatrixProps = { clubId: string; eventId: string }
+
+// "erwartet X/Y" — expected attendance inferred from RSVPs + absences. Uses the
+// http shim since the availability endpoint isn't in the typed schema.
+// ponytail: one request per event card (N+1); add a batch endpoint if the events
+// list ever grows large enough to matter.
+const ExpectedBadge = ({ clubId, eventId }: MatrixProps) => {
+  const { t } = useTranslation()
+  const { data } = useQuery({
+    queryKey: ["club-availability", clubId, eventId],
+    queryFn: async () =>
+      (
+        await axios.get<{ expectedCount: number; totalCount: number }>(
+          `${apiURL}/v1/clubs/${clubId}/events/${eventId}/availability`,
+        )
+      ).data,
+  })
+  if (!data) return null
+  return (
+    <span className="bg-muted text-muted-foreground rounded px-1.5 py-0.5 text-xs">
+      {t("clubEvents.expected")}: {data.expectedCount}/{data.totalCount}
+    </span>
+  )
+}
 
 const AttendanceMatrix = ({ clubId, eventId }: MatrixProps) => {
   const { t } = useTranslation()
