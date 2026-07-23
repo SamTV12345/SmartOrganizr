@@ -142,6 +142,7 @@ func SetupRouter(queries *db.Queries, config config.AppConfig, logger *zap.Sugar
 	var pinboardService = service.NewPinboardService(queries, clubMemberService, notificationHub)
 	var clubFileService = service.NewClubFileService(queries)
 	var clubEventService = service.NewClubEventService(queries, clubMemberService, notificationHub)
+	var clubAbsenceService = service.NewClubAbsenceService(queries, clubMemberService)
 
 	var wikidataService = service.NewWikidataService(
 		"https://query.wikidata.org/sparql",
@@ -189,6 +190,7 @@ func SetupRouter(queries *db.Queries, config config.AppConfig, logger *zap.Sugar
 		SetLocal[service.PinboardService](c, constants.PinboardService, pinboardService)
 		SetLocal[service.ClubFileService](c, constants.ClubFileService, clubFileService)
 		SetLocal[service.ClubEventService](c, constants.ClubEventService, clubEventService)
+		SetLocal[service.ClubAbsenceService](c, constants.ClubAbsenceService, clubAbsenceService)
 		SetLocal[*service.NotificationHub](c, constants.NotificationHub, notificationHub)
 		SetLocal[*service.WikidataService](c, constants.WikidataService, wikidataService)
 		SetLocal[*service.AIService](c, constants.AIService, aiService)
@@ -315,6 +317,12 @@ func SetupRouter(queries *db.Queries, config config.AppConfig, logger *zap.Sugar
 		r.Delete("/:clubId/events/:eventId/series", controllers.DeleteClubEventSeries)
 		r.Put("/:clubId/events/:eventId/response", controllers.RespondToClubEvent)
 		r.Get("/:clubId/events/:eventId/attendance", controllers.GetClubEventAttendance)
+		r.Get("/:clubId/events/:eventId/availability", controllers.GetClubEventAvailability)
+		// "/absences/overview" must be registered before the "/absences/:absenceId" param route
+		r.Get("/:clubId/absences/overview", controllers.ListClubAbsences)
+		r.Get("/:clubId/absences", controllers.ListMyClubAbsences)
+		r.Post("/:clubId/absences", controllers.CreateClubAbsence)
+		r.Delete("/:clubId/absences/:absenceId", controllers.DeleteClubAbsence)
 	})
 
 	profile.Route("v1/club-events", func(r fiber.Router) {

@@ -160,6 +160,39 @@ definitions:
     - token
     - url
     type: object
+  dto.ClubAbsenceDto:
+    properties:
+      clubId:
+        type: string
+      createdAt:
+        type: string
+      displayName:
+        type: string
+      endDate:
+        description: YYYY-MM-DD
+        type: string
+      id:
+        type: string
+      reason:
+        type: string
+      startDate:
+        description: YYYY-MM-DD
+        type: string
+      userId:
+        type: string
+    type: object
+  dto.ClubAbsenceUpsertDto:
+    properties:
+      endDate:
+        type: string
+      reason:
+        type: string
+      startDate:
+        type: string
+    required:
+    - endDate
+    - startDate
+    type: object
   dto.ClubChatCreateDto:
     properties:
       content:
@@ -710,6 +743,33 @@ definitions:
     - summary
     - uid
     - url
+    type: object
+  dto.EventAvailabilityDto:
+    properties:
+      eventId:
+        type: string
+      expectedCount:
+        type: integer
+      rows:
+        items:
+          $ref: '#/definitions/dto.EventAvailabilityRowDto'
+        type: array
+      totalCount:
+        type: integer
+    type: object
+  dto.EventAvailabilityRowDto:
+    properties:
+      available:
+        type: boolean
+      displayName:
+        type: string
+      source:
+        type: string
+      status:
+        description: RSVP status when Source == "rsvp"
+        type: string
+      userId:
+        type: string
     type: object
   dto.Folder:
     properties:
@@ -1715,6 +1775,90 @@ paths:
       summary: Update a club's settings (manager only)
       tags:
       - clubs
+  /v1/clubs/{clubId}/absences:
+    get:
+      parameters:
+      - description: Club ID
+        in: path
+        name: clubId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/dto.ClubAbsenceDto'
+            type: array
+      summary: List the caller's own absences in a club
+      tags:
+      - club-absence
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Club ID
+        in: path
+        name: clubId
+        required: true
+        type: string
+      - description: Absence payload
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.ClubAbsenceUpsertDto'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.ClubAbsenceDto'
+      summary: Declare an absence range for the caller
+      tags:
+      - club-absence
+  /v1/clubs/{clubId}/absences/{absenceId}:
+    delete:
+      parameters:
+      - description: Club ID
+        in: path
+        name: clubId
+        required: true
+        type: string
+      - description: Absence ID
+        in: path
+        name: absenceId
+        required: true
+        type: string
+      responses:
+        "204":
+          description: No Content
+      summary: Delete one of the caller's own absences
+      tags:
+      - club-absence
+  /v1/clubs/{clubId}/absences/overview:
+    get:
+      parameters:
+      - description: Club ID
+        in: path
+        name: clubId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/dto.ClubAbsenceDto'
+            type: array
+      summary: List all members' absences (managers only)
+      tags:
+      - club-absence
   /v1/clubs/{clubId}/events:
     get:
       parameters:
@@ -1858,6 +2002,29 @@ paths:
       summary: Get the visibility-filtered attendance matrix
       tags:
       - club-events
+  /v1/clubs/{clubId}/events/{eventId}/availability:
+    get:
+      parameters:
+      - description: Club ID
+        in: path
+        name: clubId
+        required: true
+        type: string
+      - description: Event ID
+        in: path
+        name: eventId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.EventAvailabilityDto'
+      summary: Inferred expected attendance for an event derived from absences
+      tags:
+      - club-absence
   /v1/clubs/{clubId}/events/{eventId}/cancel:
     post:
       parameters:

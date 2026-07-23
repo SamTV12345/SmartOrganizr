@@ -78,6 +78,21 @@
       "body": "Inhalt"
     }
   },
+  "absence": {
+    "create": "Abwesenheit melden",
+    "description": "Trage Zeiträume ein, in denen du nicht verfügbar bist.",
+    "start": "Von",
+    "end": "Bis",
+    "reason": "Grund (optional)",
+    "reasonPlaceholder": "z. B. Urlaub",
+    "add": "Hinzufügen",
+    "mine": "Meine Abwesenheiten",
+    "empty": "Keine Abwesenheiten vorhanden.",
+    "delete": "Löschen",
+    "deleteConfirm": "Diese Abwesenheit wirklich löschen?",
+    "overview": "Übersicht aller Mitglieder",
+    "overviewDescription": "Alle gemeldeten Abwesenheiten im Verein."
+  },
   "homepage": "Startseite",
   "fast": "Schnell",
   "modern": "Modern",

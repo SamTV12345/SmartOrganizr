@@ -876,3 +876,32 @@ ORDER BY s.name;
 
 -- name: UpdateClubMemberSection :exec
 UPDATE club_participant SET section_fk = ?, section_leader = ? WHERE club_id = ? AND user_id = ?;
+
+-- ==== member absence ====
+
+-- name: CreateClubAbsence :exec
+INSERT INTO club_absence (id, club_id, user_id, start_date, end_date, reason)
+VALUES (?, ?, ?, ?, ?, ?);
+
+-- name: GetClubAbsenceByID :one
+SELECT * FROM club_absence WHERE id = ? AND club_id = ?;
+
+-- name: DeleteClubAbsence :execrows
+DELETE FROM club_absence WHERE id = ? AND club_id = ? AND user_id = ?;
+
+-- name: ListMyClubAbsences :many
+SELECT * FROM club_absence
+WHERE club_id = ? AND user_id = ?
+ORDER BY start_date;
+
+-- name: ListClubAbsences :many
+SELECT a.*, u.firstname, u.lastname, u.username
+FROM club_absence a
+JOIN user u ON u.id = a.user_id
+WHERE a.club_id = ?
+ORDER BY a.start_date;
+
+-- name: ListClubAbsencesCoveringDate :many
+SELECT user_id FROM club_absence
+WHERE club_id = sqlc.arg(club_id)
+  AND start_date <= sqlc.arg(on_date) AND end_date >= sqlc.arg(on_date);
