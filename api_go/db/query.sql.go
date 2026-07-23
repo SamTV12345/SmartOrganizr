@@ -4276,6 +4276,97 @@ func (q *Queries) MaxInventoryNoForUser(ctx context.Context, userIDFk sql.NullSt
 	return coalesce, err
 }
 
+const memberAttendanceStats = `-- name: MemberAttendanceStats :many
+
+SELECT
+    p.user_id    AS user_id,
+    u.firstname  AS firstname,
+    u.lastname   AS lastname,
+    u.username   AS username,
+    p.section_fk AS section_id,
+    cs.name      AS section_name,
+    (SELECT COUNT(*) FROM club_events e
+        WHERE e.club_id = p.club_id AND e.cancelled = 0 AND e.start_date < NOW()
+          AND (e.section_fk IS NULL OR e.section_fk = p.section_fk)) AS eligible_total,
+    (SELECT COUNT(*) FROM club_events e
+        JOIN club_event_response r ON r.event_id = e.id AND r.user_id = p.user_id AND r.status = 'YES'
+        WHERE e.club_id = p.club_id AND e.cancelled = 0 AND e.start_date < NOW()
+          AND (e.section_fk IS NULL OR e.section_fk = p.section_fk)) AS attended_total,
+    (SELECT COUNT(*) FROM club_events e
+        WHERE e.club_id = p.club_id AND e.cancelled = 0 AND e.start_date < NOW()
+          AND e.start_date >= ?
+          AND (e.section_fk IS NULL OR e.section_fk = p.section_fk)) AS eligible_window,
+    (SELECT COUNT(*) FROM club_events e
+        JOIN club_event_response r ON r.event_id = e.id AND r.user_id = p.user_id AND r.status = 'YES'
+        WHERE e.club_id = p.club_id AND e.cancelled = 0 AND e.start_date < NOW()
+          AND e.start_date >= ?
+          AND (e.section_fk IS NULL OR e.section_fk = p.section_fk)) AS attended_window
+FROM club_participant p
+JOIN user u ON u.id = p.user_id
+LEFT JOIN club_section cs ON cs.id = p.section_fk
+WHERE p.club_id = ?
+ORDER BY u.lastname, u.firstname, p.user_id
+`
+
+type MemberAttendanceStatsParams struct {
+	WindowStart time.Time
+	ClubID      string
+}
+
+type MemberAttendanceStatsRow struct {
+	UserID         string
+	Firstname      sql.NullString
+	Lastname       sql.NullString
+	Username       sql.NullString
+	SectionID      sql.NullString
+	SectionName    sql.NullString
+	EligibleTotal  int64
+	AttendedTotal  int64
+	EligibleWindow int64
+	AttendedWindow int64
+}
+
+// ==== attendance stats ====
+// Per-member attendance over a club's past, non-cancelled events. A member is
+// "eligible" for whole-club events plus their own section's events; "attended"
+// means their response status is YES. Correlated COUNT(*) subqueries keep the
+// columns cleanly typed as int64 (COALESCE(SUM(..)) types poorly under MySQL)
+// and let members with zero responses / no section still appear with 0 counts.
+// Section aggregates are folded from these rows in Go (see ClubStatsService).
+func (q *Queries) MemberAttendanceStats(ctx context.Context, arg MemberAttendanceStatsParams) ([]MemberAttendanceStatsRow, error) {
+	rows, err := q.db.QueryContext(ctx, memberAttendanceStats, arg.WindowStart, arg.WindowStart, arg.ClubID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []MemberAttendanceStatsRow
+	for rows.Next() {
+		var i MemberAttendanceStatsRow
+		if err := rows.Scan(
+			&i.UserID,
+			&i.Firstname,
+			&i.Lastname,
+			&i.Username,
+			&i.SectionID,
+			&i.SectionName,
+			&i.EligibleTotal,
+			&i.AttendedTotal,
+			&i.EligibleWindow,
+			&i.AttendedWindow,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const moveToFolder = `-- name: MoveToFolder :exec
 UPDATE elements SET parent = ? WHERE id = ? and user_id_fk = ?
 `

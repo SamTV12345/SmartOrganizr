@@ -876,3 +876,41 @@ ORDER BY s.name;
 
 -- name: UpdateClubMemberSection :exec
 UPDATE club_participant SET section_fk = ?, section_leader = ? WHERE club_id = ? AND user_id = ?;
+
+-- ==== attendance stats ====
+-- Per-member attendance over a club's past, non-cancelled events. A member is
+-- "eligible" for whole-club events plus their own section's events; "attended"
+-- means their response status is YES. Correlated COUNT(*) subqueries keep the
+-- columns cleanly typed as int64 (COALESCE(SUM(..)) types poorly under MySQL)
+-- and let members with zero responses / no section still appear with 0 counts.
+-- Section aggregates are folded from these rows in Go (see ClubStatsService).
+
+-- name: MemberAttendanceStats :many
+SELECT
+    p.user_id    AS user_id,
+    u.firstname  AS firstname,
+    u.lastname   AS lastname,
+    u.username   AS username,
+    p.section_fk AS section_id,
+    cs.name      AS section_name,
+    (SELECT COUNT(*) FROM club_events e
+        WHERE e.club_id = p.club_id AND e.cancelled = 0 AND e.start_date < NOW()
+          AND (e.section_fk IS NULL OR e.section_fk = p.section_fk)) AS eligible_total,
+    (SELECT COUNT(*) FROM club_events e
+        JOIN club_event_response r ON r.event_id = e.id AND r.user_id = p.user_id AND r.status = 'YES'
+        WHERE e.club_id = p.club_id AND e.cancelled = 0 AND e.start_date < NOW()
+          AND (e.section_fk IS NULL OR e.section_fk = p.section_fk)) AS attended_total,
+    (SELECT COUNT(*) FROM club_events e
+        WHERE e.club_id = p.club_id AND e.cancelled = 0 AND e.start_date < NOW()
+          AND e.start_date >= sqlc.arg(window_start)
+          AND (e.section_fk IS NULL OR e.section_fk = p.section_fk)) AS eligible_window,
+    (SELECT COUNT(*) FROM club_events e
+        JOIN club_event_response r ON r.event_id = e.id AND r.user_id = p.user_id AND r.status = 'YES'
+        WHERE e.club_id = p.club_id AND e.cancelled = 0 AND e.start_date < NOW()
+          AND e.start_date >= sqlc.arg(window_start)
+          AND (e.section_fk IS NULL OR e.section_fk = p.section_fk)) AS attended_window
+FROM club_participant p
+JOIN user u ON u.id = p.user_id
+LEFT JOIN club_section cs ON cs.id = p.section_fk
+WHERE p.club_id = sqlc.arg(club_id)
+ORDER BY u.lastname, u.firstname, p.user_id;

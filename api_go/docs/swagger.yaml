@@ -43,6 +43,19 @@ definitions:
       userId:
         type: string
     type: object
+  dto.AttendanceStatsDto:
+    properties:
+      members:
+        items:
+          $ref: '#/definitions/dto.MemberAttendanceDto'
+        type: array
+      sections:
+        items:
+          $ref: '#/definitions/dto.SectionAttendanceDto'
+        type: array
+      windowDays:
+        type: integer
+    type: object
   dto.Author:
     properties:
       birthYear:
@@ -842,6 +855,29 @@ definitions:
       url:
         type: string
     type: object
+  dto.MemberAttendanceDto:
+    properties:
+      attendedTotal:
+        type: integer
+      attendedWindow:
+        type: integer
+      displayName:
+        type: string
+      eligibleTotal:
+        type: integer
+      eligibleWindow:
+        type: integer
+      rateTotal:
+        type: number
+      rateWindow:
+        type: number
+      sectionId:
+        type: string
+      sectionName:
+        type: string
+      userId:
+        type: string
+    type: object
   dto.Note:
     properties:
       arranger:
@@ -1043,6 +1079,27 @@ definitions:
       pinned:
         type: boolean
       title:
+        type: string
+    type: object
+  dto.SectionAttendanceDto:
+    properties:
+      attendedTotal:
+        type: integer
+      attendedWindow:
+        type: integer
+      eligibleTotal:
+        type: integer
+      eligibleWindow:
+        type: integer
+      memberCount:
+        type: integer
+      rateTotal:
+        type: number
+      rateWindow:
+        type: number
+      sectionId:
+        type: string
+      sectionName:
         type: string
     type: object
   dto.UnreadByClubDto:
@@ -2574,6 +2631,28 @@ paths:
         "204":
           description: No Content
       summary: Rename a section (managers only)
+      tags:
+      - clubs
+  /v1/clubs/{clubId}/stats/attendance:
+    get:
+      parameters:
+      - description: Club ID
+        in: path
+        name: clubId
+        required: true
+        type: string
+      - description: Recent-window size in days (default 90)
+        in: query
+        name: windowDays
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.AttendanceStatsDto'
+      summary: Per-member and per-section attendance rates for a club
       tags:
       - clubs
   /v1/clubs/{userId}:

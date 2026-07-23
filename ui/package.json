@@ -53,6 +53,7 @@
     "zustand": "^5.0.14"
   },
   "devDependencies": {
+    "@playwright/test": "^1.61.1",
     "@rsbuild/plugin-type-check": "^1.5.0",
     "@tailwindcss/postcss": "^4.3.3",
     "@types/node": "^26.1.1",
