@@ -146,6 +146,16 @@ type Club struct {
 	ConfirmedRepresentative   bool
 }
 
+type ClubAbsence struct {
+	ID        string
+	ClubID    string
+	UserID    string
+	StartDate time.Time
+	EndDate   time.Time
+	Reason    sql.NullString
+	CreatedAt time.Time
+}
+
 type ClubChat struct {
 	ID        string
 	ClubID    string

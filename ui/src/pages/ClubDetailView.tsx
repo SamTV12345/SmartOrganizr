@@ -5,6 +5,7 @@ import { useTranslation } from "react-i18next";
 import { $api, http as axios } from "@/src/api/client";
 import {
     CalendarDays,
+    CalendarOff,
     ChevronLeft,
     Download,
     FolderKanban,
@@ -44,6 +45,7 @@ import { Label } from "@/components/ui/label";
 import { ClubPinboardSection } from "@/src/components/ClubPinboardSection";
 import { ClubFilesSection } from "@/src/components/ClubFilesSection";
 import { ClubEventsManager } from "@/src/components/club/ClubEventsManager";
+import { ClubAbsenceSection } from "@/src/components/club/ClubAbsenceSection";
 import { ClubSettingsForm } from "@/src/components/club/ClubSettingsForm";
 import { ClubDangerZone } from "@/src/components/club/ClubDangerZone";
 import { useDateFormat } from "@/src/hooks/useDateFormat";
@@ -67,6 +69,7 @@ const ROLE_VALUES = ["LEITER", "CO_LEITER", "SCHRIFTFUEHRER", "SCHATZMEISTER", "
 const CLUB_SECTIONS: ClubSection[] = [
     { id: "pinnwand", labelKey: "club.tab.pinnwand", icon: LayoutDashboard },
     { id: "termine", labelKey: "club.tab.termine", icon: CalendarDays },
+    { id: "abwesenheiten", labelKey: "club.tab.abwesenheiten", icon: CalendarOff },
     { id: "nachrichten", labelKey: "club.tab.nachrichten", icon: MessagesSquare },
     { id: "dateien", labelKey: "club.tab.dateien", icon: FolderKanban },
     { id: "mitglieder", labelKey: "club.tab.mitglieder", icon: Users2 },
@@ -411,6 +414,10 @@ export const ClubDetailView: FC = () => {
                             canManageSectionEvents={permissions?.can_manage_section_events ?? false}
                             mySectionId={permissions?.my_section_id ?? ""}
                         />
+                    )}
+
+                    {activeSection.id === "abwesenheiten" && (
+                        <ClubAbsenceSection clubId={club.id} canManage={permissions?.can_manage_roles ?? false} />
                     )}
 
                     {activeSection.id === "bearbeiten" && club && (
