@@ -18,6 +18,7 @@ import {
     UserRoundCog,
     UserRoundPlus,
     Users2,
+    Vote,
 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -46,6 +47,7 @@ import { ClubPinboardSection } from "@/src/components/ClubPinboardSection";
 import { ClubFilesSection } from "@/src/components/ClubFilesSection";
 import { ClubEventsManager } from "@/src/components/club/ClubEventsManager";
 import { ClubAbsenceSection } from "@/src/components/club/ClubAbsenceSection";
+import { ClubPollsSection } from "@/src/components/club/ClubPollsSection";
 import { ClubSettingsForm } from "@/src/components/club/ClubSettingsForm";
 import { ClubDangerZone } from "@/src/components/club/ClubDangerZone";
 import { useDateFormat } from "@/src/hooks/useDateFormat";
@@ -70,6 +72,7 @@ const CLUB_SECTIONS: ClubSection[] = [
     { id: "pinnwand", labelKey: "club.tab.pinnwand", icon: LayoutDashboard },
     { id: "termine", labelKey: "club.tab.termine", icon: CalendarDays },
     { id: "abwesenheiten", labelKey: "club.tab.abwesenheiten", icon: CalendarOff },
+    { id: "umfragen", labelKey: "club.tab.umfragen", icon: Vote },
     { id: "nachrichten", labelKey: "club.tab.nachrichten", icon: MessagesSquare },
     { id: "dateien", labelKey: "club.tab.dateien", icon: FolderKanban },
     { id: "mitglieder", labelKey: "club.tab.mitglieder", icon: Users2 },
@@ -418,6 +421,10 @@ export const ClubDetailView: FC = () => {
 
                     {activeSection.id === "abwesenheiten" && (
                         <ClubAbsenceSection clubId={club.id} canManage={permissions?.can_manage_roles ?? false} />
+                    )}
+
+                    {activeSection.id === "umfragen" && (
+                        <ClubPollsSection clubId={club.id} canManage={permissions?.can_manage_events ?? false} />
                     )}
 
                     {activeSection.id === "bearbeiten" && club && (

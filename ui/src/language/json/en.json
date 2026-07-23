@@ -427,6 +427,7 @@
       "pinnwand": "Pinboard",
       "termine": "Events",
       "abwesenheiten": "Absences",
+      "umfragen": "Polls",
       "nachrichten": "Messages",
       "dateien": "Files",
       "mitglieder": "Members",
@@ -634,5 +635,24 @@
   },
   "clubForm": {
     "namePlaceholder": "Example Town Wind Band"
+  },
+  "polls": {
+    "title": "Polls",
+    "create": "Create poll",
+    "question": "Question",
+    "questionPlaceholder": "What should be decided?",
+    "option": "Answer option",
+    "addOption": "Add option",
+    "multiple": "Allow multiple choices",
+    "submit": "Vote",
+    "vote": "Vote",
+    "close": "Close",
+    "closed": "Closed",
+    "delete": "Delete",
+    "delete-confirm": "Really delete this poll?",
+    "empty": "No polls yet.",
+    "votes": "{{count}} votes",
+    "totalVotes": "{{count}} votes total",
+    "needTwoOptions": "Please provide at least two options."
   }
 }
