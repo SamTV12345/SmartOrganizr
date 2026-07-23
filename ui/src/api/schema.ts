@@ -2582,6 +2582,48 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/clubs/{clubId}/stats/attendance": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Per-member and per-section attendance rates for a club */
+        get: {
+            parameters: {
+                query?: {
+                    /** @description Recent-window size in days (default 90) */
+                    windowDays?: number;
+                };
+                header?: never;
+                path: {
+                    /** @description Club ID */
+                    clubId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["dto.AttendanceStatsDto"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/clubs/{userId}": {
         parameters: {
             query?: never;
@@ -4691,6 +4733,11 @@ export interface components {
             status?: string;
             userId?: string;
         };
+        "dto.AttendanceStatsDto": {
+            members?: components["schemas"]["dto.MemberAttendanceDto"][];
+            sections?: components["schemas"]["dto.SectionAttendanceDto"][];
+            windowDays?: number;
+        };
         "dto.Author": {
             birthYear?: number;
             deathYear?: number;
@@ -5113,6 +5160,18 @@ export interface components {
             tagId?: string;
             url?: string;
         };
+        "dto.MemberAttendanceDto": {
+            attendedTotal?: number;
+            attendedWindow?: number;
+            displayName?: string;
+            eligibleTotal?: number;
+            eligibleWindow?: number;
+            rateTotal?: number;
+            rateWindow?: number;
+            sectionId?: string;
+            sectionName?: string;
+            userId?: string;
+        };
         "dto.Note": {
             arranger?: components["schemas"]["dto.Author"];
             author: components["schemas"]["dto.Author"];
@@ -5194,6 +5253,17 @@ export interface components {
             body?: string;
             pinned?: boolean;
             title?: string;
+        };
+        "dto.SectionAttendanceDto": {
+            attendedTotal?: number;
+            attendedWindow?: number;
+            eligibleTotal?: number;
+            eligibleWindow?: number;
+            memberCount?: number;
+            rateTotal?: number;
+            rateWindow?: number;
+            sectionId?: string;
+            sectionName?: string;
         };
         "dto.UnreadByClubDto": {
             clubId?: string;
