@@ -12,6 +12,23 @@ import (
 	"time"
 )
 
+const closeClubPoll = `-- name: CloseClubPoll :execrows
+UPDATE club_poll SET closed = 1 WHERE id = ? AND club_id = ?
+`
+
+type CloseClubPollParams struct {
+	ID     string
+	ClubID string
+}
+
+func (q *Queries) CloseClubPoll(ctx context.Context, arg CloseClubPollParams) (int64, error) {
+	result, err := q.db.ExecContext(ctx, closeClubPoll, arg.ID, arg.ClubID)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected()
+}
+
 const completeInventorySweep = `-- name: CompleteInventorySweep :exec
 UPDATE inventory_sweep SET completed_at = CURRENT_TIMESTAMP WHERE id = ?
 `
@@ -418,6 +435,55 @@ func (q *Queries) CreateClubInvitation(ctx context.Context, arg CreateClubInvita
 		arg.InvitedEmail,
 		arg.InvitedByUserID,
 		arg.ExpiresAt,
+	)
+	return err
+}
+
+const createClubPoll = `-- name: CreateClubPoll :exec
+
+INSERT INTO club_poll (id, club_id, question, created_by_user_id, multiple_choice, closes_at)
+VALUES (?, ?, ?, ?, ?, ?)
+`
+
+type CreateClubPollParams struct {
+	ID              string
+	ClubID          string
+	Question        string
+	CreatedByUserID string
+	MultipleChoice  bool
+	ClosesAt        sql.NullTime
+}
+
+// ==== polls ====
+func (q *Queries) CreateClubPoll(ctx context.Context, arg CreateClubPollParams) error {
+	_, err := q.db.ExecContext(ctx, createClubPoll,
+		arg.ID,
+		arg.ClubID,
+		arg.Question,
+		arg.CreatedByUserID,
+		arg.MultipleChoice,
+		arg.ClosesAt,
+	)
+	return err
+}
+
+const createClubPollOption = `-- name: CreateClubPollOption :exec
+INSERT INTO club_poll_option (id, poll_id, label, position) VALUES (?, ?, ?, ?)
+`
+
+type CreateClubPollOptionParams struct {
+	ID       string
+	PollID   string
+	Label    string
+	Position int32
+}
+
+func (q *Queries) CreateClubPollOption(ctx context.Context, arg CreateClubPollOptionParams) error {
+	_, err := q.db.ExecContext(ctx, createClubPollOption,
+		arg.ID,
+		arg.PollID,
+		arg.Label,
+		arg.Position,
 	)
 	return err
 }
@@ -996,6 +1062,23 @@ func (q *Queries) DeleteClubMembersByClub(ctx context.Context, clubID string) er
 	return err
 }
 
+const deleteClubPoll = `-- name: DeleteClubPoll :execrows
+DELETE FROM club_poll WHERE id = ? AND club_id = ?
+`
+
+type DeleteClubPollParams struct {
+	ID     string
+	ClubID string
+}
+
+func (q *Queries) DeleteClubPoll(ctx context.Context, arg DeleteClubPollParams) (int64, error) {
+	result, err := q.db.ExecContext(ctx, deleteClubPoll, arg.ID, arg.ClubID)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected()
+}
+
 const deleteClubSection = `-- name: DeleteClubSection :execrows
 DELETE FROM club_section WHERE id = ? AND club_id = ?
 `
@@ -1112,6 +1195,20 @@ UPDATE user SET profile_picture = NULL WHERE id = ?
 
 func (q *Queries) DeleteProfilePicture(ctx context.Context, id string) error {
 	_, err := q.db.ExecContext(ctx, deleteProfilePicture, id)
+	return err
+}
+
+const deleteUserClubPollVotes = `-- name: DeleteUserClubPollVotes :exec
+DELETE FROM club_poll_vote WHERE poll_id = ? AND user_id = ?
+`
+
+type DeleteUserClubPollVotesParams struct {
+	PollID string
+	UserID string
+}
+
+func (q *Queries) DeleteUserClubPollVotes(ctx context.Context, arg DeleteUserClubPollVotesParams) error {
+	_, err := q.db.ExecContext(ctx, deleteUserClubPollVotes, arg.PollID, arg.UserID)
 	return err
 }
 
@@ -2312,6 +2409,27 @@ func (q *Queries) FindClubMemberByClubAndUser(ctx context.Context, arg FindClubM
 	return i, err
 }
 
+const findClubPollOption = `-- name: FindClubPollOption :one
+SELECT id, poll_id, label, position FROM club_poll_option WHERE id = ? AND poll_id = ?
+`
+
+type FindClubPollOptionParams struct {
+	ID     string
+	PollID string
+}
+
+func (q *Queries) FindClubPollOption(ctx context.Context, arg FindClubPollOptionParams) (ClubPollOption, error) {
+	row := q.db.QueryRowContext(ctx, findClubPollOption, arg.ID, arg.PollID)
+	var i ClubPollOption
+	err := row.Scan(
+		&i.ID,
+		&i.PollID,
+		&i.Label,
+		&i.Position,
+	)
+	return i, err
+}
+
 const findClubSection = `-- name: FindClubSection :one
 SELECT id, club_id, name FROM club_section WHERE id = ? AND club_id = ?
 `
@@ -3139,6 +3257,31 @@ func (q *Queries) GetClubFileContent(ctx context.Context, arg GetClubFileContent
 	return i, err
 }
 
+const getClubPollByID = `-- name: GetClubPollByID :one
+SELECT id, club_id, question, created_by_user_id, multiple_choice, closed, closes_at, created_at FROM club_poll WHERE id = ? AND club_id = ?
+`
+
+type GetClubPollByIDParams struct {
+	ID     string
+	ClubID string
+}
+
+func (q *Queries) GetClubPollByID(ctx context.Context, arg GetClubPollByIDParams) (ClubPoll, error) {
+	row := q.db.QueryRowContext(ctx, getClubPollByID, arg.ID, arg.ClubID)
+	var i ClubPoll
+	err := row.Scan(
+		&i.ID,
+		&i.ClubID,
+		&i.Question,
+		&i.CreatedByUserID,
+		&i.MultipleChoice,
+		&i.Closed,
+		&i.ClosesAt,
+		&i.CreatedAt,
+	)
+	return i, err
+}
+
 const getClubs = `-- name: GetClubs :many
 SELECT clubs.id, clubs.name, clubs.address_id, clubs.club_type, clubs.dates_visible_for_all_members, clubs.members_can_send_messages, clubs.feedback_visibility, clubs.reason_visibility, clubs.confirmed_representative, address.id, address.street, address.house_number, address.location, address.postal_code, address.country
 from clubs
@@ -3338,6 +3481,21 @@ func (q *Queries) HealthCheck(ctx context.Context) (int32, error) {
 	var column_1 int32
 	err := row.Scan(&column_1)
 	return column_1, err
+}
+
+const insertClubPollVote = `-- name: InsertClubPollVote :exec
+INSERT IGNORE INTO club_poll_vote (poll_id, option_id, user_id) VALUES (?, ?, ?)
+`
+
+type InsertClubPollVoteParams struct {
+	PollID   string
+	OptionID string
+	UserID   string
+}
+
+func (q *Queries) InsertClubPollVote(ctx context.Context, arg InsertClubPollVoteParams) error {
+	_, err := q.db.ExecContext(ctx, insertClubPollVote, arg.PollID, arg.OptionID, arg.UserID)
+	return err
 }
 
 const listClubAbsences = `-- name: ListClubAbsences :many
@@ -4009,6 +4167,99 @@ func (q *Queries) ListClubFilesForClub(ctx context.Context, clubID string) ([]Li
 			&i.UploaderUsername,
 			&i.UploaderFirstname,
 			&i.UploaderLastname,
+			&i.CreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listClubPollOptionsWithCounts = `-- name: ListClubPollOptionsWithCounts :many
+SELECT
+    o.id,
+    o.poll_id,
+    o.label,
+    o.position,
+    (SELECT COUNT(*) FROM club_poll_vote v WHERE v.option_id = o.id)                                    AS vote_count,
+    (SELECT COUNT(*) FROM club_poll_vote v WHERE v.option_id = o.id AND v.user_id = ?) AS voted_by_me
+FROM club_poll_option o
+WHERE o.poll_id = ?
+ORDER BY o.position, o.id
+`
+
+type ListClubPollOptionsWithCountsParams struct {
+	UserID string
+	PollID string
+}
+
+type ListClubPollOptionsWithCountsRow struct {
+	ID        string
+	PollID    string
+	Label     string
+	Position  int32
+	VoteCount int64
+	VotedByMe int64
+}
+
+func (q *Queries) ListClubPollOptionsWithCounts(ctx context.Context, arg ListClubPollOptionsWithCountsParams) ([]ListClubPollOptionsWithCountsRow, error) {
+	rows, err := q.db.QueryContext(ctx, listClubPollOptionsWithCounts, arg.UserID, arg.PollID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ListClubPollOptionsWithCountsRow
+	for rows.Next() {
+		var i ListClubPollOptionsWithCountsRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.PollID,
+			&i.Label,
+			&i.Position,
+			&i.VoteCount,
+			&i.VotedByMe,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listClubPolls = `-- name: ListClubPolls :many
+SELECT id, club_id, question, created_by_user_id, multiple_choice, closed, closes_at, created_at FROM club_poll WHERE club_id = ? ORDER BY created_at DESC
+`
+
+func (q *Queries) ListClubPolls(ctx context.Context, clubID string) ([]ClubPoll, error) {
+	rows, err := q.db.QueryContext(ctx, listClubPolls, clubID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ClubPoll
+	for rows.Next() {
+		var i ClubPoll
+		if err := rows.Scan(
+			&i.ID,
+			&i.ClubID,
+			&i.Question,
+			&i.CreatedByUserID,
+			&i.MultipleChoice,
+			&i.Closed,
+			&i.ClosesAt,
 			&i.CreatedAt,
 		); err != nil {
 			return nil, err

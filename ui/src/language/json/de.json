@@ -369,5 +369,24 @@
     "delete": "Register löschen",
     "delete-confirm": "Register \"{{name}}\" löschen? Mitglieder bleiben erhalten, Termine gelten wieder für den ganzen Verein.",
     "create-error": "Register konnte nicht angelegt werden (Name evtl. schon vergeben)."
+  },
+  "polls": {
+    "title": "Umfragen",
+    "create": "Umfrage erstellen",
+    "question": "Frage",
+    "questionPlaceholder": "Worüber soll abgestimmt werden?",
+    "option": "Antwortoption",
+    "addOption": "Option hinzufügen",
+    "multiple": "Mehrfachauswahl erlauben",
+    "submit": "Abstimmen",
+    "vote": "Abstimmen",
+    "close": "Schließen",
+    "closed": "Geschlossen",
+    "delete": "Löschen",
+    "delete-confirm": "Diese Umfrage wirklich löschen?",
+    "empty": "Noch keine Umfragen vorhanden.",
+    "votes": "{{count}} Stimmen",
+    "totalVotes": "{{count}} Stimmen insgesamt",
+    "needTwoOptions": "Bitte mindestens zwei Optionen angeben."
   }
 }

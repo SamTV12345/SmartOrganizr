@@ -1912,6 +1912,174 @@ const docTemplate = `{
                 }
             }
         },
+        "/v1/clubs/{clubId}/polls": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "club-polls"
+                ],
+                "summary": "List a club's polls with results",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Club ID",
+                        "name": "clubId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/dto.ClubPollDto"
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "club-polls"
+                ],
+                "summary": "Create a poll (manager only)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Club ID",
+                        "name": "clubId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Poll payload",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.ClubPollCreateDto"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ClubPollDto"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/clubs/{clubId}/polls/{pollId}": {
+            "delete": {
+                "tags": [
+                    "club-polls"
+                ],
+                "summary": "Delete a poll (manager only)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Club ID",
+                        "name": "clubId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Poll ID",
+                        "name": "pollId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    }
+                }
+            }
+        },
+        "/v1/clubs/{clubId}/polls/{pollId}/close": {
+            "post": {
+                "tags": [
+                    "club-polls"
+                ],
+                "summary": "Close a poll (manager only)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Club ID",
+                        "name": "clubId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Poll ID",
+                        "name": "pollId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    }
+                }
+            }
+        },
+        "/v1/clubs/{clubId}/polls/{pollId}/vote": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "tags": [
+                    "club-polls"
+                ],
+                "summary": "Cast or replace the caller's vote",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Club ID",
+                        "name": "clubId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Poll ID",
+                        "name": "pollId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Ballot",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.ClubPollVoteDto"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    }
+                }
+            }
+        },
         "/v1/clubs/{clubId}/sections": {
             "get": {
                 "produces": [
@@ -4491,6 +4659,103 @@ const docTemplate = `{
                     "type": "object",
                     "additionalProperties": {
                         "type": "boolean"
+                    }
+                }
+            }
+        },
+        "dto.ClubPollCreateDto": {
+            "type": "object",
+            "required": [
+                "options",
+                "question"
+            ],
+            "properties": {
+                "closesAt": {
+                    "description": "RFC3339 or null",
+                    "type": "string"
+                },
+                "multipleChoice": {
+                    "type": "boolean"
+                },
+                "options": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "question": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.ClubPollDto": {
+            "type": "object",
+            "properties": {
+                "closed": {
+                    "type": "boolean"
+                },
+                "closesAt": {
+                    "type": "string"
+                },
+                "clubId": {
+                    "type": "string"
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "createdByUserId": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "multipleChoice": {
+                    "type": "boolean"
+                },
+                "options": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.ClubPollOptionDto"
+                    }
+                },
+                "question": {
+                    "type": "string"
+                },
+                "totalVotes": {
+                    "type": "integer"
+                }
+            }
+        },
+        "dto.ClubPollOptionDto": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "label": {
+                    "type": "string"
+                },
+                "position": {
+                    "type": "integer"
+                },
+                "voteCount": {
+                    "type": "integer"
+                },
+                "votedByMe": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "dto.ClubPollVoteDto": {
+            "type": "object",
+            "required": [
+                "optionIds"
+            ],
+            "properties": {
+                "optionIds": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
                     }
                 }
             }

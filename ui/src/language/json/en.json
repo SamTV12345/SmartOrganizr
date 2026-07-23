@@ -369,5 +369,24 @@
     "delete": "Delete section",
     "delete-confirm": "Delete section \"{{name}}\"? Members are kept; its events become whole-club events.",
     "create-error": "Section could not be created (name may already be taken)."
+  },
+  "polls": {
+    "title": "Polls",
+    "create": "Create poll",
+    "question": "Question",
+    "questionPlaceholder": "What should be decided?",
+    "option": "Answer option",
+    "addOption": "Add option",
+    "multiple": "Allow multiple choices",
+    "submit": "Vote",
+    "vote": "Vote",
+    "close": "Close",
+    "closed": "Closed",
+    "delete": "Delete",
+    "delete-confirm": "Really delete this poll?",
+    "empty": "No polls yet.",
+    "votes": "{{count}} votes",
+    "totalVotes": "{{count}} votes total",
+    "needTwoOptions": "Please provide at least two options."
   }
 }

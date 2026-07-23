@@ -246,6 +246,31 @@ type ClubPinboardPost struct {
 	UpdatedAt    time.Time
 }
 
+type ClubPoll struct {
+	ID              string
+	ClubID          string
+	Question        string
+	CreatedByUserID string
+	MultipleChoice  bool
+	Closed          bool
+	ClosesAt        sql.NullTime
+	CreatedAt       time.Time
+}
+
+type ClubPollOption struct {
+	ID       string
+	PollID   string
+	Label    string
+	Position int32
+}
+
+type ClubPollVote struct {
+	PollID    string
+	OptionID  string
+	UserID    string
+	CreatedAt time.Time
+}
+
 type ClubSection struct {
 	ID     string
 	ClubID string

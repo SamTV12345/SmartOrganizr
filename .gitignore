@@ -67,3 +67,6 @@ api_go/.env.local
 img.png
 img-*.png
 screenshot*.png
+
+# git worktrees created by background agents
+.claude/worktrees/
