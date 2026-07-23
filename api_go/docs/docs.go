@@ -818,6 +818,92 @@ const docTemplate = `{
                 }
             }
         },
+        "/v1/clubs/{clubId}/events/{eventId}/program": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "club-event-program"
+                ],
+                "summary": "Get the ordered program (setlist) of a club event",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Club ID",
+                        "name": "clubId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Event ID",
+                        "name": "eventId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/dto.ClubEventProgramEntryDto"
+                            }
+                        }
+                    }
+                }
+            },
+            "put": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "club-event-program"
+                ],
+                "summary": "Replace the whole ordered program of a club event",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Club ID",
+                        "name": "clubId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Event ID",
+                        "name": "eventId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Ordered program entries",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.ClubEventProgramReplaceDto"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/dto.ClubEventProgramEntryDto"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/v1/clubs/{clubId}/events/{eventId}/response": {
             "put": {
                 "consumes": [
@@ -3922,6 +4008,43 @@ const docTemplate = `{
                 },
                 "yesCount": {
                     "type": "integer"
+                }
+            }
+        },
+        "dto.ClubEventProgramEntryDto": {
+            "type": "object",
+            "required": [
+                "title"
+            ],
+            "properties": {
+                "durationMinutes": {
+                    "type": "integer"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "noteId": {
+                    "type": "string"
+                },
+                "noteText": {
+                    "type": "string"
+                },
+                "position": {
+                    "type": "integer"
+                },
+                "title": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.ClubEventProgramReplaceDto": {
+            "type": "object",
+            "properties": {
+                "entries": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.ClubEventProgramEntryDto"
+                    }
                 }
             }
         },

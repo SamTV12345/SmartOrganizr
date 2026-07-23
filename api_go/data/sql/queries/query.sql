@@ -876,3 +876,20 @@ ORDER BY s.name;
 
 -- name: UpdateClubMemberSection :exec
 UPDATE club_participant SET section_fk = ?, section_leader = ? WHERE club_id = ? AND user_id = ?;
+
+-- ==== event program ====
+-- docs/superpowers/specs/2026-07-23-club-event-program-design.md
+-- A program is replaced wholesale (delete-all + re-insert ordered), so no per-row update query.
+
+-- name: ListEventProgram :many
+SELECT id, event_id, note_id, title, position, duration_minutes, note_text
+FROM club_event_program
+WHERE event_id = ?
+ORDER BY position;
+
+-- name: DeleteEventProgram :exec
+DELETE FROM club_event_program WHERE event_id = ?;
+
+-- name: CreateEventProgramEntry :exec
+INSERT INTO club_event_program (id, event_id, note_id, title, position, duration_minutes, note_text)
+VALUES (?, ?, ?, ?, ?, ?, ?);

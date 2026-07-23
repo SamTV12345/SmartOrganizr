@@ -885,6 +885,76 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/clubs/{clubId}/events/{eventId}/program": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get the ordered program (setlist) of a club event */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Club ID */
+                    clubId: string;
+                    /** @description Event ID */
+                    eventId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["dto.ClubEventProgramEntryDto"][];
+                    };
+                };
+            };
+        };
+        /** Replace the whole ordered program of a club event */
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Club ID */
+                    clubId: string;
+                    /** @description Event ID */
+                    eventId: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["dto.ClubEventProgramReplaceDto"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["dto.ClubEventProgramEntryDto"][];
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/clubs/{clubId}/events/{eventId}/cancel": {
         parameters: {
             query?: never;
@@ -4202,6 +4272,17 @@ export interface components {
             summary?: string;
             undecidedCount?: number;
             yesCount?: number;
+        };
+        "dto.ClubEventProgramEntryDto": {
+            durationMinutes?: number;
+            id?: string;
+            noteId?: string;
+            noteText?: string;
+            position?: number;
+            title: string;
+        };
+        "dto.ClubEventProgramReplaceDto": {
+            entries?: components["schemas"]["dto.ClubEventProgramEntryDto"][];
         };
         "dto.ClubEventRepeatDto": {
             /** @description WEEKLY | BIWEEKLY | MONTHLY */
