@@ -165,6 +165,7 @@ func SetupRouter(queries *db.Queries, config config.AppConfig, logger *zap.Sugar
 	var inventoryService = service.NewInventoryService(queries, aiService)
 	var clubSectionService = service.NewClubSectionService(queries, clubMemberService)
 	var clubPollService = service.NewClubPollService(queries, clubMemberService)
+	var clubEventProgramService = service.NewClubEventProgramService(queries, clubMemberService)
 
 	noteService.FolderService = &folderService
 
@@ -199,6 +200,7 @@ func SetupRouter(queries *db.Queries, config config.AppConfig, logger *zap.Sugar
 		SetLocal[service.InventoryService](c, constants.InventoryService, inventoryService)
 		SetLocal[service.ClubSectionService](c, constants.ClubSectionService, clubSectionService)
 		SetLocal[service.ClubPollService](c, constants.ClubPollService, clubPollService)
+		SetLocal[service.ClubEventProgramService](c, constants.ClubEventProgramService, clubEventProgramService)
 		SetLocal[string](c, constants.AppBaseURL, config.App.URL)
 
 		return c.Next()
@@ -321,6 +323,8 @@ func SetupRouter(queries *db.Queries, config config.AppConfig, logger *zap.Sugar
 		r.Put("/:clubId/events/:eventId/response", controllers.RespondToClubEvent)
 		r.Get("/:clubId/events/:eventId/attendance", controllers.GetClubEventAttendance)
 		r.Get("/:clubId/events/:eventId/availability", controllers.GetClubEventAvailability)
+		r.Get("/:clubId/events/:eventId/program", controllers.GetClubEventProgram)
+		r.Put("/:clubId/events/:eventId/program", controllers.ReplaceClubEventProgram)
 		// "/absences/overview" must be registered before the "/absences/:absenceId" param route
 		r.Get("/:clubId/absences/overview", controllers.ListClubAbsences)
 		r.Get("/:clubId/absences", controllers.ListMyClubAbsences)
