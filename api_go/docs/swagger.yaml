@@ -361,6 +361,30 @@ definitions:
       yesCount:
         type: integer
     type: object
+  dto.ClubEventProgramEntryDto:
+    properties:
+      durationMinutes:
+        type: integer
+      id:
+        type: string
+      noteId:
+        type: string
+      noteText:
+        type: string
+      position:
+        type: integer
+      title:
+        type: string
+    required:
+    - title
+    type: object
+  dto.ClubEventProgramReplaceDto:
+    properties:
+      entries:
+        items:
+          $ref: '#/definitions/dto.ClubEventProgramEntryDto'
+        type: array
+    type: object
   dto.ClubEventRepeatDto:
     properties:
       frequency:
@@ -2108,6 +2132,63 @@ paths:
       summary: Soft-cancel a native club event
       tags:
       - club-events
+  /v1/clubs/{clubId}/events/{eventId}/program:
+    get:
+      parameters:
+      - description: Club ID
+        in: path
+        name: clubId
+        required: true
+        type: string
+      - description: Event ID
+        in: path
+        name: eventId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/dto.ClubEventProgramEntryDto'
+            type: array
+      summary: Get the ordered program (setlist) of a club event
+      tags:
+      - club-event-program
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: Club ID
+        in: path
+        name: clubId
+        required: true
+        type: string
+      - description: Event ID
+        in: path
+        name: eventId
+        required: true
+        type: string
+      - description: Ordered program entries
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.ClubEventProgramReplaceDto'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/dto.ClubEventProgramEntryDto'
+            type: array
+      summary: Replace the whole ordered program of a club event
+      tags:
+      - club-event-program
   /v1/clubs/{clubId}/events/{eventId}/response:
     put:
       consumes:

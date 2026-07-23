@@ -10,6 +10,7 @@ import {
     Download,
     FolderKanban,
     LayoutDashboard,
+    ListMusic,
     MessagesSquare,
     PencilLine,
     Settings,
@@ -48,6 +49,7 @@ import { ClubFilesSection } from "@/src/components/ClubFilesSection";
 import { ClubEventsManager } from "@/src/components/club/ClubEventsManager";
 import { ClubAbsenceSection } from "@/src/components/club/ClubAbsenceSection";
 import { ClubPollsSection } from "@/src/components/club/ClubPollsSection";
+import { ClubProgramSection } from "@/src/components/club/ClubProgramSection";
 import { ClubSettingsForm } from "@/src/components/club/ClubSettingsForm";
 import { ClubDangerZone } from "@/src/components/club/ClubDangerZone";
 
@@ -76,6 +78,7 @@ const CLUB_SECTIONS: ClubSection[] = [
     { id: "termine", label: "Termine", icon: CalendarDays },
     { id: "abwesenheiten", label: "Abwesenheiten", icon: CalendarOff },
     { id: "umfragen", label: "Umfragen", icon: Vote },
+    { id: "programm", label: "Programm", icon: ListMusic },
     { id: "nachrichten", label: "Nachrichten", icon: MessagesSquare },
     { id: "dateien", label: "Dateien", icon: FolderKanban },
     { id: "mitglieder", label: "Mitglieder", icon: Users2 },
@@ -403,6 +406,10 @@ export const ClubDetailView: FC = () => {
 
                     {activeSection.id === "umfragen" && (
                         <ClubPollsSection clubId={club.id} canManage={permissions?.can_manage_events ?? false} />
+                    )}
+
+                    {activeSection.id === "programm" && (
+                        <ClubProgramSection clubId={club.id} canManage={permissions?.can_manage_events ?? false} />
                     )}
 
                     {activeSection.id === "bearbeiten" && club && (

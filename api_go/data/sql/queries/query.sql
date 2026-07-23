@@ -946,3 +946,19 @@ DELETE FROM club_poll_vote WHERE poll_id = ? AND user_id = ?;
 
 -- name: InsertClubPollVote :exec
 INSERT IGNORE INTO club_poll_vote (poll_id, option_id, user_id) VALUES (?, ?, ?);
+-- ==== event program ====
+-- docs/superpowers/specs/2026-07-23-club-event-program-design.md
+-- A program is replaced wholesale (delete-all + re-insert ordered), so no per-row update query.
+
+-- name: ListEventProgram :many
+SELECT id, event_id, note_id, title, position, duration_minutes, note_text
+FROM club_event_program
+WHERE event_id = ?
+ORDER BY position;
+
+-- name: DeleteEventProgram :exec
+DELETE FROM club_event_program WHERE event_id = ?;
+
+-- name: CreateEventProgramEntry :exec
+INSERT INTO club_event_program (id, event_id, note_id, title, position, duration_minutes, note_text)
+VALUES (?, ?, ?, ?, ?, ?, ?);

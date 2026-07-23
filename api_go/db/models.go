@@ -197,6 +197,16 @@ type ClubEvent struct {
 	SeriesID        sql.NullString
 }
 
+type ClubEventProgram struct {
+	ID              string
+	EventID         string
+	NoteID          sql.NullString
+	Title           string
+	Position        int32
+	DurationMinutes sql.NullInt32
+	NoteText        sql.NullString
+}
+
 type ClubEventResponse struct {
 	EventID     string
 	UserID      string
