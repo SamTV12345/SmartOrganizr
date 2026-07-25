@@ -355,6 +355,83 @@
     "delete-confirm": "Register \"{{name}}\" löschen? Mitglieder bleiben erhalten, Termine gelten wieder für den ganzen Verein.",
     "create-error": "Register konnte nicht angelegt werden (Name evtl. schon vergeben)."
   },
+  "club": {
+    "loading": "Lade Vereinsbereich...",
+    "notFound": "Verein nicht gefunden",
+    "notFoundHint": "Der ausgewählte Verein ist nicht verfügbar oder du hast keinen Zugriff.",
+    "create": "Verein erstellen",
+    "back": "Zurück",
+    "area": "Vereinsbereich",
+    "roleBadge": "Rolle: {{role}}",
+    "settingsReadOnly": "Nur die Vereinsleitung kann Einstellungen bearbeiten.",
+    "readOnlyHint": "Deine Rolle hat hier nur Leserechte.",
+    "tab": {
+      "pinnwand": "Pinnwand",
+      "termine": "Termine",
+      "nachrichten": "Nachrichten",
+      "dateien": "Dateien",
+      "mitglieder": "Mitglieder",
+      "rollen": "Rollen",
+      "bearbeiten": "Bearbeiten"
+    },
+    "role": {
+      "LEITER": {
+        "label": "Leiter",
+        "description": "Volle Verwaltung und alle Schreibrechte."
+      },
+      "CO_LEITER": {
+        "label": "Co-Leiter",
+        "description": "Operative Verwaltung mit erweiterten Rechten."
+      },
+      "SCHRIFTFUEHRER": {
+        "label": "Schriftführer",
+        "description": "Kommunikation und Mitgliedsverwaltung."
+      },
+      "SCHATZMEISTER": {
+        "label": "Schatzmeister",
+        "description": "Legacy-Rolle, weiterhin unterstützt."
+      },
+      "MITGLIED": {
+        "label": "Mitglied",
+        "description": "Standardzugriff mit lesender Sicht."
+      }
+    },
+    "messages": {
+      "title": "Nachrichten",
+      "hint": "Direkte Kommunikation im Verein.",
+      "open": "Nachrichten öffnen"
+    },
+    "members": {
+      "title": "Mitglieder",
+      "hint": "Aktuelle Mitglieder und Rollen im Verein."
+    },
+    "invite": {
+      "title": "Mitglied einladen",
+      "hint": "E-Mail-Adressen einfügen (mehrere möglich, getrennt durch Komma oder Zeilenumbruch).",
+      "placeholder": "mitglied1@example.com, mitglied2@example.com",
+      "send": "Einladung senden",
+      "addedDirectly": "Direkt hinzugefügt: {{count}}",
+      "invited": "Eingeladen: {{count}}",
+      "failed": "Fehlgeschlagen: {{emails}}",
+      "forbidden": "Deine Rolle darf keine Mitglieder einladen."
+    },
+    "csv": {
+      "title": "Mitglieder importieren/exportieren",
+      "hint": "CSV nach Konzertmeister-Format importieren oder aktuelle Liste exportieren.",
+      "file": "CSV-Datei",
+      "export": "CSV exportieren",
+      "import": "CSV importieren",
+      "filename": "Mitglieder.csv"
+    },
+    "systemRoles": {
+      "title": "Systemrollen",
+      "hint": "Standardrollen und Verantwortungen."
+    },
+    "rolesPerMember": {
+      "title": "Rollen pro Mitglied",
+      "hint": "Rollen sind immer die Beziehung zwischen Mitglied und Verein."
+    }
+  },
   "messages": {
     "title": "Meine Nachrichten",
     "subtitle": "Starte und verwalte Direktnachrichten innerhalb deiner Vereine.",

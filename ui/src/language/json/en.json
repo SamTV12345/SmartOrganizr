@@ -355,6 +355,83 @@
     "delete-confirm": "Delete section \"{{name}}\"? Members are kept; its events become whole-club events.",
     "create-error": "Section could not be created (name may already be taken)."
   },
+  "club": {
+    "loading": "Loading the club area...",
+    "notFound": "Club not found",
+    "notFoundHint": "The selected club is unavailable or you do not have access.",
+    "create": "Create a club",
+    "back": "Back",
+    "area": "Club area",
+    "roleBadge": "Role: {{role}}",
+    "settingsReadOnly": "Only the club leadership can edit the settings.",
+    "readOnlyHint": "Your role has read-only access here.",
+    "tab": {
+      "pinnwand": "Pinboard",
+      "termine": "Events",
+      "nachrichten": "Messages",
+      "dateien": "Files",
+      "mitglieder": "Members",
+      "rollen": "Roles",
+      "bearbeiten": "Settings"
+    },
+    "role": {
+      "LEITER": {
+        "label": "Leader",
+        "description": "Full administration and every write permission."
+      },
+      "CO_LEITER": {
+        "label": "Co-leader",
+        "description": "Day-to-day administration with extended permissions."
+      },
+      "SCHRIFTFUEHRER": {
+        "label": "Secretary",
+        "description": "Communication and member administration."
+      },
+      "SCHATZMEISTER": {
+        "label": "Treasurer",
+        "description": "Legacy role, still supported."
+      },
+      "MITGLIED": {
+        "label": "Member",
+        "description": "Standard access with a read-only view."
+      }
+    },
+    "messages": {
+      "title": "Messages",
+      "hint": "Direct communication inside the club.",
+      "open": "Open messages"
+    },
+    "members": {
+      "title": "Members",
+      "hint": "Current members and their roles in the club."
+    },
+    "invite": {
+      "title": "Invite a member",
+      "hint": "Paste email addresses (several are fine, separated by comma or line break).",
+      "placeholder": "member1@example.com, member2@example.com",
+      "send": "Send invitation",
+      "addedDirectly": "Added directly: {{count}}",
+      "invited": "Invited: {{count}}",
+      "failed": "Failed: {{emails}}",
+      "forbidden": "Your role may not invite members."
+    },
+    "csv": {
+      "title": "Import/export members",
+      "hint": "Import a CSV in Konzertmeister format or export the current list.",
+      "file": "CSV file",
+      "export": "Export CSV",
+      "import": "Import CSV",
+      "filename": "members.csv"
+    },
+    "systemRoles": {
+      "title": "System roles",
+      "hint": "Default roles and their responsibilities."
+    },
+    "rolesPerMember": {
+      "title": "Roles per member",
+      "hint": "A role is always the relationship between a member and the club."
+    }
+  },
   "messages": {
     "title": "My messages",
     "subtitle": "Start and manage direct messages inside your clubs.",

@@ -48,9 +48,11 @@ import { ClubSettingsForm } from "@/src/components/club/ClubSettingsForm";
 import { ClubDangerZone } from "@/src/components/club/ClubDangerZone";
 import { useDateFormat } from "@/src/hooks/useDateFormat";
 
+// The tab and role tables live outside the component, where t() is not
+// available — they carry translation keys and are resolved at render time.
 type ClubSection = {
     id: string;
-    label: string;
+    labelKey: string;
     icon: FC<{ className?: string }>;
 };
 
@@ -60,22 +62,16 @@ type InviteResult = {
     failed_emails: string[];
 };
 
-const ROLE_OPTIONS = [
-    { value: "LEITER", label: "Leiter", description: "Volle Verwaltung und alle Schreibrechte." },
-    { value: "CO_LEITER", label: "Co-Leiter", description: "Operative Verwaltung mit erweiterten Rechten." },
-    { value: "SCHRIFTFUEHRER", label: "Schriftführer", description: "Kommunikation und Mitgliedsverwaltung." },
-    { value: "SCHATZMEISTER", label: "Schatzmeister", description: "Legacy-Rolle, weiterhin unterstützt." },
-    { value: "MITGLIED", label: "Mitglied", description: "Standardzugriff mit lesender Sicht." },
-];
+const ROLE_VALUES = ["LEITER", "CO_LEITER", "SCHRIFTFUEHRER", "SCHATZMEISTER", "MITGLIED"] as const;
 
 const CLUB_SECTIONS: ClubSection[] = [
-    { id: "pinnwand", label: "Pinnwand", icon: LayoutDashboard },
-    { id: "termine", label: "Termine", icon: CalendarDays },
-    { id: "nachrichten", label: "Nachrichten", icon: MessagesSquare },
-    { id: "dateien", label: "Dateien", icon: FolderKanban },
-    { id: "mitglieder", label: "Mitglieder", icon: Users2 },
-    { id: "rollen", label: "Rollen", icon: UserRoundCog },
-    { id: "bearbeiten", label: "Bearbeiten", icon: PencilLine },
+    { id: "pinnwand", labelKey: "club.tab.pinnwand", icon: LayoutDashboard },
+    { id: "termine", labelKey: "club.tab.termine", icon: CalendarDays },
+    { id: "nachrichten", labelKey: "club.tab.nachrichten", icon: MessagesSquare },
+    { id: "dateien", labelKey: "club.tab.dateien", icon: FolderKanban },
+    { id: "mitglieder", labelKey: "club.tab.mitglieder", icon: Users2 },
+    { id: "rollen", labelKey: "club.tab.rollen", icon: UserRoundCog },
+    { id: "bearbeiten", labelKey: "club.tab.bearbeiten", icon: PencilLine },
 ];
 
 const getInitials = (name: string) =>
@@ -246,7 +242,7 @@ export const ClubDetailView: FC = () => {
         const downloadURL = URL.createObjectURL(response.data);
         const link = document.createElement("a");
         link.href = downloadURL;
-        link.download = "Mitglieder.csv";
+        link.download = t("club.csv.filename");
         link.click();
         URL.revokeObjectURL(downloadURL);
     };
@@ -267,7 +263,7 @@ export const ClubDetailView: FC = () => {
     };
 
     if (isLoading) {
-        return <div className="p-6 text-sm text-muted-foreground">Lade Vereinsbereich...</div>;
+        return <div className="p-6 text-sm text-muted-foreground">{t("club.loading")}</div>;
     }
 
     if (!club) {
@@ -275,11 +271,11 @@ export const ClubDetailView: FC = () => {
             <div className="p-6">
                 <Card className="max-w-xl">
                     <CardHeader>
-                        <CardTitle>Verein nicht gefunden</CardTitle>
-                        <CardDescription>Der ausgewählte Verein ist nicht verfügbar oder du hast keinen Zugriff.</CardDescription>
+                        <CardTitle>{t("club.notFound")}</CardTitle>
+                        <CardDescription>{t("club.notFoundHint")}</CardDescription>
                     </CardHeader>
                     <CardContent>
-                        <Button onClick={() => navigate("/createClub")}>Verein erstellen</Button>
+                        <Button onClick={() => navigate("/createClub")}>{t("club.create")}</Button>
                     </CardContent>
                 </Card>
             </div>
@@ -298,11 +294,11 @@ export const ClubDetailView: FC = () => {
                             onClick={() => navigate("/dashboard")}
                         >
                             <ChevronLeft className="size-4" />
-                            Zurück
+                            {t("club.back")}
                         </Button>
                         <div className="flex items-center gap-3">
                             <CalendarDays className="size-5" />
-                            <span className="text-sm font-medium">Vereinsbereich</span>
+                            <span className="text-sm font-medium">{t("club.area")}</span>
                         </div>
                     </div>
                 </div>
@@ -323,7 +319,9 @@ export const ClubDetailView: FC = () => {
                         <div className="flex flex-wrap items-center gap-2">
                             <span className="rounded-full bg-accentDark/10 px-3 py-1 text-xs font-semibold text-accentDark">{club.club_type}</span>
                             <span className="rounded-full bg-muted px-3 py-1 text-xs font-semibold text-muted-foreground">
-                                Rolle: {permissions?.role ?? "MITGLIED"}
+                                {t("club.roleBadge", {
+                                    role: t(`club.role.${permissions?.role ?? "MITGLIED"}.label`),
+                                })}
                             </span>
                             {permissions?.can_manage_roles && (
                                 <Button
@@ -353,7 +351,7 @@ export const ClubDetailView: FC = () => {
                                     }`}
                                 >
                                     <Icon className={`size-4 ${isActive ? "text-white" : "text-accentDark"}`} />
-                                    <span className={`text-sm font-medium ${isActive ? "text-white" : "text-foreground"}`}>{section.label}</span>
+                                    <span className={`text-sm font-medium ${isActive ? "text-white" : "text-foreground"}`}>{t(section.labelKey)}</span>
                                 </button>
                             );
                         })}
@@ -364,13 +362,13 @@ export const ClubDetailView: FC = () => {
                             <CardHeader>
                                 <CardTitle className="flex items-center gap-2 text-xl">
                                     <MessagesSquare className="size-5 text-accentDark" />
-                                    Nachrichten
+                                    {t("club.messages.title")}
                                 </CardTitle>
-                                <CardDescription>Direkte Kommunikation im Verein.</CardDescription>
+                                <CardDescription>{t("club.messages.hint")}</CardDescription>
                             </CardHeader>
                             <CardContent className="flex flex-wrap gap-3">
                                 <Button onClick={() => navigate(`/myMessages?clubId=${club.id}`)} disabled={!club.members_can_send_messages}>
-                                    Nachrichten öffnen
+                                    {t("club.messages.open")}
                                 </Button>
                                 {!club.members_can_send_messages && (
                                     <p className="w-full text-sm text-muted-foreground">
@@ -397,7 +395,7 @@ export const ClubDetailView: FC = () => {
                         <div className="space-y-6">
                             {permissions?.can_manage_roles
                                 ? <ClubSettingsForm club={club} />
-                                : <p className="text-sm text-muted-foreground">Nur die Vereinsleitung kann Einstellungen bearbeiten.</p>}
+                                : <p className="text-sm text-muted-foreground">{t("club.settingsReadOnly")}</p>}
                             <ClubDangerZone
                                 clubId={club.id}
                                 clubName={club.name}
@@ -412,8 +410,8 @@ export const ClubDetailView: FC = () => {
                             <div className="space-y-4">
                                 <Card>
                                     <CardHeader>
-                                        <CardTitle>Mitglieder</CardTitle>
-                                        <CardDescription>Aktuelle Mitglieder und Rollen im Verein.</CardDescription>
+                                        <CardTitle>{t("club.members.title")}</CardTitle>
+                                        <CardDescription>{t("club.members.hint")}</CardDescription>
                                     </CardHeader>
                                     <CardContent className="space-y-3">
                                         {members.map((member) => (
@@ -431,9 +429,9 @@ export const ClubDetailView: FC = () => {
                                                         <SelectValue />
                                                     </SelectTrigger>
                                                     <SelectContent>
-                                                        {ROLE_OPTIONS.map((role) => (
-                                                            <SelectItem key={role.value} value={role.value}>
-                                                                {role.label}
+                                                        {ROLE_VALUES.map((role) => (
+                                                            <SelectItem key={role} value={role}>
+                                                                {t(`club.role.${role}.label`)}
                                                             </SelectItem>
                                                         ))}
                                                     </SelectContent>
@@ -650,53 +648,53 @@ export const ClubDetailView: FC = () => {
                             <div className="space-y-4">
                                 <Card>
                                     <CardHeader>
-                                        <CardTitle className="flex items-center gap-2"><UserRoundPlus className="size-5 text-accentDark" />Mitglied einladen</CardTitle>
-                                        <CardDescription>E-Mail-Adressen einfügen (mehrere möglich, getrennt durch Komma oder Zeilenumbruch).</CardDescription>
+                                        <CardTitle className="flex items-center gap-2"><UserRoundPlus className="size-5 text-accentDark" />{t("club.invite.title")}</CardTitle>
+                                        <CardDescription>{t("club.invite.hint")}</CardDescription>
                                     </CardHeader>
                                     <CardContent className="space-y-3">
-                                        <Textarea value={inviteText} onChange={(event) => setInviteText(event.target.value)} placeholder="mitglied1@example.com, mitglied2@example.com" rows={4} />
+                                        <Textarea value={inviteText} onChange={(event) => setInviteText(event.target.value)} placeholder={t("club.invite.placeholder")} rows={4} />
                                         <Button onClick={onInvite} disabled={!permissions?.can_invite_members || inviteMutation.isPending}>
-                                            Einladung senden
+                                            {t("club.invite.send")}
                                         </Button>
                                         {inviteMutation.data?.data && (
                                             <div className="text-xs text-muted-foreground">
-                                                <p>Direkt hinzugefügt: {inviteMutation.data.data.added_emails.length}</p>
-                                                <p>Eingeladen: {inviteMutation.data.data.invited_emails.length}</p>
+                                                <p>{t("club.invite.addedDirectly", { count: inviteMutation.data.data.added_emails.length })}</p>
+                                                <p>{t("club.invite.invited", { count: inviteMutation.data.data.invited_emails.length })}</p>
                                                 {inviteMutation.data.data.failed_emails.length > 0 && (
-                                                    <p>Fehlgeschlagen: {inviteMutation.data.data.failed_emails.join(", ")}</p>
+                                                    <p>{t("club.invite.failed", { emails: inviteMutation.data.data.failed_emails.join(", ") })}</p>
                                                 )}
                                             </div>
                                         )}
-                                        {!permissions?.can_invite_members && <p className="text-xs text-muted-foreground">Deine Rolle darf keine Mitglieder einladen.</p>}
+                                        {!permissions?.can_invite_members && <p className="text-xs text-muted-foreground">{t("club.invite.forbidden")}</p>}
                                     </CardContent>
                                 </Card>
 
                                 <Card>
                                     <CardHeader>
-                                        <CardTitle>Mitglieder importieren/exportieren</CardTitle>
-                                        <CardDescription>CSV nach Konzertmeister-Format importieren oder aktuelle Liste exportieren.</CardDescription>
+                                        <CardTitle>{t("club.csv.title")}</CardTitle>
+                                        <CardDescription>{t("club.csv.hint")}</CardDescription>
                                     </CardHeader>
                                     <CardContent className="space-y-3">
                                         <div className="grid gap-2">
-                                            <Label htmlFor="member-csv-import">CSV-Datei</Label>
+                                            <Label htmlFor="member-csv-import">{t("club.csv.file")}</Label>
                                             <Input id="member-csv-import" type="file" accept=".csv,text/csv" onChange={onFileSelect} />
                                         </div>
                                         <div className="flex flex-wrap gap-2">
                                             <Button variant="outline" onClick={onExportCSV} disabled={!permissions?.can_invite_members}>
                                                 <Download className="size-4" />
-                                                CSV exportieren
+                                                {t("club.csv.export")}
                                             </Button>
                                             <Button onClick={onImport} disabled={!permissions?.can_invite_members || !csvFile || importMutation.isPending}>
                                                 <Upload className="size-4" />
-                                                CSV importieren
+                                                {t("club.csv.import")}
                                             </Button>
                                         </div>
                                         {importMutation.data?.data && (
                                             <div className="text-xs text-muted-foreground">
-                                                <p>Direkt hinzugefügt: {importMutation.data.data.added_emails.length}</p>
-                                                <p>Eingeladen: {importMutation.data.data.invited_emails.length}</p>
+                                                <p>{t("club.invite.addedDirectly", { count: importMutation.data.data.added_emails.length })}</p>
+                                                <p>{t("club.invite.invited", { count: importMutation.data.data.invited_emails.length })}</p>
                                                 {importMutation.data.data.failed_emails.length > 0 && (
-                                                    <p>Fehlgeschlagen: {importMutation.data.data.failed_emails.join(", ")}</p>
+                                                    <p>{t("club.invite.failed", { emails: importMutation.data.data.failed_emails.join(", ") })}</p>
                                                 )}
                                             </div>
                                         )}
@@ -710,14 +708,14 @@ export const ClubDetailView: FC = () => {
                         <div className="grid gap-4 lg:grid-cols-[1.1fr_1.9fr]">
                             <Card>
                                 <CardHeader>
-                                    <CardTitle>Systemrollen</CardTitle>
-                                    <CardDescription>Standardrollen und Verantwortungen.</CardDescription>
+                                    <CardTitle>{t("club.systemRoles.title")}</CardTitle>
+                                    <CardDescription>{t("club.systemRoles.hint")}</CardDescription>
                                 </CardHeader>
                                 <CardContent className="space-y-3">
-                                    {ROLE_OPTIONS.map((role) => (
-                                        <div key={role.value} className="rounded-lg border p-3">
-                                            <p className="font-semibold">{role.label}</p>
-                                            <p className="text-sm text-muted-foreground">{role.description}</p>
+                                    {ROLE_VALUES.map((role) => (
+                                        <div key={role} className="rounded-lg border p-3">
+                                            <p className="font-semibold">{t(`club.role.${role}.label`)}</p>
+                                            <p className="text-sm text-muted-foreground">{t(`club.role.${role}.description`)}</p>
                                         </div>
                                     ))}
                                 </CardContent>
@@ -725,8 +723,8 @@ export const ClubDetailView: FC = () => {
 
                             <Card>
                                 <CardHeader>
-                                    <CardTitle>Rollen pro Mitglied</CardTitle>
-                                    <CardDescription>Rollen sind immer die Beziehung zwischen Mitglied und Verein.</CardDescription>
+                                    <CardTitle>{t("club.rolesPerMember.title")}</CardTitle>
+                                    <CardDescription>{t("club.rolesPerMember.hint")}</CardDescription>
                                 </CardHeader>
                                 <CardContent className="space-y-3">
                                     {members.map((member) => (
@@ -744,16 +742,16 @@ export const ClubDetailView: FC = () => {
                                                     <SelectValue />
                                                 </SelectTrigger>
                                                 <SelectContent>
-                                                    {ROLE_OPTIONS.map((role) => (
-                                                        <SelectItem key={role.value} value={role.value}>
-                                                            {role.label}
+                                                    {ROLE_VALUES.map((role) => (
+                                                        <SelectItem key={role} value={role}>
+                                                            {t(`club.role.${role}.label`)}
                                                         </SelectItem>
                                                     ))}
                                                 </SelectContent>
                                             </Select>
                                         </div>
                                     ))}
-                                    {!permissions?.can_manage_roles && <p className="text-sm text-muted-foreground">Deine Rolle hat hier nur Leserechte.</p>}
+                                    {!permissions?.can_manage_roles && <p className="text-sm text-muted-foreground">{t("club.readOnlyHint")}</p>}
                                 </CardContent>
                             </Card>
                         </div>
