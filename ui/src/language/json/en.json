@@ -354,5 +354,28 @@
     "delete": "Delete section",
     "delete-confirm": "Delete section \"{{name}}\"? Members are kept; its events become whole-club events.",
     "create-error": "Section could not be created (name may already be taken)."
+  },
+  "messages": {
+    "title": "My messages",
+    "subtitle": "Start and manage direct messages inside your clubs.",
+    "club": "Club",
+    "clubPlaceholder": "Select a club",
+    "newChat": "Start a new chat",
+    "newChatHint": "You can only write to members of the same club.",
+    "recipient": "Recipient",
+    "recipientPlaceholder": "Select a member",
+    "firstMessage": "First message (optional)",
+    "messagePlaceholder": "Enter a message...",
+    "startChat": "Start chat",
+    "chats": "Chats",
+    "chatsHint": "Active direct messages in this club.",
+    "noChats": "No chats yet.",
+    "noMessageYet": "No message yet",
+    "history": "Messages",
+    "historyHint": "History and new message.",
+    "pickChat": "Pick a chat or start a new one.",
+    "noMessagesInChat": "No messages in this chat yet.",
+    "writePlaceholder": "Write a message...",
+    "send": "Send"
   }
 }

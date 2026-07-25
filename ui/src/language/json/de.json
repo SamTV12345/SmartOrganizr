@@ -354,5 +354,28 @@
     "delete": "Register löschen",
     "delete-confirm": "Register \"{{name}}\" löschen? Mitglieder bleiben erhalten, Termine gelten wieder für den ganzen Verein.",
     "create-error": "Register konnte nicht angelegt werden (Name evtl. schon vergeben)."
+  },
+  "messages": {
+    "title": "Meine Nachrichten",
+    "subtitle": "Starte und verwalte Direktnachrichten innerhalb deiner Vereine.",
+    "club": "Verein",
+    "clubPlaceholder": "Verein wählen",
+    "newChat": "Neuen Chat starten",
+    "newChatHint": "Du kannst nur Mitglieder aus dem gleichen Verein anschreiben.",
+    "recipient": "Empfänger",
+    "recipientPlaceholder": "Mitglied wählen",
+    "firstMessage": "Erste Nachricht (optional)",
+    "messagePlaceholder": "Nachricht eingeben...",
+    "startChat": "Chat starten",
+    "chats": "Chats",
+    "chatsHint": "Aktive Direktnachrichten im Verein.",
+    "noChats": "Noch keine Chats vorhanden.",
+    "noMessageYet": "Noch keine Nachricht",
+    "history": "Nachrichten",
+    "historyHint": "Verlauf und neue Nachricht.",
+    "pickChat": "Wähle einen Chat aus oder starte einen neuen Chat.",
+    "noMessagesInChat": "Noch keine Nachrichten in diesem Chat.",
+    "writePlaceholder": "Nachricht schreiben...",
+    "send": "Senden"
   }
 }

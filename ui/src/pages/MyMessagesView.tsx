@@ -139,15 +139,15 @@ export const MyMessagesView: FC = () => {
         <div className="space-y-4 p-4 md:p-6">
             <Card>
                 <CardHeader className="space-y-2">
-                    <CardTitle>Meine Nachrichten</CardTitle>
-                    <CardDescription>Starte und verwalte Direktnachrichten innerhalb deiner Vereine.</CardDescription>
+                    <CardTitle>{t("messages.title")}</CardTitle>
+                    <CardDescription>{t("messages.subtitle")}</CardDescription>
                 </CardHeader>
                 <CardContent className="grid gap-3 md:grid-cols-[1.5fr_1fr]">
                     <div className="grid gap-2">
-                        <Label htmlFor="messages-club-select">Verein</Label>
+                        <Label htmlFor="messages-club-select">{t("messages.club")}</Label>
                         <Select value={selectedClubId} onValueChange={(value) => setSelectedClubId(value ?? "")}>
                             <SelectTrigger id="messages-club-select">
-                                <SelectValue placeholder="Verein wählen" />
+                                <SelectValue placeholder={t("messages.clubPlaceholder")} />
                             </SelectTrigger>
                             <SelectContent>
                                 {clubs.map((club) => (
@@ -170,15 +170,15 @@ export const MyMessagesView: FC = () => {
                 <div className="grid gap-4 xl:grid-cols-[1.1fr_1.2fr_1.7fr]">
                     <Card>
                         <CardHeader>
-                            <CardTitle>Neuen Chat starten</CardTitle>
-                            <CardDescription>Du kannst nur Mitglieder aus dem gleichen Verein anschreiben.</CardDescription>
+                            <CardTitle>{t("messages.newChat")}</CardTitle>
+                            <CardDescription>{t("messages.newChatHint")}</CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-3">
                             <div className="grid gap-2">
-                                <Label htmlFor="new-chat-recipient">Empfänger</Label>
+                                <Label htmlFor="new-chat-recipient">{t("messages.recipient")}</Label>
                                 <Select value={newChatRecipient} onValueChange={(v) => setNewChatRecipient(v ?? "")}>
                                     <SelectTrigger id="new-chat-recipient">
-                                        <SelectValue placeholder="Mitglied wählen" />
+                                        <SelectValue placeholder={t("messages.recipientPlaceholder")} />
                                     </SelectTrigger>
                                     <SelectContent>
                                         {(candidatesData?.data ?? []).map((candidate) => (
@@ -190,28 +190,28 @@ export const MyMessagesView: FC = () => {
                                 </Select>
                             </div>
                             <div className="grid gap-2">
-                                <Label htmlFor="new-chat-message">Erste Nachricht (optional)</Label>
+                                <Label htmlFor="new-chat-message">{t("messages.firstMessage")}</Label>
                                 <Textarea
                                     id="new-chat-message"
                                     rows={4}
                                     value={newChatContent}
                                     onChange={(event) => setNewChatContent(event.target.value)}
-                                    placeholder="Nachricht eingeben..."
+                                    placeholder={t("messages.messagePlaceholder")}
                                 />
                             </div>
                             <Button onClick={onCreateChat} disabled={!newChatRecipient || createChatMutation.isPending}>
-                                Chat starten
+                                {t("messages.startChat")}
                             </Button>
                         </CardContent>
                     </Card>
 
                     <Card>
                         <CardHeader>
-                            <CardTitle>Chats</CardTitle>
-                            <CardDescription>Aktive Direktnachrichten im Verein.</CardDescription>
+                            <CardTitle>{t("messages.chats")}</CardTitle>
+                            <CardDescription>{t("messages.chatsHint")}</CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-2">
-                            {chats.length === 0 && <p className="text-sm text-muted-foreground">Noch keine Chats vorhanden.</p>}
+                            {chats.length === 0 && <p className="text-sm text-muted-foreground">{t("messages.noChats")}</p>}
                             {chats.map((chat) => (
                                 <button
                                     key={chat.chat_id}
@@ -229,7 +229,7 @@ export const MyMessagesView: FC = () => {
                                             </span>
                                         )}
                                     </div>
-                                    <p className="line-clamp-1 text-xs text-muted-foreground">{chat.last_message || "Noch keine Nachricht"}</p>
+                                    <p className="line-clamp-1 text-xs text-muted-foreground">{chat.last_message || t("messages.noMessageYet")}</p>
                                 </button>
                             ))}
                         </CardContent>
@@ -237,15 +237,15 @@ export const MyMessagesView: FC = () => {
 
                     <Card>
                         <CardHeader>
-                            <CardTitle>Nachrichten</CardTitle>
+                            <CardTitle>{t("messages.history")}</CardTitle>
                             <CardDescription>
-                                {activeChatId ? "Verlauf und neue Nachricht." : "Wähle einen Chat aus oder starte einen neuen Chat."}
+                                {activeChatId ? t("messages.historyHint") : t("messages.pickChat")}
                             </CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-3">
                             <div className="h-[360px] space-y-2 overflow-auto rounded-md border p-3">
                                 {activeChatId && (chatMessagesData?.data ?? []).length === 0 && (
-                                    <p className="text-sm text-muted-foreground">Noch keine Nachrichten in diesem Chat.</p>
+                                    <p className="text-sm text-muted-foreground">{t("messages.noMessagesInChat")}</p>
                                 )}
                                 {(chatMessagesData?.data ?? []).map((message) => {
                                     const isOwn = message.sender_user_id === user.subject;
@@ -267,11 +267,11 @@ export const MyMessagesView: FC = () => {
                                 <Input
                                     value={chatContent}
                                     onChange={(event) => setChatContent(event.target.value)}
-                                    placeholder="Nachricht schreiben..."
+                                    placeholder={t("messages.writePlaceholder")}
                                     disabled={!activeChatId}
                                 />
                                 <Button onClick={onSendMessage} disabled={!activeChatId || postMessageMutation.isPending}>
-                                    Senden
+                                    {t("messages.send")}
                                 </Button>
                             </div>
                         </CardContent>
