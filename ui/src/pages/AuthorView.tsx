@@ -141,7 +141,7 @@ export const AuthorView = ()=> {
         <UpdateAuthorDialog/>
         <div className="w-4/6 mx-auto">
             <div className="flex justify-between">
-                <Input placeholder="Name eines Komponisten eingeben" className="mt-5 w-2/6" value={authorName?? undefined} onChange={(e)=>{
+                <Input placeholder={t("authorPage.namePlaceholder")} className="mt-5 w-2/6" value={authorName?? undefined} onChange={(e)=>{
                     setSearchParams({name: e.target.value})
                 }}/>
                 <AlertDialog>
@@ -179,7 +179,7 @@ export const AuthorView = ()=> {
                                 setSelected(newSelected)
                             }}/></TableHead>
                             <TableHead className="w-36">Name</TableHead>
-                            <TableHead className="w-36">Extra Information</TableHead>
+                            <TableHead className="w-36">{t("extraInformation")}</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>

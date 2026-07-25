@@ -8,10 +8,10 @@ import type { ClubEventModel, ClubEventResponseStatus } from "@/src/models/ClubE
 
 type Props = { event: ClubEventModel }
 
-const STATUSES: { value: Exclude<ClubEventResponseStatus, "">; label: string }[] = [
-  { value: "YES", label: "Zusagen" },
-  { value: "MAYBE", label: "Vielleicht" },
-  { value: "NO", label: "Absagen" },
+const STATUSES: { value: Exclude<ClubEventResponseStatus, "">; labelKey: string }[] = [
+  { value: "YES", labelKey: "clubEvents.respondYes" },
+  { value: "MAYBE", labelKey: "clubEvents.respondMaybe" },
+  { value: "NO", labelKey: "clubEvents.respondNo" },
 ]
 
 export const ClubEventResponseControls = ({ event }: Props) => {
@@ -49,12 +49,12 @@ export const ClubEventResponseControls = ({ event }: Props) => {
             disabled={mutation.isPending}
             onClick={() => submit(s.value)}
           >
-            {s.label}
+            {t(s.labelKey)}
           </Button>
         ))}
       </div>
       <Input
-        placeholder="Grund (optional)"
+        placeholder={t("clubEvents.reasonPlaceholder")}
         value={reason}
         onChange={(e) => setReason(e.target.value)}
         onBlur={() => {

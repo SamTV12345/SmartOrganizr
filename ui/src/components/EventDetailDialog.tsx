@@ -8,6 +8,7 @@ import {
 import { EventModel, StatusModel, convertStatusModelToIcon } from "@/src/models/EventModel";
 import { Button } from "@/components/ui/button";
 import { useDateFormat } from "@/src/hooks/useDateFormat";
+import { useTranslation } from "react-i18next";
 
 type EventDetailDialogProps = {
     event: EventModel | null;
@@ -15,17 +16,11 @@ type EventDetailDialogProps = {
     onOpenChange: (open: boolean) => void;
 };
 
-const getStatusLabel = (status: StatusModel): string => {
-    switch (status) {
-        case StatusModel.Ok:
-            return "Zugesagt";
-        case StatusModel.Deny:
-            return "Abgesagt";
-        case StatusModel.Maybe:
-            return "Vielleicht";
-        case StatusModel.NotYetDecided:
-            return "Offen";
-    }
+const STATUS_KEYS: Record<StatusModel, string> = {
+    [StatusModel.Ok]: "events.statusOk",
+    [StatusModel.Deny]: "events.statusDeny",
+    [StatusModel.Maybe]: "events.statusMaybe",
+    [StatusModel.NotYetDecided]: "events.statusOpen",
 };
 
 const createOsmEmbedUrl = (lat: number, lon: number): string => {
@@ -41,6 +36,7 @@ const createOsmLink = (lat: number, lon: number): string =>
     `https://www.openstreetmap.org/?mlat=${lat}&mlon=${lon}#map=15/${lat}/${lon}`;
 
 export const EventDetailDialog = ({ event, open, onOpenChange }: EventDetailDialogProps) => {
+    const { t } = useTranslation();
     const { formatDateTime } = useDateFormat();
     const lat = event?.geoDateX;
     const lon = event?.geoDateY;
@@ -56,21 +52,21 @@ export const EventDetailDialog = ({ event, open, onOpenChange }: EventDetailDial
                                 <span className="break-words">{event.summary}</span>
                                 {convertStatusModelToIcon(event.status)}
                             </DialogTitle>
-                            <DialogDescription>{event.description || "Keine Beschreibung vorhanden."}</DialogDescription>
+                            <DialogDescription>{event.description || t("events.noDescription")}</DialogDescription>
                         </DialogHeader>
 
                         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                             <div className="space-y-2 rounded-lg border p-4 text-sm">
                                 <div className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-2">
-                                    <span className="text-muted-foreground">Status</span>
-                                    <span>{getStatusLabel(event.status)}</span>
-                                    <span className="text-muted-foreground">Ort</span>
+                                    <span className="text-muted-foreground">{t("events.status")}</span>
+                                    <span>{t(STATUS_KEYS[event.status])}</span>
+                                    <span className="text-muted-foreground">{t("events.location")}</span>
                                     <span>{event.location || "-"}</span>
-                                    <span className="text-muted-foreground">Start</span>
+                                    <span className="text-muted-foreground">{t("events.start")}</span>
                                     <span>{event.startDate ? formatDateTime(event.startDate) : "-"}</span>
-                                    <span className="text-muted-foreground">Ende</span>
+                                    <span className="text-muted-foreground">{t("events.end")}</span>
                                     <span>{event.endDate ? formatDateTime(event.endDate) : "-"}</span>
-                                    <span className="text-muted-foreground">Geo X/Y</span>
+                                    <span className="text-muted-foreground">{t("events.geo")}</span>
                                     <span>{hasCoordinates ? `${lat}, ${lon}` : "-"}</span>
                                 </div>
 
@@ -80,7 +76,7 @@ export const EventDetailDialog = ({ event, open, onOpenChange }: EventDetailDial
                                         variant="outline"
                                         className="mt-2 w-full"
                                     >
-                                        Event-Link öffnen
+                                        {t("events.openLink")}
                                     </Button>
                                 ) : null}
                             </div>
@@ -99,12 +95,12 @@ export const EventDetailDialog = ({ event, open, onOpenChange }: EventDetailDial
                                             variant="secondary"
                                             className="w-full"
                                         >
-                                            In OpenStreetMap öffnen
+                                            {t("events.openInOsm")}
                                         </Button>
                                     </>
                                 ) : (
                                     <div className="text-muted-foreground flex h-72 items-center justify-center text-sm">
-                                        Keine Koordinaten für Kartenansicht verfügbar.
+                                        {t("events.noCoordinates")}
                                     </div>
                                 )}
                             </div>

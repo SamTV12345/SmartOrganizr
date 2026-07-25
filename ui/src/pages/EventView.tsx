@@ -57,7 +57,7 @@ export const EventView = ()=> {
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-muted-foreground text-xs font-medium">Gesamt</CardTitle>
+            <CardTitle className="text-muted-foreground text-xs font-medium">{t("events.total")}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-semibold">{events.length}</div>
@@ -65,7 +65,7 @@ export const EventView = ()=> {
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-muted-foreground text-xs font-medium">Zugesagt</CardTitle>
+            <CardTitle className="text-muted-foreground text-xs font-medium">{t("events.accepted")}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-semibold text-green-600">{acceptedCount}</div>
@@ -73,7 +73,7 @@ export const EventView = ()=> {
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-muted-foreground text-xs font-medium">Offen / Abgesagt</CardTitle>
+            <CardTitle className="text-muted-foreground text-xs font-medium">{t("events.openOrDeclined")}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-semibold">{openCount + declinedCount}</div>
@@ -84,7 +84,7 @@ export const EventView = ()=> {
       {events.length === 0 ? (
         <Card>
           <CardContent className="text-muted-foreground py-10 text-center">
-            Keine anstehenden Termine gefunden.
+            {t("events.noneFound")}
           </CardContent>
         </Card>
       ) : (

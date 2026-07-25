@@ -217,7 +217,7 @@ const formSchema = z.object({
                                 <FormItem>
                                     <FormLabel>{t("club-name")}</FormLabel>
                                     <FormControl>
-                                        <Input placeholder="Musikverein Beispielstadt" {...field} />
+                                        <Input placeholder={t("clubForm.namePlaceholder")} {...field} />
                                     </FormControl>
                                     <FormMessage />
                                 </FormItem>

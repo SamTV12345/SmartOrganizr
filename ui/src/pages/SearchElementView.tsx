@@ -72,16 +72,16 @@ export const SearchElementView = ()=>{
         <main className="mx-auto w-full max-w-6xl space-y-6 px-4 py-6 md:px-6 md:py-8">
             <section className="rounded-2xl border bg-gradient-to-br from-primary/10 via-background to-secondary/30 p-6">
                 <h1 className="text-3xl font-semibold tracking-tight">{t("search")}</h1>
-                <p className="text-muted-foreground mt-2 text-sm">Suche in deinen Noten, Autor*innen und Ordnern.</p>
+                <p className="text-muted-foreground mt-2 text-sm">{t("searchPage.subtitle")}</p>
             </section>
 
             <Card>
                 <CardHeader className="space-y-3">
                     <CardTitle className="flex items-center gap-2">
                         <Music2 className="size-5 text-primary"/>
-                        Notensuche
+                        {t("searchPage.noteSearch")}
                     </CardTitle>
-                    <CardDescription>Filtere sofort nach Titel. Weitere Ergebnisse werden automatisch nachgeladen.</CardDescription>
+                    <CardDescription>{t("searchPage.filterHint")}</CardDescription>
                     <ElementSearchBar/>
                 </CardHeader>
                 <CardContent>
@@ -98,7 +98,7 @@ export const SearchElementView = ()=>{
                             {notes.length === 0 && (
                                 <TableRow>
                                     <TableCell colSpan={4} className="text-muted-foreground h-24 text-center">
-                                        Keine Ergebnisse.
+                                        {t("searchPage.noResults")}
                                     </TableCell>
                                 </TableRow>
                             )}

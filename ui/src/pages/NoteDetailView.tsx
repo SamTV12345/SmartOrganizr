@@ -112,7 +112,7 @@ export const NoteDetailView = () => {
             { label: t("description"), value: currentNote?.description || "-" },
             { label: t("numberOfPages"), value: String(currentNote?.numberOfPages ?? "-") },
             { label: t("superFolder"), value: currentNote?.parent?.name || "-" },
-            { label: "Index im Ordner", value: String(data?.index ?? "-") },
+            { label: t("noteDetail.indexInFolder"), value: String(data?.index ?? "-") },
         ],
         [currentNote, data?.index, t]
     );
@@ -130,13 +130,13 @@ export const NoteDetailView = () => {
             <main className="mx-auto w-full max-w-4xl px-4 py-6 md:px-6 md:py-8">
                 <Card>
                     <CardHeader>
-                        <CardTitle>Note nicht gefunden</CardTitle>
-                        <CardDescription>Die angeforderte Note ist nicht verfügbar.</CardDescription>
+                        <CardTitle>{t("noteDetail.notFound")}</CardTitle>
+                        <CardDescription>{t("noteDetail.notFoundHint")}</CardDescription>
                     </CardHeader>
                     <CardContent>
                         <Button onClick={() => navigate("/noteManagement/notes")}>
                             <ArrowLeft className="mr-2 size-4" />
-                            Zurück zur Suche
+                            {t("noteDetail.backToSearch")}
                         </Button>
                     </CardContent>
                 </Card>
@@ -164,7 +164,7 @@ export const NoteDetailView = () => {
                     </div>
                     <Button variant="outline" onClick={() => navigate("/noteManagement/notes")}>
                         <ArrowLeft className="mr-2 size-4" />
-                        Zurück zur Suche
+                        {t("noteDetail.backToSearch")}
                     </Button>
                 </div>
             </section>
@@ -174,9 +174,9 @@ export const NoteDetailView = () => {
                     <CardHeader>
                         <CardTitle className="flex items-center gap-2">
                             <FileMusic className="size-5 text-primary" />
-                            Notendetails
+                            {t("noteDetail.detailsTitle")}
                         </CardTitle>
-                        <CardDescription>Alle wichtigen Informationen zur gewählten Note.</CardDescription>
+                        <CardDescription>{t("noteDetail.detailsHint")}</CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
                         {metaItems.map((item) => (
@@ -190,8 +190,8 @@ export const NoteDetailView = () => {
 
                 <Card>
                     <CardHeader>
-                        <CardTitle>Navigation</CardTitle>
-                        <CardDescription>Zwischen Noten im gleichen Ordner wechseln.</CardDescription>
+                        <CardTitle>{t("noteDetail.navigation")}</CardTitle>
+                        <CardDescription>{t("noteDetail.navigationHint")}</CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-3">
                         <Button
@@ -200,7 +200,7 @@ export const NoteDetailView = () => {
                             disabled={!previousNote}
                             onClick={() => previousNote && navigate(`/noteManagement/notes/${previousNote.id}`)}
                         >
-                            <span className="truncate">{previousNote?.name || "Keine vorherige Note"}</span>
+                            <span className="truncate">{previousNote?.name || t("noteDetail.noPrevious")}</span>
                             <ChevronLeft className="size-4" />
                         </Button>
                         <Separator />
@@ -210,7 +210,7 @@ export const NoteDetailView = () => {
                             disabled={!nextNote}
                             onClick={() => nextNote && navigate(`/noteManagement/notes/${nextNote.id}`)}
                         >
-                            <span className="truncate">{nextNote?.name || "Keine nächste Note"}</span>
+                            <span className="truncate">{nextNote?.name || t("noteDetail.noNext")}</span>
                             <ChevronRight className="size-4" />
                         </Button>
                     </CardContent>

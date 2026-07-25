@@ -62,7 +62,7 @@ export const Header = ()=>{
                     }}
                 >
                     <Menu />
-                    <span className="sr-only">Open navigation</span>
+                    <span className="sr-only">{t("nav.open")}</span>
                 </Button>
                 <div className="flex flex-grow">
                 </div>
@@ -86,7 +86,7 @@ export const Header = ()=>{
                                     navigate('/profile/edit')
                                 }}
                                         className="hover:bg-accent hover:text-accent-foreground block w-full cursor-pointer px-4 py-2 text-left text-sm"
-                                        role="menuitem"  id="menu-item-3">Profilbild ändern
+                                        role="menuitem"  id="menu-item-3">{t("profilePage.pictureTitle")}
                                 </button>
                                     <button type="submit" onClick={()=>keycloak.logout({redirectUri: uiURL})}
                                             className="hover:bg-accent hover:text-accent-foreground block w-full cursor-pointer px-4 py-2 text-left text-sm"

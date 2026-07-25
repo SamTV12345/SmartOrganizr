@@ -101,7 +101,7 @@ export const ProfileGeneralEdit = ()=>{
 
     return <Card>
         <CardHeader className="bg-muted/40 border-b">
-            <CardTitle>Persönliche Daten</CardTitle>
+            <CardTitle>{t("profilePage.personalData")}</CardTitle>
         </CardHeader>
         <CardContent>
             <FormProvider {...userForm}>

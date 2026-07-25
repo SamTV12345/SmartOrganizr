@@ -78,6 +78,7 @@ const SidebarContent = ({ onNavigate }: { onNavigate?: () => void }) => {
 };
 
 export const SideBar = () => {
+    const { t } = useTranslation();
     const dispatch = useAppDispatch();
     const sideBarCollapsed = useAppSelector((state) => state.commonReducer.sideBarCollapsed);
 
@@ -85,7 +86,7 @@ export const SideBar = () => {
         <>
             <aside
                 className="bg-sidebar text-sidebar-foreground border-sidebar-border hidden h-full min-h-0 shrink-0 border-r md:flex md:w-[250px] md:flex-col"
-                aria-label="Sidebar"
+                aria-label={t("nav.navigation")}
             >
                 <SidebarContent />
             </aside>
@@ -96,7 +97,7 @@ export const SideBar = () => {
             >
                 <SheetContent side="left" className="bg-sidebar p-0 text-sidebar-foreground">
                     <SheetHeader className="sr-only">
-                        <SheetTitle>Navigation</SheetTitle>
+                        <SheetTitle>{t("nav.navigation")}</SheetTitle>
                     </SheetHeader>
                     <SidebarContent onNavigate={() => dispatch(setSideBarCollapsed(false))} />
                 </SheetContent>

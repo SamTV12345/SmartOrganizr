@@ -63,7 +63,11 @@
       "BIWEEKLY": "Every 2 weeks",
       "MONTHLY": "Monthly",
       "until": "Repeat until"
-    }
+    },
+    "respondYes": "Accept",
+    "respondMaybe": "Maybe",
+    "respondNo": "Decline",
+    "reasonPlaceholder": "Reason (optional)"
   },
   "pinboard": {
     "title": "Pinboard",
@@ -454,5 +458,123 @@
     "noMessagesInChat": "No messages in this chat yet.",
     "writePlaceholder": "Write a message...",
     "send": "Send"
+  },
+  "noteDetail": {
+    "notFound": "Note not found",
+    "notFoundHint": "The requested note is unavailable.",
+    "backToSearch": "Back to search",
+    "detailsTitle": "Note details",
+    "detailsHint": "Everything worth knowing about the selected note.",
+    "navigation": "Navigation",
+    "navigationHint": "Move between notes in the same folder.",
+    "noPrevious": "No previous note",
+    "noNext": "No next note",
+    "indexInFolder": "Index in folder"
+  },
+  "invite": {
+    "title": "Club invitation",
+    "loading": "Loading the invitation...",
+    "subtitle": "Invitation to {{club}}",
+    "fallbackClub": "your club",
+    "email": "Email: {{email}}",
+    "validUntil": "Valid until: {{date}}",
+    "alreadyAccepted": "This invitation has already been accepted.",
+    "expired": "This invitation has expired.",
+    "createAccountHint": "Create a new account for this invitation (no open registration).",
+    "firstname": "First name",
+    "lastname": "Last name",
+    "password": "Password",
+    "passwordConfirm": "Confirm password",
+    "createAndAccept": "Create account and accept invitation",
+    "loginExisting": "Sign in with an existing account",
+    "accountCreated": "Account created and invitation accepted. Please sign in now.",
+    "accountFailed": "The account could not be created.",
+    "signedInAs": "Signed in as: {{email}}",
+    "wrongAccount": "This invitation is for {{email}}. Please sign in with that address.",
+    "accept": "Accept invitation",
+    "switchAccount": "Switch account",
+    "acceptFailed": "The invitation could not be accepted.",
+    "toApp": "Go to the app"
+  },
+  "importExport": {
+    "subtitle": "Export a folder as a PDF for printing, sharing or offline use.",
+    "exportFolder": "Export a folder",
+    "exportFolderHint": "Pick a folder and export its contents as a PDF.",
+    "folderPlaceholder": "Select a folder",
+    "exporting": "Exporting...",
+    "exportPdf": "Export PDF",
+    "selected": "Selected:",
+    "noPdfInFolder": "This folder contains no notes with a PDF.",
+    "exportFailed": "Export failed. Please try again."
+  },
+  "events": {
+    "total": "Total",
+    "accepted": "Accepted",
+    "openOrDeclined": "Open / declined",
+    "noneFound": "No upcoming events found.",
+    "noClubEvents": "No upcoming club events.",
+    "status": "Status",
+    "location": "Location",
+    "start": "Start",
+    "end": "End",
+    "time": "Time",
+    "geo": "Geo X/Y",
+    "statusOk": "Accepted",
+    "statusDeny": "Declined",
+    "statusMaybe": "Maybe",
+    "statusOpen": "Open",
+    "noDescription": "No description available.",
+    "openLink": "Open event link",
+    "openInOsm": "Open in OpenStreetMap",
+    "noCoordinates": "No coordinates available for the map view."
+  },
+  "profilePage": {
+    "title": "Profile",
+    "pictureTitle": "Change profile picture",
+    "pictureDelete": "Delete profile picture",
+    "personalData": "Personal details",
+    "changePassword": "Change password",
+    "birthdayAddress": "Birthday and address",
+    "countryPlaceholder": "Country",
+    "konzertmeisterUrl": "Konzertmeister URL",
+    "countries": {
+      "DE": "Germany",
+      "AT": "Austria",
+      "FR": "France"
+    },
+    "passwordHint": "For security reasons the password cannot be changed inside SmartOrganizr. Please change it via the link below.",
+    "language": "Language",
+    "languageHint": "Language of the interface. The choice also applies to date and number formats.",
+    "languageGerman": "German",
+    "languageEnglish": "English",
+    "subtitle": "Settings, account and appearance in one place."
+  },
+  "searchPage": {
+    "subtitle": "Search your notes, composers and folders.",
+    "noteSearch": "Note search",
+    "filterHint": "Filter by title as you type. More results load automatically.",
+    "noResults": "No results.",
+    "notePlaceholder": "Search a note title..."
+  },
+  "management": {
+    "authorsHint": "Manage composers",
+    "concertsHint": "Plan programmes and performances",
+    "foldersHint": "Browse the folder structure",
+    "ioHint": "Import and export",
+    "searchHint": "Find notes quickly"
+  },
+  "nav": {
+    "navigation": "Navigation",
+    "open": "Open navigation",
+    "chooseHere": "Please choose"
+  },
+  "authorPage": {
+    "namePlaceholder": "Enter a composer's name"
+  },
+  "folderPage": {
+    "structure": "Folder structure"
+  },
+  "clubForm": {
+    "namePlaceholder": "Example Town Wind Band"
   }
 }

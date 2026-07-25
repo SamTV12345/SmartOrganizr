@@ -39,7 +39,7 @@ export const GeburtstagAdresseEdit = ()=>{
 
     return    <Card>
         <CardHeader className="bg-muted/40 border-b">
-            <CardTitle>Geburtstag und Adresse</CardTitle>
+            <CardTitle>{t("profilePage.birthdayAddress")}</CardTitle>
         </CardHeader>
         <CardContent>
             <FormProvider {...birthdayForm}>
@@ -94,17 +94,17 @@ export const GeburtstagAdresseEdit = ()=>{
                             name="country"
                             render={({ field }) => (
                                 <FormItem className="grid-cols-2">
-                                    <FormLabel>Land</FormLabel>
+                                    <FormLabel>{t("country")}</FormLabel>
                                     <Select onValueChange={field.onChange} defaultValue={field.value}>
                                         <FormControl>
                                             <SelectTrigger className="w-full">
-                                                <SelectValue placeholder="Land" />
+                                                <SelectValue placeholder={t("profilePage.countryPlaceholder")} />
                                             </SelectTrigger>
                                         </FormControl>
                                         <SelectContent>
-                                            <SelectItem value="m@example.com">Deutschland</SelectItem>
-                                            <SelectItem value="m@google.com">Österreich</SelectItem>
-                                            <SelectItem value="m@support.com">Frankreich</SelectItem>
+                                            <SelectItem value="DE">{t("profilePage.countries.DE")}</SelectItem>
+                                            <SelectItem value="AT">{t("profilePage.countries.AT")}</SelectItem>
+                                            <SelectItem value="FR">{t("profilePage.countries.FR")}</SelectItem>
                                         </SelectContent>
                                     </Select>
                                     <FormMessage />

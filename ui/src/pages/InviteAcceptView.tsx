@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useKeycloak } from "@/src/Keycloak/useKeycloak";
 import { useDateFormat } from "@/src/hooks/useDateFormat";
+import { useTranslation } from "react-i18next";
 
 type PublicInvitation = {
     token: string;
@@ -20,6 +21,7 @@ type PublicInvitation = {
 };
 
 export const InviteAcceptView: FC = () => {
+    const { t } = useTranslation();
     const { token } = useParams();
     const { formatDateTime } = useDateFormat();
     const navigate = useNavigate();
@@ -59,36 +61,36 @@ export const InviteAcceptView: FC = () => {
         <div className="flex min-h-full items-center justify-center p-4">
             <Card className="w-full max-w-xl">
                 <CardHeader>
-                    <CardTitle>Vereinseinladung</CardTitle>
+                    <CardTitle>{t("invite.title")}</CardTitle>
                     <CardDescription>
-                        {isLoading ? "Lade Einladung..." : `Einladung zu ${invitation?.club_name ?? "deinem Verein"}`}
+                        {isLoading ? t("invite.loading") : t("invite.subtitle", { club: invitation?.club_name ?? t("invite.fallbackClub") })}
                     </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-3">
                     {invitation && (
                         <>
-                            <p className="text-sm text-muted-foreground">E-Mail: {invitation.invited_email}</p>
-                            <p className="text-sm text-muted-foreground">Gültig bis: {formatDateTime(invitation.expires_at)}</p>
-                            {invitation.is_accepted && <p className="text-sm">Diese Einladung wurde bereits angenommen.</p>}
-                            {invitation.is_expired && <p className="text-sm">Diese Einladung ist abgelaufen.</p>}
+                            <p className="text-sm text-muted-foreground">{t("invite.email", { email: invitation.invited_email })}</p>
+                            <p className="text-sm text-muted-foreground">{t("invite.validUntil", { date: formatDateTime(invitation.expires_at) })}</p>
+                            {invitation.is_accepted && <p className="text-sm">{t("invite.alreadyAccepted")}</p>}
+                            {invitation.is_expired && <p className="text-sm">{t("invite.expired")}</p>}
 
                             {!invitation.is_accepted && !invitation.is_expired && !loggedIn && (
                                 <div className="space-y-2">
-                                    <p className="text-sm text-muted-foreground">Neues Konto für diese Einladung erstellen (ohne offene Registrierung).</p>
+                                    <p className="text-sm text-muted-foreground">{t("invite.createAccountHint")}</p>
                                     <div className="grid gap-2">
-                                        <Label htmlFor="invite-firstname">Vorname</Label>
+                                        <Label htmlFor="invite-firstname">{t("invite.firstname")}</Label>
                                         <Input id="invite-firstname" value={firstname} onChange={(e) => setFirstname(e.target.value)} />
                                     </div>
                                     <div className="grid gap-2">
-                                        <Label htmlFor="invite-lastname">Nachname</Label>
+                                        <Label htmlFor="invite-lastname">{t("invite.lastname")}</Label>
                                         <Input id="invite-lastname" value={lastname} onChange={(e) => setLastname(e.target.value)} />
                                     </div>
                                     <div className="grid gap-2">
-                                        <Label htmlFor="invite-password">Passwort</Label>
+                                        <Label htmlFor="invite-password">{t("invite.password")}</Label>
                                         <Input id="invite-password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} />
                                     </div>
                                     <div className="grid gap-2">
-                                        <Label htmlFor="invite-password-confirm">Passwort bestätigen</Label>
+                                        <Label htmlFor="invite-password-confirm">{t("invite.passwordConfirm")}</Label>
                                         <Input id="invite-password-confirm" type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} />
                                     </div>
                                     <div className="flex flex-wrap gap-2">
@@ -109,7 +111,7 @@ export const InviteAcceptView: FC = () => {
                                                 password !== confirmPassword
                                             }
                                         >
-                                            Konto erstellen und Einladung annehmen
+                                            {t("invite.createAndAccept")}
                                         </Button>
                                         <Button
                                             variant="outline"
@@ -120,27 +122,27 @@ export const InviteAcceptView: FC = () => {
                                                 })
                                             }
                                         >
-                                            Mit bestehendem Konto anmelden
+                                            {t("invite.loginExisting")}
                                         </Button>
                                     </div>
                                     {completeMutation.isSuccess && (
-                                        <p className="text-sm text-emerald-600">Konto erstellt und Einladung angenommen. Bitte jetzt einloggen.</p>
+                                        <p className="text-sm text-emerald-600">{t("invite.accountCreated")}</p>
                                     )}
-                                    {completeMutation.isError && <p className="text-sm text-destructive">Konto konnte nicht erstellt werden.</p>}
+                                    {completeMutation.isError && <p className="text-sm text-destructive">{t("invite.accountFailed")}</p>}
                                 </div>
                             )}
 
                             {!invitation.is_accepted && !invitation.is_expired && loggedIn && (
                                 <div className="space-y-2">
-                                    <p className="text-sm text-muted-foreground">Angemeldet als: {loggedInEmail}</p>
+                                    <p className="text-sm text-muted-foreground">{t("invite.signedInAs", { email: loggedInEmail })}</p>
                                     {!isEmailMatch && (
                                         <p className="text-sm text-destructive">
-                                            Die Einladung ist für {invitedEmail}. Bitte melde dich mit dieser E-Mail an.
+                                            {t("invite.wrongAccount", { email: invitedEmail })}
                                         </p>
                                     )}
                                     <div className="flex flex-wrap gap-2">
                                         <Button onClick={() => acceptMutation.mutate({ params: { path: { token: token ?? "" } } })} disabled={acceptMutation.isPending || !isEmailMatch}>
-                                            Einladung annehmen
+                                            {t("invite.accept")}
                                         </Button>
                                         <Button
                                             variant="outline"
@@ -152,16 +154,16 @@ export const InviteAcceptView: FC = () => {
                                                 })
                                             }
                                         >
-                                            Konto wechseln
+                                            {t("invite.switchAccount")}
                                         </Button>
                                     </div>
-                                    {acceptMutation.isError && <p className="text-sm text-destructive">Einladung konnte nicht angenommen werden.</p>}
+                                    {acceptMutation.isError && <p className="text-sm text-destructive">{t("invite.acceptFailed")}</p>}
                                 </div>
                             )}
                         </>
                     )}
                     <Button variant="outline" onClick={() => navigate("/welcome")}>
-                        Zur Anwendung
+                        {t("invite.toApp")}
                     </Button>
                 </CardContent>
             </Card>

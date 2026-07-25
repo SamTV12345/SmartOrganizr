@@ -26,31 +26,31 @@ export const MyManagement = () => {
     const entries: ManagementEntry[] = [
         {
             title: t("authors"),
-            description: "Komponist*innen verwalten",
+            description: t("management.authorsHint"),
             to: "/noteManagement/authors",
             icon: <Users className="size-6" />,
         },
         {
             title: t("concerts"),
-            description: "Programme und Auftritte planen",
+            description: t("management.concertsHint"),
             to: "/noteManagement/concerts",
             icon: <Music2 className="size-6" />,
         },
         {
             title: t("folders"),
-            description: "Ordnerstruktur durchsuchen",
+            description: t("management.foldersHint"),
             to: "/noteManagement/folders",
             icon: <FolderOpen className="size-6" />,
         },
         {
             title: t("io"),
-            description: "Importieren und exportieren",
+            description: t("management.ioHint"),
             to: "/noteManagement/io",
             icon: <FileUp className="size-6" />,
         },
         {
             title: t("search"),
-            description: "Noten schnell finden",
+            description: t("management.searchHint"),
             to: "/noteManagement/notes",
             icon: <Search className="size-6" />,
         },

@@ -7,8 +7,10 @@ import { http as axios } from "@/src/api/client";
 import {apiURL} from "@/src/Keycloak";
 import {useMemo, useRef} from "react";
 import {useKeycloak} from "@/src/Keycloak/useKeycloak";
+import {useTranslation} from "react-i18next";
 
 export const ProfileUploadEdit = ()=>{
+    const {t} = useTranslation()
     const keycloak = useKeycloak()
     const fileInputRef = useRef<HTMLInputElement | null>(null);
     const queryClient = useQueryClient();
@@ -88,7 +90,7 @@ export const ProfileUploadEdit = ()=>{
 
     return                     <Card>
         <CardHeader className="bg-muted/40 border-b">
-            <CardTitle>Profilbild anpassen</CardTitle>
+            <CardTitle>{t("profilePage.pictureTitle")}</CardTitle>
         </CardHeader>
         <CardContent className="flex flex-col gap-4 md:flex-row md:items-end">
             <div className="relative  w-24 h-24 avatar-hover">
@@ -108,7 +110,7 @@ export const ProfileUploadEdit = ()=>{
             </div>
             {data?.profilePicUrl &&<Button variant="destructive" className="w-full md:mt-auto md:ml-6 md:w-auto" onClick={()=>{
                 deleteImage.mutate()
-            }}>Profilbild löschen</Button>}
+            }}>{t("profilePage.pictureDelete")}</Button>}
         </CardContent>
     </Card>
 }

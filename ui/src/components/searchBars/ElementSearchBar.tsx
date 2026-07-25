@@ -8,8 +8,10 @@ import {useDebounce} from "../../utils/DebounceHook";
 import {apiURL} from "../../Keycloak";
 import {useEffect} from "react";
 import {Input} from "@/components/ui/input";
+import {useTranslation} from "react-i18next";
 
 export const ElementSearchBar = ()=>{
+    const {t} = useTranslation()
     const dispatch = useAppDispatch()
     const text = useAppSelector(state=>state.commonReducer.noteSearchText)
 
@@ -39,7 +41,7 @@ export const ElementSearchBar = ()=>{
             <Input
                 value={text}
                 onChange={v=>dispatch(setNotesSearchText(v.target.value))}
-                placeholder="Notenname suchen..."
+                placeholder={t("searchPage.notePlaceholder")}
                 className="w-full"
             />
         </div>

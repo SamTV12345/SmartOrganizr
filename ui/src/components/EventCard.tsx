@@ -1,6 +1,7 @@
 import {Card, CardContent, CardDescription, CardHeader, CardTitle} from "@/components/ui/card";
 import {convertStatusModelToIcon, EventModel} from "@/src/models/EventModel";
 import {useDateFormat} from "@/src/hooks/useDateFormat";
+import {useTranslation} from "react-i18next";
 
 type EventCardProps = {
     event: EventModel
@@ -9,6 +10,7 @@ type EventCardProps = {
 
 export const EventCard = ({event, onClick}: EventCardProps)=>{
     const icon = convertStatusModelToIcon(event.status)
+    const {t} = useTranslation()
     const {formatDateTime} = useDateFormat()
 
     return  <Card
@@ -25,9 +27,9 @@ export const EventCard = ({event, onClick}: EventCardProps)=>{
         </CardHeader>
         <CardContent>
             <div className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-2 text-sm">
-                <label className="text-muted-foreground">Ort</label>
+                <label className="text-muted-foreground">{t("events.location")}</label>
                 <span>{event.location ?? "-"}</span>
-                <label className="text-muted-foreground">Zeit</label>
+                <label className="text-muted-foreground">{t("events.time")}</label>
                 <span>{event.startDate ? formatDateTime(event.startDate) : "-"}</span>
             </div>
         </CardContent>

@@ -63,7 +63,11 @@
       "BIWEEKLY": "Alle 2 Wochen",
       "MONTHLY": "Monatlich",
       "until": "Wiederholen bis"
-    }
+    },
+    "respondYes": "Zusagen",
+    "respondMaybe": "Vielleicht",
+    "respondNo": "Absagen",
+    "reasonPlaceholder": "Grund (optional)"
   },
   "pinboard": {
     "title": "Pinnwand",
@@ -454,5 +458,123 @@
     "noMessagesInChat": "Noch keine Nachrichten in diesem Chat.",
     "writePlaceholder": "Nachricht schreiben...",
     "send": "Senden"
+  },
+  "noteDetail": {
+    "notFound": "Note nicht gefunden",
+    "notFoundHint": "Die angeforderte Note ist nicht verfügbar.",
+    "backToSearch": "Zurück zur Suche",
+    "detailsTitle": "Notendetails",
+    "detailsHint": "Alle wichtigen Informationen zur gewählten Note.",
+    "navigation": "Navigation",
+    "navigationHint": "Zwischen Noten im gleichen Ordner wechseln.",
+    "noPrevious": "Keine vorherige Note",
+    "noNext": "Keine nächste Note",
+    "indexInFolder": "Index im Ordner"
+  },
+  "invite": {
+    "title": "Vereinseinladung",
+    "loading": "Lade Einladung...",
+    "subtitle": "Einladung zu {{club}}",
+    "fallbackClub": "deinem Verein",
+    "email": "E-Mail: {{email}}",
+    "validUntil": "Gültig bis: {{date}}",
+    "alreadyAccepted": "Diese Einladung wurde bereits angenommen.",
+    "expired": "Diese Einladung ist abgelaufen.",
+    "createAccountHint": "Neues Konto für diese Einladung erstellen (ohne offene Registrierung).",
+    "firstname": "Vorname",
+    "lastname": "Nachname",
+    "password": "Passwort",
+    "passwordConfirm": "Passwort bestätigen",
+    "createAndAccept": "Konto erstellen und Einladung annehmen",
+    "loginExisting": "Mit bestehendem Konto anmelden",
+    "accountCreated": "Konto erstellt und Einladung angenommen. Bitte jetzt einloggen.",
+    "accountFailed": "Konto konnte nicht erstellt werden.",
+    "signedInAs": "Angemeldet als: {{email}}",
+    "wrongAccount": "Die Einladung ist für {{email}}. Bitte melde dich mit dieser E-Mail an.",
+    "accept": "Einladung annehmen",
+    "switchAccount": "Konto wechseln",
+    "acceptFailed": "Einladung konnte nicht angenommen werden.",
+    "toApp": "Zur Anwendung"
+  },
+  "importExport": {
+    "subtitle": "Exportiere einen Ordner als PDF für Druck, Teilen oder Offline-Nutzung.",
+    "exportFolder": "Ordner exportieren",
+    "exportFolderHint": "Wähle einen Ordner und exportiere den Inhalt als PDF.",
+    "folderPlaceholder": "Ordner auswählen",
+    "exporting": "Exportiere...",
+    "exportPdf": "PDF exportieren",
+    "selected": "Ausgewählt:",
+    "noPdfInFolder": "Der Ordner enthält keine Noten mit PDF.",
+    "exportFailed": "Export fehlgeschlagen. Bitte erneut versuchen."
+  },
+  "events": {
+    "total": "Gesamt",
+    "accepted": "Zugesagt",
+    "openOrDeclined": "Offen / Abgesagt",
+    "noneFound": "Keine anstehenden Termine gefunden.",
+    "noClubEvents": "Keine anstehenden Vereinstermine.",
+    "status": "Status",
+    "location": "Ort",
+    "start": "Start",
+    "end": "Ende",
+    "time": "Zeit",
+    "geo": "Geo X/Y",
+    "statusOk": "Zugesagt",
+    "statusDeny": "Abgesagt",
+    "statusMaybe": "Vielleicht",
+    "statusOpen": "Offen",
+    "noDescription": "Keine Beschreibung vorhanden.",
+    "openLink": "Event-Link öffnen",
+    "openInOsm": "In OpenStreetMap öffnen",
+    "noCoordinates": "Keine Koordinaten für Kartenansicht verfügbar."
+  },
+  "profilePage": {
+    "title": "Profil",
+    "pictureTitle": "Profilbild anpassen",
+    "pictureDelete": "Profilbild löschen",
+    "personalData": "Persönliche Daten",
+    "changePassword": "Passwort ändern",
+    "birthdayAddress": "Geburtstag und Adresse",
+    "countryPlaceholder": "Land",
+    "konzertmeisterUrl": "Konzertmeister URL",
+    "countries": {
+      "DE": "Deutschland",
+      "AT": "Österreich",
+      "FR": "Frankreich"
+    },
+    "passwordHint": "Das Passwort kann aus Sicherheitsgründen nicht in SmartOrganizr geändert werden. Bitte ändern Sie Ihr Passwort über den folgenden Link.",
+    "language": "Sprache",
+    "languageHint": "Sprache der Oberfläche. Die Auswahl gilt auch für Datums- und Zahlenformate.",
+    "languageGerman": "Deutsch",
+    "languageEnglish": "Englisch",
+    "subtitle": "Einstellungen, Konto und Darstellung an einem Ort."
+  },
+  "searchPage": {
+    "subtitle": "Suche in deinen Noten, Autor*innen und Ordnern.",
+    "noteSearch": "Notensuche",
+    "filterHint": "Filtere sofort nach Titel. Weitere Ergebnisse werden automatisch nachgeladen.",
+    "noResults": "Keine Ergebnisse.",
+    "notePlaceholder": "Notenname suchen..."
+  },
+  "management": {
+    "authorsHint": "Komponist*innen verwalten",
+    "concertsHint": "Programme und Auftritte planen",
+    "foldersHint": "Ordnerstruktur durchsuchen",
+    "ioHint": "Importieren und exportieren",
+    "searchHint": "Noten schnell finden"
+  },
+  "nav": {
+    "navigation": "Navigation",
+    "open": "Navigation öffnen",
+    "chooseHere": "Bitte auswählen"
+  },
+  "authorPage": {
+    "namePlaceholder": "Name eines Komponisten eingeben"
+  },
+  "folderPage": {
+    "structure": "Ordnerstruktur"
+  },
+  "clubForm": {
+    "namePlaceholder": "Musikverein Beispielstadt"
   }
 }

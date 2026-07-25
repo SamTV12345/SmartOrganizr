@@ -21,7 +21,7 @@ export const ClubEventsSection = () => {
     return (
       <Card>
         <CardContent className="text-muted-foreground py-10 text-center">
-          Keine anstehenden Vereinstermine.
+          {t("events.noClubEvents")}
         </CardContent>
       </Card>
     )

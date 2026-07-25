@@ -5,8 +5,10 @@ import {CreateFolderOrNote} from "@/src/components/CreateFolderOrNote";
 import {FolderItem} from "@/src/models/Folder";
 import {Card, CardContent, CardHeader, CardTitle} from "@/components/ui/card";
 import {Loader2} from "lucide-react";
+import {useTranslation} from "react-i18next";
 
 export const FolderView = ()=>{
+    const {t} = useTranslation()
     const {data, isLoading} = $api.useQuery("get", "/v1/elements/parentDecks", undefined, {
         staleTime: 1000 * 60 * 10,
         refetchOnMount: false,
@@ -26,7 +28,7 @@ export const FolderView = ()=>{
         <FileUploadModal/>
         <Card className="mx-auto w-full md:w-10/12">
             <CardHeader>
-                <CardTitle>Ordnerstruktur</CardTitle>
+                <CardTitle>{t("folderPage.structure")}</CardTitle>
             </CardHeader>
             <CardContent>
                 <TreeElement data={folders} />

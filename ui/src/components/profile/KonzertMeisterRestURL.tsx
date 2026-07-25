@@ -81,7 +81,7 @@ export const KonzertMeisterRestURL = ()=>{
 
     return <Card>
         <CardHeader className="bg-muted/40 border-b">
-            <CardTitle>Konzertmeister URL</CardTitle>
+            <CardTitle>{t("profilePage.konzertmeisterUrl")}</CardTitle>
         </CardHeader>
         <CardContent>
             <FormProvider {...userForm}>

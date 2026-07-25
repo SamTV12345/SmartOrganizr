@@ -7,8 +7,10 @@ import {Button} from "@/components/ui/button";
 import {Label} from "@/components/ui/label";
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/components/ui/select";
 import {Download, FolderOpen} from "lucide-react";
+import {useTranslation} from "react-i18next";
 
 export const ImportExportView = () => {
+    const {t} = useTranslation()
     const [selectedFolder, setSelectedFolder] = useState<string>()
 
     const { data: loadedFolders } = $api.useQuery("get", "/v1/elements/folders", {
@@ -43,8 +45,8 @@ export const ImportExportView = () => {
         } catch (e) {
             const err = e as Error & { response?: { status: number } }
             setExportError(err.response?.status === 404
-                ? "Der Ordner enthält keine Noten mit PDF."
-                : "Export fehlgeschlagen. Bitte erneut versuchen.")
+                ? t("importExport.noPdfInFolder")
+                : t("importExport.exportFailed"))
         } finally {
             setExporting(false)
         }
@@ -53,9 +55,9 @@ export const ImportExportView = () => {
     return (
         <main className="mx-auto w-full max-w-4xl space-y-6 px-4 py-6 md:px-6 md:py-8">
             <section className="rounded-2xl border bg-gradient-to-br from-primary/10 via-background to-secondary/30 p-6">
-                <h1 className="text-3xl font-semibold tracking-tight">Import/Export</h1>
+                <h1 className="text-3xl font-semibold tracking-tight">{t("io")}</h1>
                 <p className="text-muted-foreground mt-2 text-sm">
-                    Exportiere einen Ordner als PDF für Druck, Teilen oder Offline-Nutzung.
+                    {t("importExport.subtitle")}
                 </p>
             </section>
 
@@ -63,18 +65,18 @@ export const ImportExportView = () => {
                 <CardHeader>
                     <CardTitle className="flex items-center gap-2">
                         <FolderOpen className="size-5 text-primary"/>
-                        Ordner exportieren
+                        {t("importExport.exportFolder")}
                     </CardTitle>
                     <CardDescription>
-                        Wähle einen Ordner und exportiere den Inhalt als PDF.
+                        {t("importExport.exportFolderHint")}
                     </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                     <div className="grid gap-2">
-                        <Label>Ordner</Label>
+                        <Label>{t("folders")}</Label>
                         <Select value={selectedFolder} onValueChange={(v) => setSelectedFolder(v ?? undefined)}>
                             <SelectTrigger className="w-full">
-                                <SelectValue placeholder="Ordner auswählen"/>
+                                <SelectValue placeholder={t("importExport.folderPlaceholder")}/>
                             </SelectTrigger>
                             <SelectContent>
                                 {folders.map(folder => (
@@ -89,11 +91,11 @@ export const ImportExportView = () => {
                     <div className="flex flex-wrap items-center gap-3">
                         <Button onClick={getPDFOfFolder} disabled={selectedFolder===undefined || exporting}>
                             <Download className="size-4"/>
-                            {exporting ? "Exportiere..." : "PDF exportieren"}
+                            {exporting ? t("importExport.exporting") : t("importExport.exportPdf")}
                         </Button>
                         {selectedFolderName && (
                             <p className="text-muted-foreground text-sm">
-                                Ausgewählt: <span className="text-foreground font-medium">{selectedFolderName}</span>
+                                {t("importExport.selected")} <span className="text-foreground font-medium">{selectedFolderName}</span>
                             </p>
                         )}
                     </div>

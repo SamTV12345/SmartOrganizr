@@ -19,7 +19,13 @@ i18n
     .use(initReactI18next)
     .init(
         {
-            resources
+            resources,
+            // Without a fallback i18next falls back to its "dev" language and
+            // renders raw keys for any browser locale we don't ship.
+            fallbackLng: "en",
+            supportedLngs: ["de", "en"],
+            // Maps regional variants (de-AT, en-GB) onto the base language.
+            nonExplicitSupportedLngs: true,
         }
     )
 
