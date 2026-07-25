@@ -1,4 +1,4 @@
-import { FC, useEffect, useMemo, useState } from "react";
+import { FC, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useSearchParams } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -15,6 +15,8 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { useDateFormat } from "@/src/hooks/useDateFormat";
 
+const MESSAGE_PAGE_SIZE = 50;
+
 export const MyMessagesView: FC = () => {
     const { t } = useTranslation();
     const { formatDateTime } = useDateFormat();
@@ -26,6 +28,11 @@ export const MyMessagesView: FC = () => {
     const [newChatRecipient, setNewChatRecipient] = useState("");
     const [newChatContent, setNewChatContent] = useState("");
     const [chatContent, setChatContent] = useState("");
+    // Messages arrive page by page now; older ones are prepended on demand.
+    const [olderMessages, setOlderMessages] = useState<ClubChatMessage[]>([]);
+    const [reachedStart, setReachedStart] = useState(false);
+    const [loadingOlder, setLoadingOlder] = useState(false);
+    const bottomRef = useRef<HTMLDivElement>(null);
 
     const { data: clubsData } = useQuery({
         queryKey: ["clubs"],
@@ -83,9 +90,46 @@ export const MyMessagesView: FC = () => {
 
     const { data: chatMessagesData, refetch: refetchMessages } = useQuery({
         queryKey: ["club-chat-messages", selectedClubId, activeChatId],
-        queryFn: async () => axios.get<ClubChatMessage[]>(`${apiURL}/v1/clubs/${selectedClubId}/messages/chats/${activeChatId}`),
+        queryFn: async () =>
+            axios.get<ClubChatMessage[]>(
+                `${apiURL}/v1/clubs/${selectedClubId}/messages/chats/${activeChatId}`,
+                { params: { limit: MESSAGE_PAGE_SIZE } }
+            ),
         enabled: !!selectedClubId && !!activeChatId && messagingAllowed,
     });
+
+    const latestMessages = chatMessagesData?.data ?? [];
+    const messages = [...olderMessages, ...latestMessages];
+
+    // A different chat starts from its newest page again.
+    useEffect(() => {
+        setOlderMessages([]);
+        setReachedStart(false);
+    }, [activeChatId, selectedClubId]);
+
+    // Follow the conversation, including messages that arrive via SSE.
+    useEffect(() => {
+        bottomRef.current?.scrollIntoView({ block: "end" });
+    }, [activeChatId, latestMessages.length]);
+
+    const loadOlder = async () => {
+        const oldest = messages[0];
+        if (!oldest?.created_at || loadingOlder) return;
+        setLoadingOlder(true);
+        try {
+            const response = await axios.get<ClubChatMessage[]>(
+                `${apiURL}/v1/clubs/${selectedClubId}/messages/chats/${activeChatId}`,
+                { params: { limit: MESSAGE_PAGE_SIZE, before: oldest.created_at } }
+            );
+            const page = response.data ?? [];
+            if (page.length < MESSAGE_PAGE_SIZE) {
+                setReachedStart(true);
+            }
+            setOlderMessages((prev) => [...page, ...prev]);
+        } finally {
+            setLoadingOlder(false);
+        }
+    };
 
     useEffect(() => {
         if (!selectedClubId || !activeChatId || !messagingAllowed) {
@@ -244,10 +288,21 @@ export const MyMessagesView: FC = () => {
                         </CardHeader>
                         <CardContent className="space-y-3">
                             <div className="h-[360px] space-y-2 overflow-auto rounded-md border p-3">
-                                {activeChatId && (chatMessagesData?.data ?? []).length === 0 && (
+                                {activeChatId && messages.length === 0 && (
                                     <p className="text-sm text-muted-foreground">{t("messages.noMessagesInChat")}</p>
                                 )}
-                                {(chatMessagesData?.data ?? []).map((message) => {
+                                {activeChatId && messages.length > 0 && !reachedStart && (
+                                    <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        className="w-full"
+                                        disabled={loadingOlder}
+                                        onClick={loadOlder}
+                                    >
+                                        {t("messages.loadOlder")}
+                                    </Button>
+                                )}
+                                {messages.map((message) => {
                                     const isOwn = message.sender_user_id === user.subject;
                                     return (
                                         <div
@@ -262,11 +317,20 @@ export const MyMessagesView: FC = () => {
                                         </div>
                                     );
                                 })}
+                                <div ref={bottomRef} />
                             </div>
                             <div className="flex gap-2">
-                                <Input
+                                <Textarea
+                                    rows={2}
                                     value={chatContent}
                                     onChange={(event) => setChatContent(event.target.value)}
+                                    onKeyDown={(event) => {
+                                        // Enter sends, Shift+Enter breaks the line.
+                                        if (event.key === "Enter" && !event.shiftKey) {
+                                            event.preventDefault();
+                                            onSendMessage();
+                                        }
+                                    }}
                                     placeholder={t("messages.writePlaceholder")}
                                     disabled={!activeChatId}
                                 />

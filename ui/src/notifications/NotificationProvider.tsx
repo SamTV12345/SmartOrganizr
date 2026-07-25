@@ -31,6 +31,11 @@ export const NotificationProvider: FC<{ children: ReactNode }> = ({ children }) 
             queryClient.invalidateQueries({ queryKey: ["get", "/v1/clubs/{clubId}/events"] });
             queryClient.invalidateQueries({ queryKey: ["get", "/v1/clubs/{clubId}/events/{eventId}/attendance"] });
         };
+        const refreshFiles = (clubId?: string) => {
+            queryClient.invalidateQueries({
+                queryKey: clubId ? ["club-files", clubId] : ["club-files"],
+            });
+        };
         const refreshPinboard = (clubId?: string) => {
             queryClient.invalidateQueries({
                 queryKey: clubId ? ["club-pinboard", clubId] : ["club-pinboard"],
@@ -58,10 +63,14 @@ export const NotificationProvider: FC<{ children: ReactNode }> = ({ children }) 
                 case "pinboard_post":
                     refreshPinboard(event.clubId);
                     break;
+                case "club_file":
+                    refreshFiles(event.clubId);
+                    break;
                 default:
                     refreshChats();
                     refreshClubEvents();
                     refreshPinboard(event.clubId);
+                    refreshFiles(event.clubId);
             }
         };
 

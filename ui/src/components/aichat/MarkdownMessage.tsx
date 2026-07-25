@@ -20,10 +20,10 @@ export const MarkdownMessage = ({ content }: { content: string }) => (
             ol: ({ children }) => <ol className="mb-2 list-decimal pl-5 last:mb-0">{children}</ol>,
             li: ({ children }) => <li className="mb-0.5">{children}</li>,
             code: ({ children }) => (
-                <code className="rounded bg-gray-800 px-1 py-0.5 font-mono text-xs">{children}</code>
+                <code className="bg-muted rounded px-1 py-0.5 font-mono text-xs">{children}</code>
             ),
             pre: ({ children }) => (
-                <pre className="mb-2 overflow-x-auto rounded bg-gray-800 p-2 text-xs last:mb-0">{children}</pre>
+                <pre className="bg-muted mb-2 overflow-x-auto rounded p-2 text-xs last:mb-0">{children}</pre>
             ),
             h1: ({ children }) => <h1 className="mb-1 font-semibold">{children}</h1>,
             h2: ({ children }) => <h2 className="mb-1 font-semibold">{children}</h2>,

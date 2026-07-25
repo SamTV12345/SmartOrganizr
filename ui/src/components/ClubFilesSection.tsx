@@ -1,6 +1,6 @@
 import { ChangeEvent, FC, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { http as axios } from "@/src/api/client";
+import { http as axios, uploadWithProgress } from "@/src/api/client";
 import { apiURL } from "@/src/Keycloak";
 import { ClubFile } from "@/src/models/ClubFile";
 import { formatBytes } from "@/src/utils/formatBytes";
@@ -35,6 +35,7 @@ export const ClubFilesSection: FC<Props> = ({ clubId, canWrite }) => {
     const queryClient = useQueryClient();
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [error, setError] = useState<string | null>(null);
+    const [progress, setProgress] = useState<number | null>(null);
 
     const { data } = useQuery({
         queryKey: ["club-files", clubId],
@@ -50,9 +51,8 @@ export const ClubFilesSection: FC<Props> = ({ clubId, canWrite }) => {
         mutationFn: async (file: File) => {
             const formData = new FormData();
             formData.append("file", file);
-            return await axios.post(`${apiURL}/v1/clubs/${clubId}/files`, formData, {
-                headers: { "Content-Type": "multipart/form-data" },
-            });
+            // A 25 MB upload used to show a bare "…" with no sign of progress.
+            await uploadWithProgress(`${apiURL}/v1/clubs/${clubId}/files`, formData, setProgress);
         },
         onSuccess: async () => {
             if (fileInputRef.current) {
@@ -60,6 +60,7 @@ export const ClubFilesSection: FC<Props> = ({ clubId, canWrite }) => {
             }
             await invalidate();
         },
+        onSettled: () => setProgress(null),
     });
 
     const deleteMutation = useMutation({
@@ -78,6 +79,8 @@ export const ClubFilesSection: FC<Props> = ({ clubId, canWrite }) => {
             return;
         }
         setError(null);
+        uploadMutation.reset();
+        setProgress(0);
         uploadMutation.mutate(file);
     };
 
@@ -104,7 +107,22 @@ export const ClubFilesSection: FC<Props> = ({ clubId, canWrite }) => {
                     </CardHeader>
                     <CardContent className="space-y-3">
                         <Input ref={fileInputRef} type="file" onChange={onFileSelected} disabled={uploadMutation.isPending} />
-                        {uploadMutation.isPending && <p className="text-sm text-muted-foreground">…</p>}
+                        {uploadMutation.isPending && (
+                            <div className="space-y-1">
+                                <p className="text-muted-foreground text-sm">
+                                    {t("files.uploading", { percent: progress ?? 0 })}
+                                </p>
+                                <div className="bg-muted h-1.5 w-full overflow-hidden rounded">
+                                    <div
+                                        className="bg-primary h-full transition-all"
+                                        style={{ width: `${progress ?? 0}%` }}
+                                    />
+                                </div>
+                            </div>
+                        )}
+                        {uploadMutation.isError && (
+                            <p className="text-sm text-red-500">{t("files.upload-failed")}</p>
+                        )}
                         {error && <p className="text-sm text-red-500">{error}</p>}
                     </CardContent>
                 </Card>

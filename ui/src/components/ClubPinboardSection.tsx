@@ -1,4 +1,4 @@
-import { FC, useState } from "react";
+import { FC, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { http as axios } from "@/src/api/client";
 import { apiURL } from "@/src/Keycloak";
@@ -29,6 +29,8 @@ type Props = {
     canWrite: boolean;
 };
 
+const PAGE_SIZE = 20;
+
 export const ClubPinboardSection: FC<Props> = ({ clubId, canWrite }) => {
     const { t } = useTranslation();
     const { formatDateTime } = useDateFormat();
@@ -37,12 +39,19 @@ export const ClubPinboardSection: FC<Props> = ({ clubId, canWrite }) => {
     const [body, setBody] = useState("");
     const [pinned, setPinned] = useState(false);
     const [editingId, setEditingId] = useState<string | null>(null);
+    const [pageCount, setPageCount] = useState(1);
+    const formRef = useRef<HTMLDivElement>(null);
 
     const { data } = useQuery({
-        queryKey: ["club-pinboard", clubId],
-        queryFn: async () => axios.get<PinboardPost[]>(`${apiURL}/v1/clubs/${clubId}/pinboard`),
+        queryKey: ["club-pinboard", clubId, pageCount],
+        queryFn: async () =>
+            axios.get<PinboardPost[]>(`${apiURL}/v1/clubs/${clubId}/pinboard`, {
+                params: { limit: PAGE_SIZE * pageCount },
+            }),
     });
     const posts = data?.data ?? [];
+    // A full page means there is probably more behind it.
+    const maybeMore = posts.length === PAGE_SIZE * pageCount;
 
     const resetForm = () => {
         setTitle("");
@@ -52,6 +61,7 @@ export const ClubPinboardSection: FC<Props> = ({ clubId, canWrite }) => {
     };
 
     const invalidate = async () => {
+        // Prefix match: every page of this club's board.
         await queryClient.invalidateQueries({ queryKey: ["club-pinboard", clubId] });
     };
 
@@ -83,6 +93,9 @@ export const ClubPinboardSection: FC<Props> = ({ clubId, canWrite }) => {
         setTitle(post.title);
         setBody(post.body);
         setPinned(post.pinned);
+        // The form sits above the list: editing a post further down otherwise
+        // looked like nothing happened.
+        formRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
     };
 
     const onSubmit = () => {
@@ -99,7 +112,7 @@ export const ClubPinboardSection: FC<Props> = ({ clubId, canWrite }) => {
     return (
         <div className="space-y-4">
             {canWrite && (
-                <Card>
+                <Card ref={formRef}>
                     <CardHeader>
                         <CardTitle className="flex items-center gap-2">
                             <LayoutDashboard className="size-5 text-accentDark" />
@@ -181,6 +194,11 @@ export const ClubPinboardSection: FC<Props> = ({ clubId, canWrite }) => {
                             </CardContent>
                         </Card>
                     ))}
+                    {maybeMore && (
+                        <Button variant="outline" className="w-full" onClick={() => setPageCount((n) => n + 1)}>
+                            {t("pinboard.loadMore")}
+                        </Button>
+                    )}
                 </div>
             )}
         </div>

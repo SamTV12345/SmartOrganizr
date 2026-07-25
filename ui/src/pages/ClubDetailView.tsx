@@ -176,6 +176,23 @@ export const ClubDetailView: FC = () => {
             await refetchSections();
         },
     });
+    // PUT .../sections/{id} existed from the start but no UI ever called it:
+    // sections could only be created and deleted.
+    const [renamingSectionId, setRenamingSectionId] = useState<string | null>(null);
+    const [renameValue, setRenameValue] = useState("");
+    const renameSectionMutation = useMutation({
+        mutationFn: async (variables: { sectionId: string; name: string }) =>
+            axios.put(`${apiURL}/v1/clubs/${clubId}/sections/${variables.sectionId}`, {
+                name: variables.name,
+            }),
+        onSuccess: async () => {
+            setRenamingSectionId(null);
+            setRenameValue("");
+            await refetchSections();
+            await refetchMembers();
+        },
+    });
+
     const deleteSectionMutation = useMutation({
         mutationFn: async (sectionId: string) =>
             axios.delete(`${apiURL}/v1/clubs/${clubId}/sections/${sectionId}`),
@@ -539,12 +556,65 @@ export const ClubDetailView: FC = () => {
                                         )}
                                         {sections.map((section) => (
                                             <div key={section.id} className="flex items-center justify-between gap-2 rounded-lg border p-2">
-                                                <p className="text-sm font-medium">
-                                                    {section.name}{" "}
-                                                    <span className="text-muted-foreground text-xs">
-                                                        ({t("sections.memberCount", { count: section.memberCount ?? 0 })})
-                                                    </span>
-                                                </p>
+                                                {renamingSectionId === section.id ? (
+                                                    <div className="flex flex-1 gap-2">
+                                                        <Input
+                                                            autoFocus
+                                                            value={renameValue}
+                                                            onChange={(e) => setRenameValue(e.target.value)}
+                                                            onKeyDown={(e) => {
+                                                                if (e.key === "Enter" && renameValue.trim()) {
+                                                                    renameSectionMutation.mutate({
+                                                                        sectionId: section.id ?? "",
+                                                                        name: renameValue.trim(),
+                                                                    });
+                                                                }
+                                                                if (e.key === "Escape") {
+                                                                    setRenamingSectionId(null);
+                                                                }
+                                                            }}
+                                                        />
+                                                        <Button
+                                                            size="sm"
+                                                            disabled={!renameValue.trim() || renameSectionMutation.isPending}
+                                                            onClick={() =>
+                                                                renameSectionMutation.mutate({
+                                                                    sectionId: section.id ?? "",
+                                                                    name: renameValue.trim(),
+                                                                })
+                                                            }
+                                                        >
+                                                            {t("save")}
+                                                        </Button>
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="sm"
+                                                            onClick={() => setRenamingSectionId(null)}
+                                                        >
+                                                            {t("cancel")}
+                                                        </Button>
+                                                    </div>
+                                                ) : (
+                                                    <p className="text-sm font-medium">
+                                                        {section.name}{" "}
+                                                        <span className="text-muted-foreground text-xs">
+                                                            ({t("sections.memberCount", { count: section.memberCount ?? 0 })})
+                                                        </span>
+                                                    </p>
+                                                )}
+                                                {canManageMembers && renamingSectionId !== section.id && (
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="sm"
+                                                        aria-label={t("sections.rename")}
+                                                        onClick={() => {
+                                                            setRenamingSectionId(section.id ?? null);
+                                                            setRenameValue(section.name ?? "");
+                                                        }}
+                                                    >
+                                                        <PencilLine className="size-4" />
+                                                    </Button>
+                                                )}
                                                 {canManageMembers && (
                                                     <AlertDialog>
                                                         <AlertDialogTrigger

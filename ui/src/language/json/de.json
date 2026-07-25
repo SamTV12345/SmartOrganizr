@@ -27,7 +27,9 @@
     "download": "Herunterladen",
     "delete": "Löschen",
     "delete-confirm": "Diese Datei wirklich löschen?",
-    "too-large": "Die Datei überschreitet das 25-MB-Limit."
+    "too-large": "Die Datei überschreitet das 25-MB-Limit.",
+    "uploading": "Wird hochgeladen… {{percent}} %",
+    "upload-failed": "Upload fehlgeschlagen. Bitte erneut versuchen."
   },
   "clubEvents": {
     "create": "Termin erstellen",
@@ -91,7 +93,8 @@
     "field": {
       "title": "Titel",
       "body": "Inhalt"
-    }
+    },
+    "loadMore": "Mehr anzeigen"
   },
   "homepage": "Startseite",
   "fast": "Schnell",
@@ -265,7 +268,9 @@
     "error": "Da ist etwas schiefgelaufen. Versuch es noch einmal.",
     "empty": "Womit kann ich helfen?",
     "open": "AI-Assistent öffnen",
-    "close": "Schließen"
+    "close": "Schließen",
+    "stop": "Antwort stoppen",
+    "deleteConfirm": "Diesen Chat mit allen Nachrichten löschen?"
   },
   "wikidata": {
     "badgeTitle": "Aus Wikidata angereichert ({{id}})",
@@ -390,7 +395,8 @@
     "namePlaceholder": "z. B. Flöten",
     "delete": "Register löschen",
     "delete-confirm": "Register \"{{name}}\" löschen? Mitglieder bleiben erhalten, Termine gelten wieder für den ganzen Verein.",
-    "create-error": "Register konnte nicht angelegt werden (Name evtl. schon vergeben)."
+    "create-error": "Register konnte nicht angelegt werden (Name evtl. schon vergeben).",
+    "rename": "Register umbenennen"
   },
   "club": {
     "loading": "Lade Vereinsbereich...",
@@ -490,7 +496,8 @@
     "pickChat": "Wähle einen Chat aus oder starte einen neuen Chat.",
     "noMessagesInChat": "Noch keine Nachrichten in diesem Chat.",
     "writePlaceholder": "Nachricht schreiben...",
-    "send": "Senden"
+    "send": "Senden",
+    "loadOlder": "Ältere laden"
   },
   "noteDetail": {
     "notFound": "Note nicht gefunden",

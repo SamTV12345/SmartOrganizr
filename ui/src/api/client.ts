@@ -44,6 +44,36 @@ export const authFetch = (input: RequestInfo | URL, init: RequestInit = {}) => {
     return fetch(input, { ...init, headers });
 };
 
+// uploadWithProgress exists because fetch cannot report upload progress: the
+// browser exposes it only through XMLHttpRequest's upload events. Used for club
+// file uploads, where a 25 MB transfer otherwise gives no feedback at all.
+export const uploadWithProgress = (
+    url: string,
+    body: FormData,
+    onProgress: (percent: number) => void
+): Promise<void> =>
+    new Promise((resolve, reject) => {
+        const request = new XMLHttpRequest();
+        request.open("POST", url);
+        if (keycloak?.token) {
+            request.setRequestHeader("Authorization", `Bearer ${keycloak.token}`);
+        }
+        // Content-Type is deliberately left to the browser so the multipart
+        // boundary is generated correctly.
+        request.upload.onprogress = (event) => {
+            if (event.lengthComputable && event.total > 0) {
+                onProgress(Math.round((event.loaded / event.total) * 100));
+            }
+        };
+        request.onload = () =>
+            request.status >= 200 && request.status < 300
+                ? resolve()
+                : reject(new Error(`upload failed with status ${request.status}`));
+        request.onerror = () => reject(new Error("upload failed"));
+        request.onabort = () => reject(new Error("upload aborted"));
+        request.send(body);
+    });
+
 // http is a minimal axios-compatible shim built on authFetch. It exists to let the
 // remaining axios call-sites migrate without rewriting their shape (returns { data }).
 // New code should prefer the typed $api hooks (openapi-react-query) instead.

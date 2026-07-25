@@ -27,7 +27,9 @@
     "download": "Download",
     "delete": "Delete",
     "delete-confirm": "Really delete this file?",
-    "too-large": "The file exceeds the 25 MB limit."
+    "too-large": "The file exceeds the 25 MB limit.",
+    "uploading": "Uploading… {{percent}}%",
+    "upload-failed": "Upload failed. Please try again."
   },
   "clubEvents": {
     "create": "Create event",
@@ -91,7 +93,8 @@
     "field": {
       "title": "Title",
       "body": "Content"
-    }
+    },
+    "loadMore": "Show more"
   },
   "homepage": "Homepage",
   "fast": "Fast",
@@ -265,7 +268,9 @@
     "error": "Something went wrong. Please try again.",
     "empty": "How can I help?",
     "open": "Open AI assistant",
-    "close": "Close"
+    "close": "Close",
+    "stop": "Stop the answer",
+    "deleteConfirm": "Delete this chat and all its messages?"
   },
   "wikidata": {
     "badgeTitle": "Enriched from Wikidata ({{id}})",
@@ -390,7 +395,8 @@
     "namePlaceholder": "e.g. Flutes",
     "delete": "Delete section",
     "delete-confirm": "Delete section \"{{name}}\"? Members are kept; its events become whole-club events.",
-    "create-error": "Section could not be created (name may already be taken)."
+    "create-error": "Section could not be created (name may already be taken).",
+    "rename": "Rename section"
   },
   "club": {
     "loading": "Loading the club area...",
@@ -490,7 +496,8 @@
     "pickChat": "Pick a chat or start a new one.",
     "noMessagesInChat": "No messages in this chat yet.",
     "writePlaceholder": "Write a message...",
-    "send": "Send"
+    "send": "Send",
+    "loadOlder": "Load older"
   },
   "noteDetail": {
     "notFound": "Note not found",
