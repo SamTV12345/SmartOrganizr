@@ -7,6 +7,7 @@ import (
 	"io"
 	"net/http"
 	"testing"
+	"time"
 
 	"github.com/gofiber/fiber/v3"
 )
@@ -187,5 +188,61 @@ func TestPinboardIsPagedWithPinnedFirst(t *testing.T) {
 	// Garbage falls back to the default page instead of erroring.
 	if got := list("limit=abc&offset=-3"); len(got) != 20 {
 		t.Fatalf("garbage paging should fall back to 20, got %d", len(got))
+	}
+}
+
+func TestPinboardPagesDoNotOverlapWithinTheSameSecond(t *testing.T) {
+	app := SetupTest(t)
+	clubID := createClubForTest(t, app)
+
+	for i := 0; i < 20; i++ {
+		body := map[string]any{"title": fmt.Sprintf("Beitrag %02d", i), "body": "Inhalt", "pinned": false}
+		if res := postJSON(t, app, "http://localhost/api/v1/clubs/"+clubID+"/pinboard", body); res.StatusCode != http.StatusOK {
+			t.Fatalf("create post %d: got %d", i, res.StatusCode)
+		}
+	}
+	// Force the tie the production data hits by accident: created_at has second
+	// resolution, so a burst of posts shares one timestamp. Without an id
+	// tiebreaker the ordering of a LIMIT/OFFSET page is then unspecified.
+	if _, err := testDB.Exec("UPDATE club_pinboard_post SET created_at = ? WHERE club_id = ?",
+		time.Date(2026, 7, 1, 12, 0, 0, 0, time.UTC), clubID); err != nil {
+		t.Fatalf("stamp posts: %v", err)
+	}
+
+	titles := func(query string) []string {
+		t.Helper()
+		res := doRequest(t, app, "GET", "http://localhost/api/v1/clubs/"+clubID+"/pinboard?"+query)
+		if res.StatusCode != http.StatusOK {
+			t.Fatalf("list pinboard: got %d", res.StatusCode)
+		}
+		var posts []struct {
+			Title string `json:"title"`
+		}
+		raw, _ := io.ReadAll(res.Body)
+		if err := json.Unmarshal(raw, &posts); err != nil {
+			t.Fatalf("decode posts: %v", err)
+		}
+		out := make([]string, 0, len(posts))
+		for _, post := range posts {
+			out = append(out, post.Title)
+		}
+		return out
+	}
+
+	first := titles("limit=10&offset=0")
+	second := titles("limit=10&offset=10")
+	seen := map[string]bool{}
+	for _, title := range first {
+		seen[title] = true
+	}
+	for _, title := range second {
+		if seen[title] {
+			t.Fatalf("pages overlap at %q — ordering is not stable", title)
+		}
+		seen[title] = true
+	}
+	// Together the two pages must cover all 20 posts exactly once.
+	if len(seen) != 20 {
+		t.Fatalf("two pages of 10 must cover 20 distinct posts, got %d", len(seen))
 	}
 }

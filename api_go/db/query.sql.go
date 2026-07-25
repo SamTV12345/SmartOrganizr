@@ -4139,7 +4139,7 @@ SELECT
 FROM club_pinboard_post p
 JOIN user u ON u.id = p.author_user_id
 WHERE p.club_id = ?
-ORDER BY p.pinned DESC, p.created_at DESC
+ORDER BY p.pinned DESC, p.created_at DESC, p.id DESC
 LIMIT ? OFFSET ?
 `
 
@@ -4163,6 +4163,8 @@ type ListPinboardPostsForClubRow struct {
 	UpdatedAt       time.Time
 }
 
+// created_at has second resolution, so posts written in the same second tie.
+// Without a tiebreaker LIMIT/OFFSET pages overlap and skip rows.
 func (q *Queries) ListPinboardPostsForClub(ctx context.Context, arg ListPinboardPostsForClubParams) ([]ListPinboardPostsForClubRow, error) {
 	rows, err := q.db.QueryContext(ctx, listPinboardPostsForClub, arg.ClubID, arg.Limit, arg.Offset)
 	if err != nil {

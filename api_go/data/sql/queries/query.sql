@@ -583,7 +583,9 @@ SELECT
 FROM club_pinboard_post p
 JOIN user u ON u.id = p.author_user_id
 WHERE p.club_id = ?
-ORDER BY p.pinned DESC, p.created_at DESC
+-- created_at has second resolution, so posts written in the same second tie.
+-- Without a tiebreaker LIMIT/OFFSET pages overlap and skip rows.
+ORDER BY p.pinned DESC, p.created_at DESC, p.id DESC
 LIMIT ? OFFSET ?;
 
 -- name: ListRecentPinboardPostsForUser :many
