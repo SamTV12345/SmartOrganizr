@@ -343,7 +343,29 @@
     "localReportHint": "Pieces recorded in this offline sweep. The full reconciliation (new here / missing) follows after syncing.",
     "offlineSynced": "Offline sweep synced: {{count}} folders",
     "pendingCount": "{{count}} offline sweep(s) waiting to sync.",
-    "syncNow": "Sync now"
+    "syncNow": "Sync now",
+    "printTag": "Print QR",
+    "qrHint": "Print the QR at 5 cm and stick it on the folder. For NFC, write the same URL onto a tag with a writer app.",
+    "printBlocked": "The print window was blocked. Please allow pop-ups for this page.",
+    "searchFolder": "Find a folder",
+    "searchFolderPlaceholder": "Type a folder name…",
+    "searchNoResults": "No folder found.",
+    "cancelSweep": "Cancel",
+    "cancelSweepConfirmTitle": "Cancel the sweep?",
+    "cancelSweepConfirmBody": "{{count}} recorded sighting(s) will be discarded. The folder stays untouched.",
+    "cancelSweepKeep": "Keep sweeping",
+    "historyTitle": "Recent sweeps",
+    "historyHint": "What earlier passes actually found in the folder.",
+    "historyEmpty": "No completed sweep yet.",
+    "historyCount": "{{count}} piece(s) recorded",
+    "historyBack": "Back to the overview",
+    "historyDetailTitle": "Sweep of {{folder}} on {{date}}",
+    "historyDetailHint": "The sightings recorded back then. Missing pieces appear only in the report right after completion — they are computed against the folder's current contents.",
+    "matchedVia": "matched: {{via}}",
+    "dismiss": "Dismiss",
+    "assignNumber": "Assign a number",
+    "numberLabel": "Inventory number",
+    "number": "No. {{no}}"
   },
   "sections": {
     "title": "Sections",
@@ -572,7 +594,9 @@
     "namePlaceholder": "Enter a composer's name"
   },
   "folderPage": {
-    "structure": "Folder structure"
+    "structure": "Folder structure",
+    "expandAll": "Expand all",
+    "collapseAll": "Collapse all"
   },
   "clubForm": {
     "namePlaceholder": "Example Town Wind Band"

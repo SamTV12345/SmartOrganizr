@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { $api, authFetch } from "@/src/api/client";
 import { apiURL } from "@/src/Keycloak";
-import { ArrowLeft, ChevronLeft, ChevronRight, Download, Eye, FileMusic, FileText, Loader2 } from "lucide-react";
+import { ArrowLeft, ChevronLeft, ChevronRight, Download, Eye, FileMusic, FileText, Hash, Loader2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 import { NoteDetail } from "@/src/models/NoteDetail";
@@ -17,18 +17,25 @@ import {
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { useOnlineStatus } from "@/src/offline/useOnlineStatus";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { http as axios } from "@/src/api/client";
 import type { InventoryLookup } from "@/src/api/types";
 import { useDateFormat } from "@/src/hooks/useDateFormat";
 
 export const NoteDetailView = () => {
     const { id } = useParams();
+    const queryClient = useQueryClient();
     const { data: lastSeen } = useQuery<InventoryLookup>({
         queryKey: ["inventory-last-seen", id],
         queryFn: async () =>
             (await axios.get<InventoryLookup>(`${apiURL}/v1/inventory/notes/${id}/last-seen`)).data,
         enabled: !!id,
+    });
+    // The number is what gets stamped on every loose sheet of the piece, so it
+    // belongs on the note itself — not only inside a running sweep.
+    const assignNumber = useMutation({
+        mutationFn: async () => axios.post(`${apiURL}/v1/inventory/notes/${id}/number`, {}),
+        onSuccess: () => queryClient.invalidateQueries({ queryKey: ["inventory-last-seen", id] }),
     });
     const navigate = useNavigate();
     const { t } = useTranslation();
@@ -185,6 +192,27 @@ export const NoteDetailView = () => {
                                 <p className="text-sm">{item.value}</p>
                             </div>
                         ))}
+                        <div className="grid gap-1">
+                            <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                                {t("inventory.numberLabel")}
+                            </p>
+                            {lastSeen?.inventoryNo ? (
+                                <p className="text-sm font-semibold">
+                                    {t("inventory.number", { no: lastSeen.inventoryNo })}
+                                </p>
+                            ) : (
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    className="w-fit"
+                                    disabled={assignNumber.isPending}
+                                    onClick={() => assignNumber.mutate()}
+                                >
+                                    <Hash className="mr-2 size-4" />
+                                    {t("inventory.assignNumber")}
+                                </Button>
+                            )}
+                        </div>
                     </CardContent>
                 </Card>
 

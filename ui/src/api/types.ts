@@ -50,6 +50,9 @@ export type SweepReport = Schemas["service.SweepReport"];
 export type SweepReportEntry = Schemas["service.ReportEntry"];
 export type SightingResult = Schemas["service.SightingResult"];
 export type InventoryLookup = Schemas["service.InventoryLookup"];
+export type SweepHistoryEntry = Schemas["service.SweepHistoryEntry"];
+export type SweepDetail = Schemas["service.SweepDetail"];
+export type SweepSighting = Schemas["service.SweepSighting"];
 export type ResolvedTag = Schemas["service.ResolvedTag"];
 export type MappeTagResponse = Schemas["dto.MappeTagResponse"];
 

@@ -16,6 +16,8 @@ import { UpdateFolderOrNote } from "@/src/components/UpdateFolderOrNote";
 import { FolderItem } from "@/src/models/Folder";
 import { useQueryClient } from "@tanstack/react-query";
 import { useOnlineStatus } from "@/src/offline/useOnlineStatus";
+import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 
 export type TreeData = ElementItem;
 
@@ -42,6 +44,7 @@ const collectFolderIds = (nodes: ElementItem[]): string[] => {
 };
 
 export const TreeElement: FC<TreeProps> = ({ data }) => {
+    const { t } = useTranslation();
     const dispatch = useAppDispatch();
     const loadedFolders = useAppSelector((state) => state.commonReducer.loadedFolders);
     const queryClient = useQueryClient();
@@ -83,14 +86,14 @@ export const TreeElement: FC<TreeProps> = ({ data }) => {
                     className="tree-toolbar-button"
                     onClick={() => setExpandedIds(new Set(allKnownFolderIds))}
                 >
-                    Alles aufklappen
+                    {t("folderPage.expandAll")}
                 </button>
                 <button
                     type="button"
                     className="tree-toolbar-button"
                     onClick={() => setExpandedIds(new Set())}
                 >
-                    Alles einklappen
+                    {t("folderPage.collapseAll")}
                 </button>
             </div>
             <div className="tree-scroll-container">
@@ -117,6 +120,8 @@ const TreeNode: FC<TreeNodeProps> = ({
     onToggleFolder,
 }) => {
     const dispatch = useAppDispatch();
+    const navigate = useNavigate();
+    const { t } = useTranslation();
     const hasChild = element.type === "folder";
     const queryClient = useQueryClient();
     const isExpanded = hasChild && expandedIds.has(element.id);
@@ -212,6 +217,19 @@ const TreeNode: FC<TreeNodeProps> = ({
                         element={element}
                         trigger={<i className="fa-solid fa-pencil ml-2" />}
                     />
+                    {!isNote(element) && (
+                        // The inventory spec asks for this entry point on the folder
+                        // itself — "I am holding this Mappe, sweep it".
+                        <i
+                            className="fa-solid fa-clipboard-check ml-2"
+                            title={t("inventory.start")}
+                            onClick={() =>
+                                navigate(
+                                    `/inventory?folderId=${element.id}&folderName=${encodeURIComponent(element.name ?? "")}`
+                                )
+                            }
+                        />
+                    )}
                     {isNote(element) && (
                         <i
                             className="fa-solid fa-upload ml-2"

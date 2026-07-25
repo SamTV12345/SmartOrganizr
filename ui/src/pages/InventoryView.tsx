@@ -1,8 +1,8 @@
 import { ChangeEvent, useEffect, useRef, useState } from "react";
-import { useSearchParams } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useQuery } from "@tanstack/react-query";
-import { Camera, Check, Copy, Loader2, Search, Tag, X } from "lucide-react";
+import { Camera, Check, Copy, History, Loader2, Printer, Search, Tag, X } from "lucide-react";
 import { http as axios } from "@/src/api/client";
 import { apiURL } from "@/src/Keycloak";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -14,6 +14,20 @@ import {
     DialogFooter,
     DialogTitle,
 } from "@/components/ui/dialog";
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+    AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { printQrCode, renderQrDataUrl } from "@/src/utils/QrCode";
+import { dismissEntry, type SweepReportSection } from "@/src/utils/SweepReport";
+import { useDebounce } from "@/src/utils/DebounceHook";
 import { compressImageForAI } from "@/src/utils/ImageUtils";
 import { useDateFormat } from "@/src/hooks/useDateFormat";
 import { useOnlineStatus } from "@/src/offline/useOnlineStatus";
@@ -37,6 +51,8 @@ import type {
     InventoryLookup,
     MappeTagResponse,
     SightingResult,
+    SweepDetail,
+    SweepHistoryEntry,
     SweepReport,
     SweepReportEntry,
 } from "@/src/api/types";
@@ -78,6 +94,7 @@ export const InventoryView = () => {
     const [candidates, setCandidates] = useState<IdentifyCandidate[] | null>(null);
     const [pageCheck, setPageCheck] = useState<{ candidate: IdentifyCandidate; via: string } | null>(null);
     const [lastStamp, setLastStamp] = useState<SightedEntry | null>(null);
+    const [historyDetail, setHistoryDetail] = useState<SweepDetail | null>(null);
     const cameraInputRef = useRef<HTMLInputElement>(null);
     const online = useOnlineStatus();
     const { pendingCount, syncedReports } = usePendingSweepSync();
@@ -115,6 +132,17 @@ export const InventoryView = () => {
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [tagParam]);
+
+    /* Deep link: /inventory?folderId=<id>&folderName=<name> from the folder tree.
+       The name rides along so no extra request is needed to label the sweep. */
+    const folderIdParam = searchParams.get("folderId");
+    useEffect(() => {
+        if (!folderIdParam || state.phase !== "idle") return;
+        const folderName = searchParams.get("folderName") ?? "";
+        void startSweep(folderIdParam, folderName);
+        setSearchParams({}, { replace: true });
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [folderIdParam]);
 
     const startSweep = async (folderId: string, folderName: string) => {
         let sweepId: string;
@@ -224,6 +252,33 @@ export const InventoryView = () => {
         setState({ phase: "report", sweepId: state.sweepId, folderName: state.folderName, report });
     };
 
+    // Cancelling drops the sweep instead of leaving it open forever. Offline the
+    // pending sweep is removed locally, so nothing is ever synced for it.
+    const cancelSweep = async () => {
+        if (state.phase !== "sweeping") return;
+        try {
+            if (state.offline) {
+                await deleteIncompletePendingSweepsForFolder(state.folderId);
+                await refreshPendingCount();
+            } else {
+                await axios.delete(`${apiURL}/v1/inventory/sweeps/${state.sweepId}`);
+            }
+        } catch {
+            setScanError(t("inventory.scanFailed") as string);
+            return;
+        }
+        setSighted([]);
+        setLastStamp(null);
+        setState({ phase: "idle" });
+    };
+
+    // "Seen it" — purely local. A still-missing note reappears in the next sweep.
+    const dismiss = (section: SweepReportSection, noteId: string) => {
+        setState((prev) =>
+            prev.phase === "report" ? { ...prev, report: dismissEntry(prev.report, section, noteId) } : prev
+        );
+    };
+
     const applyMoves = async () => {
         if (state.phase !== "report") return;
         const noteIds = (state.report.newHere ?? []).map((e) => e.noteId).filter(Boolean);
@@ -311,7 +366,15 @@ export const InventoryView = () => {
                             ))}
                         </CardContent>
                     </Card>
+                    <FolderSearch onStart={startSweep} />
                     <OrphanFinder />
+                    {online && (
+                        <SweepHistory
+                            detail={historyDetail}
+                            onOpen={setHistoryDetail}
+                            onClose={() => setHistoryDetail(null)}
+                        />
+                    )}
                 </>
             )}
 
@@ -347,6 +410,33 @@ export const InventoryView = () => {
                             <Button variant="outline" onClick={completeSweep}>
                                 {t("inventory.finish")}
                             </Button>
+                            {sighted.length === 0 ? (
+                                <Button variant="ghost" onClick={cancelSweep}>
+                                    {t("inventory.cancelSweep")}
+                                </Button>
+                            ) : (
+                                <AlertDialog>
+                                    <AlertDialogTrigger render={<Button variant="ghost" />}>
+                                        {t("inventory.cancelSweep")}
+                                    </AlertDialogTrigger>
+                                    <AlertDialogContent>
+                                        <AlertDialogHeader>
+                                            <AlertDialogTitle>
+                                                {t("inventory.cancelSweepConfirmTitle")}
+                                            </AlertDialogTitle>
+                                            <AlertDialogDescription>
+                                                {t("inventory.cancelSweepConfirmBody", { count: sighted.length })}
+                                            </AlertDialogDescription>
+                                        </AlertDialogHeader>
+                                        <AlertDialogFooter>
+                                            <AlertDialogCancel>{t("inventory.cancelSweepKeep")}</AlertDialogCancel>
+                                            <AlertDialogAction onClick={cancelSweep}>
+                                                {t("inventory.cancelSweep")}
+                                            </AlertDialogAction>
+                                        </AlertDialogFooter>
+                                    </AlertDialogContent>
+                                </AlertDialog>
+                            )}
                         </div>
 
                         {lastStamp && (
@@ -391,10 +481,15 @@ export const InventoryView = () => {
                         <CardTitle>{t("inventory.reportTitle", { folder: state.folderName })}</CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-4">
-                        <ReportSection title={t("inventory.present")} entries={state.report.present ?? []} />
+                        <ReportSection
+                            title={t("inventory.present")}
+                            entries={state.report.present ?? []}
+                            onDismiss={(noteId) => dismiss("present", noteId)}
+                        />
                         <ReportSection
                             title={t("inventory.newHere")}
                             entries={state.report.newHere ?? []}
+                            onDismiss={(noteId) => dismiss("newHere", noteId)}
                             detail={(e) =>
                                 e.previousFolderName
                                     ? t("inventory.movedFrom", { folder: e.previousFolderName })
@@ -405,6 +500,7 @@ export const InventoryView = () => {
                             title={t("inventory.missing")}
                             entries={state.report.missing ?? []}
                             tone="destructive"
+                            onDismiss={(noteId) => dismiss("missing", noteId)}
                             detail={(e) =>
                                 e.lastSeenFolderName
                                     ? t("inventory.lastSeen", {
@@ -418,6 +514,7 @@ export const InventoryView = () => {
                             title={t("inventory.incomplete")}
                             entries={state.report.incomplete ?? []}
                             tone="destructive"
+                            onDismiss={(noteId) => dismiss("incomplete", noteId)}
                         />
                         <div className="flex gap-2">
                             {(state.report.newHere ?? []).length > 0 && (
@@ -522,10 +619,13 @@ const FolderRow = ({ folder, online, onStart }: { folder: Folder; online: boolea
     const { t } = useTranslation();
     const [tag, setTag] = useState<MappeTagResponse | null>(null);
     const [copied, setCopied] = useState(false);
+    const [qrDataUrl, setQrDataUrl] = useState("");
+    const [printBlocked, setPrintBlocked] = useState(false);
 
     const bindTag = async () => {
         const response = (await axios.put(`${apiURL}/v1/inventory/folders/${folder.id}/tag`)).data as MappeTagResponse;
         setTag(response);
+        setQrDataUrl(await renderQrDataUrl(response.url ?? ""));
     };
 
     const copyUrl = async () => {
@@ -557,17 +657,195 @@ const FolderRow = ({ folder, online, onStart }: { folder: Folder; online: boolea
                 </div>
             </div>
             {tag && (
-                <div className="mt-2 space-y-1">
+                <div className="mt-2 space-y-2">
                     <div className="flex gap-2">
                         <Input readOnly value={tag.url ?? ""} onFocus={(e) => e.target.select()} />
                         <Button type="button" variant="outline" size="icon" onClick={copyUrl}>
                             {copied ? <Check /> : <Copy />}
                         </Button>
                     </div>
+                    {qrDataUrl && (
+                        <div className="flex items-center gap-3">
+                            <img
+                                src={qrDataUrl}
+                                alt={t("inventory.printTag") as string}
+                                className="size-32 rounded border bg-white p-1"
+                            />
+                            <div className="space-y-2">
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() =>
+                                        setPrintBlocked(!printQrCode(qrDataUrl, folder.name ?? ""))
+                                    }
+                                >
+                                    <Printer className="mr-1 size-4" />
+                                    {t("inventory.printTag")}
+                                </Button>
+                                <p className="text-muted-foreground text-xs">{t("inventory.qrHint")}</p>
+                            </div>
+                        </div>
+                    )}
+                    {printBlocked && <p className="text-sm text-red-600">{t("inventory.printBlocked")}</p>}
                     <p className="text-muted-foreground text-xs">{t("inventory.tagWriteHint")}</p>
                 </div>
             )}
         </div>
+    );
+};
+
+/* Any folder, at any depth, can be swept — the root list only covers the top
+   level, which left nested Mappen out of the inventory entirely. */
+const FolderSearch = ({ onStart }: { onStart: (folderId: string, folderName: string) => void }) => {
+    const { t } = useTranslation();
+    const [query, setQuery] = useState("");
+    const [results, setResults] = useState<Folder[] | null>(null);
+
+    useDebounce(
+        () => {
+            const term = query.trim();
+            if (term.length < 2) {
+                setResults(null);
+                return;
+            }
+            axios
+                .get(`${apiURL}/v1/elements/folders`, { params: { page: 0, folderName: term } })
+                .then((response) => {
+                    const page = response.data as {
+                        _embedded?: { elementRepresentationModelList?: Folder[] };
+                    };
+                    setResults(page._embedded?.elementRepresentationModelList ?? []);
+                })
+                .catch(() => setResults([]));
+        },
+        400,
+        [query]
+    );
+
+    return (
+        <Card>
+            <CardHeader>
+                <CardTitle>{t("inventory.searchFolder")}</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-2">
+                <Input
+                    value={query}
+                    placeholder={t("inventory.searchFolderPlaceholder") as string}
+                    onChange={(event) => setQuery(event.target.value)}
+                />
+                {results !== null && results.length === 0 && (
+                    <p className="text-muted-foreground text-sm">{t("inventory.searchNoResults")}</p>
+                )}
+                {(results ?? []).map((folder) => (
+                    <div key={folder.id} className="flex items-center justify-between gap-2 rounded-lg border p-3">
+                        <p className="truncate font-medium">{folder.name}</p>
+                        <Button size="sm" onClick={() => onStart(folder.id ?? "", folder.name ?? "")}>
+                            <Camera className="mr-1 size-4" />
+                            {t("inventory.start")}
+                        </Button>
+                    </div>
+                ))}
+            </CardContent>
+        </Card>
+    );
+};
+
+/* Completed sweeps were stored but unreachable: the report vanished with the
+   screen. The history shows what a past pass actually found — deliberately the
+   sighting list, not a recomputed diff (see the service comment). */
+const SweepHistory = ({
+    detail,
+    onOpen,
+    onClose,
+}: {
+    detail: SweepDetail | null;
+    onOpen: (detail: SweepDetail) => void;
+    onClose: () => void;
+}) => {
+    const { t } = useTranslation();
+    const { formatDateTime } = useDateFormat();
+    const { data } = useQuery<SweepHistoryEntry[]>({
+        queryKey: ["inventory-sweeps"],
+        queryFn: async () => (await axios.get<SweepHistoryEntry[]>(`${apiURL}/v1/inventory/sweeps`)).data,
+    });
+    const sweeps = data ?? [];
+
+    const open = async (sweepId: string) => {
+        const loaded = (await axios.get<SweepDetail>(`${apiURL}/v1/inventory/sweeps/${sweepId}`)).data;
+        onOpen(loaded);
+    };
+
+    if (detail) {
+        return (
+            <Card>
+                <CardHeader>
+                    <CardTitle>
+                        {t("inventory.historyDetailTitle", {
+                            folder: detail.folderName,
+                            date: formatDateTime(detail.completedAt),
+                        })}
+                    </CardTitle>
+                    <CardDescription>{t("inventory.historyDetailHint")}</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-2">
+                    <ul className="space-y-1">
+                        {(detail.sightings ?? []).map((sighting) => (
+                            <li key={sighting.noteId} className="text-sm">
+                                <Link
+                                    to={`/noteManagement/notes/${sighting.noteId}`}
+                                    className="hover:text-accentDark hover:underline"
+                                >
+                                    {sighting.inventoryNo
+                                        ? `${t("inventory.number", { no: sighting.inventoryNo })} · `
+                                        : ""}
+                                    {sighting.name}
+                                </Link>
+                                <span className="text-muted-foreground text-xs">
+                                    {" "}
+                                    — {t("inventory.matchedVia", { via: sighting.matchedVia })}
+                                    {sighting.incomplete ? ` · ${t("inventory.incompleteBadge")}` : ""}
+                                </span>
+                            </li>
+                        ))}
+                    </ul>
+                    <Button variant="outline" onClick={onClose}>
+                        {t("inventory.historyBack")}
+                    </Button>
+                </CardContent>
+            </Card>
+        );
+    }
+
+    return (
+        <Card>
+            <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                    <History className="size-5 text-accentDark" />
+                    {t("inventory.historyTitle")}
+                </CardTitle>
+                <CardDescription>{t("inventory.historyHint")}</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-2">
+                {sweeps.length === 0 && (
+                    <p className="text-muted-foreground text-sm">{t("inventory.historyEmpty")}</p>
+                )}
+                {sweeps.map((sweep) => (
+                    <Button
+                        key={sweep.sweepId}
+                        variant="outline"
+                        className="w-full justify-between"
+                        onClick={() => sweep.sweepId && open(sweep.sweepId)}
+                    >
+                        <span className="truncate">{sweep.folderName}</span>
+                        <span className="text-muted-foreground text-xs">
+                            {formatDateTime(sweep.completedAt)} ·{" "}
+                            {t("inventory.historyCount", { count: sweep.sightingCount ?? 0 })}
+                        </span>
+                    </Button>
+                ))}
+            </CardContent>
+        </Card>
     );
 };
 
@@ -639,12 +917,15 @@ const ReportSection = ({
     entries,
     detail,
     tone,
+    onDismiss,
 }: {
     title: string;
     entries: SweepReportEntry[];
     detail?: (entry: SweepReportEntry) => string;
     tone?: "destructive";
+    onDismiss?: (noteId: string) => void;
 }) => {
+    const { t } = useTranslation();
     if (entries.length === 0) return null;
     return (
         <div>
@@ -653,12 +934,29 @@ const ReportSection = ({
             </p>
             <ul className="space-y-1">
                 {entries.map((entry) => (
-                    <li key={entry.noteId} className="text-sm">
-                        {entry.inventoryNo ? `Nr. ${entry.inventoryNo} · ` : ""}
-                        {entry.name}
-                        {detail && detail(entry) ? (
-                            <span className="text-muted-foreground text-xs"> — {detail(entry)}</span>
-                        ) : null}
+                    <li key={entry.noteId} className="flex items-start justify-between gap-2 text-sm">
+                        <Link
+                            to={`/noteManagement/notes/${entry.noteId}`}
+                            className="hover:text-accentDark hover:underline"
+                        >
+                            {entry.inventoryNo ? `${t("inventory.number", { no: entry.inventoryNo })} · ` : ""}
+                            {entry.name}
+                            {detail && detail(entry) ? (
+                                <span className="text-muted-foreground text-xs"> — {detail(entry)}</span>
+                            ) : null}
+                        </Link>
+                        {onDismiss && entry.noteId && (
+                            <Button
+                                variant="ghost"
+                                size="icon"
+                                className="size-6 shrink-0"
+                                title={t("inventory.dismiss") as string}
+                                aria-label={t("inventory.dismiss") as string}
+                                onClick={() => onDismiss(entry.noteId as string)}
+                            >
+                                <X className="size-3" />
+                            </Button>
+                        )}
                     </li>
                 ))}
             </ul>

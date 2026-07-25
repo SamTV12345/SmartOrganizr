@@ -343,7 +343,29 @@
     "localReportHint": "Erfasste Stücke dieser Offline-Inventur. Der vollständige Abgleich (neu hier / fehlt) folgt nach der Synchronisierung.",
     "offlineSynced": "Offline-Inventur synchronisiert: {{count}} Mappen",
     "pendingCount": "{{count}} Offline-Inventur(en) warten auf Synchronisierung.",
-    "syncNow": "Jetzt synchronisieren"
+    "syncNow": "Jetzt synchronisieren",
+    "printTag": "QR drucken",
+    "qrHint": "QR-Code auf 5 cm Kantenlänge drucken und auf die Mappe kleben. Für NFC dieselbe URL mit einer Writer-App auf einen Tag schreiben.",
+    "printBlocked": "Das Druckfenster wurde blockiert. Bitte Popups für diese Seite erlauben.",
+    "searchFolder": "Mappe suchen",
+    "searchFolderPlaceholder": "Ordnername eingeben…",
+    "searchNoResults": "Kein Ordner gefunden.",
+    "cancelSweep": "Abbrechen",
+    "cancelSweepConfirmTitle": "Inventur abbrechen?",
+    "cancelSweepConfirmBody": "{{count}} erfasste Sichtung(en) werden verworfen. Der Ordner bleibt unverändert.",
+    "cancelSweepKeep": "Weiter erfassen",
+    "historyTitle": "Letzte Inventuren",
+    "historyHint": "Was bei früheren Durchgängen tatsächlich in der Mappe lag.",
+    "historyEmpty": "Noch keine abgeschlossene Inventur.",
+    "historyCount": "{{count}} Stück erfasst",
+    "historyBack": "Zurück zur Übersicht",
+    "historyDetailTitle": "Inventur {{folder}} vom {{date}}",
+    "historyDetailHint": "Die damals erfassten Sichtungen. Fehlende Stücke zeigt nur der Report direkt nach dem Abschluss — sie werden gegen den heutigen Ordnerstand berechnet.",
+    "matchedVia": "erkannt: {{via}}",
+    "dismiss": "Ausblenden",
+    "assignNumber": "Nummer vergeben",
+    "numberLabel": "Inventarnummer",
+    "number": "Nr. {{no}}"
   },
   "sections": {
     "title": "Register",
@@ -572,7 +594,9 @@
     "namePlaceholder": "Name eines Komponisten eingeben"
   },
   "folderPage": {
-    "structure": "Ordnerstruktur"
+    "structure": "Ordnerstruktur",
+    "expandAll": "Alles aufklappen",
+    "collapseAll": "Alles einklappen"
   },
   "clubForm": {
     "namePlaceholder": "Musikverein Beispielstadt"
