@@ -2,6 +2,8 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
+**Status:** Abgeschlossen am 2026-07-25 (Commit 8b41f15).
+
 **Goal:** Die nativen Vereinstermine erreichen das Dashboard, unbeantwortete Zusagen werden sichtbar und beantwortbar, die Anwesenheitsmatrix hört auf pro Terminkarte eine eigene Query zu feuern, vergangene Termine sind erreichbar, eine Absage ist rückgängig machbar — und Registerleiter dürfen die Termine ihres eigenen Registers verwalten.
 
 **Architecture:** Serverseitig zwei Ergänzungen: ein Autoritätsobjekt (`eventAuthority`) ersetzt das pauschale `requireManager` in Create/Update/Cancel/Delete, sodass Registerleiter ihr Register verwalten können; dazu `reinstate` als Gegenstück zu `cancel`. Das Permissions-DTO transportiert die neue Autorität ins UI. Clientseitig führt das Dashboard beide Terminquellen zusammen, bekommt eine Karte für offene Zusagen, und der `ClubEventsManager` lädt die Matrix erst auf Klick, kennt einen Vergangenheitsmodus und macht die Serien-Semantik sichtbar.
@@ -38,7 +40,7 @@ Die Spec wollte im Serien-Badge die **Frequenz** anzeigen. Die ist nicht persist
   - `(eventAuthority).mayManage(section sql.NullString) bool` — Manager immer; Registerleiter nur für Termine des eigenen Registers, nie für vereinsweite.
   - `ClubPermissionsDto.CanManageSectionEvents bool` (`can_manage_section_events`) und `.MySectionID string` (`my_section_id`).
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 In `api_go/tests/club_events_test.go`, mit einem Registerleiter (über `testQueries` bzw. die Section-Endpunkte gesetzt):
 1. Registerleiter erstellt einen Termin für **sein** Register → 200.
@@ -49,12 +51,12 @@ In `api_go/tests/club_events_test.go`, mit einem Registerleiter (über `testQuer
 6. Mitglied ohne Leiterflag im selben Register → 403 für alles.
 7. `GET /v1/clubs/{id}/me/permissions` liefert für den Registerleiter `can_manage_section_events: true` und `my_section_id` gleich seiner Sektion; für ein normales Mitglied `false` und `""`.
 
-- [ ] **Step 2: Run and watch them fail**
+- [x] **Step 2: Run and watch them fail**
 
 Run: `cd api_go && go test ./tests/ -run TestClubEventSectionLeader -v`
 Expected: FAIL — Registerleiter bekommt heute 403 für alles.
 
-- [ ] **Step 3: Implement the authority object**
+- [x] **Step 3: Implement the authority object**
 
 `authority` liest `s.members.GetParticipant` (eine Query, liefert Rolle, `SectionFk`, `SectionLeader`). `mayManage` wie oben. Danach in `Create`, `Update`, `Cancel`, `Delete` das `requireManager` ersetzen:
 
@@ -65,11 +67,11 @@ Expected: FAIL — Registerleiter bekommt heute 403 für alles.
 
 Fehlerfall bleibt `ErrManageForbidden` → 403 wie bisher.
 
-- [ ] **Step 4: Extend the permissions DTO**
+- [x] **Step 4: Extend the permissions DTO**
 
 `buildPermissionsDto` bekommt die Sektionsdaten (Signatur auf `(role models.ClubRole, sectionID string, sectionLeader bool)` erweitern), `GetMyClubPermissions` nutzt `GetParticipant` statt `GetRoleInClub`. `CanManageSectionEvents` ist `sectionLeader && sectionID != ""`.
 
-- [ ] **Step 5: Green, regenerate docs, commit**
+- [x] **Step 5: Green, regenerate docs, commit**
 
 ---
 
@@ -82,13 +84,13 @@ Fehlerfall bleibt `ErrManageForbidden` → 403 wie bisher.
 **Interfaces:**
 - Produces: Query `ReinstateClubEvent`, `(*ClubEventService).Reinstate(clubID, userID, eventID string) error`, Route `POST /v1/clubs/:clubId/events/:eventId/reinstate`.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Termin anlegen, absagen, `reinstate` → 200 und `cancelled: false` in der Liste; danach nimmt der Termin wieder Rückmeldungen an (der Server lehnt Antworten auf abgesagte Termine ab, das ist der beobachtbare Beweis). Ein Registerleiter darf sein Register reinstaten, ein normales Mitglied nicht (403).
 
-- [ ] **Step 2: Run and watch it fail** — Route fehlt, 405.
+- [x] **Step 2: Run and watch it fail** — Route fehlt, 405.
 
-- [ ] **Step 3: Implement**
+- [x] **Step 3: Implement**
 
 ```sql
 -- name: ReinstateClubEvent :exec
@@ -98,7 +100,7 @@ WHERE id = ? AND club_id = ?;
 
 `Reinstate` spiegelt `Cancel`: Autorität prüfen, Event laden, Query, dann `notifyMembers` mit `NotifClubEventCreated` — die Betroffenen sollen erfahren, dass der Termin wieder steht (ein eigener Benachrichtigungstyp wäre schöner, aber der Client kennt heute nur die bestehenden; das ist ein bewusster kleiner Kompromiss und im Code vermerkt).
 
-- [ ] **Step 4: Green, regenerate docs, commit**
+- [x] **Step 4: Green, regenerate docs, commit**
 
 ---
 
@@ -111,13 +113,13 @@ WHERE id = ? AND club_id = ?;
 **Interfaces:**
 - Produces: `ClubEventDto.SeriesCount int` (`seriesCount,omitempty`) — Anzahl der Occurrences der Serie; 0 für Einzeltermine.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Serie mit `WEEKLY` über drei Wochen anlegen; jede Occurrence meldet `seriesCount` gleich der Anzahl angelegter Termine. Ein Einzeltermin meldet 0.
 
-- [ ] **Step 2: Run and watch it fail**
+- [x] **Step 2: Run and watch it fail**
 
-- [ ] **Step 3: Implement**
+- [x] **Step 3: Implement**
 
 ```sql
 -- name: CountClubEventsPerSeries :many
@@ -129,7 +131,7 @@ GROUP BY series_id;
 
 In `ListForClub`/`ListForUser` einmal laden und den Zähler auf die DTOs verteilen. Nicht pro Event zählen — das wäre das N+1, das dieses Paket gerade abschafft.
 
-- [ ] **Step 4: Green, regenerate docs, commit**
+- [x] **Step 4: Green, regenerate docs, commit**
 
 ---
 
@@ -144,17 +146,17 @@ In `ListForClub`/`ListForUser` einmal laden und den Zähler auf die DTOs verteil
 
 `UpcomingEventsCard` fragt heute nur `/v1/events/{userId}` ab, den iCal-Spiegel. Die nativen Vereinstermine (`/v1/club-events`) fehlen vollständig — das Feature, an dem am längsten gebaut wurde, ist auf dem Dashboard unsichtbar.
 
-- [ ] **Step 1: Write the failing test for the pure merge**
+- [x] **Step 1: Write the failing test for the pure merge**
 
 `UpcomingEvents.test.ts`: gemischte Eingaben werden nach Datum sortiert; das Limit greift; `origin` bleibt erhalten; Einträge ohne `startDate` landen hinten; leere Eingaben ergeben `[]`.
 
-- [ ] **Step 2: Run and watch it fail**, dann implementieren.
+- [x] **Step 2: Run and watch it fail**, dann implementieren.
 
-- [ ] **Step 3: Wire the card**
+- [x] **Step 3: Wire the card**
 
 Beide Queries laden (`$api.useQuery` für `/v1/events/{userId}` bleibt, `/v1/club-events` kommt dazu), `mergeUpcoming` anwenden, pro Zeile ein Herkunfts-Badge (`dashboard.originFeed` / `dashboard.originClub` mit Vereinsnamen).
 
-- [ ] **Step 4: Green + commit**
+- [x] **Step 4: Green + commit**
 
 ---
 
@@ -168,11 +170,11 @@ Beide Queries laden (`$api.useQuery` für `/v1/events/{userId}` bleibt, `/v1/clu
 
 Beides existiert; es fehlt nur die Zusammenführung. Keine API-Änderung.
 
-- [ ] **Step 1: Add the card**
+- [x] **Step 1: Add the card**
 
 Neue Karte listet die nächsten fünf Club-Termine mit `myStatus === ""` (abgesagte ausgenommen), jeweils mit Vereinsname, Datum und den vorhandenen Antwort-Buttons. Leerzustand: „Alles beantwortet."
 
-- [ ] **Step 2: Verify and commit**
+- [x] **Step 2: Verify and commit**
 
 Run: `cd ui && pnpm test && npx tsc --noEmit`
 
@@ -183,27 +185,27 @@ Run: `cd ui && pnpm test && npx tsc --noEmit`
 **Files:**
 - Modify: `ui/src/components/club/ClubEventsManager.tsx`, `ui/src/models/ClubEvent.ts`, `ui/src/language/json/*.json`
 
-- [ ] **Step 1: Attendance on demand**
+- [x] **Step 1: Attendance on demand**
 
 `AttendanceMatrix` bekommt ein `enabled`-Flag und wird erst nach Klick auf „Rückmeldungen anzeigen" geladen (`useState` pro Karte). Heute feuert jede Karte beim Rendern eine eigene Query — bei 20 Terminen 20 Requests, die für Nicht-Leitung meist leer zurückkommen.
 
-- [ ] **Step 2: Past events**
+- [x] **Step 2: Past events**
 
 Umschalter „Vergangene Termine": `since` wird auf sechs Monate zurück gesetzt, die Liste absteigend sortiert. Der Endpunkt akzeptiert `since` bereits; nur der fixe „jetzt"-Wert verschwindet.
 
-- [ ] **Step 3: Series semantics**
+- [x] **Step 3: Series semantics**
 
 Beim Bearbeiten eines Termins mit `seriesId` eine Hinweiszeile „gilt nur für diesen Termin" (`clubEvents.seriesEditHint`); das Badge zeigt `clubEvents.seriesCount` mit `seriesCount`.
 
-- [ ] **Step 4: Reinstate**
+- [x] **Step 4: Reinstate**
 
 Bei `cancelled` einen Knopf „Absage aufheben", der `POST .../reinstate` aufruft und dieselben Queries invalidiert wie `cancel`.
 
-- [ ] **Step 5: Section leaders see the form**
+- [x] **Step 5: Section leaders see the form**
 
 `ClubEventsManager` erhält zusätzlich `canManageSectionEvents` und `mySectionId` (aus `ClubPermissions`); ist nur das gesetzt, wird das Formular gezeigt, der Register-Select aber fest auf das eigene Register genagelt (kein „ganzer Verein"). In `ClubDetailView` entsprechend durchreichen.
 
-- [ ] **Step 6: Full verification and commit**
+- [x] **Step 6: Full verification and commit**
 
 Run: `cd ui && pnpm test && npx tsc --noEmit && pnpm build`, dazu `cd api_go && go test ./...`
 
@@ -211,7 +213,7 @@ Run: `cd ui && pnpm test && npx tsc --noEmit && pnpm build`, dazu `cd api_go && 
 
 ### Task 7: Abschluss
 
-- [ ] **Step 1:** Docs und TS-Schema regenerieren (siehe Global Constraints).
-- [ ] **Step 2:** `cd api_go && go test ./...` und `cd ui && pnpm test && npx tsc --noEmit && pnpm build`.
-- [ ] **Step 3:** `pnpm test i18nParity`.
-- [ ] **Step 4:** Commit.
+- [x] **Step 1:** Docs und TS-Schema regenerieren (siehe Global Constraints).
+- [x] **Step 2:** `cd api_go && go test ./...` und `cd ui && pnpm test && npx tsc --noEmit && pnpm build`.
+- [x] **Step 3:** `pnpm test i18nParity`.
+- [x] **Step 4:** Commit.
