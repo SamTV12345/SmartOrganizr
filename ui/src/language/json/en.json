@@ -14,7 +14,11 @@
     "inventoryMissing": "Missing from {{folder}}",
     "inventoryIncomplete": "Incomplete in {{folder}}",
     "inventoryLastSeen": "last seen: {{folder}}, {{date}}",
-    "viewAll": "View all"
+    "viewAll": "View all",
+    "originFeed": "Calendar feed",
+    "originClub": "Club",
+    "openResponses": "Response pending",
+    "openResponsesEmpty": "Everything answered."
   },
   "files": {
     "title": "Storage for documents and files.",
@@ -67,7 +71,14 @@
     "respondYes": "Accept",
     "respondMaybe": "Maybe",
     "respondNo": "Decline",
-    "reasonPlaceholder": "Reason (optional)"
+    "reasonPlaceholder": "Reason (optional)",
+    "seriesEditHint": "Changes apply to this occurrence only, not to the whole series.",
+    "sectionBoundHint": "As a section leader you can only create events for your own section.",
+    "seriesCount": "Series · {{count}} events",
+    "reinstate": "Undo cancellation",
+    "showResponses": "Show responses",
+    "upcoming": "Upcoming",
+    "past": "Past"
   },
   "pinboard": {
     "title": "Pinboard",

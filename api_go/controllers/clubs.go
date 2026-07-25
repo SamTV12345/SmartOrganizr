@@ -404,12 +404,16 @@ func GetMyClubPermissions(c fiber.Ctx) error {
 	requesterId := GetLocal[string](c, "userId")
 	clubId := c.Params("clubId")
 
-	role, err := clubMemberService.GetRoleInClub(clubId, requesterId)
+	participant, err := clubMemberService.GetParticipant(clubId, requesterId)
 	if err != nil {
 		return fiber.NewError(fiber.StatusForbidden, "no club access")
 	}
 
-	return c.JSON(buildPermissionsDto(role))
+	return c.JSON(buildPermissionsDto(
+		models.ClubRole(participant.Role),
+		participant.SectionFk.String,
+		participant.SectionLeader,
+	))
 }
 
 // GetPublicClubInvitation godoc
@@ -645,7 +649,7 @@ func canManageEvents(role models.ClubRole) bool {
 	return role == models.Admin || role == models.CoAdmin
 }
 
-func buildPermissionsDto(role models.ClubRole) dto.ClubPermissionsDto {
+func buildPermissionsDto(role models.ClubRole, sectionID string, sectionLeader bool) dto.ClubPermissionsDto {
 	sectionWrite := map[string]bool{
 		"pinnwand":    canWriteSection(role, "pinnwand"),
 		"nachrichten": canWriteSection(role, "nachrichten"),
@@ -660,7 +664,11 @@ func buildPermissionsDto(role models.ClubRole) dto.ClubPermissionsDto {
 		CanManageRoles:  role == models.Admin || role == models.CoAdmin,
 		CanInviteMember: canInviteMembers(role),
 		CanManageEvents: canManageEvents(role),
-		SectionWrite:    sectionWrite,
+		// A Registerführer manages their own section's events without being a
+		// club-wide event manager.
+		CanManageSectionEvents: sectionLeader && sectionID != "",
+		MySectionID:            sectionID,
+		SectionWrite:           sectionWrite,
 	}
 }
 

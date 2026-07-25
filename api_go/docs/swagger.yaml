@@ -317,6 +317,9 @@ definitions:
         type: string
       sectionName:
         type: string
+      seriesCount:
+        description: occurrences sharing the series; 0 for one-offs
+        type: integer
       seriesId:
         type: string
       startDate:
@@ -559,6 +562,13 @@ definitions:
         type: boolean
       can_manage_roles:
         type: boolean
+      can_manage_section_events:
+        description: |-
+          CanManageSectionEvents marks a Registerführer: allowed to manage the
+          events of their own section only. MySectionID names that section.
+        type: boolean
+      my_section_id:
+        type: string
       role:
         type: string
       section_write:
@@ -1925,6 +1935,29 @@ paths:
         "204":
           description: No Content
       summary: Soft-cancel a native club event
+      tags:
+      - club-events
+  /v1/clubs/{clubId}/events/{eventId}/reinstate:
+    post:
+      parameters:
+      - description: Club ID
+        in: path
+        name: clubId
+        required: true
+        type: string
+      - description: Event ID
+        in: path
+        name: eventId
+        required: true
+        type: string
+      responses:
+        "204":
+          description: No Content
+        "403":
+          description: neither club manager nor leader of the event's section
+          schema:
+            $ref: '#/definitions/dto.Error'
+      summary: Undo the cancellation of a native club event
       tags:
       - club-events
   /v1/clubs/{clubId}/events/{eventId}/response:

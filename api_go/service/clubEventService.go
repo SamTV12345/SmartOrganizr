@@ -52,6 +52,57 @@ func (s *ClubEventService) requireManager(clubID, userID string) error {
 	return nil
 }
 
+// eventAuthority is what the caller may do with events: the club-wide role plus
+// the Registerführer relationship. It is loaded in one query.
+type eventAuthority struct {
+	role          models.ClubRole
+	sectionID     string
+	isSectionLead bool
+}
+
+func (s *ClubEventService) authority(clubID, userID string) (eventAuthority, error) {
+	participant, err := s.members.GetParticipant(clubID, userID)
+	if err != nil {
+		return eventAuthority{}, ErrNoClubAccess
+	}
+	return eventAuthority{
+		role:          models.ClubRole(participant.Role),
+		sectionID:     participant.SectionFk.String,
+		isSectionLead: participant.SectionLeader,
+	}, nil
+}
+
+// mayManage reports whether the caller may create or change an event aimed at
+// the given section. Leaders and co-leaders may do anything; a Registerführer
+// may manage the events of their own section, but never club-wide ones — those
+// concern members they do not lead.
+func (a eventAuthority) mayManage(section sql.NullString) bool {
+	if canManage(a.role) {
+		return true
+	}
+	if !a.isSectionLead || a.sectionID == "" {
+		return false
+	}
+	return section.Valid && section.String == a.sectionID
+}
+
+// requireEventAuthority is the section-aware replacement for requireManager.
+// Passing both the current and the target section matters on edits: otherwise a
+// Registerführer could push an event out of their section or pull a club-wide
+// event into it.
+func (s *ClubEventService) requireEventAuthority(clubID, userID string, sections ...sql.NullString) error {
+	auth, err := s.authority(clubID, userID)
+	if err != nil {
+		return err
+	}
+	for _, section := range sections {
+		if !auth.mayManage(section) {
+			return ErrManageForbidden
+		}
+	}
+	return nil
+}
+
 func parseRFC3339(value string) (sql.NullTime, error) {
 	v := strings.TrimSpace(value)
 	if v == "" {
@@ -137,9 +188,8 @@ func seriesOccurrenceStarts(start time.Time, frequency string, until time.Time) 
 // With a repeat payload it materializes the whole series as independent event
 // rows sharing one series id; members are notified once for the series.
 func (s *ClubEventService) Create(clubID, userID string, in dto.ClubEventUpsertDto) (dto.ClubEventDto, error) {
-	if err := s.requireManager(clubID, userID); err != nil {
-		return dto.ClubEventDto{}, err
-	}
+	// The section is only known after resolveSection below, so authorization
+	// happens there — see the requireEventAuthority call after it.
 	start, err := parseRFC3339(in.StartDate)
 	if err != nil || !start.Valid {
 		return dto.ClubEventDto{}, errors.New("startDate must be a valid RFC3339 timestamp")
@@ -156,6 +206,9 @@ func (s *ClubEventService) Create(clubID, userID string, in dto.ClubEventUpsertD
 	}
 	sectionFk, err := s.resolveSection(clubID, in.SectionID)
 	if err != nil {
+		return dto.ClubEventDto{}, err
+	}
+	if err := s.requireEventAuthority(clubID, userID, sectionFk); err != nil {
 		return dto.ClubEventDto{}, err
 	}
 
@@ -223,8 +276,9 @@ func (s *ClubEventService) resolveSection(clubID string, sectionID *string) (sql
 
 // Update edits an event (manager only).
 func (s *ClubEventService) Update(clubID, userID, eventID string, in dto.ClubEventUpsertDto) (dto.ClubEventDto, error) {
-	if err := s.requireManager(clubID, userID); err != nil {
-		return dto.ClubEventDto{}, err
+	existing, err := s.queries.GetClubEventByID(s.ctx, db.GetClubEventByIDParams{ID: eventID, ClubID: clubID})
+	if err != nil {
+		return dto.ClubEventDto{}, errors.New("event not found")
 	}
 	if strings.TrimSpace(in.Summary) == "" {
 		return dto.ClubEventDto{}, errors.New("summary is required")
@@ -242,6 +296,11 @@ func (s *ClubEventService) Update(clubID, userID, eventID string, in dto.ClubEve
 	}
 	sectionFk, err := s.resolveSection(clubID, in.SectionID)
 	if err != nil {
+		return dto.ClubEventDto{}, err
+	}
+	// Both sides must be within the caller's authority: the section the event is
+	// in today, and the one it would move to.
+	if err := s.requireEventAuthority(clubID, userID, existing.SectionFk, sectionFk); err != nil {
 		return dto.ClubEventDto{}, err
 	}
 	if err := s.queries.UpdateClubEvent(s.ctx, db.UpdateClubEventParams{
@@ -264,12 +323,12 @@ func (s *ClubEventService) Update(clubID, userID, eventID string, in dto.ClubEve
 
 // Cancel soft-cancels an event and notifies members.
 func (s *ClubEventService) Cancel(clubID, userID, eventID string) error {
-	if err := s.requireManager(clubID, userID); err != nil {
-		return err
-	}
 	ev, err := s.queries.GetClubEventByID(s.ctx, db.GetClubEventByIDParams{ID: eventID, ClubID: clubID})
 	if err != nil {
 		return errors.New("event not found")
+	}
+	if err := s.requireEventAuthority(clubID, userID, ev.SectionFk); err != nil {
+		return err
 	}
 	if err := s.queries.SoftCancelClubEvent(s.ctx, db.SoftCancelClubEventParams{ID: eventID, ClubID: clubID}); err != nil {
 		return err
@@ -278,10 +337,33 @@ func (s *ClubEventService) Cancel(clubID, userID, eventID string) error {
 	return nil
 }
 
+// Reinstate undoes a cancellation. Without it a mistakenly cancelled event
+// stayed cancelled forever, since the server also refuses responses for it.
+func (s *ClubEventService) Reinstate(clubID, userID, eventID string) error {
+	ev, err := s.queries.GetClubEventByID(s.ctx, db.GetClubEventByIDParams{ID: eventID, ClubID: clubID})
+	if err != nil {
+		return errors.New("event not found")
+	}
+	if err := s.requireEventAuthority(clubID, userID, ev.SectionFk); err != nil {
+		return err
+	}
+	if err := s.queries.ReinstateClubEvent(s.ctx, db.ReinstateClubEventParams{ID: eventID, ClubID: clubID}); err != nil {
+		return err
+	}
+	// Reuses the "created" notification: the audience needs to know the event is
+	// back on, and the client has no separate type for a revoked cancellation.
+	s.notifyMembers(clubID, eventID, NotifClubEventCreated, ev.Summary, ev.SectionFk)
+	return nil
+}
+
 // Delete permanently removes an event (manager only). Deleting one occurrence
 // of a series leaves the remaining occurrences untouched.
 func (s *ClubEventService) Delete(clubID, userID, eventID string) error {
-	if err := s.requireManager(clubID, userID); err != nil {
+	ev, err := s.queries.GetClubEventByID(s.ctx, db.GetClubEventByIDParams{ID: eventID, ClubID: clubID})
+	if err != nil {
+		return errors.New("event not found")
+	}
+	if err := s.requireEventAuthority(clubID, userID, ev.SectionFk); err != nil {
 		return err
 	}
 	return s.queries.DeleteClubEvent(s.ctx, db.DeleteClubEventParams{ID: eventID, ClubID: clubID})
@@ -342,7 +424,33 @@ func (s *ClubEventService) ListForClub(clubID, userID string, since time.Time) (
 			UndecidedCount: undecided(r.MemberCount, r.YesCount, r.NoCount, r.MaybeCount),
 		})
 	}
+	// How long is this series? The frequency itself is not stored (occurrences
+	// are independent rows sharing a series_id), so the size is what we can
+	// honestly report — and it is what the UI badge needs.
+	if sizes := s.seriesSizes(clubID); len(sizes) > 0 {
+		for i := range out {
+			if out[i].SeriesID != "" {
+				out[i].SeriesCount = sizes[out[i].SeriesID]
+			}
+		}
+	}
 	return out, nil
+}
+
+// seriesSizes maps series id to number of occurrences for one club, in a single
+// query. Returns nil on error — a missing badge is better than a failed list.
+func (s *ClubEventService) seriesSizes(clubID string) map[string]int {
+	rows, err := s.queries.CountClubEventsPerSeries(s.ctx, clubID)
+	if err != nil {
+		return nil
+	}
+	sizes := make(map[string]int, len(rows))
+	for _, row := range rows {
+		if row.SeriesID.Valid {
+			sizes[row.SeriesID.String] = int(row.Occurrences)
+		}
+	}
+	return sizes
 }
 
 // ListForUser returns native events across all of the caller's clubs.

@@ -136,6 +136,22 @@ func CancelClubEvent(c fiber.Ctx) error {
 	return c.SendStatus(fiber.StatusNoContent)
 }
 
+// ReinstateClubEvent godoc
+// @Summary  Undo the cancellation of a native club event
+// @Tags     club-events
+// @Param    clubId   path  string  true  "Club ID"
+// @Param    eventId  path  string  true  "Event ID"
+// @Success  204
+// @Failure  403  {object}  dto.Error  "neither club manager nor leader of the event's section"
+// @Router   /v1/clubs/{clubId}/events/{eventId}/reinstate [post]
+func ReinstateClubEvent(c fiber.Ctx) error {
+	userID := GetLocal[string](c, "userId")
+	if err := clubEventService(c).Reinstate(c.Params("clubId"), userID, c.Params("eventId")); err != nil {
+		return mapServiceError(err)
+	}
+	return c.SendStatus(fiber.StatusNoContent)
+}
+
 // DeleteClubEvent godoc
 // @Summary  Delete a native club event
 // @Tags     club-events

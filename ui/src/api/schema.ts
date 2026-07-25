@@ -924,6 +924,54 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/clubs/{clubId}/events/{eventId}/reinstate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Undo the cancellation of a native club event */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Club ID */
+                    clubId: string;
+                    /** @description Event ID */
+                    eventId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description No Content */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description neither club manager nor leader of the event's section */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "*/*": components["schemas"]["dto.Error"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/clubs/{clubId}/events/{eventId}/response": {
         parameters: {
             query?: never;
@@ -4307,6 +4355,8 @@ export interface components {
             noCount?: number;
             sectionId?: string;
             sectionName?: string;
+            /** @description occurrences sharing the series; 0 for one-offs */
+            seriesCount?: number;
             seriesId?: string;
             startDate?: string;
             summary?: string;
@@ -4412,6 +4462,12 @@ export interface components {
             can_invite_members: boolean;
             can_manage_events?: boolean;
             can_manage_roles: boolean;
+            /**
+             * @description CanManageSectionEvents marks a Registerführer: allowed to manage the
+             *     events of their own section only. MySectionID names that section.
+             */
+            can_manage_section_events?: boolean;
+            my_section_id?: string;
             role: string;
             section_write: {
                 [key: string]: boolean;

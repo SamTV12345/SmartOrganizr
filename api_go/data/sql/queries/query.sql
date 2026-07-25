@@ -686,6 +686,18 @@ WHERE id = ? AND club_id = ?;
 UPDATE club_events SET cancelled = 1, updated_at = CURRENT_TIMESTAMP
 WHERE id = ? AND club_id = ?;
 
+-- name: ReinstateClubEvent :exec
+UPDATE club_events SET cancelled = 0, updated_at = CURRENT_TIMESTAMP
+WHERE id = ? AND club_id = ?;
+
+-- Series sizes for a whole club in one query; counting per event would be the
+-- N+1 this package is removing elsewhere.
+-- name: CountClubEventsPerSeries :many
+SELECT series_id, COUNT(*) AS occurrences
+FROM club_events
+WHERE club_id = ? AND series_id IS NOT NULL
+GROUP BY series_id;
+
 -- name: DeleteClubEvent :exec
 DELETE FROM club_events WHERE id = ? AND club_id = ?;
 

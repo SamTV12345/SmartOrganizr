@@ -405,3 +405,298 @@ func TestCancelKeepsEventOutOfCrossClubList(t *testing.T) {
 		t.Fatalf("expected soft-cancelled event retained in per-club list, got %d", len(clubEvents))
 	}
 }
+
+// --- Section leaders manage their own section's events, reinstate, series size ---
+// (docs/superpowers/specs/2026-07-25-feature-completion-design.md)
+
+// makeTestUserSectionLeader demotes the fixed test user to MITGLIED and makes it
+// the Registerführer of the given section.
+func makeTestUserSectionLeader(t *testing.T, app *fiber.App, clubID, sectionID string, leader bool) {
+	t.Helper()
+	demoteTestUserToMember(t, app, clubID, "section-boss-"+sectionID)
+	if err := testQueries.UpdateClubMemberSection(context.Background(), db2.UpdateClubMemberSectionParams{
+		SectionFk: db2.NewSQLNullString(sectionID), SectionLeader: leader, ClubID: clubID, UserID: "12345",
+	}); err != nil {
+		t.Fatalf("seed section leader: %v", err)
+	}
+}
+
+func createEventExpecting(t *testing.T, app *fiber.App, clubID, summary, sectionID string, wantStatus int) string {
+	t.Helper()
+	start := time.Now().Add(72 * time.Hour).Format(time.RFC3339)
+	body := map[string]any{"summary": summary, "eventType": "REHEARSAL", "startDate": start}
+	if sectionID != "" {
+		body["sectionId"] = sectionID
+	}
+	res := postJSON(t, app, "http://localhost/api/v1/clubs/"+clubID+"/events", body)
+	if res.StatusCode != wantStatus {
+		raw, _ := io.ReadAll(res.Body)
+		t.Fatalf("create event %q: expected %d, got %d: %s", summary, wantStatus, res.StatusCode, string(raw))
+	}
+	if wantStatus != http.StatusOK {
+		return ""
+	}
+	var ev struct {
+		ID string `json:"id"`
+	}
+	raw, _ := io.ReadAll(res.Body)
+	if err := json.Unmarshal(raw, &ev); err != nil || ev.ID == "" {
+		t.Fatalf("decode created event: %v (%s)", err, string(raw))
+	}
+	return ev.ID
+}
+
+func TestClubEventSectionLeaderManagesOwnSectionOnly(t *testing.T) {
+	app := SetupTest(t)
+	clubID := createClubForTest(t, app)
+	flutes := createSection(t, app, clubID, "Flöten")
+	clarinets := createSection(t, app, clubID, "Klarinetten")
+
+	// Prepared while still a manager: one event per section plus a club-wide one.
+	ownEvent := createSectionEvent(t, app, clubID, "Registerprobe Flöten", flutes)
+	foreignEvent := createSectionEvent(t, app, clubID, "Registerprobe Klarinetten", clarinets)
+	wholeClubEvent := createEvent(t, app, clubID, "Gesamtprobe")
+
+	makeTestUserSectionLeader(t, app, clubID, flutes, true)
+
+	// Creating for the own section is allowed...
+	createEventExpecting(t, app, clubID, "Zusatzprobe Flöten", flutes, http.StatusOK)
+	// ...but not club-wide, and not for someone else's section.
+	createEventExpecting(t, app, clubID, "Gesamtprobe Nr. 2", "", http.StatusForbidden)
+	createEventExpecting(t, app, clubID, "Zusatzprobe Klarinetten", clarinets, http.StatusForbidden)
+
+	start := time.Now().Add(96 * time.Hour).Format(time.RFC3339)
+	update := func(eventID, sectionID string) int {
+		body := map[string]any{"summary": "Geändert", "eventType": "REHEARSAL", "startDate": start}
+		if sectionID != "" {
+			body["sectionId"] = sectionID
+		}
+		res := sendJSON(t, app, "PUT", "http://localhost/api/v1/clubs/"+clubID+"/events/"+eventID, body)
+		return res.StatusCode
+	}
+	// Editing the own section's event stays allowed.
+	if code := update(ownEvent, flutes); code != http.StatusOK {
+		t.Fatalf("edit own section event: expected 200, got %d", code)
+	}
+	// Pushing it out of the own section is not: the target must stay mine.
+	if code := update(ownEvent, clarinets); code != http.StatusForbidden {
+		t.Fatalf("moving an event to a foreign section: expected 403, got %d", code)
+	}
+	if code := update(ownEvent, ""); code != http.StatusForbidden {
+		t.Fatalf("turning a section event club-wide: expected 403, got %d", code)
+	}
+	// Nor is grabbing a club-wide event.
+	if code := update(wholeClubEvent, flutes); code != http.StatusForbidden {
+		t.Fatalf("grabbing a club-wide event: expected 403, got %d", code)
+	}
+	if code := update(foreignEvent, clarinets); code != http.StatusForbidden {
+		t.Fatalf("editing a foreign section event: expected 403, got %d", code)
+	}
+
+	// Cancelling follows the same rule.
+	if res := postJSON(t, app, "http://localhost/api/v1/clubs/"+clubID+"/events/"+ownEvent+"/cancel", map[string]string{}); res.StatusCode != http.StatusNoContent && res.StatusCode != http.StatusOK {
+		t.Fatalf("cancel own section event: got %d", res.StatusCode)
+	}
+	if res := postJSON(t, app, "http://localhost/api/v1/clubs/"+clubID+"/events/"+wholeClubEvent+"/cancel", map[string]string{}); res.StatusCode != http.StatusForbidden {
+		t.Fatalf("cancel club-wide event as section leader: expected 403, got %d", res.StatusCode)
+	}
+
+	// Deleting a whole series stays with the leadership.
+	if res := doRequest(t, app, "DELETE", "http://localhost/api/v1/clubs/"+clubID+"/events/"+ownEvent+"/series"); res.StatusCode != http.StatusForbidden {
+		t.Fatalf("series delete as section leader: expected 403, got %d", res.StatusCode)
+	}
+}
+
+func TestClubEventPlainSectionMemberStillForbidden(t *testing.T) {
+	app := SetupTest(t)
+	clubID := createClubForTest(t, app)
+	flutes := createSection(t, app, clubID, "Flöten")
+	ownEvent := createSectionEvent(t, app, clubID, "Registerprobe", flutes)
+
+	// Same section, but without the leader flag.
+	makeTestUserSectionLeader(t, app, clubID, flutes, false)
+
+	createEventExpecting(t, app, clubID, "Zusatzprobe", flutes, http.StatusForbidden)
+	res := sendJSON(t, app, "PUT", "http://localhost/api/v1/clubs/"+clubID+"/events/"+ownEvent, map[string]any{
+		"summary": "Geändert", "eventType": "REHEARSAL",
+		"startDate": time.Now().Add(96 * time.Hour).Format(time.RFC3339),
+		"sectionId": flutes,
+	})
+	if res.StatusCode != http.StatusForbidden {
+		t.Fatalf("plain section member edit: expected 403, got %d", res.StatusCode)
+	}
+}
+
+func TestClubPermissionsExposeSectionEventAuthority(t *testing.T) {
+	app := SetupTest(t)
+	clubID := createClubForTest(t, app)
+	flutes := createSection(t, app, clubID, "Flöten")
+
+	permissions := func() struct {
+		CanManageEvents        bool   `json:"can_manage_events"`
+		CanManageSectionEvents bool   `json:"can_manage_section_events"`
+		MySectionID            string `json:"my_section_id"`
+	} {
+		t.Helper()
+		res := doRequest(t, app, "GET", "http://localhost/api/v1/clubs/"+clubID+"/me/permissions")
+		if res.StatusCode != http.StatusOK {
+			t.Fatalf("permissions: expected 200, got %d", res.StatusCode)
+		}
+		var out struct {
+			CanManageEvents        bool   `json:"can_manage_events"`
+			CanManageSectionEvents bool   `json:"can_manage_section_events"`
+			MySectionID            string `json:"my_section_id"`
+		}
+		raw, _ := io.ReadAll(res.Body)
+		if err := json.Unmarshal(raw, &out); err != nil {
+			t.Fatalf("decode permissions: %v (%s)", err, string(raw))
+		}
+		return out
+	}
+
+	// As LEITER: full event rights, no section authority needed.
+	if got := permissions(); !got.CanManageEvents {
+		t.Fatalf("leader must manage events, got %+v", got)
+	}
+
+	// As Registerführer: section authority with the own section id.
+	makeTestUserSectionLeader(t, app, clubID, flutes, true)
+	got := permissions()
+	if got.CanManageEvents {
+		t.Fatalf("section leader is no club-wide event manager, got %+v", got)
+	}
+	if !got.CanManageSectionEvents || got.MySectionID != flutes {
+		t.Fatalf("section leader authority: %+v (section %s)", got, flutes)
+	}
+
+	// As plain member of that section: nothing.
+	if err := testQueries.UpdateClubMemberSection(context.Background(), db2.UpdateClubMemberSectionParams{
+		SectionFk: db2.NewSQLNullString(flutes), SectionLeader: false, ClubID: clubID, UserID: "12345",
+	}); err != nil {
+		t.Fatalf("clear leader flag: %v", err)
+	}
+	if got := permissions(); got.CanManageSectionEvents {
+		t.Fatalf("plain member must have no section authority, got %+v", got)
+	}
+}
+
+func TestClubEventReinstateUndoesTheCancellation(t *testing.T) {
+	app := SetupTest(t)
+	clubID := createClubForTest(t, app)
+	eventID := createEvent(t, app, clubID, "Abgesagte Probe")
+
+	if res := postJSON(t, app, "http://localhost/api/v1/clubs/"+clubID+"/events/"+eventID+"/cancel", map[string]string{}); res.StatusCode >= 300 {
+		t.Fatalf("cancel: got %d", res.StatusCode)
+	}
+	// A cancelled event rejects responses — the observable proof of its state.
+	if res := sendJSON(t, app, "PUT", "http://localhost/api/v1/clubs/"+clubID+"/events/"+eventID+"/response", map[string]string{"status": "YES"}); res.StatusCode < 400 {
+		t.Fatalf("cancelled event must reject responses, got %d", res.StatusCode)
+	}
+
+	res := postJSON(t, app, "http://localhost/api/v1/clubs/"+clubID+"/events/"+eventID+"/reinstate", map[string]string{})
+	if res.StatusCode >= 300 {
+		raw, _ := io.ReadAll(res.Body)
+		t.Fatalf("reinstate: expected success, got %d: %s", res.StatusCode, string(raw))
+	}
+
+	found := false
+	for _, ev := range listClubEvents(t, app, clubID) {
+		if ev.ID == eventID {
+			found = true
+			if ev.Cancelled {
+				t.Fatalf("reinstated event must not be cancelled: %+v", ev)
+			}
+		}
+	}
+	if !found {
+		t.Fatalf("reinstated event must be back in the list")
+	}
+	// And it accepts responses again.
+	if res := sendJSON(t, app, "PUT", "http://localhost/api/v1/clubs/"+clubID+"/events/"+eventID+"/response", map[string]string{"status": "YES"}); res.StatusCode >= 300 {
+		t.Fatalf("reinstated event must accept responses, got %d", res.StatusCode)
+	}
+}
+
+func TestClubEventReinstateRequiresAuthority(t *testing.T) {
+	app := SetupTest(t)
+	clubID := createClubForTest(t, app)
+	flutes := createSection(t, app, clubID, "Flöten")
+	sectionEvent := createSectionEvent(t, app, clubID, "Registerprobe", flutes)
+	wholeClub := createEvent(t, app, clubID, "Gesamtprobe")
+	for _, id := range []string{sectionEvent, wholeClub} {
+		if res := postJSON(t, app, "http://localhost/api/v1/clubs/"+clubID+"/events/"+id+"/cancel", map[string]string{}); res.StatusCode >= 300 {
+			t.Fatalf("cancel %s: got %d", id, res.StatusCode)
+		}
+	}
+
+	makeTestUserSectionLeader(t, app, clubID, flutes, true)
+
+	if res := postJSON(t, app, "http://localhost/api/v1/clubs/"+clubID+"/events/"+sectionEvent+"/reinstate", map[string]string{}); res.StatusCode >= 300 {
+		t.Fatalf("section leader reinstating own section: got %d", res.StatusCode)
+	}
+	if res := postJSON(t, app, "http://localhost/api/v1/clubs/"+clubID+"/events/"+wholeClub+"/reinstate", map[string]string{}); res.StatusCode != http.StatusForbidden {
+		t.Fatalf("section leader reinstating a club-wide event: expected 403, got %d", res.StatusCode)
+	}
+}
+
+func TestClubEventSeriesCountIsReported(t *testing.T) {
+	app := SetupTest(t)
+	clubID := createClubForTest(t, app)
+	single := createEvent(t, app, clubID, "Einzeltermin")
+
+	start := time.Now().Add(24 * time.Hour)
+	res := postJSON(t, app, "http://localhost/api/v1/clubs/"+clubID+"/events", map[string]any{
+		"summary": "Wochenprobe", "eventType": "REHEARSAL",
+		"startDate": start.Format(time.RFC3339),
+		"repeat": map[string]string{
+			"frequency": "WEEKLY",
+			"until":     start.Add(15 * 24 * time.Hour).Format(time.RFC3339),
+		},
+	})
+	if res.StatusCode != http.StatusOK {
+		raw, _ := io.ReadAll(res.Body)
+		t.Fatalf("create series: expected 200, got %d: %s", res.StatusCode, string(raw))
+	}
+
+	seriesEvents := 0
+	for _, ev := range listClubEventsWithSeries(t, app, clubID) {
+		if ev.ID == single {
+			if ev.SeriesCount != 0 {
+				t.Fatalf("single event must report no series count, got %+v", ev)
+			}
+			continue
+		}
+		if ev.SeriesID == "" {
+			t.Fatalf("series occurrence without series id: %+v", ev)
+		}
+		seriesEvents++
+	}
+	if seriesEvents < 2 {
+		t.Fatalf("expected several occurrences, got %d", seriesEvents)
+	}
+	for _, ev := range listClubEventsWithSeries(t, app, clubID) {
+		if ev.SeriesID != "" && ev.SeriesCount != seriesEvents {
+			t.Fatalf("every occurrence must report the series size %d, got %+v", seriesEvents, ev)
+		}
+	}
+}
+
+type clubEventWithSeries struct {
+	ID          string `json:"id"`
+	SeriesID    string `json:"seriesId"`
+	SeriesCount int    `json:"seriesCount"`
+}
+
+func listClubEventsWithSeries(t *testing.T, app *fiber.App, clubID string) []clubEventWithSeries {
+	t.Helper()
+	res := doRequest(t, app, "GET", "http://localhost/api/v1/clubs/"+clubID+"/events")
+	if res.StatusCode != http.StatusOK {
+		t.Fatalf("list events: expected 200, got %d", res.StatusCode)
+	}
+	var events []clubEventWithSeries
+	raw, _ := io.ReadAll(res.Body)
+	if err := json.Unmarshal(raw, &events); err != nil {
+		t.Fatalf("decode events: %v", err)
+	}
+	return events
+}

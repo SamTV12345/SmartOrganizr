@@ -21,6 +21,43 @@ func (q *Queries) CompleteInventorySweep(ctx context.Context, id string) error {
 	return err
 }
 
+const countClubEventsPerSeries = `-- name: CountClubEventsPerSeries :many
+SELECT series_id, COUNT(*) AS occurrences
+FROM club_events
+WHERE club_id = ? AND series_id IS NOT NULL
+GROUP BY series_id
+`
+
+type CountClubEventsPerSeriesRow struct {
+	SeriesID    sql.NullString
+	Occurrences int64
+}
+
+// Series sizes for a whole club in one query; counting per event would be the
+// N+1 this package is removing elsewhere.
+func (q *Queries) CountClubEventsPerSeries(ctx context.Context, clubID string) ([]CountClubEventsPerSeriesRow, error) {
+	rows, err := q.db.QueryContext(ctx, countClubEventsPerSeries, clubID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []CountClubEventsPerSeriesRow
+	for rows.Next() {
+		var i CountClubEventsPerSeriesRow
+		if err := rows.Scan(&i.SeriesID, &i.Occurrences); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const countClubMembersByRole = `-- name: CountClubMembersByRole :one
 SELECT COUNT(*)
 from club_participant
@@ -4307,6 +4344,21 @@ type MoveToFolderParams struct {
 
 func (q *Queries) MoveToFolder(ctx context.Context, arg MoveToFolderParams) error {
 	_, err := q.db.ExecContext(ctx, moveToFolder, arg.Parent, arg.ID, arg.UserIDFk)
+	return err
+}
+
+const reinstateClubEvent = `-- name: ReinstateClubEvent :exec
+UPDATE club_events SET cancelled = 0, updated_at = CURRENT_TIMESTAMP
+WHERE id = ? AND club_id = ?
+`
+
+type ReinstateClubEventParams struct {
+	ID     string
+	ClubID string
+}
+
+func (q *Queries) ReinstateClubEvent(ctx context.Context, arg ReinstateClubEventParams) error {
+	_, err := q.db.ExecContext(ctx, reinstateClubEvent, arg.ID, arg.ClubID)
 	return err
 }
 

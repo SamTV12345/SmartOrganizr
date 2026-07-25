@@ -14,7 +14,11 @@
     "inventoryMissing": "Fehlt in {{folder}}",
     "inventoryIncomplete": "Unvollständig in {{folder}}",
     "inventoryLastSeen": "zuletzt gesehen: {{folder}}, {{date}}",
-    "viewAll": "Alle anzeigen"
+    "viewAll": "Alle anzeigen",
+    "originFeed": "Kalender-Abo",
+    "originClub": "Verein",
+    "openResponses": "Zusage ausstehend",
+    "openResponsesEmpty": "Alles beantwortet."
   },
   "files": {
     "title": "Ablage für Dokumente und Unterlagen.",
@@ -67,7 +71,14 @@
     "respondYes": "Zusagen",
     "respondMaybe": "Vielleicht",
     "respondNo": "Absagen",
-    "reasonPlaceholder": "Grund (optional)"
+    "reasonPlaceholder": "Grund (optional)",
+    "seriesEditHint": "Änderungen gelten nur für diesen Termin, nicht für die ganze Serie.",
+    "sectionBoundHint": "Als Registerführer kannst du nur Termine deines eigenen Registers anlegen.",
+    "seriesCount": "Serie · {{count}} Termine",
+    "reinstate": "Absage aufheben",
+    "showResponses": "Rückmeldungen anzeigen",
+    "upcoming": "Anstehend",
+    "past": "Vergangene"
   },
   "pinboard": {
     "title": "Pinnwand",

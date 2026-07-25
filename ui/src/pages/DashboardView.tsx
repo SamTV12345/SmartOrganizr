@@ -10,8 +10,11 @@ import { Club } from "@/src/models/Club";
 import { EventModel } from "@/src/models/EventModel";
 import { PinboardPost } from "@/src/models/Pinboard";
 import { useUnreadSummary } from "@/src/notifications/useUnreadSummary";
-import { CalendarDays, ClipboardList, LayoutDashboard, MessagesSquare, Users2 } from "lucide-react";
+import { CalendarClock, CalendarDays, ClipboardList, LayoutDashboard, MessagesSquare, Users2 } from "lucide-react";
 import { useDateFormat } from "@/src/hooks/useDateFormat";
+import { mergeUpcoming } from "@/src/utils/UpcomingEvents";
+import { ClubEventResponseControls } from "@/src/components/ClubEventResponseControls";
+import type { ClubEventModel } from "@/src/models/ClubEvent";
 
 const UpcomingEventsCard: FC = () => {
     const { t } = useTranslation();
@@ -20,20 +23,22 @@ const UpcomingEventsCard: FC = () => {
     // Stable for the component lifetime: recomputing on each render would change the
     // query key every render and trigger an infinite refetch loop.
     const [since] = useState(() => new Date().toISOString());
-    const { data } = $api.useQuery("get", "/v1/events/{userId}", {
+    const { data: feedData } = $api.useQuery("get", "/v1/events/{userId}", {
         params: {
             path: { userId: user.subject ?? "" },
             query: { since },
         },
     });
-    const events = ((data as EventModel[] | undefined) ?? [])
-        .slice()
-        .sort((a, b) => {
-            const at = a.startDate ? new Date(a.startDate).getTime() : Number.MAX_SAFE_INTEGER;
-            const bt = b.startDate ? new Date(b.startDate).getTime() : Number.MAX_SAFE_INTEGER;
-            return at - bt;
-        })
-        .slice(0, 5);
+    // The club events used to be missing here entirely — the dashboard only knew
+    // the mirrored calendar feed.
+    const { data: clubData } = $api.useQuery("get", "/v1/club-events", {
+        params: { query: { since } },
+    });
+    const events = mergeUpcoming(
+        feedData as EventModel[] | undefined,
+        clubData as ClubEventModel[] | undefined,
+        5
+    );
 
     return (
         <Card>
@@ -48,8 +53,15 @@ const UpcomingEventsCard: FC = () => {
                     <p className="text-sm text-muted-foreground">{t("dashboard.eventsEmpty")}</p>
                 ) : (
                     events.map((event) => (
-                        <div key={event.uid} className="rounded-md border p-2">
-                            <p className="font-medium">{event.summary}</p>
+                        <div key={`${event.origin}-${event.id}`} className="rounded-md border p-2">
+                            <div className="flex items-start justify-between gap-2">
+                                <p className="font-medium">{event.summary}</p>
+                                <span className="bg-muted text-muted-foreground shrink-0 rounded px-1.5 py-0.5 text-xs">
+                                    {event.origin === "club"
+                                        ? event.clubName || t("dashboard.originClub")
+                                        : t("dashboard.originFeed")}
+                                </span>
+                            </div>
                             <p className="text-xs text-muted-foreground">
                                 {formatDateTime(event.startDate)}
                                 {event.location ? ` · ${event.location}` : ""}
@@ -60,6 +72,52 @@ const UpcomingEventsCard: FC = () => {
                 <Link to="/myDates" className="inline-block text-sm text-accentDark hover:underline">
                     {t("dashboard.viewAll")}
                 </Link>
+            </CardContent>
+        </Card>
+    );
+};
+
+/* Undecided club events were invisible: myStatus and the response controls both
+   existed, nothing brought them together. */
+const OpenResponsesCard: FC = () => {
+    const { t } = useTranslation();
+    const { formatDateTime } = useDateFormat();
+    const [since] = useState(() => new Date().toISOString());
+    const { data } = $api.useQuery("get", "/v1/club-events", { params: { query: { since } } });
+    const open = ((data as ClubEventModel[] | undefined) ?? [])
+        .filter((event) => !event.cancelled && (event.myStatus ?? "") === "")
+        .slice(0, 5);
+
+    return (
+        <Card>
+            <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                    <CalendarClock className="size-5 text-accentDark" />
+                    {t("dashboard.openResponses")}
+                    {open.length > 0 && (
+                        <span className="inline-flex min-w-5 items-center justify-center rounded-full bg-red-500 px-1.5 text-xs font-semibold text-white">
+                            {open.length}
+                        </span>
+                    )}
+                </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-2">
+                {open.length === 0 ? (
+                    <p className="text-sm text-muted-foreground">{t("dashboard.openResponsesEmpty")}</p>
+                ) : (
+                    open.map((event) => (
+                        <div key={event.id} className="space-y-2 rounded-md border p-2">
+                            <div>
+                                <p className="font-medium">{event.summary}</p>
+                                <p className="text-xs text-muted-foreground">
+                                    {event.clubName ? `${event.clubName} · ` : ""}
+                                    {formatDateTime(event.startDate)}
+                                </p>
+                            </div>
+                            <ClubEventResponseControls event={event} />
+                        </div>
+                    ))
+                )}
             </CardContent>
         </Card>
     );
@@ -241,6 +299,7 @@ export const DashboardView: FC = () => {
             </header>
             <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
                 <UpcomingEventsCard />
+                <OpenResponsesCard />
                 <UnreadMessagesCard />
                 <MyClubsCard />
                 <RecentPinboardCard />

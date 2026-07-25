@@ -876,6 +876,49 @@
                 }
             }
         },
+        "/v1/clubs/{clubId}/events/{eventId}/reinstate": {
+            "post": {
+                "tags": [
+                    "club-events"
+                ],
+                "summary": "Undo the cancellation of a native club event",
+                "parameters": [
+                    {
+                        "description": "Club ID",
+                        "name": "clubId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "description": "Event ID",
+                        "name": "eventId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    },
+                    "403": {
+                        "description": "neither club manager nor leader of the event's section",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/dto.Error"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/v1/clubs/{clubId}/events/{eventId}/response": {
             "put": {
                 "tags": [
@@ -4337,6 +4380,10 @@
                     "sectionName": {
                         "type": "string"
                     },
+                    "seriesCount": {
+                        "description": "occurrences sharing the series; 0 for one-offs",
+                        "type": "integer"
+                    },
                     "seriesId": {
                         "type": "string"
                     },
@@ -4699,6 +4746,13 @@
                     },
                     "can_manage_roles": {
                         "type": "boolean"
+                    },
+                    "can_manage_section_events": {
+                        "description": "CanManageSectionEvents marks a Registerführer: allowed to manage the\nevents of their own section only. MySectionID names that section.",
+                        "type": "boolean"
+                    },
+                    "my_section_id": {
+                        "type": "string"
                     },
                     "role": {
                         "type": "string"

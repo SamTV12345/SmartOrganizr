@@ -37,6 +37,7 @@ type ClubEventDto struct {
 	EndDate        string   `json:"endDate"`
 	Cancelled      bool     `json:"cancelled"`
 	SeriesID       string   `json:"seriesId,omitempty"`
+	SeriesCount    int      `json:"seriesCount,omitempty"` // occurrences sharing the series; 0 for one-offs
 	SectionID      string   `json:"sectionId,omitempty"`
 	SectionName    string   `json:"sectionName,omitempty"`
 	MyStatus       string   `json:"myStatus"` // YES|NO|MAYBE|"" (=undecided)

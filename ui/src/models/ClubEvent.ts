@@ -14,6 +14,8 @@ export type ClubEventModel = {
   endDate: string
   cancelled: boolean
   seriesId?: string
+  /** Number of occurrences sharing the series; absent for one-offs. */
+  seriesCount?: number
   sectionId?: string
   sectionName?: string
   myStatus: ClubEventResponseStatus

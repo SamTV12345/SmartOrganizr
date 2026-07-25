@@ -26,7 +26,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
-import { Pencil, Trash2 } from "lucide-react"
+import { Pencil, Trash2, Undo2, Users } from "lucide-react"
 import type { ClubEventModel } from "@/src/models/ClubEvent"
 import type { ClubSection } from "@/src/api/types"
 import { http as axios } from "@/src/api/client"
@@ -34,7 +34,13 @@ import { apiURL } from "@/src/Keycloak"
 import { useQuery } from "@tanstack/react-query"
 import { useDateFormat } from "@/src/hooks/useDateFormat"
 
-type Props = { clubId: string; canManage: boolean }
+type Props = {
+  clubId: string
+  canManage: boolean
+  /** Registerführer: may manage only the events of mySectionId. */
+  canManageSectionEvents?: boolean
+  mySectionId?: string
+}
 
 const EVENT_TYPES = ["REHEARSAL", "CONCERT", "OTHER"] as const
 type EventType = (typeof EVENT_TYPES)[number]
@@ -74,18 +80,44 @@ const emptyForm: FormState = {
   repeatUntil: "",
 }
 
-export const ClubEventsManager = ({ clubId, canManage }: Props) => {
+export const ClubEventsManager = ({
+  clubId,
+  canManage,
+  canManageSectionEvents = false,
+  mySectionId = "",
+}: Props) => {
   const { t } = useTranslation()
   const { formatDateTime } = useDateFormat()
   const queryClient = useQueryClient()
-  const [since] = useState(() => new Date().toISOString())
-  const [form, setForm] = useState<FormState>(emptyForm)
+  const [showPast, setShowPast] = useState(false)
+  // Stable per mode: a recomputed timestamp would change the query key on every
+  // render and spin the refetch loop.
+  const [now] = useState(() => new Date().toISOString())
+  const [pastSince] = useState(() => {
+    const from = new Date()
+    from.setMonth(from.getMonth() - 6)
+    return from.toISOString()
+  })
+  const since = showPast ? pastSince : now
+  // A Registerführer may only ever target their own section, so the form starts
+  // there and the select stays locked.
+  const sectionBound = !canManage && canManageSectionEvents
+  const [form, setForm] = useState<FormState>(
+    sectionBound ? { ...emptyForm, sectionId: mySectionId } : emptyForm
+  )
   const [editingId, setEditingId] = useState<string | null>(null)
+  const mayEdit = canManage || canManageSectionEvents
 
   const { data } = $api.useQuery("get", "/v1/clubs/{clubId}/events", {
     params: { path: { clubId }, query: { since } },
   })
-  const events = (data as ClubEventModel[] | undefined) ?? []
+  const events = ((data as ClubEventModel[] | undefined) ?? [])
+    .slice()
+    .sort((a, b) => {
+      const at = new Date(a.startDate).getTime()
+      const bt = new Date(b.startDate).getTime()
+      return showPast ? bt - at : at - bt
+    })
 
   const { data: sectionsData } = useQuery<ClubSection[]>({
     queryKey: ["club-sections", clubId],
@@ -97,7 +129,7 @@ export const ClubEventsManager = ({ clubId, canManage }: Props) => {
     setForm((f) => ({ ...f, [key]: value }))
 
   const resetForm = () => {
-    setForm(emptyForm)
+    setForm(sectionBound ? { ...emptyForm, sectionId: mySectionId } : emptyForm)
     setEditingId(null)
   }
 
@@ -121,6 +153,10 @@ export const ClubEventsManager = ({ clubId, canManage }: Props) => {
   })
 
   const cancel = $api.useMutation("post", "/v1/clubs/{clubId}/events/{eventId}/cancel", {
+    onSuccess: invalidate,
+  })
+
+  const reinstate = $api.useMutation("post", "/v1/clubs/{clubId}/events/{eventId}/reinstate", {
     onSuccess: invalidate,
   })
 
@@ -182,7 +218,23 @@ export const ClubEventsManager = ({ clubId, canManage }: Props) => {
 
   return (
     <div className="space-y-4">
-      {canManage && (
+      <div className="flex gap-2">
+        <Button
+          variant={showPast ? "outline" : "default"}
+          size="sm"
+          onClick={() => setShowPast(false)}
+        >
+          {t("clubEvents.upcoming")}
+        </Button>
+        <Button
+          variant={showPast ? "default" : "outline"}
+          size="sm"
+          onClick={() => setShowPast(true)}
+        >
+          {t("clubEvents.past")}
+        </Button>
+      </div>
+      {mayEdit && !showPast && (
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-base">
@@ -190,6 +242,11 @@ export const ClubEventsManager = ({ clubId, canManage }: Props) => {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
+            {editingId && events.some((e) => e.id === editingId && e.seriesId) && (
+              <p className="bg-muted text-muted-foreground rounded-md p-2 text-sm">
+                {t("clubEvents.seriesEditHint")}
+              </p>
+            )}
             <div className="grid gap-3 sm:grid-cols-2">
               <div className="grid gap-2">
                 <Label htmlFor="event-summary">{t("clubEvents.field.summary")}</Label>
@@ -222,20 +279,30 @@ export const ClubEventsManager = ({ clubId, canManage }: Props) => {
                   <Label htmlFor="event-section">{t("clubEvents.field.section")}</Label>
                   <Select
                     value={form.sectionId || "__all__"}
+                    disabled={sectionBound}
                     onValueChange={(value) => set("sectionId", value && value !== "__all__" ? value : "")}
                   >
                     <SelectTrigger id="event-section" className="w-full">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="__all__">{t("clubEvents.wholeClub")}</SelectItem>
-                      {sections.map((section) => (
-                        <SelectItem key={section.id} value={section.id ?? ""}>
-                          {section.name}
-                        </SelectItem>
-                      ))}
+                      {/* A Registerführer has no club-wide option: those events
+                          concern members they do not lead. */}
+                      {!sectionBound && (
+                        <SelectItem value="__all__">{t("clubEvents.wholeClub")}</SelectItem>
+                      )}
+                      {sections
+                        .filter((section) => !sectionBound || section.id === mySectionId)
+                        .map((section) => (
+                          <SelectItem key={section.id} value={section.id ?? ""}>
+                            {section.name}
+                          </SelectItem>
+                        ))}
                     </SelectContent>
                   </Select>
+                  {sectionBound && (
+                    <p className="text-muted-foreground text-xs">{t("clubEvents.sectionBoundHint")}</p>
+                  )}
                 </div>
               )}
               <div className="grid gap-2">
@@ -335,14 +402,16 @@ export const ClubEventsManager = ({ clubId, canManage }: Props) => {
                 ) : null}{" "}
                 {event.seriesId ? (
                   <span className="bg-muted text-muted-foreground rounded px-1.5 py-0.5 text-xs">
-                    {t("clubEvents.series")}
+                    {event.seriesCount
+                      ? t("clubEvents.seriesCount", { count: event.seriesCount })
+                      : t("clubEvents.series")}
                   </span>
                 ) : null}{" "}
                 {event.cancelled ? (
                   <span className="text-red-600">{t("clubEvents.cancelled")}</span>
                 ) : null}
               </CardTitle>
-              {canManage && (
+              {mayEdit && (
                 <div className="flex gap-1">
                   <Button variant="ghost" size="sm" onClick={() => startEdit(event)}>
                     <Pencil className="size-4" />
@@ -415,8 +484,8 @@ export const ClubEventsManager = ({ clubId, canManage }: Props) => {
             <p className="text-xs">
               {"✅"} {event.yesCount} {"·"} {"\u{1F914}"} {event.maybeCount} {"·"} {"❌"} {event.noCount} {"·"} {"❔"} {event.undecidedCount}
             </p>
-            <AttendanceMatrix clubId={clubId} eventId={event.id} />
-            {canManage && !event.cancelled && (
+            <AttendanceToggle clubId={clubId} eventId={event.id} />
+            {mayEdit && !event.cancelled && (
               <Button
                 variant="outline"
                 size="sm"
@@ -424,6 +493,17 @@ export const ClubEventsManager = ({ clubId, canManage }: Props) => {
                 onClick={() => cancel.mutate({ params: { path: { clubId, eventId: event.id } } })}
               >
                 {t("clubEvents.cancel-event")}
+              </Button>
+            )}
+            {mayEdit && event.cancelled && (
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={reinstate.isPending}
+                onClick={() => reinstate.mutate({ params: { path: { clubId, eventId: event.id } } })}
+              >
+                <Undo2 className="mr-1 size-4" />
+                {t("clubEvents.reinstate")}
               </Button>
             )}
           </CardContent>
@@ -434,6 +514,23 @@ export const ClubEventsManager = ({ clubId, canManage }: Props) => {
 }
 
 type MatrixProps = { clubId: string; eventId: string }
+
+/* The matrix used to load with every event card — 20 events meant 20 requests,
+   most of them empty for anyone outside the leadership. The counts already ride
+   along in the event DTO, so the per-member rows belong behind a click. */
+const AttendanceToggle = ({ clubId, eventId }: MatrixProps) => {
+  const { t } = useTranslation()
+  const [open, setOpen] = useState(false)
+  if (!open) {
+    return (
+      <Button variant="ghost" size="sm" className="px-0" onClick={() => setOpen(true)}>
+        <Users className="mr-1 size-4" />
+        {t("clubEvents.showResponses")}
+      </Button>
+    )
+  }
+  return <AttendanceMatrix clubId={clubId} eventId={eventId} />
+}
 
 const AttendanceMatrix = ({ clubId, eventId }: MatrixProps) => {
   const { t } = useTranslation()

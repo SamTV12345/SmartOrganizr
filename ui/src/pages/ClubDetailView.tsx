@@ -388,7 +388,12 @@ export const ClubDetailView: FC = () => {
                     )}
 
                     {activeSection.id === "termine" && (
-                        <ClubEventsManager clubId={club.id} canManage={permissions?.can_manage_events ?? false} />
+                        <ClubEventsManager
+                            clubId={club.id}
+                            canManage={permissions?.can_manage_events ?? false}
+                            canManageSectionEvents={permissions?.can_manage_section_events ?? false}
+                            mySectionId={permissions?.my_section_id ?? ""}
+                        />
                     )}
 
                     {activeSection.id === "bearbeiten" && club && (
