@@ -4,9 +4,11 @@ import { useTranslation } from "react-i18next";
 import { Loader2, RefreshCw } from "lucide-react";
 import { runSync, useSyncStatus } from "@/src/offline/syncStore";
 import { useOnlineStatus } from "@/src/offline/useOnlineStatus";
+import { useDateFormat } from "@/src/hooks/useDateFormat";
 
 export const OfflineSyncCard = () => {
     const { t } = useTranslation();
+    const { formatDateTime } = useDateFormat();
     const isOnline = useOnlineStatus();
     const { syncing, lastSyncedAt, lastError } = useSyncStatus();
 
@@ -20,7 +22,7 @@ export const OfflineSyncCard = () => {
                 <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
                     <p className="text-muted-foreground text-xs">
                         {lastSyncedAt
-                            ? t("offline.lastSynced", { time: new Date(lastSyncedAt).toLocaleString() })
+                            ? t("offline.lastSynced", { time: formatDateTime(lastSyncedAt) })
                             : t("offline.neverSynced")}
                     </p>
                     <Button

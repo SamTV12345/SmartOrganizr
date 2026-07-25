@@ -13,9 +13,11 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { useDateFormat } from "@/src/hooks/useDateFormat";
 
 export const MyMessagesView: FC = () => {
     const { t } = useTranslation();
+    const { formatDateTime } = useDateFormat();
     const user = useKeycloak();
     const queryClient = useQueryClient();
     const [searchParams, setSearchParams] = useSearchParams();
@@ -255,7 +257,7 @@ export const MyMessagesView: FC = () => {
                                             <p className={`text-xs ${isOwn ? "text-white/80" : "text-muted-foreground"}`}>{message.sender_display_name}</p>
                                             <p>{message.content}</p>
                                             <p className={`text-[11px] ${isOwn ? "text-white/80" : "text-muted-foreground"}`}>
-                                                {message.created_at ? new Date(message.created_at).toLocaleString("de-DE") : ""}
+                                                {formatDateTime(message.created_at)}
                                             </p>
                                         </div>
                                     );

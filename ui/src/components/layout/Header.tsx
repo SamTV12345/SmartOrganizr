@@ -15,10 +15,12 @@ import {Button} from "@/components/ui/button";
 import {Menu} from "lucide-react";
 import { useOnlineStatus } from "@/src/offline/useOnlineStatus";
 import { useSyncStatus } from "@/src/offline/syncStore";
+import { useDateFormat } from "@/src/hooks/useDateFormat";
 
 
 export const Header = ()=>{
     const {t} = useTranslation()
+    const {formatDateTime} = useDateFormat()
     const dispatch = useAppDispatch()
     const sideBarCollapsed = useAppSelector(state=>state.commonReducer.sideBarCollapsed)
     const [avatarDrodownClicked, setAvatarDropdownClicked] = useState<boolean>(false)
@@ -47,7 +49,7 @@ export const Header = ()=>{
             {!isOnline && (
                 <div style={{ background: "#92400e", color: "white", textAlign: "center", padding: "0.25rem 0.5rem", fontSize: "0.85rem" }}>
                     {t("offline.banner")}
-                    {lastSyncedAt ? ` · ${t("offline.lastSynced", { time: new Date(lastSyncedAt).toLocaleString() })}` : ""}
+                    {lastSyncedAt ? ` · ${t("offline.lastSynced", { time: formatDateTime(lastSyncedAt) })}` : ""}
                 </div>
             )}
             <div className="flex h-14 items-center justify-between px-2 md:px-4">

@@ -46,6 +46,7 @@ import { ClubFilesSection } from "@/src/components/ClubFilesSection";
 import { ClubEventsManager } from "@/src/components/club/ClubEventsManager";
 import { ClubSettingsForm } from "@/src/components/club/ClubSettingsForm";
 import { ClubDangerZone } from "@/src/components/club/ClubDangerZone";
+import { useDateFormat } from "@/src/hooks/useDateFormat";
 
 type ClubSection = {
     id: string;
@@ -104,6 +105,7 @@ const memberDisplayName = (member: ClubMember) => {
 
 export const ClubDetailView: FC = () => {
     const { t } = useTranslation();
+    const { formatDateOnly } = useDateFormat();
     const navigate = useNavigate();
     const queryClient = useQueryClient();
     const { clubId } = useParams();
@@ -607,7 +609,7 @@ export const ClubDetailView: FC = () => {
                                                         <p className="font-medium">{invitation.invited_email}</p>
                                                         <p className="text-xs text-muted-foreground">
                                                             {t("club-invitation-expires", {
-                                                                date: invitation.expires_at ? new Date(invitation.expires_at).toLocaleDateString() : "-",
+                                                                date: invitation.expires_at ? formatDateOnly(invitation.expires_at) : "-",
                                                             })}
                                                         </p>
                                                     </div>

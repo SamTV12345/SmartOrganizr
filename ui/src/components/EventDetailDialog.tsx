@@ -7,6 +7,7 @@ import {
 } from "@/components/ui/dialog";
 import { EventModel, StatusModel, convertStatusModelToIcon } from "@/src/models/EventModel";
 import { Button } from "@/components/ui/button";
+import { useDateFormat } from "@/src/hooks/useDateFormat";
 
 type EventDetailDialogProps = {
     event: EventModel | null;
@@ -40,6 +41,7 @@ const createOsmLink = (lat: number, lon: number): string =>
     `https://www.openstreetmap.org/?mlat=${lat}&mlon=${lon}#map=15/${lat}/${lon}`;
 
 export const EventDetailDialog = ({ event, open, onOpenChange }: EventDetailDialogProps) => {
+    const { formatDateTime } = useDateFormat();
     const lat = event?.geoDateX;
     const lon = event?.geoDateY;
     const hasCoordinates = typeof lat === "number" && typeof lon === "number";
@@ -65,9 +67,9 @@ export const EventDetailDialog = ({ event, open, onOpenChange }: EventDetailDial
                                     <span className="text-muted-foreground">Ort</span>
                                     <span>{event.location || "-"}</span>
                                     <span className="text-muted-foreground">Start</span>
-                                    <span>{event.startDate ? new Date(event.startDate).toLocaleString() : "-"}</span>
+                                    <span>{event.startDate ? formatDateTime(event.startDate) : "-"}</span>
                                     <span className="text-muted-foreground">Ende</span>
-                                    <span>{event.endDate ? new Date(event.endDate).toLocaleString() : "-"}</span>
+                                    <span>{event.endDate ? formatDateTime(event.endDate) : "-"}</span>
                                     <span className="text-muted-foreground">Geo X/Y</span>
                                     <span>{hasCoordinates ? `${lat}, ${lon}` : "-"}</span>
                                 </div>

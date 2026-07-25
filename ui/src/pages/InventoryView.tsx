@@ -15,6 +15,7 @@ import {
     DialogTitle,
 } from "@/components/ui/dialog";
 import { compressImageForAI } from "@/src/utils/ImageUtils";
+import { useDateFormat } from "@/src/hooks/useDateFormat";
 import { useOnlineStatus } from "@/src/offline/useOnlineStatus";
 import { getAllNotes, getRootFolders } from "@/src/offline/offlineDb";
 import { rankOfflineCandidates } from "@/src/offline/inventoryMatching";
@@ -68,6 +69,7 @@ async function ocrImage(file: File): Promise<string> {
 
 export const InventoryView = () => {
     const { t } = useTranslation();
+    const { formatDateOnly } = useDateFormat();
     const [searchParams, setSearchParams] = useSearchParams();
     const [state, setState] = useState<SweepState>({ phase: "idle" });
     const [sighted, setSighted] = useState<SightedEntry[]>([]);
@@ -407,7 +409,7 @@ export const InventoryView = () => {
                                 e.lastSeenFolderName
                                     ? t("inventory.lastSeen", {
                                           folder: e.lastSeenFolderName,
-                                          date: e.lastSeenAt ? new Date(e.lastSeenAt).toLocaleDateString() : "?",
+                                          date: e.lastSeenAt ? formatDateOnly(e.lastSeenAt) : "?",
                                       })
                                     : t("inventory.neverSeen")
                             }
@@ -571,6 +573,7 @@ const FolderRow = ({ folder, online, onStart }: { folder: Folder; online: boolea
 
 const OrphanFinder = () => {
     const { t } = useTranslation();
+    const { formatDateOnly } = useDateFormat();
     const [number, setNumber] = useState("");
     const [result, setResult] = useState<InventoryLookup | null>(null);
     const [notFound, setNotFound] = useState(false);
@@ -620,7 +623,7 @@ const OrphanFinder = () => {
                             <p className="text-muted-foreground text-xs">
                                 {t("inventory.lastSeen", {
                                     folder: result.lastSeenFolder,
-                                    date: new Date(result.lastSeenAt).toLocaleDateString(),
+                                    date: formatDateOnly(result.lastSeenAt),
                                 })}
                             </p>
                         )}

@@ -19,9 +19,8 @@ import {
     AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Download, FolderKanban, Trash2 } from "lucide-react";
-import { format } from "date-fns";
-import { de } from "date-fns/locale/de";
 import { useTranslation } from "react-i18next";
+import { useDateFormat } from "@/src/hooks/useDateFormat";
 
 type Props = {
     clubId: string;
@@ -30,16 +29,9 @@ type Props = {
 
 const MAX_FILE_SIZE = 25 * 1024 * 1024;
 
-const formatDate = (iso: string) => {
-    try {
-        return format(new Date(iso), "Pp", { locale: de });
-    } catch {
-        return "";
-    }
-};
-
 export const ClubFilesSection: FC<Props> = ({ clubId, canWrite }) => {
     const { t } = useTranslation();
+    const { formatDateTime } = useDateFormat();
     const queryClient = useQueryClient();
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [error, setError] = useState<string | null>(null);
@@ -128,7 +120,7 @@ export const ClubFilesSection: FC<Props> = ({ clubId, canWrite }) => {
                                 <div className="min-w-0">
                                     <p className="truncate font-medium">{file.name}</p>
                                     <p className="text-xs text-muted-foreground">
-                                        {formatBytes(file.sizeBytes)} · {file.uploadedBy} · {formatDate(file.createdAt)}
+                                        {formatBytes(file.sizeBytes)} · {file.uploadedBy} · {formatDateTime(file.createdAt)}
                                     </p>
                                 </div>
                                 <div className="flex gap-1">

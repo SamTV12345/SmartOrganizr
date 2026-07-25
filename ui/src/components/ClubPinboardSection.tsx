@@ -21,25 +21,17 @@ import {
     AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { LayoutDashboard, Pencil, Pin, Trash2 } from "lucide-react";
-import { format } from "date-fns";
-import { de } from "date-fns/locale/de";
 import { useTranslation } from "react-i18next";
+import { useDateFormat } from "@/src/hooks/useDateFormat";
 
 type Props = {
     clubId: string;
     canWrite: boolean;
 };
 
-const formatDate = (iso: string) => {
-    try {
-        return format(new Date(iso), "Pp", { locale: de });
-    } catch {
-        return "";
-    }
-};
-
 export const ClubPinboardSection: FC<Props> = ({ clubId, canWrite }) => {
     const { t } = useTranslation();
+    const { formatDateTime } = useDateFormat();
     const queryClient = useQueryClient();
     const [title, setTitle] = useState("");
     const [body, setBody] = useState("");
@@ -155,7 +147,7 @@ export const ClubPinboardSection: FC<Props> = ({ clubId, canWrite }) => {
                                             {post.title}
                                         </CardTitle>
                                         <CardDescription>
-                                            {post.authorName} · {formatDate(post.createdAt)}
+                                            {post.authorName} · {formatDateTime(post.createdAt)}
                                         </CardDescription>
                                     </div>
                                     {canWrite && (

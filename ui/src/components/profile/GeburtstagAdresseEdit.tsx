@@ -8,14 +8,15 @@ import {zodResolver} from "@hookform/resolvers/zod";
 import { useTranslation } from "react-i18next";
 import { PopoverTrigger,Popover,PopoverContent} from '@/components/ui/popover'
 import { cn } from "@/src/lib/utils";
-import {format} from "date-fns";
 import {CalendarIcon} from "lucide-react";
 import {Calendar} from "@/components/ui/calendar";
-import { de } from "date-fns/locale/de";
+import {resolveDateLocale} from "@/src/utils/DateFormat";
+import {useDateFormat} from "@/src/hooks/useDateFormat";
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/components/ui/select";
 
 export const GeburtstagAdresseEdit = ()=>{
     const {t} = useTranslation()
+    const {formatDateLong, language} = useDateFormat()
     const birthdayAddress = z.object({
         birthday: z.date().optional(),
         country: z.string().optional(),
@@ -65,9 +66,7 @@ export const GeburtstagAdresseEdit = ()=>{
                                             }
                                         >
                                             {field.value ? (
-                                                format(field.value, "PPP", {
-                                                    locale: de
-                                                })
+                                                formatDateLong(field.value)
                                             ) : (
                                                 <span>{t('birthday')}</span>
                                             )}
@@ -75,7 +74,7 @@ export const GeburtstagAdresseEdit = ()=>{
                                         </PopoverTrigger>
                                         <PopoverContent className="w-auto p-0" align="start">
                                             <Calendar
-                                                locale={de}
+                                                locale={resolveDateLocale(language)}
                                                 mode="single"
                                                 selected={field.value}
                                                 onSelect={field.onChange}

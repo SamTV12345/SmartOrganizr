@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { formatDateOnly, formatDateTime, resolveDateLocale } from "@/src/utils/DateFormat";
+import { formatDateLong, formatDateOnly, formatDateTime, resolveDateLocale } from "@/src/utils/DateFormat";
 
 describe("resolveDateLocale", () => {
     it("picks German for de and its regional variants", () => {
@@ -29,6 +29,26 @@ describe("formatDateTime", () => {
         expect(formatDateTime(null, "de")).toBe("");
         expect(formatDateTime("", "de")).toBe("");
         expect(formatDateTime("not-a-date", "de")).toBe("");
+        expect(formatDateTime(Number.NaN, "de")).toBe("");
+    });
+
+    it("accepts epoch milliseconds and Date objects, not just ISO strings", () => {
+        const iso = "2026-03-04T15:30:00.000Z";
+        const epoch = new Date(iso).getTime();
+        expect(formatDateTime(epoch, "de")).toBe(formatDateTime(iso, "de"));
+        expect(formatDateTime(new Date(iso), "de")).toBe(formatDateTime(iso, "de"));
+    });
+});
+
+describe("formatDateLong", () => {
+    it("spells the month out in the active language", () => {
+        const iso = "2026-03-04T12:00:00.000Z";
+        expect(formatDateLong(iso, "de")).toContain("März");
+        expect(formatDateLong(iso, "en")).toContain("March");
+    });
+
+    it("returns an empty string for invalid input", () => {
+        expect(formatDateLong("nope", "de")).toBe("");
     });
 });
 

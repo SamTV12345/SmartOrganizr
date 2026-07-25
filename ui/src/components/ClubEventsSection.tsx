@@ -4,9 +4,11 @@ import { $api } from "@/src/api/client"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { ClubEventResponseControls } from "@/src/components/ClubEventResponseControls"
 import type { ClubEventModel } from "@/src/models/ClubEvent"
+import { useDateFormat } from "@/src/hooks/useDateFormat"
 
 export const ClubEventsSection = () => {
   const { t } = useTranslation()
+  const { formatDateTime } = useDateFormat()
   // Stable for the component lifetime: recomputing on each render would change the
   // query key every render and trigger an infinite refetch loop.
   const [since] = useState(() => new Date().toISOString())
@@ -39,7 +41,7 @@ export const ClubEventsSection = () => {
           </CardHeader>
           <CardContent className="space-y-3">
             <p className="text-muted-foreground text-sm">
-              {new Date(event.startDate).toLocaleString()}
+              {formatDateTime(event.startDate)}
               {event.location ? ` · ${event.location}` : ""}
             </p>
             <p className="text-xs">

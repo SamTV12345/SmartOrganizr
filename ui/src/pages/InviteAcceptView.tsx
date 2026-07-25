@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useKeycloak } from "@/src/Keycloak/useKeycloak";
+import { useDateFormat } from "@/src/hooks/useDateFormat";
 
 type PublicInvitation = {
     token: string;
@@ -20,6 +21,7 @@ type PublicInvitation = {
 
 export const InviteAcceptView: FC = () => {
     const { token } = useParams();
+    const { formatDateTime } = useDateFormat();
     const navigate = useNavigate();
     const keycloakContext = useKeycloak();
     const loggedIn = Boolean(keycloakContext?.authenticated);
@@ -66,7 +68,7 @@ export const InviteAcceptView: FC = () => {
                     {invitation && (
                         <>
                             <p className="text-sm text-muted-foreground">E-Mail: {invitation.invited_email}</p>
-                            <p className="text-sm text-muted-foreground">Gültig bis: {new Date(invitation.expires_at).toLocaleString()}</p>
+                            <p className="text-sm text-muted-foreground">Gültig bis: {formatDateTime(invitation.expires_at)}</p>
                             {invitation.is_accepted && <p className="text-sm">Diese Einladung wurde bereits angenommen.</p>}
                             {invitation.is_expired && <p className="text-sm">Diese Einladung ist abgelaufen.</p>}
 

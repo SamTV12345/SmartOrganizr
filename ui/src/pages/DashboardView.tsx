@@ -11,20 +11,11 @@ import { EventModel } from "@/src/models/EventModel";
 import { PinboardPost } from "@/src/models/Pinboard";
 import { useUnreadSummary } from "@/src/notifications/useUnreadSummary";
 import { CalendarDays, ClipboardList, LayoutDashboard, MessagesSquare, Users2 } from "lucide-react";
-import { format } from "date-fns";
-import { de } from "date-fns/locale/de";
-
-const formatDate = (iso?: string) => {
-    if (!iso) return "";
-    try {
-        return format(new Date(iso), "Pp", { locale: de });
-    } catch {
-        return "";
-    }
-};
+import { useDateFormat } from "@/src/hooks/useDateFormat";
 
 const UpcomingEventsCard: FC = () => {
     const { t } = useTranslation();
+    const { formatDateTime } = useDateFormat();
     const user = useKeycloak();
     // Stable for the component lifetime: recomputing on each render would change the
     // query key every render and trigger an infinite refetch loop.
@@ -60,7 +51,7 @@ const UpcomingEventsCard: FC = () => {
                         <div key={event.uid} className="rounded-md border p-2">
                             <p className="font-medium">{event.summary}</p>
                             <p className="text-xs text-muted-foreground">
-                                {formatDate(event.startDate)}
+                                {formatDateTime(event.startDate)}
                                 {event.location ? ` · ${event.location}` : ""}
                             </p>
                         </div>
@@ -150,6 +141,7 @@ const MyClubsCard: FC = () => {
 
 const RecentPinboardCard: FC = () => {
     const { t } = useTranslation();
+    const { formatDateTime } = useDateFormat();
     const user = useKeycloak();
     const { data } = useQuery({
         queryKey: ["pinboard-recent", user.subject],
@@ -178,7 +170,7 @@ const RecentPinboardCard: FC = () => {
                         >
                             <p className="font-medium">{post.title}</p>
                             <p className="text-xs text-muted-foreground">
-                                {post.clubName} · {post.authorName} · {formatDate(post.createdAt)}
+                                {post.clubName} · {post.authorName} · {formatDateTime(post.createdAt)}
                             </p>
                         </Link>
                     ))
@@ -190,6 +182,7 @@ const RecentPinboardCard: FC = () => {
 
 const InventoryAttentionCard: FC = () => {
     const { t } = useTranslation();
+    const { formatDateTime } = useDateFormat();
     const { data } = $api.useQuery("get", "/v1/inventory/attention");
     const missing = (data?.missing ?? []).slice(0, 5);
     const incomplete = (data?.incomplete ?? []).slice(0, 5);
@@ -215,7 +208,7 @@ const InventoryAttentionCard: FC = () => {
                                     {entry.lastSeenAt
                                         ? ` · ${t("dashboard.inventoryLastSeen", {
                                               folder: entry.lastSeenFolderName ?? "",
-                                              date: formatDate(entry.lastSeenAt),
+                                              date: formatDateTime(entry.lastSeenAt),
                                           })}`
                                         : ""}
                                 </p>

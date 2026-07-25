@@ -20,6 +20,7 @@ import { useOnlineStatus } from "@/src/offline/useOnlineStatus";
 import { useQuery } from "@tanstack/react-query";
 import { http as axios } from "@/src/api/client";
 import type { InventoryLookup } from "@/src/api/types";
+import { useDateFormat } from "@/src/hooks/useDateFormat";
 
 export const NoteDetailView = () => {
     const { id } = useParams();
@@ -31,6 +32,7 @@ export const NoteDetailView = () => {
     });
     const navigate = useNavigate();
     const { t } = useTranslation();
+    const { formatDateOnly } = useDateFormat();
     const isOnline = useOnlineStatus();
 
     const { data: rawData, isLoading } = $api.useQuery(
@@ -155,7 +157,7 @@ export const NoteDetailView = () => {
                             <p className="text-muted-foreground mt-1 text-xs">
                                 {t("inventory.lastSeen", {
                                     folder: lastSeen.lastSeenFolder,
-                                    date: new Date(lastSeen.lastSeenAt).toLocaleDateString(),
+                                    date: formatDateOnly(lastSeen.lastSeenAt),
                                 })}
                             </p>
                         )}

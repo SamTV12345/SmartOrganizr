@@ -1,5 +1,6 @@
 import {Card, CardContent, CardDescription, CardHeader, CardTitle} from "@/components/ui/card";
 import {convertStatusModelToIcon, EventModel} from "@/src/models/EventModel";
+import {useDateFormat} from "@/src/hooks/useDateFormat";
 
 type EventCardProps = {
     event: EventModel
@@ -8,6 +9,7 @@ type EventCardProps = {
 
 export const EventCard = ({event, onClick}: EventCardProps)=>{
     const icon = convertStatusModelToIcon(event.status)
+    const {formatDateTime} = useDateFormat()
 
     return  <Card
         className="h-full cursor-pointer transition hover:border-primary/40 hover:shadow-md"
@@ -26,7 +28,7 @@ export const EventCard = ({event, onClick}: EventCardProps)=>{
                 <label className="text-muted-foreground">Ort</label>
                 <span>{event.location ?? "-"}</span>
                 <label className="text-muted-foreground">Zeit</label>
-                <span>{event.startDate ? new Date(event.startDate).toLocaleString() : "-"}</span>
+                <span>{event.startDate ? formatDateTime(event.startDate) : "-"}</span>
             </div>
         </CardContent>
     </Card>

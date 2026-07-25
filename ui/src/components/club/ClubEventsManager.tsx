@@ -32,6 +32,7 @@ import type { ClubSection } from "@/src/api/types"
 import { http as axios } from "@/src/api/client"
 import { apiURL } from "@/src/Keycloak"
 import { useQuery } from "@tanstack/react-query"
+import { useDateFormat } from "@/src/hooks/useDateFormat"
 
 type Props = { clubId: string; canManage: boolean }
 
@@ -75,6 +76,7 @@ const emptyForm: FormState = {
 
 export const ClubEventsManager = ({ clubId, canManage }: Props) => {
   const { t } = useTranslation()
+  const { formatDateTime } = useDateFormat()
   const queryClient = useQueryClient()
   const [since] = useState(() => new Date().toISOString())
   const [form, setForm] = useState<FormState>(emptyForm)
@@ -403,8 +405,8 @@ export const ClubEventsManager = ({ clubId, canManage }: Props) => {
           </CardHeader>
           <CardContent className="space-y-2">
             <p className="text-muted-foreground text-sm">
-              {new Date(event.startDate).toLocaleString()}
-              {event.endDate ? ` – ${new Date(event.endDate).toLocaleString()}` : ""}
+              {formatDateTime(event.startDate)}
+              {event.endDate ? ` – ${formatDateTime(event.endDate)}` : ""}
               {event.location ? ` · ${event.location}` : ""}
             </p>
             {event.description ? (
