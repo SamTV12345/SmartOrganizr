@@ -7,11 +7,13 @@ import (
 	"api_go/routers"
 	"context"
 	"github.com/gofiber/fiber/v3"
-	"github.com/moby/moby/api/types/network"
 	mysql2 "github.com/testcontainers/testcontainers-go/modules/mysql"
+	"log"
+	"net"
 	"net/http"
 	"os"
 	"testing"
+	"time"
 )
 
 func init() {
@@ -31,7 +33,53 @@ func TestMain(m *testing.M) {
 }
 
 var mysqlInstance *mysql2.MySQLContainer = nil
-var port network.Port
+
+// resolveMySQLEndpoint returns a host:port pair that actually speaks MySQL.
+//
+// On Docker (including CI) that is the published port on the Docker host. On
+// Apple's `container` runtime — usable via socktainer's Docker API — published
+// ports accept the TCP connection but never forward any bytes, while the
+// container's own IP is fully reachable from the host. Rather than requiring an
+// environment switch, we probe the mapped port for MySQL's server greeting
+// (MySQL speaks first) and fall back to the container IP with the internal port.
+func resolveMySQLEndpoint(ctx context.Context) (string, int) {
+	host, err := mysqlInstance.Host(ctx)
+	if err != nil {
+		panic(err)
+	}
+	mapped, err := mysqlInstance.MappedPort(ctx, "3306")
+	if err == nil && greets(host, mapped.Port()) {
+		return host, int(mapped.Num())
+	}
+
+	containerIP, ipErr := mysqlInstance.ContainerIP(ctx)
+	if ipErr != nil || containerIP == "" {
+		if err != nil {
+			panic(err)
+		}
+		// No container IP to fall back to: keep the mapped port so the failure
+		// surfaces as a database error rather than as a nil-pointer panic.
+		return host, int(mapped.Num())
+	}
+	log.Printf("mapped MySQL port is not forwarding; using the container IP %s:3306 instead", containerIP)
+	return containerIP, 3306
+}
+
+// greets reports whether the endpoint sends data unprompted, which a live MySQL
+// server does immediately (the initial handshake packet).
+func greets(host, port string) bool {
+	conn, err := net.DialTimeout("tcp", net.JoinHostPort(host, port), 3*time.Second)
+	if err != nil {
+		return false
+	}
+	defer conn.Close()
+	if err := conn.SetReadDeadline(time.Now().Add(3 * time.Second)); err != nil {
+		return false
+	}
+	buf := make([]byte, 1)
+	n, err := conn.Read(buf)
+	return err == nil && n == 1
+}
 
 // testQueries gives tests direct DB access, e.g. to seed data owned by a
 // different user than the fixed test user "12345".
@@ -46,19 +94,12 @@ func SetupTest(t *testing.T) *fiber.App {
 			panic(err)
 		}
 	}
-	host, err := mysqlInstance.Host(ctx)
-	if err != nil {
-		panic(err)
-	}
-	port, err = mysqlInstance.MappedPort(ctx, "3306")
-	if err != nil {
-		panic(err)
-	}
+	host, dbPort := resolveMySQLEndpoint(ctx)
 	var appconfig = config.AppConfig{
 		Database: config.AppConfigDatabase{
 			Database: "test",
 			Host:     host,
-			Port:     int(port.Num()),
+			Port:     dbPort,
 			Password: "test",
 			User:     "test",
 		},
@@ -86,7 +127,7 @@ func SetupTest(t *testing.T) *fiber.App {
 	t.Cleanup(func() {
 		rawDB.Exec("SET FOREIGN_KEY_CHECKS = 0;")
 		rawDB.Exec("DELETE FROM note_in_concert")
-		err = db.DeleteAllConcerts(ctx)
+		err := db.DeleteAllConcerts(ctx)
 		if err != nil {
 			t.Fatalf("failed to delete all concerts: %v", err)
 		}
@@ -94,7 +135,7 @@ func SetupTest(t *testing.T) *fiber.App {
 		if err != nil {
 			t.Fatalf("failed to delete all data: %v", err)
 		}
-		err := db.DeleteAllAuthors(ctx)
+		err = db.DeleteAllAuthors(ctx)
 		if err != nil {
 			t.Fatalf("failed to delete all data: %v", err)
 		}
