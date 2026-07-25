@@ -11,12 +11,16 @@ import (
 type ClubFileService struct {
 	queries *db.Queries
 	ctx     context.Context
+	members ClubMemberService
+	hub     *NotificationHub
 }
 
-func NewClubFileService(queries *db.Queries) ClubFileService {
+func NewClubFileService(queries *db.Queries, members ClubMemberService, hub *NotificationHub) ClubFileService {
 	return ClubFileService{
 		queries: queries,
 		ctx:     context.Background(),
+		members: members,
+		hub:     hub,
 	}
 }
 
@@ -55,6 +59,9 @@ func (s *ClubFileService) Create(clubID string, name string, mimeType string, co
 	}); err != nil {
 		return models.ClubFile{}, err
 	}
+	// Pinboard posts trigger a live refresh; new files did not, although both
+	// live in the same club area.
+	s.publish(clubID, uploaderID, name)
 	return models.ClubFile{
 		ID:         id,
 		ClubID:     clubID,
@@ -63,6 +70,25 @@ func (s *ClubFileService) Create(clubID string, name string, mimeType string, co
 		SizeBytes:  size,
 		UploaderID: uploaderID,
 	}, nil
+}
+
+// publish notifies every member except the uploader, who already knows.
+func (s *ClubFileService) publish(clubID, uploaderID, name string) {
+	if s.hub == nil {
+		return
+	}
+	members, err := s.members.GetAllMembersForClub(clubID)
+	if err != nil {
+		return
+	}
+	for _, m := range *members {
+		if m.User.UserId == uploaderID {
+			continue
+		}
+		s.hub.Publish(m.User.UserId, NotificationEvent{
+			Type: NotifClubFile, ClubID: clubID, Preview: name,
+		})
+	}
 }
 
 func (s *ClubFileService) GetContent(clubID string, id string) (models.ClubFileContent, error) {

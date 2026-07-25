@@ -17,6 +17,7 @@ const (
 	NotifClubEventCancelled = "club_event_cancelled"
 	NotifClubEventResponse  = "club_event_response"
 	NotifPinboardPost       = "pinboard_post"
+	NotifClubFile           = "club_file"
 )
 
 // NotificationHub is an in-process pub/sub keyed by user id. A user may have

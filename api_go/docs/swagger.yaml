@@ -2418,6 +2418,14 @@ paths:
         name: chatId
         required: true
         type: string
+      - description: Page size (default 50)
+        in: query
+        name: limit
+        type: integer
+      - description: RFC3339 timestamp; returns the page strictly older than this
+        in: query
+        name: before
+        type: string
       produces:
       - application/json
       responses:

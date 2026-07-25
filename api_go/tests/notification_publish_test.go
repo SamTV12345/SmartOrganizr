@@ -129,3 +129,30 @@ func TestPinboardCreatePublishesToOtherMembers(t *testing.T) {
 	// The author does not get notified about their own post.
 	expectNoEvent(t, authorCh)
 }
+
+func TestClubFileUploadPublishesToMembers(t *testing.T) {
+	app := SetupTest(t)
+	clubID := createClubForTest(t, app)
+	seedClubMember(t, clubID, "file-listener", "MITGLIED")
+
+	hub := service.NewNotificationHub()
+	clubService := service.NewClubService(testQueries, service.NewAddressService(testQueries))
+	memberService := service.NewClubMemberService(testQueries, clubService)
+	fileService := service.NewClubFileService(testQueries, memberService, hub)
+
+	memberCh, unsubMember := hub.Subscribe("file-listener")
+	defer unsubMember()
+	uploaderCh, unsubUploader := hub.Subscribe("12345")
+	defer unsubUploader()
+
+	if _, err := fileService.Create(clubID, "Probenplan.pdf", "application/pdf", []byte("%PDF-1.4"), "12345"); err != nil {
+		t.Fatalf("upload file: %v", err)
+	}
+
+	ev := expectEvent(t, memberCh, "club_file")
+	if ev.ClubID != clubID || ev.Preview != "Probenplan.pdf" {
+		t.Fatalf("unexpected payload: %+v", ev)
+	}
+	// The uploader knows already.
+	expectNoEvent(t, uploaderCh)
+}

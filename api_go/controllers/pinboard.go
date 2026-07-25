@@ -31,7 +31,9 @@ func GetClubPinboard(c fiber.Ctx) error {
 		return err
 	}
 	pinboardService := GetLocal[service.PinboardService](c, constants.PinboardService)
-	posts, err := pinboardService.ListForClub(clubID)
+	limit, _ := strconv.Atoi(c.Query("limit"))
+	offset, _ := strconv.Atoi(c.Query("offset"))
+	posts, err := pinboardService.ListForClub(clubID, limit, offset)
 	if err != nil {
 		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
 	}

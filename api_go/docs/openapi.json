@@ -1689,6 +1689,22 @@
                         "schema": {
                             "type": "string"
                         }
+                    },
+                    {
+                        "description": "Page size (default 50)",
+                        "name": "limit",
+                        "in": "query",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "description": "RFC3339 timestamp; returns the page strictly older than this",
+                        "name": "before",
+                        "in": "query",
+                        "schema": {
+                            "type": "string"
+                        }
                     }
                 ],
                 "responses": {

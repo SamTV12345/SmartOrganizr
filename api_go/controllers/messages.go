@@ -5,8 +5,11 @@ import (
 	"api_go/controllers/dto"
 	"api_go/models"
 	"api_go/service"
-	"github.com/gofiber/fiber/v3"
+	"strconv"
+	"strings"
 	"time"
+
+	"github.com/gofiber/fiber/v3"
 )
 
 // GetClubMessageCandidates godoc
@@ -87,7 +90,9 @@ func CreateClubChat(c fiber.Ctx) error {
 // @Tags     messages
 // @Produce  json
 // @Param    clubId  path  string  true  "Club ID"
-// @Param    chatId  path  string  true  "Chat ID"
+// @Param    chatId  path   string  true   "Chat ID"
+// @Param    limit   query  int     false  "Page size (default 50)"
+// @Param    before  query  string  false  "RFC3339 timestamp; returns the page strictly older than this"
 // @Success  200     {array}  dto.ClubChatMessageDto
 // @Router   /v1/clubs/{clubId}/messages/chats/{chatId} [get]
 func GetClubChatMessages(c fiber.Ctx) error {
@@ -95,8 +100,17 @@ func GetClubChatMessages(c fiber.Ctx) error {
 	requesterID := GetLocal[string](c, "userId")
 	clubID := c.Params("clubId")
 	chatID := c.Params("chatId")
+	// Unparseable paging hints are ignored rather than rejected: a broken query
+	// string should still show the chat.
+	limit, _ := strconv.Atoi(c.Query("limit"))
+	var before *time.Time
+	if raw := strings.TrimSpace(c.Query("before")); raw != "" {
+		if parsed, err := time.Parse(time.RFC3339, raw); err == nil {
+			before = &parsed
+		}
+	}
 
-	messages, err := messageService.GetChatMessages(clubID, chatID, requesterID)
+	messages, err := messageService.GetChatMessages(clubID, chatID, requesterID, limit, before)
 	if err != nil {
 		return fiber.NewError(fiber.StatusBadRequest, err.Error())
 	}

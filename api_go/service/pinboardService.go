@@ -24,8 +24,20 @@ func NewPinboardService(queries *db.Queries, members ClubMemberService, hub *Not
 	}
 }
 
-func (p *PinboardService) ListForClub(clubID string) ([]models.PinboardPost, error) {
-	rows, err := p.queries.ListPinboardPostsForClub(p.ctx, clubID)
+const pinboardDefaultLimit = 20
+
+// ListForClub returns one page of the pinboard, pinned posts first. It used to
+// return every post of the club in one response.
+func (p *PinboardService) ListForClub(clubID string, limit, offset int) ([]models.PinboardPost, error) {
+	if limit <= 0 {
+		limit = pinboardDefaultLimit
+	}
+	if offset < 0 {
+		offset = 0
+	}
+	rows, err := p.queries.ListPinboardPostsForClub(p.ctx, db.ListPinboardPostsForClubParams{
+		ClubID: clubID, Limit: int32(limit), Offset: int32(offset),
+	})
 	if err != nil {
 		return nil, err
 	}

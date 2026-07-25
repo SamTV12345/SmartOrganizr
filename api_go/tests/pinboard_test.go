@@ -3,6 +3,7 @@ package tests
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 	"testing"
@@ -117,5 +118,74 @@ func TestRecentPinboardForUserIncludesClubName(t *testing.T) {
 	}
 	if posts[0].ClubID != clubID {
 		t.Fatalf("expected clubId %s, got %s", clubID, posts[0].ClubID)
+	}
+}
+
+func TestPinboardIsPagedWithPinnedFirst(t *testing.T) {
+	app := SetupTest(t)
+	clubID := createClubForTest(t, app)
+
+	// 25 posts, the last one pinned so it has to lead the first page.
+	for i := 0; i < 25; i++ {
+		body := map[string]any{
+			"title":  fmt.Sprintf("Beitrag %02d", i),
+			"body":   "Inhalt",
+			"pinned": i == 24,
+		}
+		if res := postJSON(t, app, "http://localhost/api/v1/clubs/"+clubID+"/pinboard", body); res.StatusCode != http.StatusOK {
+			raw, _ := io.ReadAll(res.Body)
+			t.Fatalf("create post %d: got %d: %s", i, res.StatusCode, string(raw))
+		}
+	}
+
+	list := func(query string) []struct {
+		Title  string `json:"title"`
+		Pinned bool   `json:"pinned"`
+	} {
+		t.Helper()
+		url := "http://localhost/api/v1/clubs/" + clubID + "/pinboard"
+		if query != "" {
+			url += "?" + query
+		}
+		res := doRequest(t, app, "GET", url)
+		if res.StatusCode != http.StatusOK {
+			t.Fatalf("list pinboard: got %d", res.StatusCode)
+		}
+		var posts []struct {
+			Title  string `json:"title"`
+			Pinned bool   `json:"pinned"`
+		}
+		raw, _ := io.ReadAll(res.Body)
+		if err := json.Unmarshal(raw, &posts); err != nil {
+			t.Fatalf("decode posts: %v (%s)", err, string(raw))
+		}
+		return posts
+	}
+
+	first := list("")
+	if len(first) != 20 {
+		t.Fatalf("default page should hold 20 posts, got %d", len(first))
+	}
+	if !first[0].Pinned {
+		t.Fatalf("pinned post must lead the page, got %+v", first[0])
+	}
+
+	second := list("limit=10&offset=20")
+	if len(second) != 5 {
+		t.Fatalf("second page should hold the remaining 5 posts, got %d", len(second))
+	}
+	seen := map[string]bool{}
+	for _, post := range first {
+		seen[post.Title] = true
+	}
+	for _, post := range second {
+		if seen[post.Title] {
+			t.Fatalf("pages overlap at %q", post.Title)
+		}
+	}
+
+	// Garbage falls back to the default page instead of erroring.
+	if got := list("limit=abc&offset=-3"); len(got) != 20 {
+		t.Fatalf("garbage paging should fall back to 20, got %d", len(got))
 	}
 }

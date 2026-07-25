@@ -492,7 +492,10 @@ ORDER BY COALESCE(cm.created_at, cc.created_at) DESC;
 INSERT INTO club_chat_message (id, chat_id, sender_user_id, content)
 VALUES (?, ?, ?, ?);
 
--- name: ListClubChatMessages :many
+-- Newest page of a chat. Ordered descending so LIMIT takes the latest
+-- messages; the service flips it back to ascending for rendering. created_at
+-- has second resolution, hence the id tiebreaker.
+-- name: ListClubChatMessagesLatest :many
 SELECT
     cm.id,
     cm.chat_id,
@@ -506,8 +509,26 @@ SELECT
 FROM club_chat_message cm
 JOIN user u ON u.id = cm.sender_user_id
 WHERE cm.chat_id = ?
-ORDER BY cm.created_at ASC
-LIMIT 500;
+ORDER BY cm.created_at DESC, cm.id DESC
+LIMIT ?;
+
+-- One page further back, strictly older than the given timestamp.
+-- name: ListClubChatMessagesBefore :many
+SELECT
+    cm.id,
+    cm.chat_id,
+    cm.sender_user_id,
+    u.username AS sender_username,
+    u.firstname AS sender_firstname,
+    u.lastname AS sender_lastname,
+    u.email AS sender_email,
+    cm.content,
+    cm.created_at
+FROM club_chat_message cm
+JOIN user u ON u.id = cm.sender_user_id
+WHERE cm.chat_id = ? AND cm.created_at < ?
+ORDER BY cm.created_at DESC, cm.id DESC
+LIMIT ?;
 
 -- name: ListClubChatCandidates :many
 SELECT u.id AS user_id, u.username, u.firstname, u.lastname, u.email
@@ -562,7 +583,8 @@ SELECT
 FROM club_pinboard_post p
 JOIN user u ON u.id = p.author_user_id
 WHERE p.club_id = ?
-ORDER BY p.pinned DESC, p.created_at DESC;
+ORDER BY p.pinned DESC, p.created_at DESC
+LIMIT ? OFFSET ?;
 
 -- name: ListRecentPinboardPostsForUser :many
 SELECT

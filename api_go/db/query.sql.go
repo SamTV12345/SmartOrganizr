@@ -3376,7 +3376,77 @@ func (q *Queries) ListClubChatCandidates(ctx context.Context, arg ListClubChatCa
 	return items, nil
 }
 
-const listClubChatMessages = `-- name: ListClubChatMessages :many
+const listClubChatMessagesBefore = `-- name: ListClubChatMessagesBefore :many
+SELECT
+    cm.id,
+    cm.chat_id,
+    cm.sender_user_id,
+    u.username AS sender_username,
+    u.firstname AS sender_firstname,
+    u.lastname AS sender_lastname,
+    u.email AS sender_email,
+    cm.content,
+    cm.created_at
+FROM club_chat_message cm
+JOIN user u ON u.id = cm.sender_user_id
+WHERE cm.chat_id = ? AND cm.created_at < ?
+ORDER BY cm.created_at DESC, cm.id DESC
+LIMIT ?
+`
+
+type ListClubChatMessagesBeforeParams struct {
+	ChatID    string
+	CreatedAt time.Time
+	Limit     int32
+}
+
+type ListClubChatMessagesBeforeRow struct {
+	ID              string
+	ChatID          string
+	SenderUserID    string
+	SenderUsername  sql.NullString
+	SenderFirstname sql.NullString
+	SenderLastname  sql.NullString
+	SenderEmail     sql.NullString
+	Content         string
+	CreatedAt       time.Time
+}
+
+// One page further back, strictly older than the given timestamp.
+func (q *Queries) ListClubChatMessagesBefore(ctx context.Context, arg ListClubChatMessagesBeforeParams) ([]ListClubChatMessagesBeforeRow, error) {
+	rows, err := q.db.QueryContext(ctx, listClubChatMessagesBefore, arg.ChatID, arg.CreatedAt, arg.Limit)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ListClubChatMessagesBeforeRow
+	for rows.Next() {
+		var i ListClubChatMessagesBeforeRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.ChatID,
+			&i.SenderUserID,
+			&i.SenderUsername,
+			&i.SenderFirstname,
+			&i.SenderLastname,
+			&i.SenderEmail,
+			&i.Content,
+			&i.CreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listClubChatMessagesLatest = `-- name: ListClubChatMessagesLatest :many
 SELECT
     cm.id,
     cm.chat_id,
@@ -3390,11 +3460,16 @@ SELECT
 FROM club_chat_message cm
 JOIN user u ON u.id = cm.sender_user_id
 WHERE cm.chat_id = ?
-ORDER BY cm.created_at ASC
-LIMIT 500
+ORDER BY cm.created_at DESC, cm.id DESC
+LIMIT ?
 `
 
-type ListClubChatMessagesRow struct {
+type ListClubChatMessagesLatestParams struct {
+	ChatID string
+	Limit  int32
+}
+
+type ListClubChatMessagesLatestRow struct {
 	ID              string
 	ChatID          string
 	SenderUserID    string
@@ -3406,15 +3481,18 @@ type ListClubChatMessagesRow struct {
 	CreatedAt       time.Time
 }
 
-func (q *Queries) ListClubChatMessages(ctx context.Context, chatID string) ([]ListClubChatMessagesRow, error) {
-	rows, err := q.db.QueryContext(ctx, listClubChatMessages, chatID)
+// Newest page of a chat. Ordered descending so LIMIT takes the latest
+// messages; the service flips it back to ascending for rendering. created_at
+// has second resolution, hence the id tiebreaker.
+func (q *Queries) ListClubChatMessagesLatest(ctx context.Context, arg ListClubChatMessagesLatestParams) ([]ListClubChatMessagesLatestRow, error) {
+	rows, err := q.db.QueryContext(ctx, listClubChatMessagesLatest, arg.ChatID, arg.Limit)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []ListClubChatMessagesRow
+	var items []ListClubChatMessagesLatestRow
 	for rows.Next() {
-		var i ListClubChatMessagesRow
+		var i ListClubChatMessagesLatestRow
 		if err := rows.Scan(
 			&i.ID,
 			&i.ChatID,
@@ -4062,7 +4140,14 @@ FROM club_pinboard_post p
 JOIN user u ON u.id = p.author_user_id
 WHERE p.club_id = ?
 ORDER BY p.pinned DESC, p.created_at DESC
+LIMIT ? OFFSET ?
 `
+
+type ListPinboardPostsForClubParams struct {
+	ClubID string
+	Limit  int32
+	Offset int32
+}
 
 type ListPinboardPostsForClubRow struct {
 	ID              string
@@ -4078,8 +4163,8 @@ type ListPinboardPostsForClubRow struct {
 	UpdatedAt       time.Time
 }
 
-func (q *Queries) ListPinboardPostsForClub(ctx context.Context, clubID string) ([]ListPinboardPostsForClubRow, error) {
-	rows, err := q.db.QueryContext(ctx, listPinboardPostsForClub, clubID)
+func (q *Queries) ListPinboardPostsForClub(ctx context.Context, arg ListPinboardPostsForClubParams) ([]ListPinboardPostsForClubRow, error) {
+	rows, err := q.db.QueryContext(ctx, listPinboardPostsForClub, arg.ClubID, arg.Limit, arg.Offset)
 	if err != nil {
 		return nil, err
 	}

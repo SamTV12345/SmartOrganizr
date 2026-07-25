@@ -140,7 +140,7 @@ func SetupRouter(queries *db.Queries, config config.AppConfig, logger *zap.Sugar
 	var notificationHub = service.NewNotificationHub()
 	var messageService = service.NewMessageService(queries, notificationHub)
 	var pinboardService = service.NewPinboardService(queries, clubMemberService, notificationHub)
-	var clubFileService = service.NewClubFileService(queries)
+	var clubFileService = service.NewClubFileService(queries, clubMemberService, notificationHub)
 	var clubEventService = service.NewClubEventService(queries, clubMemberService, notificationHub)
 
 	var wikidataService = service.NewWikidataService(

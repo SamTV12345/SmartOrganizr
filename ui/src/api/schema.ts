@@ -1783,7 +1783,12 @@ export interface paths {
         /** List messages in a chat */
         get: {
             parameters: {
-                query?: never;
+                query?: {
+                    /** @description Page size (default 50) */
+                    limit?: number;
+                    /** @description RFC3339 timestamp; returns the page strictly older than this */
+                    before?: string;
+                };
                 header?: never;
                 path: {
                     /** @description Club ID */

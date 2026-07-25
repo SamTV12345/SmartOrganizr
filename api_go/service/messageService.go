@@ -155,17 +155,60 @@ func (m *MessageService) CreateChat(clubID string, requesterID string, recipient
 	return chatID, nil
 }
 
-func (m *MessageService) GetChatMessages(clubID string, chatID string, requesterID string) ([]models.ClubChatMessage, error) {
+const chatMessagesDefaultLimit = 50
+
+// GetChatMessages returns one page of a chat, oldest first (the order the UI
+// renders). Paging goes backwards in time: without `before` the newest page is
+// returned, with it the page strictly older than that timestamp. Before this the
+// endpoint always shipped up to 500 messages and offered no way further back.
+func (m *MessageService) GetChatMessages(clubID string, chatID string, requesterID string, limit int, before *time.Time) ([]models.ClubChatMessage, error) {
 	if err := m.ensureMessagingAllowed(clubID, requesterID); err != nil {
 		return nil, err
 	}
 	if err := m.ensureChatAccessible(clubID, chatID, requesterID); err != nil {
 		return nil, err
 	}
+	if limit <= 0 {
+		limit = chatMessagesDefaultLimit
+	}
 
-	rows, err := m.queries.ListClubChatMessages(m.ctx, chatID)
-	if err != nil {
-		return nil, err
+	type chatRow struct {
+		ID              string
+		ChatID          string
+		SenderUserID    string
+		SenderUsername  sql.NullString
+		SenderFirstname sql.NullString
+		SenderLastname  sql.NullString
+		SenderEmail     sql.NullString
+		Content         string
+		CreatedAt       time.Time
+	}
+	var rows []chatRow
+	if before != nil {
+		found, err := m.queries.ListClubChatMessagesBefore(m.ctx, db.ListClubChatMessagesBeforeParams{
+			ChatID: chatID, CreatedAt: *before, Limit: int32(limit),
+		})
+		if err != nil {
+			return nil, err
+		}
+		for _, r := range found {
+			rows = append(rows, chatRow(r))
+		}
+	} else {
+		found, err := m.queries.ListClubChatMessagesLatest(m.ctx, db.ListClubChatMessagesLatestParams{
+			ChatID: chatID, Limit: int32(limit),
+		})
+		if err != nil {
+			return nil, err
+		}
+		for _, r := range found {
+			rows = append(rows, chatRow(r))
+		}
+	}
+
+	// Queried newest-first so LIMIT keeps the latest; flip for rendering.
+	for i, j := 0, len(rows)-1; i < j; i, j = i+1, j-1 {
+		rows[i], rows[j] = rows[j], rows[i]
 	}
 
 	items := make([]models.ClubChatMessage, 0, len(rows))

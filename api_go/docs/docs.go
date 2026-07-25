@@ -1557,6 +1557,18 @@ const docTemplate = `{
                         "name": "chatId",
                         "in": "path",
                         "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Page size (default 50)",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "RFC3339 timestamp; returns the page strictly older than this",
+                        "name": "before",
+                        "in": "query"
                     }
                 ],
                 "responses": {

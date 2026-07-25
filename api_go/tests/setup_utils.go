@@ -6,6 +6,8 @@ import (
 	"api_go/logger"
 	"api_go/routers"
 	"context"
+	"database/sql"
+
 	"github.com/gofiber/fiber/v3"
 	mysql2 "github.com/testcontainers/testcontainers-go/modules/mysql"
 	"log"
@@ -85,6 +87,11 @@ func greets(host, port string) bool {
 // different user than the fixed test user "12345".
 var testQueries *db2.Queries
 
+// testDB is the same connection behind testQueries, for the rare seeding step
+// that has no generated query — e.g. stamping rows with explicit timestamps.
+// Production SQL stays free of test-only helpers this way.
+var testDB *sql.DB
+
 func SetupTest(t *testing.T) *fiber.App {
 	ctx := context.Background()
 	if mysqlInstance == nil {
@@ -116,6 +123,7 @@ func SetupTest(t *testing.T) *fiber.App {
 
 	var db, rawDB = db2.Setup(appconfig.Database)
 	testQueries = db
+	testDB = rawDB
 	setupLogger := logger.SetupLogger()
 	var app = routers.SetupRouter(db, appconfig, setupLogger)
 	var syncUser, _ = http.NewRequest("PUT", "http://localhost/api/v1/users/", nil)
