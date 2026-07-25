@@ -110,6 +110,56 @@ func PostInventorySweepComplete(c fiber.Ctx) error {
 	return c.JSON(report)
 }
 
+// DeleteInventorySweep godoc
+// @Summary  Cancel an unfinished sweep
+// @Tags     inventory
+// @Param    sweepId  path  string  true  "Sweep ID"
+// @Success  204
+// @Failure  404  {object}  dto.Error  "unknown or foreign sweep"
+// @Failure  409  {object}  dto.Error  "sweep is already completed"
+// @Router   /v1/inventory/sweeps/{sweepId} [delete]
+func DeleteInventorySweep(c fiber.Ctx) error {
+	userID := GetLocal[string](c, "userId")
+	if err := inventoryService(c).CancelSweep(userID, c.Params("sweepId")); err != nil {
+		return mapInventoryError(err)
+	}
+	return c.SendStatus(fiber.StatusNoContent)
+}
+
+// GetInventorySweeps godoc
+// @Summary  List the caller's recent completed sweeps
+// @Tags     inventory
+// @Produce  json
+// @Param    limit  query  int  false  "Maximum number of sweeps (default 20)"
+// @Success  200    {array}  service.SweepHistoryEntry
+// @Router   /v1/inventory/sweeps [get]
+func GetInventorySweeps(c fiber.Ctx) error {
+	userID := GetLocal[string](c, "userId")
+	limit, _ := strconv.Atoi(c.Query("limit"))
+	history, err := inventoryService(c).SweepHistory(userID, limit)
+	if err != nil {
+		return mapInventoryError(err)
+	}
+	return c.JSON(history)
+}
+
+// GetInventorySweepDetail godoc
+// @Summary  Sightings recorded by one sweep
+// @Tags     inventory
+// @Produce  json
+// @Param    sweepId  path  string  true  "Sweep ID"
+// @Success  200      {object}  service.SweepDetail
+// @Failure  404      {object}  dto.Error  "unknown or foreign sweep"
+// @Router   /v1/inventory/sweeps/{sweepId} [get]
+func GetInventorySweepDetail(c fiber.Ctx) error {
+	userID := GetLocal[string](c, "userId")
+	detail, err := inventoryService(c).SweepDetail(userID, c.Params("sweepId"))
+	if err != nil {
+		return mapInventoryError(err)
+	}
+	return c.JSON(detail)
+}
+
 // PostInventoryApplyMoves godoc
 // @Summary  Move sighted notes into the swept folder
 // @Tags     inventory

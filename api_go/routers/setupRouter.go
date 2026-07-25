@@ -342,6 +342,9 @@ func SetupRouter(queries *db.Queries, config config.AppConfig, logger *zap.Sugar
 	profile.Route("v1/inventory", func(r fiber.Router) {
 		r.Post("/identify", controllers.PostInventoryIdentify)
 		r.Post("/sweeps", controllers.PostInventorySweep)
+		r.Get("/sweeps", controllers.GetInventorySweeps)
+		r.Get("/sweeps/:sweepId", controllers.GetInventorySweepDetail)
+		r.Delete("/sweeps/:sweepId", controllers.DeleteInventorySweep)
 		r.Post("/sweeps/:sweepId/sightings", controllers.PostInventorySighting)
 		r.Post("/sweeps/:sweepId/complete", controllers.PostInventorySweepComplete)
 		r.Post("/sweeps/:sweepId/apply-moves", controllers.PostInventoryApplyMoves)

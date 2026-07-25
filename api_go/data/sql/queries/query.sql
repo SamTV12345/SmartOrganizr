@@ -803,6 +803,11 @@ SELECT * FROM inventory_sweep WHERE id = ?;
 -- name: CompleteInventorySweep :exec
 UPDATE inventory_sweep SET completed_at = CURRENT_TIMESTAMP WHERE id = ?;
 
+-- Only unfinished sweeps are cancellable; completed ones are history and must
+-- not vanish. Sightings follow via ON DELETE CASCADE.
+-- name: DeleteIncompleteInventorySweep :execrows
+DELETE FROM inventory_sweep WHERE id = ? AND user_fk = ? AND completed_at IS NULL;
+
 -- name: CreateInventorySighting :execrows
 INSERT IGNORE INTO inventory_sighting (sweep_fk, note_fk, matched_via, confidence, incomplete)
 VALUES (?, ?, ?, ?, ?);

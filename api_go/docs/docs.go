@@ -2731,6 +2731,34 @@ const docTemplate = `{
             }
         },
         "/v1/inventory/sweeps": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "inventory"
+                ],
+                "summary": "List the caller's recent completed sweeps",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Maximum number of sweeps (default 20)",
+                        "name": "limit",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/service.SweepHistoryEntry"
+                            }
+                        }
+                    }
+                }
+            },
             "post": {
                 "consumes": [
                     "application/json"
@@ -2758,6 +2786,72 @@ const docTemplate = `{
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/dto.InventorySweepCreatedResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/inventory/sweeps/{sweepId}": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "inventory"
+                ],
+                "summary": "Sightings recorded by one sweep",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Sweep ID",
+                        "name": "sweepId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/service.SweepDetail"
+                        }
+                    },
+                    "404": {
+                        "description": "unknown or foreign sweep",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Error"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "inventory"
+                ],
+                "summary": "Cancel an unfinished sweep",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Sweep ID",
+                        "name": "sweepId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    },
+                    "404": {
+                        "description": "unknown or foreign sweep",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Error"
+                        }
+                    },
+                    "409": {
+                        "description": "sweep is already completed",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Error"
                         }
                     }
                 }
@@ -4434,6 +4528,17 @@ const docTemplate = `{
                 }
             }
         },
+        "dto.Error": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "integer"
+                },
+                "message": {
+                    "type": "string"
+                }
+            }
+        },
         "dto.Event": {
             "type": "object",
             "required": [
@@ -5315,6 +5420,9 @@ const docTemplate = `{
                 "folderName": {
                     "type": "string"
                 },
+                "inventoryNo": {
+                    "type": "integer"
+                },
                 "lastSeenAt": {
                     "type": "string"
                 },
@@ -5400,6 +5508,49 @@ const docTemplate = `{
                 }
             }
         },
+        "service.SweepDetail": {
+            "type": "object",
+            "properties": {
+                "completedAt": {
+                    "type": "string"
+                },
+                "folderId": {
+                    "type": "string"
+                },
+                "folderName": {
+                    "type": "string"
+                },
+                "sightings": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/service.SweepSighting"
+                    }
+                },
+                "sweepId": {
+                    "type": "string"
+                }
+            }
+        },
+        "service.SweepHistoryEntry": {
+            "type": "object",
+            "properties": {
+                "completedAt": {
+                    "type": "string"
+                },
+                "folderId": {
+                    "type": "string"
+                },
+                "folderName": {
+                    "type": "string"
+                },
+                "sightingCount": {
+                    "type": "integer"
+                },
+                "sweepId": {
+                    "type": "string"
+                }
+            }
+        },
         "service.SweepReport": {
             "type": "object",
             "properties": {
@@ -5426,6 +5577,26 @@ const docTemplate = `{
                     "items": {
                         "$ref": "#/definitions/service.ReportEntry"
                     }
+                }
+            }
+        },
+        "service.SweepSighting": {
+            "type": "object",
+            "properties": {
+                "incomplete": {
+                    "type": "boolean"
+                },
+                "inventoryNo": {
+                    "type": "integer"
+                },
+                "matchedVia": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "noteId": {
+                    "type": "string"
                 }
             }
         }

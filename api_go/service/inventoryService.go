@@ -7,6 +7,7 @@ import (
 	"errors"
 	"sort"
 	"strings"
+	"time"
 
 	"github.com/google/uuid"
 )
@@ -272,6 +273,7 @@ func toInt64(v interface{}) int64 {
 type InventoryLookup struct {
 	NoteID         string  `json:"noteId"`
 	Name           string  `json:"name"`
+	InventoryNo    *int32  `json:"inventoryNo,omitempty"`
 	FolderID       string  `json:"folderId,omitempty"`
 	FolderName     string  `json:"folderName,omitempty"`
 	LastSeenAt     *string `json:"lastSeenAt,omitempty"`
@@ -288,7 +290,7 @@ func (s *InventoryService) Lookup(userID string, no int32) (InventoryLookup, err
 		return InventoryLookup{}, ErrInventoryNotFound
 	}
 	out := InventoryLookup{
-		NoteID: row.ID, Name: row.Name.String,
+		NoteID: row.ID, Name: row.Name.String, InventoryNo: &no,
 		FolderID: row.Parent.String, FolderName: row.ParentName.String,
 	}
 	if sightings, err := s.queries.FindLastSightingsForNotes(s.ctx, []string{row.ID}); err == nil && len(sightings) > 0 {
@@ -510,6 +512,146 @@ func (s *InventoryService) CompleteSweep(userID, sweepID string) (SweepReport, e
 	return report, nil
 }
 
+// CancelSweep discards an unfinished sweep. Without it, leaving the sweep
+// screen left a row with completed_at IS NULL behind forever. Completed sweeps
+// are history and are refused with ErrSweepCompleted.
+func (s *InventoryService) CancelSweep(userID, sweepID string) error {
+	sweep, err := s.ownedSweep(userID, sweepID)
+	if err != nil {
+		return err
+	}
+	if sweep.CompletedAt.Valid {
+		return ErrSweepCompleted
+	}
+	affected, err := s.queries.DeleteIncompleteInventorySweep(s.ctx, db.DeleteIncompleteInventorySweepParams{
+		ID: sweepID, UserFk: userID,
+	})
+	if err != nil {
+		return err
+	}
+	if affected == 0 {
+		// Completed between the check and the delete.
+		return ErrSweepCompleted
+	}
+	return nil
+}
+
+// SweepHistoryEntry is one past sweep in the overview.
+type SweepHistoryEntry struct {
+	SweepID       string `json:"sweepId"`
+	FolderID      string `json:"folderId"`
+	FolderName    string `json:"folderName"`
+	CompletedAt   string `json:"completedAt"`
+	SightingCount int    `json:"sightingCount"`
+}
+
+// SweepSighting is one recorded sighting in a past sweep.
+type SweepSighting struct {
+	NoteID      string `json:"noteId"`
+	Name        string `json:"name"`
+	MatchedVia  string `json:"matchedVia"`
+	InventoryNo *int32 `json:"inventoryNo,omitempty"`
+	Incomplete  bool   `json:"incomplete"`
+}
+
+// SweepDetail is what a past sweep actually established: which notes were seen
+// in that Mappe at that time. Deliberately not a recomputed diff — "missing" is
+// defined against the note's *current* parent, so recomputing it later would
+// report movements that had not happened when the sweep ran.
+type SweepDetail struct {
+	SweepID     string          `json:"sweepId"`
+	FolderID    string          `json:"folderId"`
+	FolderName  string          `json:"folderName"`
+	CompletedAt string          `json:"completedAt,omitempty"`
+	Sightings   []SweepSighting `json:"sightings"`
+}
+
+const sweepHistoryDefaultLimit = 20
+
+// SweepHistory lists the user's most recent completed sweeps, newest first.
+func (s *InventoryService) SweepHistory(userID string, limit int) ([]SweepHistoryEntry, error) {
+	if limit <= 0 {
+		limit = sweepHistoryDefaultLimit
+	}
+	sweeps, err := s.queries.ListCompletedSweepsForUser(s.ctx, userID)
+	if err != nil {
+		return nil, err
+	}
+	if len(sweeps) > limit {
+		sweeps = sweeps[:limit]
+	}
+	out := make([]SweepHistoryEntry, 0, len(sweeps))
+	if len(sweeps) == 0 {
+		return out, nil
+	}
+
+	ids := make([]string, 0, len(sweeps))
+	for _, sweep := range sweeps {
+		ids = append(ids, sweep.ID)
+	}
+	counts := map[string]int{}
+	if sightings, err := s.queries.ListSightingsForSweeps(s.ctx, ids); err == nil {
+		for _, sighting := range sightings {
+			counts[sighting.SweepFk]++
+		}
+	}
+
+	for _, sweep := range sweeps {
+		entry := SweepHistoryEntry{
+			SweepID:       sweep.ID,
+			FolderID:      sweep.FolderFk,
+			FolderName:    sweep.FolderName.String,
+			SightingCount: counts[sweep.ID],
+		}
+		if sweep.CompletedAt.Valid {
+			entry.CompletedAt = sweep.CompletedAt.Time.Format(time.RFC3339)
+		}
+		out = append(out, entry)
+	}
+	return out, nil
+}
+
+// SweepDetail returns the sightings of one of the caller's sweeps.
+func (s *InventoryService) SweepDetail(userID, sweepID string) (SweepDetail, error) {
+	sweep, err := s.ownedSweep(userID, sweepID)
+	if err != nil {
+		return SweepDetail{}, err
+	}
+	folder, err := s.queries.FindFolderById(s.ctx, db.FindFolderByIdParams{
+		ID: sweep.FolderFk, UserIDFk: db.NewSQLNullString(userID),
+	})
+	if err != nil {
+		return SweepDetail{}, ErrInventoryNotFound
+	}
+	sightings, err := s.queries.ListSightingsForSweep(s.ctx, sweepID)
+	if err != nil {
+		return SweepDetail{}, err
+	}
+	out := SweepDetail{
+		SweepID:    sweep.ID,
+		FolderID:   sweep.FolderFk,
+		FolderName: folder.Name.String,
+		Sightings:  make([]SweepSighting, 0, len(sightings)),
+	}
+	if sweep.CompletedAt.Valid {
+		out.CompletedAt = sweep.CompletedAt.Time.Format(time.RFC3339)
+	}
+	for _, sighting := range sightings {
+		entry := SweepSighting{
+			NoteID:     sighting.NoteFk,
+			Name:       sighting.NoteName.String,
+			MatchedVia: string(sighting.MatchedVia),
+			Incomplete: sighting.Incomplete,
+		}
+		if sighting.InventoryNo.Valid {
+			no := sighting.InventoryNo.Int32
+			entry.InventoryNo = &no
+		}
+		out.Sightings = append(out.Sightings, entry)
+	}
+	return out, nil
+}
+
 // ApplyMoves re-homes sighted notes to the swept folder (updates parent).
 func (s *InventoryService) ApplyMoves(userID, sweepID string, noteIDs []string) error {
 	sweep, err := s.ownedSweep(userID, sweepID)
@@ -673,6 +815,12 @@ func (s *InventoryService) LastSeen(userID, noteID string) (*InventoryLookup, er
 		return nil, ErrInventoryNotFound
 	}
 	out := &InventoryLookup{NoteID: note.ID, Name: note.Name.String}
+	// The stamped number is what the note detail page shows as "Nr. 421"; it is
+	// independent of whether the note was ever sighted.
+	if note.InventoryNo.Valid {
+		no := note.InventoryNo.Int32
+		out.InventoryNo = &no
+	}
 	sightings, err := s.queries.FindLastSightingsForNotes(s.ctx, []string{noteID})
 	if err != nil || len(sightings) == 0 {
 		return out, nil

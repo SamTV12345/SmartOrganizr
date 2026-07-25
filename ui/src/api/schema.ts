@@ -3101,7 +3101,30 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get?: never;
+        /** List the caller's recent completed sweeps */
+        get: {
+            parameters: {
+                query?: {
+                    /** @description Maximum number of sweeps (default 20) */
+                    limit?: number;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["service.SweepHistoryEntry"][];
+                    };
+                };
+            };
+        };
         put?: never;
         /** Start an inventory sweep for a folder (Mappe) */
         post: {
@@ -3130,6 +3153,93 @@ export interface paths {
             };
         };
         delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/inventory/sweeps/{sweepId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Sightings recorded by one sweep */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Sweep ID */
+                    sweepId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["service.SweepDetail"];
+                    };
+                };
+                /** @description unknown or foreign sweep */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["dto.Error"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        /** Cancel an unfinished sweep */
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Sweep ID */
+                    sweepId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description No Content */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description unknown or foreign sweep */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "*/*": components["schemas"]["dto.Error"];
+                    };
+                };
+                /** @description sweep is already completed */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "*/*": components["schemas"]["dto.Error"];
+                    };
+                };
+            };
+        };
         options?: never;
         head?: never;
         patch?: never;
@@ -4351,6 +4461,10 @@ export interface components {
             noteIds?: string[];
             title: string;
         };
+        "dto.Error": {
+            code?: number;
+            message?: string;
+        };
         "dto.Event": {
             description?: string;
             endDate?: string;
@@ -4609,6 +4723,7 @@ export interface components {
         "service.InventoryLookup": {
             folderId?: string;
             folderName?: string;
+            inventoryNo?: number;
             lastSeenAt?: string;
             lastSeenFolder?: string;
             name?: string;
@@ -4639,11 +4754,32 @@ export interface components {
             inventoryNo?: number;
             noteName?: string;
         };
+        "service.SweepDetail": {
+            completedAt?: string;
+            folderId?: string;
+            folderName?: string;
+            sightings?: components["schemas"]["service.SweepSighting"][];
+            sweepId?: string;
+        };
+        "service.SweepHistoryEntry": {
+            completedAt?: string;
+            folderId?: string;
+            folderName?: string;
+            sightingCount?: number;
+            sweepId?: string;
+        };
         "service.SweepReport": {
             incomplete?: components["schemas"]["service.ReportEntry"][];
             missing?: components["schemas"]["service.ReportEntry"][];
             newHere?: components["schemas"]["service.ReportEntry"][];
             present?: components["schemas"]["service.ReportEntry"][];
+        };
+        "service.SweepSighting": {
+            incomplete?: boolean;
+            inventoryNo?: number;
+            matchedVia?: string;
+            name?: string;
+            noteId?: string;
         };
     };
     responses: never;

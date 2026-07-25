@@ -435,3 +435,182 @@ func TestMappeTagBindResolveRotate(t *testing.T) {
 		t.Fatalf("foreign folder tag: expected 404, got %d", res.StatusCode)
 	}
 }
+
+// --- Sweep cancel, history and the inventory number on the note ---
+// (docs/superpowers/specs/2026-07-25-feature-completion-design.md)
+
+type sweepHistoryEntry struct {
+	SweepID       string `json:"sweepId"`
+	FolderID      string `json:"folderId"`
+	FolderName    string `json:"folderName"`
+	CompletedAt   string `json:"completedAt"`
+	SightingCount int    `json:"sightingCount"`
+}
+
+type sweepDetail struct {
+	SweepID    string `json:"sweepId"`
+	FolderName string `json:"folderName"`
+	Sightings  []struct {
+		NoteID      string `json:"noteId"`
+		Name        string `json:"name"`
+		MatchedVia  string `json:"matchedVia"`
+		InventoryNo *int32 `json:"inventoryNo"`
+		Incomplete  bool   `json:"incomplete"`
+	} `json:"sightings"`
+}
+
+func sweepHistory(t *testing.T, app *fiber.App) []sweepHistoryEntry {
+	t.Helper()
+	res := doRequest(t, app, "GET", "http://localhost/api/v1/inventory/sweeps")
+	if res.StatusCode != http.StatusOK {
+		raw, _ := io.ReadAll(res.Body)
+		t.Fatalf("sweep history: expected 200, got %d: %s", res.StatusCode, string(raw))
+	}
+	var out []sweepHistoryEntry
+	raw, _ := io.ReadAll(res.Body)
+	if err := json.Unmarshal(raw, &out); err != nil {
+		t.Fatalf("decode history: %v (%s)", err, string(raw))
+	}
+	return out
+}
+
+func TestInventorySweepCancelDiscardsTheSweep(t *testing.T) {
+	app := SetupTest(t)
+	authorID := createInventoryAuthor(t, app)
+	mappe := createInventoryFolder(t, app, "Mappe Abbruch")
+	note := createInventoryNote(t, app, authorID, mappe, "Abgebrochenes Stueck", 3)
+
+	sweep := startSweep(t, app, mappe)
+	addSighting(t, app, sweep, note, false)
+
+	if res := doRequest(t, app, "DELETE", "http://localhost/api/v1/inventory/sweeps/"+sweep); res.StatusCode != http.StatusNoContent {
+		raw, _ := io.ReadAll(res.Body)
+		t.Fatalf("cancel sweep: expected 204, got %d: %s", res.StatusCode, string(raw))
+	}
+
+	// The sweep is gone, so it accepts no further sightings...
+	res := postJSON(t, app, "http://localhost/api/v1/inventory/sweeps/"+sweep+"/sightings", map[string]any{
+		"noteId": note, "matchedVia": "MANUAL",
+	})
+	if res.StatusCode != http.StatusNotFound {
+		t.Fatalf("sighting on cancelled sweep: expected 404, got %d", res.StatusCode)
+	}
+	// ...and never shows up in the history.
+	if history := sweepHistory(t, app); len(history) != 0 {
+		t.Fatalf("cancelled sweep must not be in the history, got %+v", history)
+	}
+
+	// Unknown ids are indistinguishable from foreign ones: both 404.
+	if res := doRequest(t, app, "DELETE", "http://localhost/api/v1/inventory/sweeps/does-not-exist"); res.StatusCode != http.StatusNotFound {
+		t.Fatalf("unknown sweep: expected 404, got %d", res.StatusCode)
+	}
+}
+
+func TestInventorySweepCancelRejectsCompletedSweeps(t *testing.T) {
+	app := SetupTest(t)
+	authorID := createInventoryAuthor(t, app)
+	mappe := createInventoryFolder(t, app, "Mappe Fertig")
+	note := createInventoryNote(t, app, authorID, mappe, "Fertiges Stueck", 2)
+
+	sweep := startSweep(t, app, mappe)
+	addSighting(t, app, sweep, note, false)
+	completeSweep(t, app, sweep)
+
+	if res := doRequest(t, app, "DELETE", "http://localhost/api/v1/inventory/sweeps/"+sweep); res.StatusCode != http.StatusConflict {
+		t.Fatalf("cancel completed sweep: expected 409, got %d", res.StatusCode)
+	}
+	// History keeps it.
+	if history := sweepHistory(t, app); len(history) != 1 || history[0].SweepID != sweep {
+		t.Fatalf("completed sweep must survive, got %+v", history)
+	}
+}
+
+func TestInventorySweepHistoryListsCompletedSweepsWithSightings(t *testing.T) {
+	app := SetupTest(t)
+	authorID := createInventoryAuthor(t, app)
+	mappeA := createInventoryFolder(t, app, "Mappe Historie A")
+	mappeB := createInventoryFolder(t, app, "Mappe Historie B")
+	note := createInventoryNote(t, app, authorID, mappeA, "Historisches Stueck", 5)
+
+	done := startSweep(t, app, mappeA)
+	sighting := addSighting(t, app, done, note, true)
+	completeSweep(t, app, done)
+
+	// An open sweep of another folder must stay out of the history.
+	startSweep(t, app, mappeB)
+
+	history := sweepHistory(t, app)
+	if len(history) != 1 {
+		t.Fatalf("expected exactly the completed sweep, got %+v", history)
+	}
+	entry := history[0]
+	if entry.SweepID != done || entry.FolderID != mappeA || entry.FolderName != "Mappe Historie A" {
+		t.Fatalf("history entry: %+v", entry)
+	}
+	if entry.SightingCount != 1 || entry.CompletedAt == "" {
+		t.Fatalf("history entry counts/timestamp: %+v", entry)
+	}
+
+	res := doRequest(t, app, "GET", "http://localhost/api/v1/inventory/sweeps/"+done)
+	if res.StatusCode != http.StatusOK {
+		raw, _ := io.ReadAll(res.Body)
+		t.Fatalf("sweep detail: expected 200, got %d: %s", res.StatusCode, string(raw))
+	}
+	var detail sweepDetail
+	raw, _ := io.ReadAll(res.Body)
+	if err := json.Unmarshal(raw, &detail); err != nil {
+		t.Fatalf("decode detail: %v (%s)", err, string(raw))
+	}
+	if detail.SweepID != done || detail.FolderName != "Mappe Historie A" || len(detail.Sightings) != 1 {
+		t.Fatalf("detail: %+v", detail)
+	}
+	got := detail.Sightings[0]
+	if got.NoteID != note || got.Name != "Historisches Stueck" || got.MatchedVia != "MANUAL" || !got.Incomplete {
+		t.Fatalf("detail sighting: %+v", got)
+	}
+	if got.InventoryNo == nil || *got.InventoryNo != sighting.InventoryNo {
+		t.Fatalf("detail sighting number: %+v (sweep assigned %d)", got, sighting.InventoryNo)
+	}
+
+	if res := doRequest(t, app, "GET", "http://localhost/api/v1/inventory/sweeps/does-not-exist"); res.StatusCode != http.StatusNotFound {
+		t.Fatalf("unknown sweep detail: expected 404, got %d", res.StatusCode)
+	}
+}
+
+func TestInventoryLastSeenExposesTheInventoryNumber(t *testing.T) {
+	app := SetupTest(t)
+	authorID := createInventoryAuthor(t, app)
+	mappe := createInventoryFolder(t, app, "Mappe Nummer")
+	note := createInventoryNote(t, app, authorID, mappe, "Nummeriertes Stueck", 4)
+
+	res := postJSON(t, app, "http://localhost/api/v1/inventory/notes/"+note+"/number", map[string]string{})
+	if res.StatusCode != http.StatusOK {
+		t.Fatalf("assign number: expected 200, got %d", res.StatusCode)
+	}
+	var assigned struct {
+		InventoryNo int32 `json:"inventoryNo"`
+	}
+	raw, _ := io.ReadAll(res.Body)
+	if err := json.Unmarshal(raw, &assigned); err != nil || assigned.InventoryNo == 0 {
+		t.Fatalf("decode assigned number: %v (%s)", err, string(raw))
+	}
+
+	res = doRequest(t, app, "GET", "http://localhost/api/v1/inventory/notes/"+note+"/last-seen")
+	if res.StatusCode != http.StatusOK {
+		t.Fatalf("last-seen: expected 200, got %d", res.StatusCode)
+	}
+	var lookup struct {
+		NoteID      string `json:"noteId"`
+		InventoryNo *int32 `json:"inventoryNo"`
+	}
+	raw, _ = io.ReadAll(res.Body)
+	if err := json.Unmarshal(raw, &lookup); err != nil {
+		t.Fatalf("decode last-seen: %v (%s)", err, string(raw))
+	}
+	if lookup.NoteID != note {
+		t.Fatalf("last-seen note: %+v", lookup)
+	}
+	if lookup.InventoryNo == nil || *lookup.InventoryNo != assigned.InventoryNo {
+		t.Fatalf("last-seen must expose the stamped number %d, got %+v", assigned.InventoryNo, lookup)
+	}
+}

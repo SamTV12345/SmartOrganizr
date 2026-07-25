@@ -681,6 +681,13 @@ definitions:
     - location
     - title
     type: object
+  dto.Error:
+    properties:
+      code:
+        type: integer
+      message:
+        type: string
+    type: object
   dto.Event:
     properties:
       description:
@@ -1274,6 +1281,8 @@ definitions:
         type: string
       folderName:
         type: string
+      inventoryNo:
+        type: integer
       lastSeenAt:
         type: string
       lastSeenFolder:
@@ -1329,6 +1338,34 @@ definitions:
       noteName:
         type: string
     type: object
+  service.SweepDetail:
+    properties:
+      completedAt:
+        type: string
+      folderId:
+        type: string
+      folderName:
+        type: string
+      sightings:
+        items:
+          $ref: '#/definitions/service.SweepSighting'
+        type: array
+      sweepId:
+        type: string
+    type: object
+  service.SweepHistoryEntry:
+    properties:
+      completedAt:
+        type: string
+      folderId:
+        type: string
+      folderName:
+        type: string
+      sightingCount:
+        type: integer
+      sweepId:
+        type: string
+    type: object
   service.SweepReport:
     properties:
       incomplete:
@@ -1347,6 +1384,19 @@ definitions:
         items:
           $ref: '#/definitions/service.ReportEntry'
         type: array
+    type: object
+  service.SweepSighting:
+    properties:
+      incomplete:
+        type: boolean
+      inventoryNo:
+        type: integer
+      matchedVia:
+        type: string
+      name:
+        type: string
+      noteId:
+        type: string
     type: object
 info:
   contact: {}
@@ -3124,6 +3174,24 @@ paths:
       tags:
       - inventory
   /v1/inventory/sweeps:
+    get:
+      parameters:
+      - description: Maximum number of sweeps (default 20)
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/service.SweepHistoryEntry'
+            type: array
+      summary: List the caller's recent completed sweeps
+      tags:
+      - inventory
     post:
       consumes:
       - application/json
@@ -3142,6 +3210,49 @@ paths:
           schema:
             $ref: '#/definitions/dto.InventorySweepCreatedResponse'
       summary: Start an inventory sweep for a folder (Mappe)
+      tags:
+      - inventory
+  /v1/inventory/sweeps/{sweepId}:
+    delete:
+      parameters:
+      - description: Sweep ID
+        in: path
+        name: sweepId
+        required: true
+        type: string
+      responses:
+        "204":
+          description: No Content
+        "404":
+          description: unknown or foreign sweep
+          schema:
+            $ref: '#/definitions/dto.Error'
+        "409":
+          description: sweep is already completed
+          schema:
+            $ref: '#/definitions/dto.Error'
+      summary: Cancel an unfinished sweep
+      tags:
+      - inventory
+    get:
+      parameters:
+      - description: Sweep ID
+        in: path
+        name: sweepId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/service.SweepDetail'
+        "404":
+          description: unknown or foreign sweep
+          schema:
+            $ref: '#/definitions/dto.Error'
+      summary: Sightings recorded by one sweep
       tags:
       - inventory
   /v1/inventory/sweeps/{sweepId}/apply-moves:
