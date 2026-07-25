@@ -31,6 +31,21 @@ kann socktainer nicht. Ohne die Variable bricht jeder Lauf beim Start von Ryuk a
 Aufräumen übernimmt stattdessen `TestMain` in `api_go/tests/setup_utils.go`
 (`mysqlInstance.Terminate`).
 
+### Kehrseite: übrig gebliebene MySQL-Container
+
+Ohne Ryuk räumt nur `TestMain` auf, und nur die eigene Instanz. Ein abgebrochener
+Lauf (Strg-C, Timeout, paralleler `go test`-Prozess) hinterlässt daher einen
+laufenden MySQL-Container mit ~1 GB reserviertem Speicher. Nachsehen und
+wegräumen:
+
+```sh
+container ls -a
+for id in $(container ls -aq); do container rm -f "$id"; done
+```
+
+Beim nächsten Testlauf entsteht ohnehin ein frischer Container, es geht also
+nichts verloren.
+
 Danach wie gewohnt:
 
 ```sh
