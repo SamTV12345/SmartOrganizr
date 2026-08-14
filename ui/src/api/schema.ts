@@ -690,6 +690,151 @@ export interface paths {
         };
         trace?: never;
     };
+    "/v1/clubs/{clubId}/absences": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List the caller's own absences in a club */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Club ID */
+                    clubId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["dto.ClubAbsenceDto"][];
+                    };
+                };
+            };
+        };
+        put?: never;
+        /** Declare an absence range for the caller */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Club ID */
+                    clubId: string;
+                };
+                cookie?: never;
+            };
+            /** @description Absence payload */
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["dto.ClubAbsenceUpsertDto"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["dto.ClubAbsenceDto"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/clubs/{clubId}/absences/overview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List all members' absences (managers only) */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Club ID */
+                    clubId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["dto.ClubAbsenceDto"][];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/clubs/{clubId}/absences/{absenceId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Delete one of the caller's own absences */
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Club ID */
+                    clubId: string;
+                    /** @description Absence ID */
+                    absenceId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description No Content */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/clubs/{clubId}/events": {
         parameters: {
             query?: never;
@@ -885,6 +1030,47 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/clubs/{clubId}/events/{eventId}/availability": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Inferred expected attendance for an event derived from absences */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Club ID */
+                    clubId: string;
+                    /** @description Event ID */
+                    eventId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["dto.EventAvailabilityDto"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/clubs/{clubId}/events/{eventId}/cancel": {
         parameters: {
             query?: never;
@@ -918,6 +1104,77 @@ export interface paths {
                 };
             };
         };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/clubs/{clubId}/events/{eventId}/program": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get the ordered program (setlist) of a club event */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Club ID */
+                    clubId: string;
+                    /** @description Event ID */
+                    eventId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["dto.ClubEventProgramEntryDto"][];
+                    };
+                };
+            };
+        };
+        /** Replace the whole ordered program of a club event */
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Club ID */
+                    clubId: string;
+                    /** @description Event ID */
+                    eventId: string;
+                };
+                cookie?: never;
+            };
+            /** @description Ordered program entries */
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["dto.ClubEventProgramReplaceDto"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["dto.ClubEventProgramEntryDto"][];
+                    };
+                };
+            };
+        };
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -2012,6 +2269,195 @@ export interface paths {
         };
         trace?: never;
     };
+    "/v1/clubs/{clubId}/polls": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List a club's polls with results */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Club ID */
+                    clubId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["dto.ClubPollDto"][];
+                    };
+                };
+            };
+        };
+        put?: never;
+        /** Create a poll (manager only) */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Club ID */
+                    clubId: string;
+                };
+                cookie?: never;
+            };
+            /** @description Poll payload */
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["dto.ClubPollCreateDto"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["dto.ClubPollDto"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/clubs/{clubId}/polls/{pollId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Delete a poll (manager only) */
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Club ID */
+                    clubId: string;
+                    /** @description Poll ID */
+                    pollId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description No Content */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/clubs/{clubId}/polls/{pollId}/close": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Close a poll (manager only) */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Club ID */
+                    clubId: string;
+                    /** @description Poll ID */
+                    pollId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description No Content */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/clubs/{clubId}/polls/{pollId}/vote": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Cast or replace the caller's vote */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Club ID */
+                    clubId: string;
+                    /** @description Poll ID */
+                    pollId: string;
+                };
+                cookie?: never;
+            };
+            /** @description Ballot */
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["dto.ClubPollVoteDto"];
+                };
+            };
+            responses: {
+                /** @description No Content */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/clubs/{clubId}/sections": {
         parameters: {
             query?: never;
@@ -2131,6 +2577,48 @@ export interface paths {
                 };
             };
         };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/clubs/{clubId}/stats/attendance": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Per-member and per-section attendance rates for a club */
+        get: {
+            parameters: {
+                query?: {
+                    /** @description Recent-window size in days (default 90) */
+                    windowDays?: number;
+                };
+                header?: never;
+                path: {
+                    /** @description Club ID */
+                    clubId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["dto.AttendanceStatsDto"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
         options?: never;
         head?: never;
         patch?: never;
@@ -4245,6 +4733,11 @@ export interface components {
             status?: string;
             userId?: string;
         };
+        "dto.AttendanceStatsDto": {
+            members?: components["schemas"]["dto.MemberAttendanceDto"][];
+            sections?: components["schemas"]["dto.SectionAttendanceDto"][];
+            windowDays?: number;
+        };
         "dto.Author": {
             birthYear?: number;
             deathYear?: number;
@@ -4296,6 +4789,23 @@ export interface components {
         "dto.CalendarTokenDto": {
             token: string;
             url: string;
+        };
+        "dto.ClubAbsenceDto": {
+            clubId?: string;
+            createdAt?: string;
+            displayName?: string;
+            /** @description YYYY-MM-DD */
+            endDate?: string;
+            id?: string;
+            reason?: string;
+            /** @description YYYY-MM-DD */
+            startDate?: string;
+            userId?: string;
+        };
+        "dto.ClubAbsenceUpsertDto": {
+            endDate: string;
+            reason?: string;
+            startDate: string;
         };
         "dto.ClubChatCreateDto": {
             content: string;
@@ -4367,6 +4877,17 @@ export interface components {
             summary?: string;
             undecidedCount?: number;
             yesCount?: number;
+        };
+        "dto.ClubEventProgramEntryDto": {
+            durationMinutes?: number;
+            id?: string;
+            noteId?: string;
+            noteText?: string;
+            position?: number;
+            title: string;
+        };
+        "dto.ClubEventProgramReplaceDto": {
+            entries?: components["schemas"]["dto.ClubEventProgramEntryDto"][];
         };
         "dto.ClubEventRepeatDto": {
             /** @description WEEKLY | BIWEEKLY | MONTHLY */
@@ -4478,6 +4999,35 @@ export interface components {
                 [key: string]: boolean;
             };
         };
+        "dto.ClubPollCreateDto": {
+            /** @description RFC3339 or null */
+            closesAt?: string;
+            multipleChoice?: boolean;
+            options: string[];
+            question: string;
+        };
+        "dto.ClubPollDto": {
+            closed?: boolean;
+            closesAt?: string;
+            clubId?: string;
+            createdAt?: string;
+            createdByUserId?: string;
+            id?: string;
+            multipleChoice?: boolean;
+            options?: components["schemas"]["dto.ClubPollOptionDto"][];
+            question?: string;
+            totalVotes?: number;
+        };
+        "dto.ClubPollOptionDto": {
+            id?: string;
+            label?: string;
+            position?: number;
+            voteCount?: number;
+            votedByMe?: boolean;
+        };
+        "dto.ClubPollVoteDto": {
+            optionIds: string[];
+        };
         "dto.ClubPostDto": {
             club_type: string;
             confirmed_representative: boolean;
@@ -4539,6 +5089,20 @@ export interface components {
             uid: string;
             url: string;
         };
+        "dto.EventAvailabilityDto": {
+            eventId?: string;
+            expectedCount?: number;
+            rows?: components["schemas"]["dto.EventAvailabilityRowDto"][];
+            totalCount?: number;
+        };
+        "dto.EventAvailabilityRowDto": {
+            available?: boolean;
+            displayName?: string;
+            source?: string;
+            /** @description RSVP status when Source == "rsvp" */
+            status?: string;
+            userId?: string;
+        };
         "dto.Folder": {
             creationDate: string;
             creator: components["schemas"]["dto.User"];
@@ -4595,6 +5159,18 @@ export interface components {
         "dto.MappeTagResponse": {
             tagId?: string;
             url?: string;
+        };
+        "dto.MemberAttendanceDto": {
+            attendedTotal?: number;
+            attendedWindow?: number;
+            displayName?: string;
+            eligibleTotal?: number;
+            eligibleWindow?: number;
+            rateTotal?: number;
+            rateWindow?: number;
+            sectionId?: string;
+            sectionName?: string;
+            userId?: string;
         };
         "dto.Note": {
             arranger?: components["schemas"]["dto.Author"];
@@ -4677,6 +5253,17 @@ export interface components {
             body?: string;
             pinned?: boolean;
             title?: string;
+        };
+        "dto.SectionAttendanceDto": {
+            attendedTotal?: number;
+            attendedWindow?: number;
+            eligibleTotal?: number;
+            eligibleWindow?: number;
+            memberCount?: number;
+            rateTotal?: number;
+            rateWindow?: number;
+            sectionId?: string;
+            sectionName?: string;
         };
         "dto.UnreadByClubDto": {
             clubId?: string;

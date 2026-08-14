@@ -38,6 +38,7 @@
     "delete-confirm": "Permanently delete this event? All responses will be lost.",
     "cancel-event": "Cancel event",
     "cancelled": "(cancelled)",
+    "expected": "expected",
     "field": {
       "summary": "Title",
       "type": "Type",
@@ -95,6 +96,21 @@
       "body": "Content"
     },
     "loadMore": "Show more"
+  },
+  "absence": {
+    "create": "Report absence",
+    "description": "Enter date ranges when you are unavailable.",
+    "start": "From",
+    "end": "To",
+    "reason": "Reason (optional)",
+    "reasonPlaceholder": "e.g. vacation",
+    "add": "Add",
+    "mine": "My absences",
+    "empty": "No absences yet.",
+    "delete": "Delete",
+    "deleteConfirm": "Really delete this absence?",
+    "overview": "All members overview",
+    "overviewDescription": "All reported absences in the club."
   },
   "homepage": "Homepage",
   "fast": "Fast",
@@ -411,6 +427,10 @@
     "tab": {
       "pinnwand": "Pinboard",
       "termine": "Events",
+      "programm": "Program",
+      "abwesenheiten": "Absences",
+      "umfragen": "Polls",
+      "statistik": "Statistics",
       "nachrichten": "Messages",
       "dateien": "Files",
       "mitglieder": "Members",
@@ -618,5 +638,24 @@
   },
   "clubForm": {
     "namePlaceholder": "Example Town Wind Band"
+  },
+  "polls": {
+    "title": "Polls",
+    "create": "Create poll",
+    "question": "Question",
+    "questionPlaceholder": "What should be decided?",
+    "option": "Answer option",
+    "addOption": "Add option",
+    "multiple": "Allow multiple choices",
+    "submit": "Vote",
+    "vote": "Vote",
+    "close": "Close",
+    "closed": "Closed",
+    "delete": "Delete",
+    "delete-confirm": "Really delete this poll?",
+    "empty": "No polls yet.",
+    "votes": "{{count}} votes",
+    "totalVotes": "{{count}} votes total",
+    "needTwoOptions": "Please provide at least two options."
   }
 }

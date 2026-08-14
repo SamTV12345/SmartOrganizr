@@ -4,11 +4,14 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { $api, http as axios } from "@/src/api/client";
 import {
+    BarChart3,
     CalendarDays,
+    CalendarOff,
     ChevronLeft,
     Download,
     FolderKanban,
     LayoutDashboard,
+    ListMusic,
     MessagesSquare,
     PencilLine,
     Settings,
@@ -17,6 +20,7 @@ import {
     UserRoundCog,
     UserRoundPlus,
     Users2,
+    Vote,
 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -44,8 +48,12 @@ import { Label } from "@/components/ui/label";
 import { ClubPinboardSection } from "@/src/components/ClubPinboardSection";
 import { ClubFilesSection } from "@/src/components/ClubFilesSection";
 import { ClubEventsManager } from "@/src/components/club/ClubEventsManager";
+import { ClubAbsenceSection } from "@/src/components/club/ClubAbsenceSection";
+import { ClubPollsSection } from "@/src/components/club/ClubPollsSection";
+import { ClubProgramSection } from "@/src/components/club/ClubProgramSection";
 import { ClubSettingsForm } from "@/src/components/club/ClubSettingsForm";
 import { ClubDangerZone } from "@/src/components/club/ClubDangerZone";
+import { ClubStatsSection } from "@/src/components/club/ClubStatsSection";
 import { useDateFormat } from "@/src/hooks/useDateFormat";
 
 // The tab and role tables live outside the component, where t() is not
@@ -67,6 +75,10 @@ const ROLE_VALUES = ["LEITER", "CO_LEITER", "SCHRIFTFUEHRER", "SCHATZMEISTER", "
 const CLUB_SECTIONS: ClubSection[] = [
     { id: "pinnwand", labelKey: "club.tab.pinnwand", icon: LayoutDashboard },
     { id: "termine", labelKey: "club.tab.termine", icon: CalendarDays },
+    { id: "programm", labelKey: "club.tab.programm", icon: ListMusic },
+    { id: "abwesenheiten", labelKey: "club.tab.abwesenheiten", icon: CalendarOff },
+    { id: "umfragen", labelKey: "club.tab.umfragen", icon: Vote },
+    { id: "statistik", labelKey: "club.tab.statistik", icon: BarChart3 },
     { id: "nachrichten", labelKey: "club.tab.nachrichten", icon: MessagesSquare },
     { id: "dateien", labelKey: "club.tab.dateien", icon: FolderKanban },
     { id: "mitglieder", labelKey: "club.tab.mitglieder", icon: Users2 },
@@ -411,6 +423,22 @@ export const ClubDetailView: FC = () => {
                             canManageSectionEvents={permissions?.can_manage_section_events ?? false}
                             mySectionId={permissions?.my_section_id ?? ""}
                         />
+                    )}
+
+                    {activeSection.id === "abwesenheiten" && (
+                        <ClubAbsenceSection clubId={club.id} canManage={permissions?.can_manage_roles ?? false} />
+                    )}
+
+                    {activeSection.id === "umfragen" && (
+                        <ClubPollsSection clubId={club.id} canManage={permissions?.can_manage_events ?? false} />
+                    )}
+
+                    {activeSection.id === "programm" && (
+                        <ClubProgramSection clubId={club.id} canManage={permissions?.can_manage_events ?? false} />
+                    )}
+
+                    {activeSection.id === "statistik" && (
+                        <ClubStatsSection clubId={club.id} />
                     )}
 
                     {activeSection.id === "bearbeiten" && club && (
