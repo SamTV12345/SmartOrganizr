@@ -63,8 +63,8 @@ github.com/fxamacker/cbor/v2 v2.9.2 h1:X4Ksno9+x3cz0TZv69ec1hxP/+tymuR8PXQJyDwfh
 github.com/fxamacker/cbor/v2 v2.9.2/go.mod h1:vM4b+DJCtHn+zz7h3FFp/hDAI9WNWCsZj23V5ytsSxQ=
 github.com/gabriel-vasile/mimetype v1.4.15 h1:05iP/CYtZ/w455R/KZM6rZ5ieAdh99UPtd+d3YzLmaI=
 github.com/gabriel-vasile/mimetype v1.4.15/go.mod h1:azpTcoLcDZRNgFou5j+APrqQx9HqVPWa6ijYQIIVswQ=
-github.com/go-faker/faker/v4 v4.11.0 h1:HeIFTzafXsgrlxKE2QySGGTQocfGdQ8sGqU2CXvs120=
-github.com/go-faker/faker/v4 v4.11.0/go.mod h1:VFIEwWDd16EdYDLF6NJ5gAAzEp7vz5LgKgJ2iZ17Tdg=
+github.com/go-faker/faker/v4 v4.12.0 h1:yZXxuoQjxN+C2PVgYoDSHGiD9wj6dX1/Ful4p7QQV0k=
+github.com/go-faker/faker/v4 v4.12.0/go.mod h1:VFIEwWDd16EdYDLF6NJ5gAAzEp7vz5LgKgJ2iZ17Tdg=
 github.com/go-jose/go-jose/v4 v4.1.4 h1:moDMcTHmvE6Groj34emNPLs/qtYXRVcd6S7NHbHz3kA=
 github.com/go-jose/go-jose/v4 v4.1.4/go.mod h1:x4oUasVrzR7071A4TnHLGSPpNOm2a21K9Kf04k1rs08=
 github.com/go-logr/logr v1.2.2/go.mod h1:jdQByPbusPIv2/zmleS9BjJVeZ6kBagPoEUsqbVz/1A=
