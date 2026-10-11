@@ -1771,8 +1771,8 @@ packages:
   bmp-js@0.1.0:
     resolution: {integrity: sha512-vHdS19CnY3hwiNdkaqk93DvjVLfbEcI8mys4UjuWrlX1haDmroo8o4xCzh4wD6DGV6HxRCyauwhHRqMTfERtjw==}
 
-  brace-expansion@2.1.0:
-    resolution: {integrity: sha512-TN1kCZAgdgweJhWWpgKYrQaMNHcDULHkWwQIspdtjV4Y5aurRdZpjAqn6yX3FPqTA9ngHCc4hJxMAMgGfve85w==}
+  brace-expansion@2.1.7:
+    resolution: {integrity: sha512-uZbew1NqdmPDTMJ8ah1y+b+9QEJrfkXFk3RcTQw3X0jW/xRUvFKsg1CfQdSYGdTbXZWExtU3J3ccxtnfw1Fi0g==}
 
   braces@3.0.3:
     resolution: {integrity: sha512-yQbXgO/OSZVD2IsiLlro+7Hf6Q18EJrKSEsdoMzKePKXct3gvD8oLcOQdIzGupr5Fj+EDe8gO/lxc1BzfMpxvA==}
@@ -4712,7 +4712,7 @@ snapshots:
 
   bmp-js@0.1.0: {}
 
-  brace-expansion@2.1.0:
+  brace-expansion@2.1.7:
     dependencies:
       balanced-match: 1.0.2
 
@@ -5564,7 +5564,7 @@ snapshots:
 
   minimatch@5.1.9:
     dependencies:
-      brace-expansion: 2.1.0
+      brace-expansion: 2.1.7
 
   ms@2.1.3: {}
 
