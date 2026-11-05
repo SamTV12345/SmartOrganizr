@@ -7,6 +7,8 @@ import {
 } from "@/src/offline/offlineSheetMusic"
 import { downloadPdfBlob } from "./notePdf"
 import { warmPdfjsForOffline } from "./pdfjs"
+import { loadAnnotations } from "@/src/offline/annotationStore"
+import { fetchAnnotationsRemote } from "./useAnnotations"
 import type { Playlist } from "./usePlaylist"
 
 export type OfflineState =
@@ -42,6 +44,8 @@ export const useOfflineSetlist = (key: string, playlist: Playlist) => {
                 downloadPdfBlob,
                 (done, total) => setState({ status: "saving", done, total }),
             )
+            // Cache the player's annotations too, so they show on stage without network.
+            await Promise.all(noteIds.map((key) => loadAnnotations(key, fetchAnnotationsRemote).catch(() => undefined)))
             setState({ status: "saved", setlist })
         } catch {
             setState({ status: "error" })

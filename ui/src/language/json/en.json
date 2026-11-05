@@ -710,6 +710,18 @@
       "chooseHint": "There is no part for your section in this piece. Which part do you play?",
       "switch": "Switch part",
       "ownSection": "your section"
+    },
+    "annotate": {
+      "toggle": "Annotations",
+      "pen0": "Black pen",
+      "pen1": "Red pen",
+      "pen2": "Blue pen",
+      "highlighter": "Highlighter",
+      "text": "Text",
+      "eraser": "Eraser",
+      "undo": "Undo",
+      "done": "Done",
+      "textPlaceholder": "Text, Enter to place"
     }
   },
   "scores": {
