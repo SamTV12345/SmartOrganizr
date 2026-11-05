@@ -22,6 +22,20 @@ export interface Playlist {
     items: PlayItem[]
     isLoading: boolean
     isError: boolean
+    /** GET path + raw response, stored as-is when the setlist is saved offline. */
+    apiPath: string
+    response: unknown
+}
+
+export const playlistApiPath = (source: PlaylistSource): string => {
+    switch (source.kind) {
+        case "note":
+            return `/v1/elements/notes/${source.noteId}`
+        case "concert":
+            return `/v1/concerts/${source.concertId}`
+        case "event":
+            return `/v1/clubs/${source.clubId}/events/${source.eventId}/program/playlist`
+    }
 }
 
 export const sourceKey = (source: PlaylistSource): string => {
@@ -65,6 +79,19 @@ export const usePlaylist = (source: PlaylistSource): Playlist => {
         },
         { enabled: source.kind === "event" },
     )
+    const eventDetail = $api.useQuery(
+        "get",
+        "/v1/clubs/{clubId}/events/{eventId}",
+        {
+            params: {
+                path: {
+                    clubId: source.kind === "event" ? source.clubId : "",
+                    eventId: source.kind === "event" ? source.eventId : "",
+                },
+            },
+        },
+        { enabled: source.kind === "event", retry: false },
+    )
 
     switch (source.kind) {
         case "note": {
@@ -76,6 +103,8 @@ export const usePlaylist = (source: PlaylistSource): Playlist => {
                     : [],
                 isLoading: note.isLoading,
                 isError: note.isError,
+                apiPath: playlistApiPath(source),
+                response: note.data,
             }
         }
         case "concert": {
@@ -92,12 +121,14 @@ export const usePlaylist = (source: PlaylistSource): Playlist => {
                 })),
                 isLoading: concert.isLoading,
                 isError: concert.isError,
+                apiPath: playlistApiPath(source),
+                response: concert.data,
             }
         }
         case "event":
             return {
-                title: "",
-                items: (event.data ?? []).map((e, i) => ({
+                title: (eventDetail.data as { summary?: string } | undefined)?.summary ?? "",
+                items: (Array.isArray(event.data) ? event.data : []).map((e, i) => ({
                     key: e.entryId ?? String(i),
                     title: e.title ?? "",
                     hint: e.noteText ?? undefined,
@@ -107,6 +138,8 @@ export const usePlaylist = (source: PlaylistSource): Playlist => {
                 })),
                 isLoading: event.isLoading,
                 isError: event.isError,
+                apiPath: playlistApiPath(source),
+                response: event.data,
             }
     }
 }

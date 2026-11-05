@@ -1,4 +1,6 @@
 import {createPortal} from "react-dom";
+import {refreshOfflinePdfIfSaved} from "@/src/offline/offlineSheetMusic";
+import {downloadNotePdfBlob} from "@/src/player/notePdf";
 import {useAppDispatch, useAppSelector} from "../../store/hooks";
 import {ChangeEvent, FC, useRef, useState} from "react";
 import {setNotePDFUploadOpen} from "../../ModalSlice";
@@ -83,6 +85,8 @@ export const FileUploadModal:FC<FileUploadModalProps> = () => {
             for (const f of files) {
                 await axios.post(apiURL + `/v1/elements/${selectedNote.id}/pdf`, f.content)
             }
+            // Keep a copy saved for the play mode in sync with the new upload.
+            await refreshOfflinePdfIfSaved(selectedNote.id, downloadNotePdfBlob).catch(() => undefined)
             // Refresh the tree (pdfAvailable icon) and any open note detail view.
             await queryClient.invalidateQueries({queryKey: parentDecksQueryKey})
             await queryClient.invalidateQueries({queryKey: ["get", "/v1/elements/notes/{noteId}"]})

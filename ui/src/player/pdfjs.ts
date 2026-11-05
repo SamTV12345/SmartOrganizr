@@ -33,3 +33,12 @@ export const openNotePdf = async (noteId: string): Promise<OpenedPdf> => {
     const doc = await task.promise
     return { doc, dispose: () => void task.destroy().catch(() => undefined) }
 }
+
+/**
+ * Fetches the pdf.js bundle and worker once so the service worker caches them:
+ * a setlist saved for offline use must also be renderable without network.
+ */
+export const warmPdfjsForOffline = async (): Promise<void> => {
+    const pdfjs = await loadPdfjs()
+    await fetch(pdfjs.GlobalWorkerOptions.workerSrc).catch(() => undefined)
+}

@@ -8,7 +8,8 @@ import {
 
 const DB_NAME = "smartorganizr-offline";
 // v2: adds the pendingSweeps store (offline inventory sweeps awaiting sync).
-const DB_VERSION = 2;
+// v3: adds offlinePdfs + offlineSetlists (sheet music saved for the play mode).
+const DB_VERSION = 3;
 const META_KEY_LAST_SYNCED = "lastSyncedAt";
 
 type DataStore = "authors" | "folders" | "notes";
@@ -22,6 +23,8 @@ export function getOfflineDb(): Promise<IDBPDatabase> {
         for (const name of ["authors", "folders", "notes", "pendingSweeps"]) {
           if (!db.objectStoreNames.contains(name)) db.createObjectStore(name, { keyPath: "id" });
         }
+        if (!db.objectStoreNames.contains("offlinePdfs")) db.createObjectStore("offlinePdfs", { keyPath: "noteId" });
+        if (!db.objectStoreNames.contains("offlineSetlists")) db.createObjectStore("offlineSetlists", { keyPath: "key" });
         if (!db.objectStoreNames.contains("meta")) db.createObjectStore("meta");
       },
     });
@@ -81,16 +84,18 @@ export async function getLastSyncedAt(): Promise<number | undefined> {
   return (await (await getDb()).get("meta", META_KEY_LAST_SYNCED)) as number | undefined;
 }
 
-/** Test/utility helper: wipe all data, meta and pending sweeps. */
+/** Test/utility helper: wipe all data, meta, pending sweeps and saved sheet music. */
 export async function clearOfflineData(): Promise<void> {
   const db = await getDb();
-  const tx = db.transaction(["authors", "folders", "notes", "meta", "pendingSweeps"], "readwrite");
+  const tx = db.transaction(["authors", "folders", "notes", "meta", "pendingSweeps", "offlinePdfs", "offlineSetlists"], "readwrite");
   await Promise.all([
     tx.objectStore("authors").clear(),
     tx.objectStore("folders").clear(),
     tx.objectStore("notes").clear(),
     tx.objectStore("meta").clear(),
     tx.objectStore("pendingSweeps").clear(),
+    tx.objectStore("offlinePdfs").clear(),
+    tx.objectStore("offlineSetlists").clear(),
   ]);
   await tx.done;
 }
