@@ -3,6 +3,7 @@ package service
 import (
 	"api_go/models"
 	"bytes"
+	"context"
 	"encoding/base64"
 	"io"
 
@@ -53,7 +54,7 @@ func GeneratePDFForFolder(folderId string, userId string, folderservice FolderSe
 	}
 
 	var merged bytes.Buffer
-	if err := api.MergeRaw(pdfs, &merged, false, nil); err != nil {
+	if err := api.MergeRaw(context.Background(), pdfs, &merged, false, nil); err != nil {
 		return nil, err
 	}
 	return merged.Bytes(), nil
