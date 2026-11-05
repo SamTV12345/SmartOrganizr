@@ -428,6 +428,7 @@
       "pinnwand": "Pinboard",
       "termine": "Events",
       "programm": "Program",
+      "notenarchiv": "Sheet music",
       "abwesenheiten": "Absences",
       "umfragen": "Polls",
       "statistik": "Statistics",
@@ -704,6 +705,36 @@
       "remove": "Remove",
       "cardTitle": "Sheet music available offline",
       "savedAt": "saved {{date}}"
+    },
+    "parts": {
+      "chooseHint": "There is no part for your section in this piece. Which part do you play?",
+      "switch": "Switch part",
+      "ownSection": "your section"
     }
+  },
+  "scores": {
+    "title": "Sheet music archive",
+    "hint": "The club's pieces with one PDF per part. In play mode every member automatically gets the part of their section.",
+    "pieceTitle": "Title of the piece",
+    "composer": "Composer",
+    "arranger": "Arranger",
+    "arrangedBy": "arr. {{name}}",
+    "add": "Add piece",
+    "filter": "Search pieces …",
+    "empty": "No pieces in the archive yet.",
+    "partCount_one": "{{count}} part",
+    "partCount_other": "{{count}} parts",
+    "noParts": "No parts uploaded yet.",
+    "noSection": "no section",
+    "open": "View",
+    "deletePart": "Delete part",
+    "uploadParts": "Upload parts (PDF)",
+    "uploadHint": "Name and section were suggested from the file name – please check.",
+    "uploadCount_one": "Upload {{count}} part",
+    "uploadCount_other": "Upload {{count}} parts",
+    "uploadFailed": "failed",
+    "cancel": "Cancel",
+    "deleteScore": "Delete piece",
+    "deleteConfirm": "Delete the piece with all its parts?"
   }
 }

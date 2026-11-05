@@ -383,6 +383,8 @@ definitions:
         type: string
       match:
         enum:
+        - part
+        - choosePart
         - own
         - wikidata
         - title
@@ -392,10 +394,23 @@ definitions:
         type: string
       noteText:
         type: string
+      partId:
+        type: string
+      partName:
+        type: string
+      parts:
+        items:
+          $ref: '#/definitions/dto.ClubEventPlaylistPartDto'
+        type: array
       pdfAvailable:
         type: boolean
       position:
         type: integer
+      scoreId:
+        description: |-
+          Set when the entry links a club score: the member's part (if any) and
+          every part of the score to switch to.
+        type: string
       title:
         type: string
     required:
@@ -404,6 +419,19 @@ definitions:
     - pdfAvailable
     - position
     - title
+    type: object
+  dto.ClubEventPlaylistPartDto:
+    properties:
+      id:
+        type: string
+      name:
+        type: string
+      ownSection:
+        type: boolean
+    required:
+    - id
+    - name
+    - ownSection
     type: object
   dto.ClubEventProgramEntryDto:
     properties:
@@ -417,6 +445,10 @@ definitions:
         type: string
       position:
         type: integer
+      scoreId:
+        description: ScoreID links the entry to a piece in the club's sheet music
+          archive.
+        type: string
       title:
         type: string
     required:
@@ -782,6 +814,80 @@ definitions:
     - postal_code
     - reason_visibility
     - street
+    type: object
+  dto.ClubScoreDto:
+    properties:
+      arranger:
+        type: string
+      composer:
+        type: string
+      createdAt:
+        type: string
+      id:
+        type: string
+      partCount:
+        type: integer
+      parts:
+        items:
+          $ref: '#/definitions/dto.ClubScorePartDto'
+        type: array
+      title:
+        type: string
+    required:
+    - createdAt
+    - id
+    - partCount
+    - title
+    type: object
+  dto.ClubScorePartChoiceDto:
+    properties:
+      partId:
+        type: string
+    required:
+    - partId
+    type: object
+  dto.ClubScorePartDto:
+    properties:
+      id:
+        type: string
+      name:
+        type: string
+      position:
+        type: integer
+      scoreId:
+        type: string
+      sectionId:
+        type: string
+      sectionName:
+        type: string
+      sizeBytes:
+        type: integer
+    required:
+    - id
+    - name
+    - position
+    - scoreId
+    - sizeBytes
+    type: object
+  dto.ClubScorePartPatchDto:
+    properties:
+      name:
+        type: string
+      sectionId:
+        type: string
+    required:
+    - name
+    type: object
+  dto.ClubScorePostDto:
+    properties:
+      arranger:
+        type: string
+      composer:
+        type: string
+      title:
+        type: string
+    required:
+    - title
     type: object
   dto.ClubSectionDto:
     properties:
@@ -3109,6 +3215,273 @@ paths:
       summary: Cast or replace the caller's vote
       tags:
       - club-polls
+  /v1/clubs/{clubId}/scores:
+    get:
+      parameters:
+      - description: Club ID
+        in: path
+        name: clubId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/dto.ClubScoreDto'
+            type: array
+      summary: List the club's sheet music archive
+      tags:
+      - club-scores
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Club ID
+        in: path
+        name: clubId
+        required: true
+        type: string
+      - description: Score
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.ClubScorePostDto'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.ClubScoreDto'
+      summary: Add a piece to the club's sheet music archive
+      tags:
+      - club-scores
+  /v1/clubs/{clubId}/scores/{scoreId}:
+    delete:
+      parameters:
+      - description: Club ID
+        in: path
+        name: clubId
+        required: true
+        type: string
+      - description: Score ID
+        in: path
+        name: scoreId
+        required: true
+        type: string
+      responses:
+        "204":
+          description: No Content
+      summary: Delete a score and all its parts
+      tags:
+      - club-scores
+    get:
+      parameters:
+      - description: Club ID
+        in: path
+        name: clubId
+        required: true
+        type: string
+      - description: Score ID
+        in: path
+        name: scoreId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.ClubScoreDto'
+      summary: Get a score with its parts
+      tags:
+      - club-scores
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: Club ID
+        in: path
+        name: clubId
+        required: true
+        type: string
+      - description: Score ID
+        in: path
+        name: scoreId
+        required: true
+        type: string
+      - description: Score
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.ClubScorePostDto'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.ClubScoreDto'
+      summary: Update title, composer and arranger of a score
+      tags:
+      - club-scores
+  /v1/clubs/{clubId}/scores/{scoreId}/choice:
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: Club ID
+        in: path
+        name: clubId
+        required: true
+        type: string
+      - description: Score ID
+        in: path
+        name: scoreId
+        required: true
+        type: string
+      - description: Chosen part
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.ClubScorePartChoiceDto'
+      responses:
+        "204":
+          description: No Content
+      summary: Remember which part the caller plays for a score
+      tags:
+      - club-scores
+  /v1/clubs/{clubId}/scores/{scoreId}/parts:
+    post:
+      consumes:
+      - multipart/form-data
+      parameters:
+      - description: Club ID
+        in: path
+        name: clubId
+        required: true
+        type: string
+      - description: Score ID
+        in: path
+        name: scoreId
+        required: true
+        type: string
+      - description: Part PDF
+        in: formData
+        name: file
+        required: true
+        type: file
+      - description: Part name, e.g. 2. Klarinette in B
+        in: formData
+        name: name
+        required: true
+        type: string
+      - description: Section (Register) the part belongs to
+        in: formData
+        name: sectionId
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.ClubScoreDto'
+      summary: Upload a part (Stimme) PDF for a score
+      tags:
+      - club-scores
+  /v1/clubs/{clubId}/scores/{scoreId}/parts/{partId}:
+    delete:
+      parameters:
+      - description: Club ID
+        in: path
+        name: clubId
+        required: true
+        type: string
+      - description: Score ID
+        in: path
+        name: scoreId
+        required: true
+        type: string
+      - description: Part ID
+        in: path
+        name: partId
+        required: true
+        type: string
+      responses:
+        "204":
+          description: No Content
+      summary: Delete a part
+      tags:
+      - club-scores
+    patch:
+      consumes:
+      - application/json
+      parameters:
+      - description: Club ID
+        in: path
+        name: clubId
+        required: true
+        type: string
+      - description: Score ID
+        in: path
+        name: scoreId
+        required: true
+        type: string
+      - description: Part ID
+        in: path
+        name: partId
+        required: true
+        type: string
+      - description: Part
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.ClubScorePartPatchDto'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.ClubScoreDto'
+      summary: Rename a part or move it to another section
+      tags:
+      - club-scores
+  /v1/clubs/{clubId}/scores/{scoreId}/parts/{partId}/pdf:
+    get:
+      parameters:
+      - description: Club ID
+        in: path
+        name: clubId
+        required: true
+        type: string
+      - description: Score ID
+        in: path
+        name: scoreId
+        required: true
+        type: string
+      - description: Part ID
+        in: path
+        name: partId
+        required: true
+        type: string
+      produces:
+      - application/pdf
+      responses:
+        "200":
+          description: OK
+      summary: Download a part's PDF (any club member)
+      tags:
+      - club-scores
   /v1/clubs/{clubId}/sections:
     get:
       parameters:

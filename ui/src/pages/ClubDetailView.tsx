@@ -11,6 +11,7 @@ import {
     Download,
     FolderKanban,
     LayoutDashboard,
+    Library,
     ListMusic,
     MessagesSquare,
     PencilLine,
@@ -50,6 +51,7 @@ import { ClubFilesSection } from "@/src/components/ClubFilesSection";
 import { ClubEventsManager } from "@/src/components/club/ClubEventsManager";
 import { ClubAbsenceSection } from "@/src/components/club/ClubAbsenceSection";
 import { ClubPollsSection } from "@/src/components/club/ClubPollsSection";
+import { ClubScoresSection } from "@/src/components/club/ClubScoresSection";
 import { ClubProgramSection } from "@/src/components/club/ClubProgramSection";
 import { ClubSettingsForm } from "@/src/components/club/ClubSettingsForm";
 import { ClubDangerZone } from "@/src/components/club/ClubDangerZone";
@@ -76,6 +78,7 @@ const CLUB_SECTIONS: ClubSection[] = [
     { id: "pinnwand", labelKey: "club.tab.pinnwand", icon: LayoutDashboard },
     { id: "termine", labelKey: "club.tab.termine", icon: CalendarDays },
     { id: "programm", labelKey: "club.tab.programm", icon: ListMusic },
+    { id: "notenarchiv", labelKey: "club.tab.notenarchiv", icon: Library },
     { id: "abwesenheiten", labelKey: "club.tab.abwesenheiten", icon: CalendarOff },
     { id: "umfragen", labelKey: "club.tab.umfragen", icon: Vote },
     { id: "statistik", labelKey: "club.tab.statistik", icon: BarChart3 },
@@ -435,6 +438,13 @@ export const ClubDetailView: FC = () => {
 
                     {activeSection.id === "programm" && (
                         <ClubProgramSection clubId={club.id} canManage={permissions?.can_manage_events ?? false} />
+                    )}
+
+                    {activeSection.id === "notenarchiv" && (
+                        <ClubScoresSection
+                            clubId={club.id}
+                            canEdit={permissions?.role === "LEITER" || permissions?.role === "CO_LEITER"}
+                        />
                     )}
 
                     {activeSection.id === "statistik" && (

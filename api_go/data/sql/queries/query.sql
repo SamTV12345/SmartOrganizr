@@ -994,7 +994,7 @@ INSERT IGNORE INTO club_poll_vote (poll_id, option_id, user_id) VALUES (?, ?, ?)
 -- A program is replaced wholesale (delete-all + re-insert ordered), so no per-row update query.
 
 -- name: ListEventProgram :many
-SELECT id, event_id, note_id, title, position, duration_minutes, note_text
+SELECT id, event_id, note_id, title, position, duration_minutes, note_text, score_id
 FROM club_event_program
 WHERE event_id = ?
 ORDER BY position;
@@ -1003,8 +1003,8 @@ ORDER BY position;
 DELETE FROM club_event_program WHERE event_id = ?;
 
 -- name: CreateEventProgramEntry :exec
-INSERT INTO club_event_program (id, event_id, note_id, title, position, duration_minutes, note_text)
-VALUES (?, ?, ?, ?, ?, ?, ?);
+INSERT INTO club_event_program (id, event_id, note_id, title, position, duration_minutes, note_text, score_id)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?);
 
 -- ==== attendance stats ====
 -- Per-member attendance over a club's past, non-cancelled events. A member is
@@ -1047,7 +1047,7 @@ ORDER BY u.lastname, u.firstname, p.user_id;
 -- name: ListEventProgramWithSource :many
 -- Program rows plus the wikidata id of the library note they point at (which
 -- usually belongs to the conductor, not the player).
-SELECT p.id, p.note_id, p.title, p.position, p.note_text, src.wikidata_id AS source_wikidata_id
+SELECT p.id, p.note_id, p.title, p.position, p.note_text, p.score_id, src.wikidata_id AS source_wikidata_id
 FROM club_event_program p
          LEFT JOIN elements src ON src.id = p.note_id
 WHERE p.event_id = ?
@@ -1058,3 +1058,69 @@ ORDER BY p.position;
 SELECT id, name, wikidata_id, CAST(pdf_content IS NOT NULL AND LENGTH(pdf_content) > 0 AS SIGNED) AS has_pdf
 FROM elements
 WHERE user_id_fk = ? AND type = 'note';
+
+-- ==== club sheet music archive (Notenarchiv) ====
+
+-- name: CreateClubScore :exec
+INSERT INTO club_score (id, club_id, title, composer, arranger) VALUES (?, ?, ?, ?, ?);
+
+-- name: UpdateClubScore :execrows
+UPDATE club_score SET title = ?, composer = ?, arranger = ? WHERE id = ? AND club_id = ?;
+
+-- name: DeleteClubScore :execrows
+DELETE FROM club_score WHERE id = ? AND club_id = ?;
+
+-- name: GetClubScore :one
+SELECT id, club_id, title, composer, arranger, created_at FROM club_score WHERE id = ? AND club_id = ?;
+
+-- name: ListClubScores :many
+SELECT s.id, s.club_id, s.title, s.composer, s.arranger, s.created_at,
+       (SELECT COUNT(*) FROM club_score_part p WHERE p.score_id = s.id) AS part_count
+FROM club_score s
+WHERE s.club_id = ?
+ORDER BY s.title;
+
+-- name: CreateClubScorePart :exec
+INSERT INTO club_score_part (id, score_id, name, section_fk, position, size_bytes, content)
+VALUES (?, ?, ?, ?, ?, ?, ?);
+
+-- name: NextClubScorePartPosition :one
+SELECT CAST(COALESCE(MAX(position) + 1, 0) AS SIGNED) AS next_position FROM club_score_part WHERE score_id = ?;
+
+-- name: UpdateClubScorePart :execrows
+UPDATE club_score_part SET name = ?, section_fk = ? WHERE id = ? AND score_id = ?;
+
+-- name: DeleteClubScorePart :execrows
+DELETE FROM club_score_part WHERE id = ? AND score_id = ?;
+
+-- name: ListClubScoreParts :many
+-- Part metadata only — never the PDF blob.
+SELECT p.id, p.score_id, p.name, p.section_fk, sec.name AS section_name, p.position, p.size_bytes
+FROM club_score_part p
+         LEFT JOIN club_section sec ON sec.id = p.section_fk
+WHERE p.score_id = ?
+ORDER BY p.position, p.name;
+
+-- name: ListClubScorePartsForClub :many
+-- All part metadata of a club, for resolving a program to each member's parts.
+SELECT p.id, p.score_id, p.name, p.section_fk, p.position
+FROM club_score_part p
+         JOIN club_score s ON s.id = p.score_id
+WHERE s.club_id = ?
+ORDER BY p.score_id, p.position, p.name;
+
+-- name: GetClubScorePartContent :one
+SELECT p.content
+FROM club_score_part p
+         JOIN club_score s ON s.id = p.score_id
+WHERE p.id = ? AND p.score_id = ? AND s.club_id = ?;
+
+-- name: UpsertClubScorePartChoice :exec
+INSERT INTO club_score_part_choice (score_id, user_id, part_id) VALUES (?, ?, ?)
+ON DUPLICATE KEY UPDATE part_id = VALUES(part_id);
+
+-- name: ListClubScorePartChoicesForUser :many
+SELECT c.score_id, c.part_id
+FROM club_score_part_choice c
+         JOIN club_score s ON s.id = c.score_id
+WHERE c.user_id = ? AND s.club_id = ?;

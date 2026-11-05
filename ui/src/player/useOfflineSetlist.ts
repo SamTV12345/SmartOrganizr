@@ -5,7 +5,7 @@ import {
     saveSetlistOffline,
     type OfflineSetlist,
 } from "@/src/offline/offlineSheetMusic"
-import { downloadNotePdfBlob } from "./notePdf"
+import { downloadPdfBlob } from "./notePdf"
 import { warmPdfjsForOffline } from "./pdfjs"
 import type { Playlist } from "./usePlaylist"
 
@@ -33,12 +33,13 @@ export const useOfflineSetlist = (key: string, playlist: Playlist) => {
 
     const save = useCallback(async () => {
         if (playlist.response === undefined) return
-        const noteIds = playlist.items.filter((i) => i.pdfAvailable && i.noteId).map((i) => i.noteId!)
+        // Field name is historical: the store holds PDF keys (notes and club parts).
+        const noteIds = playlist.items.filter((i) => i.pdfAvailable && i.pdfKey).map((i) => i.pdfKey!)
         try {
             await warmPdfjsForOffline()
             const setlist = await saveSetlistOffline(
                 { key, title: playlist.title || playlist.items[0]?.title || "", apiPath: playlist.apiPath, response: playlist.response, noteIds },
-                downloadNotePdfBlob,
+                downloadPdfBlob,
                 (done, total) => setState({ status: "saving", done, total }),
             )
             setState({ status: "saved", setlist })

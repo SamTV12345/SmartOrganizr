@@ -14,6 +14,7 @@ import {
     ListMusic,
     Loader2,
     Maximize,
+    Music2,
     Minimize,
     Moon,
     Square,
@@ -21,10 +22,12 @@ import {
     X,
 } from "lucide-react"
 import { PdfPageCanvas } from "@/src/player/PdfPageCanvas"
-import { openNotePdf } from "@/src/player/pdfjs"
+import { openPdf } from "@/src/player/pdfjs"
 import { type PlaylistSource, sourceKey, usePlaylist } from "@/src/player/usePlaylist"
 import { useOfflineSetlist } from "@/src/player/useOfflineSetlist"
 import { formatBytes } from "@/src/utils/formatBytes"
+import { $api } from "@/src/api/client"
+import { useQueryClient } from "@tanstack/react-query"
 import {
     autoSpread,
     clampPosition,
@@ -135,6 +138,29 @@ const Player = ({ source }: { source: PlaylistSource }) => {
     const items = playlist.items
     const offline = useOfflineSetlist(sourceKey(source), playlist)
     const [offlinePanelOpen, setOfflinePanelOpen] = useState(false)
+    const [partsPanelOpen, setPartsPanelOpen] = useState(false)
+
+    // Switching parts (1. ↔ 2. Klarinette) is remembered server-side per score.
+    // A setlist saved offline is re-saved afterwards so it carries the new part.
+    const queryClient = useQueryClient()
+    const resaveOffline = useRef(false)
+    const choosePart = $api.useMutation("put", "/v1/clubs/{clubId}/scores/{scoreId}/choice", {
+        onSuccess: async () => {
+            resaveOffline.current = offline.state.status === "saved"
+            await queryClient.invalidateQueries({ queryKey: ["get", "/v1/clubs/{clubId}/events/{eventId}/program/playlist"] })
+        },
+    })
+    useEffect(() => {
+        if (resaveOffline.current && playlist.response !== undefined) {
+            resaveOffline.current = false
+            void offline.save()
+        }
+    }, [playlist.response, offline])
+    const selectPart = (item: { clubId?: string; scoreId?: string }, partId: string) => {
+        if (!item.clubId || !item.scoreId) return
+        setPartsPanelOpen(false)
+        choosePart.mutate({ params: { path: { clubId: item.clubId, scoreId: item.scoreId } }, body: { partId } })
+    }
     useWakeLock()
 
     const [prefs, setPrefs] = useState<PlayerPrefs>(() =>
@@ -148,13 +174,13 @@ const Player = ({ source }: { source: PlaylistSource }) => {
     // Loaded PDFs per note id; `requested` prevents double downloads during prefetch.
     const [docs, setDocs] = useState<Record<string, DocState>>({})
     const requested = useRef(new Set<string>())
-    const ensureDoc = useCallback((noteId: string | undefined) => {
-        if (!noteId || requested.current.has(noteId)) return
-        requested.current.add(noteId)
-        setDocs((d) => ({ ...d, [noteId]: { status: "loading" } }))
-        openNotePdf(noteId).then(
-            ({ doc, dispose }) => setDocs((d) => ({ ...d, [noteId]: { status: "ready", doc, dispose } })),
-            () => setDocs((d) => ({ ...d, [noteId]: { status: "error" } })),
+    const ensureDoc = useCallback((key: string | undefined) => {
+        if (!key || requested.current.has(key)) return
+        requested.current.add(key)
+        setDocs((d) => ({ ...d, [key]: { status: "loading" } }))
+        openPdf(key).then(
+            ({ doc, dispose }) => setDocs((d) => ({ ...d, [key]: { status: "ready", doc, dispose } })),
+            () => setDocs((d) => ({ ...d, [key]: { status: "error" } })),
         )
     }, [])
     // Free pdf.js workers/memory for every document when the player closes.
@@ -172,7 +198,7 @@ const Player = ({ source }: { source: PlaylistSource }) => {
     const pageCounts = useMemo(
         () =>
             items.map((item) => {
-                const state = item.noteId ? docs[item.noteId] : undefined
+                const state = item.pdfKey ? docs[item.pdfKey] : undefined
                 return state?.status === "ready" ? state.doc.numPages : 1
             }),
         [items, docs],
@@ -187,14 +213,14 @@ const Player = ({ source }: { source: PlaylistSource }) => {
     useEffect(() => writeStorage(positionKey(source), position), [source, position.piece, position.page])
 
     const current = items[position.piece]
-    const currentDoc = current?.noteId ? docs[current.noteId] : undefined
+    const currentDoc = current?.pdfKey ? docs[current.pdfKey] : undefined
 
     // Load the current piece and prefetch the next one so the turn into it is instant.
     useEffect(() => {
         const cur = items[position.piece]
         const next = items[position.piece + 1]
-        if (cur?.pdfAvailable) ensureDoc(cur.noteId)
-        if (next?.pdfAvailable) ensureDoc(next.noteId)
+        if (cur?.pdfAvailable) ensureDoc(cur.pdfKey)
+        if (next?.pdfAvailable) ensureDoc(next.pdfKey)
     }, [items, position.piece, ensureDoc])
 
     const [menuOpen, setMenuOpen] = useState(true)
@@ -305,7 +331,35 @@ const Player = ({ source }: { source: PlaylistSource }) => {
         if (playlist.isLoading) return <CenteredMessage icon={<Loader2 className="h-8 w-8 animate-spin" />} text={t("player.loading")} />
         if (playlist.isError) return <CenteredMessage icon={<FileQuestion className="h-10 w-10" />} text={t("player.loadFailed")} />
         if (!current) return <CenteredMessage icon={<ListMusic className="h-10 w-10" />} text={t("player.empty")} />
-        if (!current.pdfAvailable || !current.noteId || currentDoc?.status === "error") {
+        if (current.match === "choosePart" && current.parts?.length) {
+            return (
+                <div className="flex h-full w-full items-center justify-center p-6">
+                    <div
+                        className="max-w-md rounded-xl border bg-background p-8 text-center text-foreground shadow-lg"
+                        onPointerDown={(e) => e.stopPropagation()}
+                        onPointerUp={(e) => e.stopPropagation()}
+                    >
+                        <Music2 className="mx-auto mb-4 h-10 w-10 opacity-70" />
+                        <h2 className="mb-2 text-2xl font-semibold">{current.title}</h2>
+                        <p className="mb-4 text-sm text-muted-foreground">{t("player.parts.chooseHint")}</p>
+                        <div className="flex flex-col gap-2">
+                            {current.parts.map((part) => (
+                                <button
+                                    key={part.id}
+                                    type="button"
+                                    className="rounded-md border px-4 py-2 hover:bg-muted disabled:opacity-50"
+                                    disabled={choosePart.isPending}
+                                    onClick={() => selectPart(current, part.id)}
+                                >
+                                    {part.name}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+            )
+        }
+        if (!current.pdfAvailable || !current.pdfKey || currentDoc?.status === "error") {
             return (
                 <div className="flex h-full w-full items-center justify-center p-6">
                     <div className="max-w-md rounded-xl border border-current/20 bg-background/80 p-8 text-center text-foreground shadow-lg">
@@ -396,6 +450,18 @@ const Player = ({ source }: { source: PlaylistSource }) => {
                     <ToolbarButton label={t(prefs.night ? "player.dayMode" : "player.nightMode")} onClick={() => setPrefs((p) => ({ ...p, night: !p.night }))}>
                         {prefs.night ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
                     </ToolbarButton>
+                    {current?.parts && current.parts.length > 1 && current.partId && (
+                        <button
+                            type="button"
+                            onClick={() => setPartsPanelOpen((o) => !o)}
+                            className="inline-flex h-10 max-w-40 shrink-0 items-center gap-1 rounded-md px-2 text-sm hover:bg-muted"
+                            title={t("player.parts.switch")}
+                            aria-label={t("player.parts.switch")}
+                        >
+                            <Music2 className="h-4 w-4 shrink-0" />
+                            <span className="truncate">{current.partName}</span>
+                        </button>
+                    )}
                     {items.some((i) => i.pdfAvailable) && (
                         <OfflineButton
                             state={offline.state}
@@ -413,6 +479,28 @@ const Player = ({ source }: { source: PlaylistSource }) => {
                             {isFullscreen ? <Minimize className="h-5 w-5" /> : <Maximize className="h-5 w-5" />}
                         </ToolbarButton>
                     )}
+                </div>
+            )}
+
+            {partsPanelOpen && current?.parts && (
+                <div
+                    className="absolute right-3 top-14 w-72 rounded-lg border bg-background p-2 text-sm text-foreground shadow-xl"
+                    onPointerDown={(e) => e.stopPropagation()}
+                    onPointerUp={(e) => e.stopPropagation()}
+                    data-testid="parts-panel"
+                >
+                    <p className="px-2 py-1 font-semibold">{t("player.parts.switch")}</p>
+                    {current.parts.map((part) => (
+                        <button
+                            key={part.id}
+                            type="button"
+                            onClick={() => selectPart(current, part.id)}
+                            className={`flex w-full items-center justify-between rounded-md px-2 py-1.5 text-left hover:bg-muted ${part.id === current.partId ? "font-semibold" : ""}`}
+                        >
+                            <span>{part.name}</span>
+                            {part.ownSection && <span className="text-xs text-muted-foreground">{t("player.parts.ownSection")}</span>}
+                        </button>
+                    ))}
                 </div>
             )}
 
@@ -472,7 +560,8 @@ const Player = ({ source }: { source: PlaylistSource }) => {
                                     <span className="min-w-0 flex-1">
                                         <span className="block truncate">{item.title}</span>
                                         {item.hint && <span className="block truncate text-xs italic text-muted-foreground">{item.hint}</span>}
-                                        {!item.pdfAvailable && (
+                                        {item.partName && <span className="block text-xs text-muted-foreground">{item.partName}</span>}
+                                        {!item.pdfAvailable && item.match !== "choosePart" && (
                                             <span className="block text-xs text-muted-foreground">
                                                 {item.noteId ? t("player.noPdfShort") : t("player.notInLibraryShort")}
                                             </span>
