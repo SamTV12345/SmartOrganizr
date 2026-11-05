@@ -1139,3 +1139,54 @@ DELETE FROM sheet_annotation WHERE user_id = ? AND pdf_key = ? AND page = ?;
 
 -- name: CountSheetAnnotationsForUser :one
 SELECT COUNT(*) FROM sheet_annotation WHERE user_id = ?;
+
+-- ==== reminders for open event responses ====
+
+-- name: GetClubReminderSettings :one
+SELECT hours_before FROM club_reminder_settings WHERE club_id = ?;
+
+-- name: UpsertClubReminderSettings :exec
+INSERT INTO club_reminder_settings (club_id, hours_before) VALUES (?, ?)
+ON DUPLICATE KEY UPDATE hours_before = VALUES(hours_before);
+
+-- name: DeleteClubReminderSettings :exec
+DELETE FROM club_reminder_settings WHERE club_id = ?;
+
+-- name: ListEventsDueForReminder :many
+-- Upcoming, non-cancelled events of clubs with reminders on, whose start lies
+-- within the club's reminder window. Both parameters are "now" (UTC).
+SELECT e.id, e.club_id, e.summary, e.location, e.start_date, c.name AS club_name
+FROM club_events e
+         JOIN club_reminder_settings s ON s.club_id = e.club_id
+         JOIN clubs c ON c.id = e.club_id
+WHERE e.cancelled = 0
+  AND e.start_date > sqlc.arg(now)
+  AND e.start_date <= DATE_ADD(sqlc.arg(now), INTERVAL s.hours_before HOUR);
+
+-- name: GetEventForReminder :one
+SELECT e.id, e.club_id, e.summary, e.location, e.start_date, e.cancelled, c.name AS club_name
+FROM club_events e
+         JOIN clubs c ON c.id = e.club_id
+WHERE e.id = ? AND e.club_id = ?;
+
+-- name: ListOpenResponseMembers :many
+-- Members who should answer this event but have not: whole club or the
+-- event's section, no response yet, not on a registered absence that day.
+SELECT u.id, u.email, u.firstname, u.lastname, u.username, r.sent_at AS reminded_at
+FROM club_events e
+         JOIN club_participant cp ON cp.club_id = e.club_id
+         JOIN user u ON u.id = cp.user_id
+         LEFT JOIN club_event_response resp ON resp.event_id = e.id AND resp.user_id = cp.user_id
+         LEFT JOIN club_event_reminder r ON r.event_id = e.id AND r.user_id = cp.user_id
+WHERE e.id = ?
+  AND resp.user_id IS NULL
+  AND (e.section_fk IS NULL OR cp.section_fk = e.section_fk)
+  AND NOT EXISTS (SELECT 1
+                  FROM club_absence a
+                  WHERE a.club_id = e.club_id
+                    AND a.user_id = cp.user_id
+                    AND DATE(e.start_date) BETWEEN a.start_date AND a.end_date);
+
+-- name: MarkEventReminderSent :exec
+INSERT INTO club_event_reminder (event_id, user_id, sent_at) VALUES (?, ?, ?)
+ON DUPLICATE KEY UPDATE sent_at = VALUES(sent_at);

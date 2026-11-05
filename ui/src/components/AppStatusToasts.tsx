@@ -3,8 +3,11 @@ import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { dismissSyncError, useSyncStatus } from "@/src/offline/syncStore";
 import { useAppUpdateAvailable } from "@/src/offline/appUpdateStore";
+import { dismissEventReminder, useEventReminder } from "@/src/notifications/reminderStore";
+import { Link } from "react-router-dom";
 
 const SYNC_ERROR_AUTOHIDE_MS = 8000;
+const REMINDER_AUTOHIDE_MS = 20000;
 
 // Non-blocking, self-contained status toasts (no toast library in the project):
 // offline-sync failures and the "new version available — reload" prompt.
@@ -12,6 +15,13 @@ export const AppStatusToasts = () => {
     const { t } = useTranslation();
     const { lastError } = useSyncStatus();
     const updateAvailable = useAppUpdateAvailable();
+    const reminder = useEventReminder();
+
+    useEffect(() => {
+        if (!reminder) return;
+        const timer = window.setTimeout(dismissEventReminder, REMINDER_AUTOHIDE_MS);
+        return () => window.clearTimeout(timer);
+    }, [reminder]);
 
     useEffect(() => {
         if (!lastError) return;
@@ -19,7 +29,7 @@ export const AppStatusToasts = () => {
         return () => window.clearTimeout(timer);
     }, [lastError]);
 
-    if (!lastError && !updateAvailable) return null;
+    if (!lastError && !updateAvailable && !reminder) return null;
 
     return (
         <div className="fixed bottom-4 left-1/2 z-50 flex w-max max-w-[90vw] -translate-x-1/2 flex-col gap-2">
@@ -32,6 +42,17 @@ export const AppStatusToasts = () => {
                         aria-label={String(t("offline.dismiss"))}
                         className="cursor-pointer font-bold"
                     >
+                        ×
+                    </button>
+                </div>
+            )}
+            {reminder && (
+                <div role="status" className="flex items-center gap-3 rounded-md bg-primary px-4 py-2 text-sm text-primary-foreground shadow-lg" data-testid="reminder-toast">
+                    <span>{t("reminders.toast", { summary: reminder.summary })}</span>
+                    <Link to="/dashboard" onClick={dismissEventReminder} className="font-semibold underline">
+                        {t("reminders.answer")}
+                    </Link>
+                    <button type="button" onClick={dismissEventReminder} aria-label={String(t("offline.dismiss"))} className="cursor-pointer font-bold">
                         ×
                     </button>
                 </div>

@@ -55,6 +55,7 @@ import { ClubScoresSection } from "@/src/components/club/ClubScoresSection";
 import { ClubProgramSection } from "@/src/components/club/ClubProgramSection";
 import { ClubSettingsForm } from "@/src/components/club/ClubSettingsForm";
 import { ClubDangerZone } from "@/src/components/club/ClubDangerZone";
+import { ClubReminderSettings } from "@/src/components/club/ClubReminderSettings";
 import { ClubStatsSection } from "@/src/components/club/ClubStatsSection";
 import { useDateFormat } from "@/src/hooks/useDateFormat";
 
@@ -456,6 +457,7 @@ export const ClubDetailView: FC = () => {
                             {permissions?.can_manage_roles
                                 ? <ClubSettingsForm club={club} />
                                 : <p className="text-sm text-muted-foreground">{t("club.settingsReadOnly")}</p>}
+                            <ClubReminderSettings clubId={club.id} canEdit={permissions?.can_manage_roles ?? false} />
                             <ClubDangerZone
                                 clubId={club.id}
                                 clubName={club.name}

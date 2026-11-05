@@ -748,5 +748,21 @@
     "cancel": "Cancel",
     "deleteScore": "Delete piece",
     "deleteConfirm": "Delete the piece with all its parts?"
+  },
+  "reminders": {
+    "title": "Reminders for open responses",
+    "hint": "Members without an answer get an email and an in-app notice before the event – once per event. Members with an absence that day are skipped.",
+    "off": "Off",
+    "hoursBefore_one": "{{count}} hour before",
+    "hoursBefore_other": "{{count}} hours before",
+    "daysBefore_one": "{{count}} day before",
+    "daysBefore_other": "{{count}} days before",
+    "remindNow": "Remind open",
+    "sent_one": "Reminded {{count}} member",
+    "sent_other": "Reminded {{count}} members",
+    "noneSent": "Everyone open was already reminded in the last 12 hours",
+    "failed": "Reminding failed",
+    "toast": "Please still answer: {{summary}}",
+    "answer": "Answer now"
   }
 }
