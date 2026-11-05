@@ -3,6 +3,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { authFetch } from "@/src/api/client";
 import { apiURL } from "@/src/Keycloak";
 import { useKeycloak } from "@/src/Keycloak/useKeycloak";
+import { showEventReminder } from "./reminderStore";
 
 const RECONNECT_DELAY_MS = 5000;
 
@@ -45,7 +46,7 @@ export const NotificationProvider: FC<{ children: ReactNode }> = ({ children }) 
 
         const refresh = (payload: string) => {
             queryClient.invalidateQueries({ queryKey: ["unread-summary"] });
-            let event: { type?: string; clubId?: string } = {};
+            let event: { type?: string; clubId?: string; eventId?: string; preview?: string } = {};
             try {
                 event = JSON.parse(payload);
             } catch {
@@ -59,6 +60,10 @@ export const NotificationProvider: FC<{ children: ReactNode }> = ({ children }) 
                 case "club_event_cancelled":
                 case "club_event_response":
                     refreshClubEvents();
+                    break;
+                case "club_event_reminder":
+                    refreshClubEvents();
+                    showEventReminder({ clubId: event.clubId ?? "", eventId: event.eventId ?? "", summary: event.preview ?? "" });
                     break;
                 case "pinboard_post":
                     refreshPinboard(event.clubId);

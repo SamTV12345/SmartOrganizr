@@ -26,7 +26,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
-import { Pencil, Trash2, Undo2, Users } from "lucide-react"
+import { Pencil, Trash2, Undo2, Users, BellRing } from "lucide-react"
 import type { ClubEventModel } from "@/src/models/ClubEvent"
 import type { ClubSection } from "@/src/api/types"
 import { http as axios } from "@/src/api/client"
@@ -488,6 +488,9 @@ export const ClubEventsManager = ({
               <ExpectedBadge clubId={clubId} eventId={event.id} />
             </p>
             <AttendanceToggle clubId={clubId} eventId={event.id} />
+            {canManage && !showPast && !event.cancelled && event.undecidedCount > 0 && (
+              <RemindButton clubId={clubId} eventId={event.id} />
+            )}
             {mayEdit && !event.cancelled && (
               <Button
                 variant="outline"
@@ -517,6 +520,32 @@ export const ClubEventsManager = ({
 }
 
 type MatrixProps = { clubId: string; eventId: string }
+
+/** Reminds every member without an answer; the server skips anyone reminded in the last 12 h. */
+const RemindButton = ({ clubId, eventId }: MatrixProps) => {
+  const { t } = useTranslation()
+  const remind = $api.useMutation("post", "/v1/clubs/{clubId}/events/{eventId}/remind")
+  return (
+    <div className="flex items-center gap-2">
+      <Button
+        variant="outline"
+        size="sm"
+        disabled={remind.isPending}
+        onClick={() => remind.mutate({ params: { path: { clubId, eventId } } })}
+        data-testid="remind-open"
+      >
+        <BellRing className="mr-1 size-4" />
+        {t("reminders.remindNow")}
+      </Button>
+      {remind.data && (
+        <span className="text-xs text-muted-foreground" role="status">
+          {remind.data.sent > 0 ? t("reminders.sent", { count: remind.data.sent }) : t("reminders.noneSent")}
+        </span>
+      )}
+      {remind.isError && <span className="text-xs text-red-600">{t("reminders.failed")}</span>}
+    </div>
+  )
+}
 
 /* The matrix used to load with every event card — 20 events meant 20 requests,
    most of them empty for anyone outside the leadership. The counts already ride

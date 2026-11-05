@@ -748,5 +748,21 @@
     "cancel": "Abbrechen",
     "deleteScore": "Werk löschen",
     "deleteConfirm": "Werk mit allen Stimmen löschen?"
+  },
+  "reminders": {
+    "title": "Erinnerungen an offene Zusagen",
+    "hint": "Mitglieder ohne Antwort bekommen vor dem Termin eine Mail und einen Hinweis in der App – einmal pro Termin. Wer für den Tag eine Abwesenheit eingetragen hat, wird nicht erinnert.",
+    "off": "Aus",
+    "hoursBefore_one": "{{count}} Stunde vorher",
+    "hoursBefore_other": "{{count}} Stunden vorher",
+    "daysBefore_one": "{{count}} Tag vorher",
+    "daysBefore_other": "{{count}} Tage vorher",
+    "remindNow": "Offene erinnern",
+    "sent_one": "{{count}} Mitglied erinnert",
+    "sent_other": "{{count}} Mitglieder erinnert",
+    "noneSent": "Alle Offenen wurden in den letzten 12 Stunden schon erinnert",
+    "failed": "Erinnern fehlgeschlagen",
+    "toast": "Bitte antworte noch: {{summary}}",
+    "answer": "Jetzt antworten"
   }
 }
