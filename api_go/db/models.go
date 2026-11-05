@@ -205,6 +205,7 @@ type ClubEventProgram struct {
 	Position        int32
 	DurationMinutes sql.NullInt32
 	NoteText        sql.NullString
+	ScoreID         sql.NullString
 }
 
 type ClubEventResponse struct {
@@ -279,6 +280,32 @@ type ClubPollVote struct {
 	OptionID  string
 	UserID    string
 	CreatedAt time.Time
+}
+
+type ClubScore struct {
+	ID        string
+	ClubID    string
+	Title     string
+	Composer  sql.NullString
+	Arranger  sql.NullString
+	CreatedAt time.Time
+}
+
+type ClubScorePart struct {
+	ID        string
+	ScoreID   string
+	Name      string
+	SectionFk sql.NullString
+	Position  int32
+	SizeBytes int64
+	Content   []byte
+	CreatedAt time.Time
+}
+
+type ClubScorePartChoice struct {
+	ScoreID string
+	UserID  string
+	PartID  string
 }
 
 type ClubSection struct {

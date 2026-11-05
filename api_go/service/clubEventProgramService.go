@@ -71,6 +71,7 @@ func (s *ClubEventProgramService) List(clubID, userID, eventID string) ([]dto.Cl
 			Position:        int(r.Position),
 			DurationMinutes: nullInt32Ptr(r.DurationMinutes),
 			NoteText:        nullStringPtr(r.NoteText),
+			ScoreID:         nullStringPtr(r.ScoreID),
 		})
 	}
 	return out, nil
@@ -88,6 +89,12 @@ func (s *ClubEventProgramService) Replace(clubID, userID, eventID string, in dto
 	for i := range in.Entries {
 		if strings.TrimSpace(in.Entries[i].Title) == "" {
 			return nil, errors.New("each program entry needs a title")
+		}
+		// A linked score must belong to this club.
+		if id := trimmedOrNil(in.Entries[i].ScoreID); id != nil {
+			if _, err := s.queries.GetClubScore(s.ctx, db.GetClubScoreParams{ID: *id, ClubID: clubID}); err != nil {
+				return nil, errors.New("program entry links an unknown score")
+			}
 		}
 	}
 	// ponytail: delete-all + re-insert. Not transactional (queries has no tx handle
@@ -109,6 +116,7 @@ func (s *ClubEventProgramService) Replace(clubID, userID, eventID string, in dto
 			Position:        int32(i),
 			DurationMinutes: nullableInt32(e.DurationMinutes),
 			NoteText:        db.NewSQLNullStringNullValue(e.NoteText),
+			ScoreID:         db.NewSQLNullStringNullValue(trimmedOrNil(e.ScoreID)),
 		}); err != nil {
 			return nil, err
 		}
@@ -165,6 +173,11 @@ func (s *ClubEventProgramService) Playlist(clubID, userID, eventID string) ([]dt
 		entries = append(entries, PlaylistProgramEntry{EntryID: r.ID, Title: r.Title, NoteID: r.NoteID.String, SourceWikidataID: r.SourceWikidataID.String})
 	}
 	matches := MatchProgramToLibrary(entries, library)
+	scores := ClubScoreService{queries: s.queries, ctx: s.ctx, members: s.members}
+	selections, partNames, err := scores.memberSelections(clubID, userID)
+	if err != nil {
+		return nil, err
+	}
 	out := make([]dto.ClubEventPlaylistItemDto, 0, len(rows))
 	for i, r := range rows {
 		item := dto.ClubEventPlaylistItemDto{
@@ -179,7 +192,40 @@ func (s *ClubEventProgramService) Playlist(clubID, userID, eventID string) ([]dt
 			id := matches[i].NoteID
 			item.NoteID = &id
 		}
+		applyScoreSelection(&item, r.ScoreID, selections, partNames)
 		out = append(out, item)
 	}
 	return out, nil
+}
+
+// applyScoreSelection lets a club score override the library match: the
+// member's part wins. A score whose parts fit nobody automatically asks the
+// member to choose ("choosePart") unless the library had a playable match.
+// A score without any parts leaves the library match untouched.
+func applyScoreSelection(item *dto.ClubEventPlaylistItemDto, scoreID sql.NullString, selections map[string]ScorePartSelection, partNames map[string]string) {
+	if !scoreID.Valid {
+		return
+	}
+	sid := scoreID.String
+	item.ScoreID = &sid
+	sel, ok := selections[sid]
+	if !ok || len(sel.Options) == 0 {
+		return
+	}
+	item.Parts = make([]dto.ClubEventPlaylistPartDto, 0, len(sel.Options))
+	for _, o := range sel.Options {
+		item.Parts = append(item.Parts, dto.ClubEventPlaylistPartDto{ID: o.ID, Name: o.Name, OwnSection: o.OwnSection})
+	}
+	if sel.PartID != "" {
+		pid, pname := sel.PartID, partNames[sel.PartID]
+		item.PartID, item.PartName = &pid, &pname
+		item.NoteID = nil
+		item.PdfAvailable = true
+		item.Match = "part"
+		return
+	}
+	if !item.PdfAvailable {
+		item.NoteID = nil
+		item.Match = "choosePart"
+	}
 }

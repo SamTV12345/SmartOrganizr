@@ -2442,6 +2442,439 @@
                 }
             }
         },
+        "/v1/clubs/{clubId}/scores": {
+            "get": {
+                "tags": [
+                    "club-scores"
+                ],
+                "summary": "List the club's sheet music archive",
+                "parameters": [
+                    {
+                        "description": "Club ID",
+                        "name": "clubId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/dto.ClubScoreDto"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "club-scores"
+                ],
+                "summary": "Add a piece to the club's sheet music archive",
+                "parameters": [
+                    {
+                        "description": "Club ID",
+                        "name": "clubId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "$ref": "#/components/requestBodies/dto.ClubScorePostDto"
+                },
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/dto.ClubScoreDto"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/clubs/{clubId}/scores/{scoreId}": {
+            "get": {
+                "tags": [
+                    "club-scores"
+                ],
+                "summary": "Get a score with its parts",
+                "parameters": [
+                    {
+                        "description": "Club ID",
+                        "name": "clubId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "description": "Score ID",
+                        "name": "scoreId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/dto.ClubScoreDto"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "put": {
+                "tags": [
+                    "club-scores"
+                ],
+                "summary": "Update title, composer and arranger of a score",
+                "parameters": [
+                    {
+                        "description": "Club ID",
+                        "name": "clubId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "description": "Score ID",
+                        "name": "scoreId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "$ref": "#/components/requestBodies/dto.ClubScorePostDto"
+                },
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/dto.ClubScoreDto"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "club-scores"
+                ],
+                "summary": "Delete a score and all its parts",
+                "parameters": [
+                    {
+                        "description": "Club ID",
+                        "name": "clubId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "description": "Score ID",
+                        "name": "scoreId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    }
+                }
+            }
+        },
+        "/v1/clubs/{clubId}/scores/{scoreId}/choice": {
+            "put": {
+                "tags": [
+                    "club-scores"
+                ],
+                "summary": "Remember which part the caller plays for a score",
+                "parameters": [
+                    {
+                        "description": "Club ID",
+                        "name": "clubId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "description": "Score ID",
+                        "name": "scoreId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/dto.ClubScorePartChoiceDto"
+                            }
+                        }
+                    },
+                    "description": "Chosen part",
+                    "required": true
+                },
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    }
+                }
+            }
+        },
+        "/v1/clubs/{clubId}/scores/{scoreId}/parts": {
+            "post": {
+                "tags": [
+                    "club-scores"
+                ],
+                "summary": "Upload a part (Stimme) PDF for a score",
+                "parameters": [
+                    {
+                        "description": "Club ID",
+                        "name": "clubId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "description": "Score ID",
+                        "name": "scoreId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "file": {
+                                        "description": "Part PDF",
+                                        "type": "string",
+                                        "format": "binary"
+                                    },
+                                    "name": {
+                                        "description": "Part name, e.g. 2. Klarinette in B",
+                                        "type": "string"
+                                    },
+                                    "sectionId": {
+                                        "description": "Section (Register) the part belongs to",
+                                        "type": "string"
+                                    }
+                                },
+                                "required": [
+                                    "file",
+                                    "name"
+                                ]
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/dto.ClubScoreDto"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/clubs/{clubId}/scores/{scoreId}/parts/{partId}": {
+            "delete": {
+                "tags": [
+                    "club-scores"
+                ],
+                "summary": "Delete a part",
+                "parameters": [
+                    {
+                        "description": "Club ID",
+                        "name": "clubId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "description": "Score ID",
+                        "name": "scoreId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "description": "Part ID",
+                        "name": "partId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    }
+                }
+            },
+            "patch": {
+                "tags": [
+                    "club-scores"
+                ],
+                "summary": "Rename a part or move it to another section",
+                "parameters": [
+                    {
+                        "description": "Club ID",
+                        "name": "clubId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "description": "Score ID",
+                        "name": "scoreId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "description": "Part ID",
+                        "name": "partId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/dto.ClubScorePartPatchDto"
+                            }
+                        }
+                    },
+                    "description": "Part",
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/dto.ClubScoreDto"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/clubs/{clubId}/scores/{scoreId}/parts/{partId}/pdf": {
+            "get": {
+                "tags": [
+                    "club-scores"
+                ],
+                "summary": "Download a part's PDF (any club member)",
+                "parameters": [
+                    {
+                        "description": "Club ID",
+                        "name": "clubId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "description": "Score ID",
+                        "name": "scoreId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "description": "Part ID",
+                        "name": "partId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            }
+        },
         "/v1/clubs/{clubId}/sections": {
             "get": {
                 "tags": [
@@ -4429,6 +4862,17 @@
     ],
     "components": {
         "requestBodies": {
+            "dto.ClubScorePostDto": {
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "$ref": "#/components/schemas/dto.ClubScorePostDto"
+                        }
+                    }
+                },
+                "description": "Score",
+                "required": true
+            },
             "dto.ClubEventUpsertDto": {
                 "content": {
                     "application/json": {
@@ -5044,6 +5488,8 @@
                     "match": {
                         "type": "string",
                         "enum": [
+                            "part",
+                            "choosePart",
                             "own",
                             "wikidata",
                             "title",
@@ -5056,14 +5502,49 @@
                     "noteText": {
                         "type": "string"
                     },
+                    "partId": {
+                        "type": "string"
+                    },
+                    "partName": {
+                        "type": "string"
+                    },
+                    "parts": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/dto.ClubEventPlaylistPartDto"
+                        }
+                    },
                     "pdfAvailable": {
                         "type": "boolean"
                     },
                     "position": {
                         "type": "integer"
                     },
+                    "scoreId": {
+                        "description": "Set when the entry links a club score: the member's part (if any) and\nevery part of the score to switch to.",
+                        "type": "string"
+                    },
                     "title": {
                         "type": "string"
+                    }
+                }
+            },
+            "dto.ClubEventPlaylistPartDto": {
+                "type": "object",
+                "required": [
+                    "id",
+                    "name",
+                    "ownSection"
+                ],
+                "properties": {
+                    "id": {
+                        "type": "string"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "ownSection": {
+                        "type": "boolean"
                     }
                 }
             },
@@ -5087,6 +5568,10 @@
                     },
                     "position": {
                         "type": "integer"
+                    },
+                    "scoreId": {
+                        "description": "ScoreID links the entry to a piece in the club's sheet music archive.",
+                        "type": "string"
                     },
                     "title": {
                         "type": "string"
@@ -5616,6 +6101,116 @@
                         "type": "string"
                     },
                     "street": {
+                        "type": "string"
+                    }
+                }
+            },
+            "dto.ClubScoreDto": {
+                "type": "object",
+                "required": [
+                    "createdAt",
+                    "id",
+                    "partCount",
+                    "title"
+                ],
+                "properties": {
+                    "arranger": {
+                        "type": "string"
+                    },
+                    "composer": {
+                        "type": "string"
+                    },
+                    "createdAt": {
+                        "type": "string"
+                    },
+                    "id": {
+                        "type": "string"
+                    },
+                    "partCount": {
+                        "type": "integer"
+                    },
+                    "parts": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/dto.ClubScorePartDto"
+                        }
+                    },
+                    "title": {
+                        "type": "string"
+                    }
+                }
+            },
+            "dto.ClubScorePartChoiceDto": {
+                "type": "object",
+                "required": [
+                    "partId"
+                ],
+                "properties": {
+                    "partId": {
+                        "type": "string"
+                    }
+                }
+            },
+            "dto.ClubScorePartDto": {
+                "type": "object",
+                "required": [
+                    "id",
+                    "name",
+                    "position",
+                    "scoreId",
+                    "sizeBytes"
+                ],
+                "properties": {
+                    "id": {
+                        "type": "string"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "position": {
+                        "type": "integer"
+                    },
+                    "scoreId": {
+                        "type": "string"
+                    },
+                    "sectionId": {
+                        "type": "string"
+                    },
+                    "sectionName": {
+                        "type": "string"
+                    },
+                    "sizeBytes": {
+                        "type": "integer"
+                    }
+                }
+            },
+            "dto.ClubScorePartPatchDto": {
+                "type": "object",
+                "required": [
+                    "name"
+                ],
+                "properties": {
+                    "name": {
+                        "type": "string"
+                    },
+                    "sectionId": {
+                        "type": "string"
+                    }
+                }
+            },
+            "dto.ClubScorePostDto": {
+                "type": "object",
+                "required": [
+                    "title"
+                ],
+                "properties": {
+                    "arranger": {
+                        "type": "string"
+                    },
+                    "composer": {
+                        "type": "string"
+                    },
+                    "title": {
                         "type": "string"
                     }
                 }

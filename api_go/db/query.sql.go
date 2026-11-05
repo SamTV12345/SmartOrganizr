@@ -525,6 +525,59 @@ func (q *Queries) CreateClubPollOption(ctx context.Context, arg CreateClubPollOp
 	return err
 }
 
+const createClubScore = `-- name: CreateClubScore :exec
+
+INSERT INTO club_score (id, club_id, title, composer, arranger) VALUES (?, ?, ?, ?, ?)
+`
+
+type CreateClubScoreParams struct {
+	ID       string
+	ClubID   string
+	Title    string
+	Composer sql.NullString
+	Arranger sql.NullString
+}
+
+// ==== club sheet music archive (Notenarchiv) ====
+func (q *Queries) CreateClubScore(ctx context.Context, arg CreateClubScoreParams) error {
+	_, err := q.db.ExecContext(ctx, createClubScore,
+		arg.ID,
+		arg.ClubID,
+		arg.Title,
+		arg.Composer,
+		arg.Arranger,
+	)
+	return err
+}
+
+const createClubScorePart = `-- name: CreateClubScorePart :exec
+INSERT INTO club_score_part (id, score_id, name, section_fk, position, size_bytes, content)
+VALUES (?, ?, ?, ?, ?, ?, ?)
+`
+
+type CreateClubScorePartParams struct {
+	ID        string
+	ScoreID   string
+	Name      string
+	SectionFk sql.NullString
+	Position  int32
+	SizeBytes int64
+	Content   []byte
+}
+
+func (q *Queries) CreateClubScorePart(ctx context.Context, arg CreateClubScorePartParams) error {
+	_, err := q.db.ExecContext(ctx, createClubScorePart,
+		arg.ID,
+		arg.ScoreID,
+		arg.Name,
+		arg.SectionFk,
+		arg.Position,
+		arg.SizeBytes,
+		arg.Content,
+	)
+	return err
+}
+
 const createClubSection = `-- name: CreateClubSection :exec
 
 INSERT INTO club_section (id, club_id, name) VALUES (?, ?, ?)
@@ -622,8 +675,8 @@ func (q *Queries) CreateEvent(ctx context.Context, arg CreateEventParams) error 
 }
 
 const createEventProgramEntry = `-- name: CreateEventProgramEntry :exec
-INSERT INTO club_event_program (id, event_id, note_id, title, position, duration_minutes, note_text)
-VALUES (?, ?, ?, ?, ?, ?, ?)
+INSERT INTO club_event_program (id, event_id, note_id, title, position, duration_minutes, note_text, score_id)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?)
 `
 
 type CreateEventProgramEntryParams struct {
@@ -634,6 +687,7 @@ type CreateEventProgramEntryParams struct {
 	Position        int32
 	DurationMinutes sql.NullInt32
 	NoteText        sql.NullString
+	ScoreID         sql.NullString
 }
 
 func (q *Queries) CreateEventProgramEntry(ctx context.Context, arg CreateEventProgramEntryParams) error {
@@ -645,6 +699,7 @@ func (q *Queries) CreateEventProgramEntry(ctx context.Context, arg CreateEventPr
 		arg.Position,
 		arg.DurationMinutes,
 		arg.NoteText,
+		arg.ScoreID,
 	)
 	return err
 }
@@ -1138,6 +1193,40 @@ type DeleteClubPollParams struct {
 
 func (q *Queries) DeleteClubPoll(ctx context.Context, arg DeleteClubPollParams) (int64, error) {
 	result, err := q.db.ExecContext(ctx, deleteClubPoll, arg.ID, arg.ClubID)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected()
+}
+
+const deleteClubScore = `-- name: DeleteClubScore :execrows
+DELETE FROM club_score WHERE id = ? AND club_id = ?
+`
+
+type DeleteClubScoreParams struct {
+	ID     string
+	ClubID string
+}
+
+func (q *Queries) DeleteClubScore(ctx context.Context, arg DeleteClubScoreParams) (int64, error) {
+	result, err := q.db.ExecContext(ctx, deleteClubScore, arg.ID, arg.ClubID)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected()
+}
+
+const deleteClubScorePart = `-- name: DeleteClubScorePart :execrows
+DELETE FROM club_score_part WHERE id = ? AND score_id = ?
+`
+
+type DeleteClubScorePartParams struct {
+	ID      string
+	ScoreID string
+}
+
+func (q *Queries) DeleteClubScorePart(ctx context.Context, arg DeleteClubScorePartParams) (int64, error) {
+	result, err := q.db.ExecContext(ctx, deleteClubScorePart, arg.ID, arg.ScoreID)
 	if err != nil {
 		return 0, err
 	}
@@ -3375,6 +3464,49 @@ func (q *Queries) GetClubPollByID(ctx context.Context, arg GetClubPollByIDParams
 	return i, err
 }
 
+const getClubScore = `-- name: GetClubScore :one
+SELECT id, club_id, title, composer, arranger, created_at FROM club_score WHERE id = ? AND club_id = ?
+`
+
+type GetClubScoreParams struct {
+	ID     string
+	ClubID string
+}
+
+func (q *Queries) GetClubScore(ctx context.Context, arg GetClubScoreParams) (ClubScore, error) {
+	row := q.db.QueryRowContext(ctx, getClubScore, arg.ID, arg.ClubID)
+	var i ClubScore
+	err := row.Scan(
+		&i.ID,
+		&i.ClubID,
+		&i.Title,
+		&i.Composer,
+		&i.Arranger,
+		&i.CreatedAt,
+	)
+	return i, err
+}
+
+const getClubScorePartContent = `-- name: GetClubScorePartContent :one
+SELECT p.content
+FROM club_score_part p
+         JOIN club_score s ON s.id = p.score_id
+WHERE p.id = ? AND p.score_id = ? AND s.club_id = ?
+`
+
+type GetClubScorePartContentParams struct {
+	ID      string
+	ScoreID string
+	ClubID  string
+}
+
+func (q *Queries) GetClubScorePartContent(ctx context.Context, arg GetClubScorePartContentParams) ([]byte, error) {
+	row := q.db.QueryRowContext(ctx, getClubScorePartContent, arg.ID, arg.ScoreID, arg.ClubID)
+	var content []byte
+	err := row.Scan(&content)
+	return content, err
+}
+
 const getClubs = `-- name: GetClubs :many
 SELECT clubs.id, clubs.name, clubs.address_id, clubs.club_type, clubs.dates_visible_for_all_members, clubs.members_can_send_messages, clubs.feedback_visibility, clubs.reason_visibility, clubs.confirmed_representative, address.id, address.street, address.house_number, address.location, address.postal_code, address.country
 from clubs
@@ -4446,6 +4578,191 @@ func (q *Queries) ListClubPolls(ctx context.Context, clubID string) ([]ClubPoll,
 	return items, nil
 }
 
+const listClubScorePartChoicesForUser = `-- name: ListClubScorePartChoicesForUser :many
+SELECT c.score_id, c.part_id
+FROM club_score_part_choice c
+         JOIN club_score s ON s.id = c.score_id
+WHERE c.user_id = ? AND s.club_id = ?
+`
+
+type ListClubScorePartChoicesForUserParams struct {
+	UserID string
+	ClubID string
+}
+
+type ListClubScorePartChoicesForUserRow struct {
+	ScoreID string
+	PartID  string
+}
+
+func (q *Queries) ListClubScorePartChoicesForUser(ctx context.Context, arg ListClubScorePartChoicesForUserParams) ([]ListClubScorePartChoicesForUserRow, error) {
+	rows, err := q.db.QueryContext(ctx, listClubScorePartChoicesForUser, arg.UserID, arg.ClubID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ListClubScorePartChoicesForUserRow
+	for rows.Next() {
+		var i ListClubScorePartChoicesForUserRow
+		if err := rows.Scan(&i.ScoreID, &i.PartID); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listClubScoreParts = `-- name: ListClubScoreParts :many
+SELECT p.id, p.score_id, p.name, p.section_fk, sec.name AS section_name, p.position, p.size_bytes
+FROM club_score_part p
+         LEFT JOIN club_section sec ON sec.id = p.section_fk
+WHERE p.score_id = ?
+ORDER BY p.position, p.name
+`
+
+type ListClubScorePartsRow struct {
+	ID          string
+	ScoreID     string
+	Name        string
+	SectionFk   sql.NullString
+	SectionName sql.NullString
+	Position    int32
+	SizeBytes   int64
+}
+
+// Part metadata only — never the PDF blob.
+func (q *Queries) ListClubScoreParts(ctx context.Context, scoreID string) ([]ListClubScorePartsRow, error) {
+	rows, err := q.db.QueryContext(ctx, listClubScoreParts, scoreID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ListClubScorePartsRow
+	for rows.Next() {
+		var i ListClubScorePartsRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.ScoreID,
+			&i.Name,
+			&i.SectionFk,
+			&i.SectionName,
+			&i.Position,
+			&i.SizeBytes,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listClubScorePartsForClub = `-- name: ListClubScorePartsForClub :many
+SELECT p.id, p.score_id, p.name, p.section_fk, p.position
+FROM club_score_part p
+         JOIN club_score s ON s.id = p.score_id
+WHERE s.club_id = ?
+ORDER BY p.score_id, p.position, p.name
+`
+
+type ListClubScorePartsForClubRow struct {
+	ID        string
+	ScoreID   string
+	Name      string
+	SectionFk sql.NullString
+	Position  int32
+}
+
+// All part metadata of a club, for resolving a program to each member's parts.
+func (q *Queries) ListClubScorePartsForClub(ctx context.Context, clubID string) ([]ListClubScorePartsForClubRow, error) {
+	rows, err := q.db.QueryContext(ctx, listClubScorePartsForClub, clubID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ListClubScorePartsForClubRow
+	for rows.Next() {
+		var i ListClubScorePartsForClubRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.ScoreID,
+			&i.Name,
+			&i.SectionFk,
+			&i.Position,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listClubScores = `-- name: ListClubScores :many
+SELECT s.id, s.club_id, s.title, s.composer, s.arranger, s.created_at,
+       (SELECT COUNT(*) FROM club_score_part p WHERE p.score_id = s.id) AS part_count
+FROM club_score s
+WHERE s.club_id = ?
+ORDER BY s.title
+`
+
+type ListClubScoresRow struct {
+	ID        string
+	ClubID    string
+	Title     string
+	Composer  sql.NullString
+	Arranger  sql.NullString
+	CreatedAt time.Time
+	PartCount int64
+}
+
+func (q *Queries) ListClubScores(ctx context.Context, clubID string) ([]ListClubScoresRow, error) {
+	rows, err := q.db.QueryContext(ctx, listClubScores, clubID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ListClubScoresRow
+	for rows.Next() {
+		var i ListClubScoresRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.ClubID,
+			&i.Title,
+			&i.Composer,
+			&i.Arranger,
+			&i.CreatedAt,
+			&i.PartCount,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const listClubSections = `-- name: ListClubSections :many
 SELECT s.id, s.name, COUNT(p.user_id) AS member_count
 FROM club_section s
@@ -4531,7 +4848,7 @@ func (q *Queries) ListCompletedSweepsForUser(ctx context.Context, userFk string)
 
 const listEventProgram = `-- name: ListEventProgram :many
 
-SELECT id, event_id, note_id, title, position, duration_minutes, note_text
+SELECT id, event_id, note_id, title, position, duration_minutes, note_text, score_id
 FROM club_event_program
 WHERE event_id = ?
 ORDER BY position
@@ -4557,6 +4874,7 @@ func (q *Queries) ListEventProgram(ctx context.Context, eventID string) ([]ClubE
 			&i.Position,
 			&i.DurationMinutes,
 			&i.NoteText,
+			&i.ScoreID,
 		); err != nil {
 			return nil, err
 		}
@@ -4572,7 +4890,7 @@ func (q *Queries) ListEventProgram(ctx context.Context, eventID string) ([]ClubE
 }
 
 const listEventProgramWithSource = `-- name: ListEventProgramWithSource :many
-SELECT p.id, p.note_id, p.title, p.position, p.note_text, src.wikidata_id AS source_wikidata_id
+SELECT p.id, p.note_id, p.title, p.position, p.note_text, p.score_id, src.wikidata_id AS source_wikidata_id
 FROM club_event_program p
          LEFT JOIN elements src ON src.id = p.note_id
 WHERE p.event_id = ?
@@ -4585,6 +4903,7 @@ type ListEventProgramWithSourceRow struct {
 	Title            string
 	Position         int32
 	NoteText         sql.NullString
+	ScoreID          sql.NullString
 	SourceWikidataID sql.NullString
 }
 
@@ -4605,6 +4924,7 @@ func (q *Queries) ListEventProgramWithSource(ctx context.Context, eventID string
 			&i.Title,
 			&i.Position,
 			&i.NoteText,
+			&i.ScoreID,
 			&i.SourceWikidataID,
 		); err != nil {
 			return nil, err
@@ -5147,6 +5467,17 @@ func (q *Queries) MoveToFolder(ctx context.Context, arg MoveToFolderParams) erro
 	return err
 }
 
+const nextClubScorePartPosition = `-- name: NextClubScorePartPosition :one
+SELECT CAST(COALESCE(MAX(position) + 1, 0) AS SIGNED) AS next_position FROM club_score_part WHERE score_id = ?
+`
+
+func (q *Queries) NextClubScorePartPosition(ctx context.Context, scoreID string) (int64, error) {
+	row := q.db.QueryRowContext(ctx, nextClubScorePartPosition, scoreID)
+	var next_position int64
+	err := row.Scan(&next_position)
+	return next_position, err
+}
+
 const reinstateClubEvent = `-- name: ReinstateClubEvent :exec
 UPDATE club_events SET cancelled = 0, updated_at = CURRENT_TIMESTAMP
 WHERE id = ? AND club_id = ?
@@ -5569,6 +5900,56 @@ func (q *Queries) UpdateClubMemberSection(ctx context.Context, arg UpdateClubMem
 	return err
 }
 
+const updateClubScore = `-- name: UpdateClubScore :execrows
+UPDATE club_score SET title = ?, composer = ?, arranger = ? WHERE id = ? AND club_id = ?
+`
+
+type UpdateClubScoreParams struct {
+	Title    string
+	Composer sql.NullString
+	Arranger sql.NullString
+	ID       string
+	ClubID   string
+}
+
+func (q *Queries) UpdateClubScore(ctx context.Context, arg UpdateClubScoreParams) (int64, error) {
+	result, err := q.db.ExecContext(ctx, updateClubScore,
+		arg.Title,
+		arg.Composer,
+		arg.Arranger,
+		arg.ID,
+		arg.ClubID,
+	)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected()
+}
+
+const updateClubScorePart = `-- name: UpdateClubScorePart :execrows
+UPDATE club_score_part SET name = ?, section_fk = ? WHERE id = ? AND score_id = ?
+`
+
+type UpdateClubScorePartParams struct {
+	Name      string
+	SectionFk sql.NullString
+	ID        string
+	ScoreID   string
+}
+
+func (q *Queries) UpdateClubScorePart(ctx context.Context, arg UpdateClubScorePartParams) (int64, error) {
+	result, err := q.db.ExecContext(ctx, updateClubScorePart,
+		arg.Name,
+		arg.SectionFk,
+		arg.ID,
+		arg.ScoreID,
+	)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected()
+}
+
 const updateConcert = `-- name: UpdateConcert :exec
 UPDATE concert SET title = ?, description = ?, location = ?, due_date = ?, hints = ? WHERE id = ? AND user_id_fk = ?
 `
@@ -5804,5 +6185,21 @@ func (q *Queries) UpsertClubEventResponse(ctx context.Context, arg UpsertClubEve
 		arg.Status,
 		arg.Reason,
 	)
+	return err
+}
+
+const upsertClubScorePartChoice = `-- name: UpsertClubScorePartChoice :exec
+INSERT INTO club_score_part_choice (score_id, user_id, part_id) VALUES (?, ?, ?)
+ON DUPLICATE KEY UPDATE part_id = VALUES(part_id)
+`
+
+type UpsertClubScorePartChoiceParams struct {
+	ScoreID string
+	UserID  string
+	PartID  string
+}
+
+func (q *Queries) UpsertClubScorePartChoice(ctx context.Context, arg UpsertClubScorePartChoiceParams) error {
+	_, err := q.db.ExecContext(ctx, upsertClubScorePartChoice, arg.ScoreID, arg.UserID, arg.PartID)
 	return err
 }
