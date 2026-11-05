@@ -125,3 +125,39 @@ test.describe("play mode, landscape", () => {
         await expect(status(page)).toHaveText("Böhmischer Traum – Stück 2/3 · Seite 2/3");
     });
 });
+
+test.describe("play mode, offline", () => {
+    test.use({ viewport: { width: 768, height: 1024 }, locale: "de-DE" });
+
+    test("saves a setlist and plays it without network", async ({ page, api }) => {
+        // Registered first: the stub matches by substring and the newest rule wins,
+        // so the more specific playlist rule from mockPlaylist must come after it.
+        api.json(`/v1/clubs/${CLUB_ID}/events/${EVENT_ID}`, { id: EVENT_ID, clubId: CLUB_ID, summary: "Generalprobe" }, { method: "GET" });
+        await mockPlaylist(page, api);
+        await page.goto(`/ui/play/event/${CLUB_ID}/${EVENT_ID}`);
+        await expect(status(page)).toHaveText("Abel Tasman – Stück 1/3 · Seite 1/2");
+
+        await page.getByRole("button", { name: "Für offline speichern" }).click();
+        await page.getByRole("button", { name: "Offline verfügbar" }).click();
+        await expect(page.getByTestId("offline-panel")).toContainText("2 PDFs");
+
+        // Network gone for everything the player needs.
+        await page.route("**/api/v1/clubs/**", (route) => route.abort("internetdisconnected"));
+        await page.route("**/api/v1/elements/*/pdf", (route) => route.abort("internetdisconnected"));
+
+        await page.goto(`/ui/play/event/${CLUB_ID}/${EVENT_ID}`);
+        await expect(status(page)).toHaveText("Abel Tasman – Stück 1/3 · Seite 1/2");
+        await expect(page.locator("canvas")).toHaveCount(1);
+        await page.keyboard.press("PageDown");
+        await page.keyboard.press("PageDown");
+        await expect(status(page)).toHaveText("Böhmischer Traum – Stück 2/3 · Seite 1/3");
+        await expect(page.locator("canvas")).toHaveCount(1);
+
+        // The dashboard lists it as the way in when offline.
+        await page.goto("/ui/dashboard");
+        await expect(page.getByTestId("offline-setlists")).toContainText("Generalprobe");
+        await page.getByTestId("offline-setlists").getByRole("link", { name: "Spielen" }).click();
+        // Resumes where the musician left off.
+        await expect(status(page)).toHaveText("Böhmischer Traum – Stück 2/3 · Seite 1/3");
+    });
+});

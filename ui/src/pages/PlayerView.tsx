@@ -7,6 +7,8 @@ import {
     BookOpen,
     ChevronLeft,
     ChevronRight,
+    CloudCheck,
+    CloudDownload,
     Columns2,
     FileQuestion,
     ListMusic,
@@ -21,6 +23,8 @@ import {
 import { PdfPageCanvas } from "@/src/player/PdfPageCanvas"
 import { openNotePdf } from "@/src/player/pdfjs"
 import { type PlaylistSource, sourceKey, usePlaylist } from "@/src/player/usePlaylist"
+import { useOfflineSetlist } from "@/src/player/useOfflineSetlist"
+import { formatBytes } from "@/src/utils/formatBytes"
 import {
     autoSpread,
     clampPosition,
@@ -129,6 +133,8 @@ const Player = ({ source }: { source: PlaylistSource }) => {
     const [searchParams] = useSearchParams()
     const playlist = usePlaylist(source)
     const items = playlist.items
+    const offline = useOfflineSetlist(sourceKey(source), playlist)
+    const [offlinePanelOpen, setOfflinePanelOpen] = useState(false)
     useWakeLock()
 
     const [prefs, setPrefs] = useState<PlayerPrefs>(() =>
@@ -390,6 +396,13 @@ const Player = ({ source }: { source: PlaylistSource }) => {
                     <ToolbarButton label={t(prefs.night ? "player.dayMode" : "player.nightMode")} onClick={() => setPrefs((p) => ({ ...p, night: !p.night }))}>
                         {prefs.night ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
                     </ToolbarButton>
+                    {items.some((i) => i.pdfAvailable) && (
+                        <OfflineButton
+                            state={offline.state}
+                            onSave={() => void offline.save()}
+                            onToggleDetails={() => setOfflinePanelOpen((o) => !o)}
+                        />
+                    )}
                     {items.length > 1 && (
                         <ToolbarButton label={t("player.setlist")} onClick={() => setSetlistOpen((o) => !o)}>
                             <ListMusic className="h-5 w-5" />
@@ -400,6 +413,38 @@ const Player = ({ source }: { source: PlaylistSource }) => {
                             {isFullscreen ? <Minimize className="h-5 w-5" /> : <Maximize className="h-5 w-5" />}
                         </ToolbarButton>
                     )}
+                </div>
+            )}
+
+            {offlinePanelOpen && offline.state.status === "saved" && (
+                <div
+                    className="absolute right-3 top-14 w-72 rounded-lg border bg-background p-4 text-sm text-foreground shadow-xl"
+                    onPointerDown={(e) => e.stopPropagation()}
+                    onPointerUp={(e) => e.stopPropagation()}
+                    data-testid="offline-panel"
+                >
+                    <p className="font-semibold">{t("player.offline.saved")}</p>
+                    <p className="mt-1 text-muted-foreground">
+                        {t("player.offline.details", {
+                            count: offline.state.setlist.noteIds.length,
+                            size: formatBytes(offline.state.setlist.bytes),
+                        })}
+                    </p>
+                    <div className="mt-3 flex gap-2">
+                        <button type="button" className="rounded-md border px-3 py-1.5 hover:bg-muted" onClick={() => void offline.save()}>
+                            {t("player.offline.update")}
+                        </button>
+                        <button
+                            type="button"
+                            className="rounded-md border px-3 py-1.5 text-red-600 hover:bg-muted"
+                            onClick={() => {
+                                void offline.remove()
+                                setOfflinePanelOpen(false)
+                            }}
+                        >
+                            {t("player.offline.remove")}
+                        </button>
+                    </div>
                 </div>
             )}
 
@@ -457,6 +502,39 @@ const ToolbarButton = ({ label, onClick, children }: { label: string; onClick: (
         {children}
     </button>
 )
+
+const OfflineButton = ({
+    state,
+    onSave,
+    onToggleDetails,
+}: {
+    state: ReturnType<typeof useOfflineSetlist>["state"]
+    onSave: () => void
+    onToggleDetails: () => void
+}) => {
+    const { t } = useTranslation()
+    if (state.status === "saving") {
+        return (
+            <span className="inline-flex h-10 shrink-0 items-center gap-1 px-2 text-xs" role="status">
+                <Loader2 className="h-4 w-4 animate-spin" />
+                {t("player.offline.saving", { done: state.done, total: state.total })}
+            </span>
+        )
+    }
+    if (state.status === "saved") {
+        return (
+            <ToolbarButton label={t("player.offline.saved")} onClick={onToggleDetails}>
+                <CloudCheck className="h-5 w-5 text-green-600" />
+            </ToolbarButton>
+        )
+    }
+    if (state.status === "unknown") return null
+    return (
+        <ToolbarButton label={t(state.status === "error" ? "player.offline.failed" : "player.offline.save")} onClick={onSave}>
+            <CloudDownload className={`h-5 w-5 ${state.status === "error" ? "text-red-600" : ""}`} />
+        </ToolbarButton>
+    )
+}
 
 const CenteredMessage = ({ icon, text }: { icon: React.ReactNode; text: string }) => (
     <div className="flex h-full w-full flex-col items-center justify-center gap-3 opacity-80">

@@ -22,6 +22,7 @@ import { http as axios } from "@/src/api/client";
 import type { InventoryLookup } from "@/src/api/types";
 import { useDateFormat } from "@/src/hooks/useDateFormat";
 import { fetchNotePdfBlob } from "@/src/player/notePdf";
+import { getOfflinePdf } from "@/src/offline/offlineSheetMusic";
 
 export const NoteDetailView = () => {
     const { id } = useParams();
@@ -56,6 +57,18 @@ export const NoteDetailView = () => {
     const nextNote = data?.nextNote;
 
     const [pdfUrl, setPdfUrl] = useState<string>();
+    // A PDF saved for the play mode can still be shown and played without network.
+    const [hasOfflineCopy, setHasOfflineCopy] = useState(false);
+    useEffect(() => {
+        let cancelled = false;
+        setHasOfflineCopy(false);
+        if (id) {
+            getOfflinePdf(id).then((pdf) => !cancelled && setHasOfflineCopy(!!pdf), () => undefined);
+        }
+        return () => {
+            cancelled = true;
+        };
+    }, [id]);
     const [showPdf, setShowPdf] = useState(false);
     const [pdfLoading, setPdfLoading] = useState(false);
     const [pdfError, setPdfError] = useState(false);
@@ -247,7 +260,7 @@ export const NoteDetailView = () => {
                             PDF
                         </CardTitle>
                     </CardHeader>
-                    {!isOnline ? (
+                    {!isOnline && !hasOfflineCopy ? (
                         <CardContent>
                             <p className="text-muted-foreground text-sm">{t("offline.pdfPlaceholder")}</p>
                         </CardContent>

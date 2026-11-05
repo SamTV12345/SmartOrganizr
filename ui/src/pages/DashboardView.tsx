@@ -15,6 +15,7 @@ import { useDateFormat } from "@/src/hooks/useDateFormat";
 import { mergeUpcoming } from "@/src/utils/UpcomingEvents";
 import { ClubEventResponseControls } from "@/src/components/ClubEventResponseControls";
 import type { ClubEventModel } from "@/src/models/ClubEvent";
+import { OfflineSetlistsCard } from "@/src/components/player/OfflineSetlistsCard";
 
 const UpcomingEventsCard: FC = () => {
     const { t } = useTranslation();
@@ -310,6 +311,7 @@ export const DashboardView: FC = () => {
             </header>
             <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
                 <UpcomingEventsCard />
+                <OfflineSetlistsCard />
                 <OpenResponsesCard />
                 <UnreadMessagesCard />
                 <MyClubsCard />

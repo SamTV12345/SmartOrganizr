@@ -692,6 +692,18 @@
       "wikidata": "same work in your library",
       "title": "found by title in your library"
     },
-    "sheetMusic": "Sheet music"
+    "sheetMusic": "Sheet music",
+    "offline": {
+      "save": "Save for offline",
+      "saving": "Saving {{done}}/{{total}}",
+      "saved": "Available offline",
+      "failed": "Saving failed – try again",
+      "details_one": "{{count}} PDF · {{size}}",
+      "details_other": "{{count}} PDFs · {{size}}",
+      "update": "Update",
+      "remove": "Remove",
+      "cardTitle": "Sheet music available offline",
+      "savedAt": "saved {{date}}"
+    }
   }
 }

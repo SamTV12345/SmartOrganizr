@@ -1,4 +1,5 @@
 import { searchAuthors, searchNotes, getRootFolders, getChildren, getNoteDetail } from "./offlineDb";
+import { offlineSetlistResponse } from "./offlineSheetMusic";
 
 function pageJson(key: "authorRepresentationModelList" | "noteRepresentationModelList", items: unknown[]) {
   return {
@@ -14,6 +15,9 @@ function jsonResponse(body: unknown): Response {
 /** Synthesize an openapi-fetch ($api) GET response from IndexedDB; undefined if the path isn't offline-served. */
 export async function buildOfflineApiResponse(url: URL): Promise<Response | undefined> {
   const p = url.pathname;
+  // Setlists saved for the play mode (event programs, concerts, single notes).
+  const setlist = await offlineSetlistResponse(p);
+  if (setlist !== undefined) return jsonResponse(setlist);
   if (p.endsWith("/v1/authors")) {
     return jsonResponse(pageJson("authorRepresentationModelList", await searchAuthors(url.searchParams.get("name") ?? "")));
   }

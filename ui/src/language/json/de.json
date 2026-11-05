@@ -692,6 +692,18 @@
       "wikidata": "gleiches Werk in deiner Bibliothek",
       "title": "per Titel in deiner Bibliothek gefunden"
     },
-    "sheetMusic": "Noten"
+    "sheetMusic": "Noten",
+    "offline": {
+      "save": "Für offline speichern",
+      "saving": "Speichere {{done}}/{{total}}",
+      "saved": "Offline verfügbar",
+      "failed": "Speichern fehlgeschlagen – erneut versuchen",
+      "details_one": "{{count}} PDF · {{size}}",
+      "details_other": "{{count}} PDFs · {{size}}",
+      "update": "Aktualisieren",
+      "remove": "Entfernen",
+      "cardTitle": "Offline verfügbare Noten",
+      "savedAt": "gespeichert {{date}}"
+    }
   }
 }
