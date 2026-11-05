@@ -25,6 +25,7 @@ import {InviteAcceptView} from "@/src/pages/InviteAcceptView";
 import {MyMessagesView} from "@/src/pages/MyMessagesView";
 import {DashboardView} from "@/src/pages/DashboardView";
 import {InventoryView} from "@/src/pages/InventoryView";
+import {PlayerView} from "@/src/pages/PlayerView";
 import {NotificationProvider} from "@/src/notifications/NotificationProvider";
 import {AIChatLauncher} from "@/src/components/aichat/AIChatLauncher";
 import {AppStatusToasts} from "@/src/components/AppStatusToasts";
@@ -67,6 +68,8 @@ function App() {
       <BrowserRouter basename="/ui">
           <Routes>
               <Route path="/invite/:token" element={<Suspense><InviteAcceptView/></Suspense>} />
+              {/* Play mode is fullscreen, outside the app chrome. */}
+              <Route path="/play/:kind/:id/:eventId?" element={<PlayerView/>} />
               <Route element={<RootLayout />}>
                   <Route path="/" element={<Navigate to={"/dashboard"}/>}/>
                   <Route path={"/dashboard"} element={<DashboardView/>}/>

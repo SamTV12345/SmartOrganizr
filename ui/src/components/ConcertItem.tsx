@@ -9,6 +9,8 @@ import {AccordeonItem} from "./layout/AccordeonItem";
 import {FormInput} from "./form/FormInput";
 import {FormTextArea} from "./form/FormTextArea";
 import {TrashIcon} from "./icons/TrashIcon";
+import {Play} from "lucide-react";
+import {useNavigate} from "react-router-dom";
 
 type ProgramNote = {
     id: string,
@@ -46,6 +48,7 @@ const NotePicker: FC<{ existingIds: string[], onPick: (note: ProgramNote) => voi
 
 export const ConcertItem: FC<ConcertItemProps> = ({concert, keyNum}) => {
     const {t} = useTranslation()
+    const navigate = useNavigate()
     const queryClient = useQueryClient()
 
     const [title, setTitle] = useState(concert.title)
@@ -111,6 +114,10 @@ export const ConcertItem: FC<ConcertItemProps> = ({concert, keyNum}) => {
                            onChange={setTitle}
                            onBlur={() => saveConcert(noteIds)}/>
             </div>
+            {notes.length > 0 && <Button variant="outline" size="sm" onClick={() => navigate(`/play/concert/${concert.id}`)}>
+                <Play className="size-4"/>
+                {t('player.playConcert')}
+            </Button>}
             <span title={t('deleteConcert')}>
                 <TrashIcon onClick={() => remove.mutate({params: {path: {concertId: concert.id}}})}/>
             </span>

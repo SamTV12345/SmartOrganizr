@@ -11,7 +11,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { ChevronDown, ChevronUp, ListMusic, Plus, Trash2 } from "lucide-react"
+import { ChevronDown, ChevronUp, ListMusic, Play, Plus, Trash2 } from "lucide-react"
+import { useNavigate } from "react-router-dom"
 import type { ClubEventModel } from "@/src/models/ClubEvent"
 
 // ponytail: labels are inline German. This section has few strings and the e2e
@@ -96,6 +97,7 @@ type NoteOption = { id: string; name: string }
 
 const ProgramEditor = ({ clubId, eventId, canManage }: EditorProps) => {
   const queryClient = useQueryClient()
+  const navigate = useNavigate()
   const [entries, setEntries] = useState<Entry[]>([])
   const [selectedNote, setSelectedNote] = useState<string>("")
 
@@ -172,6 +174,16 @@ const ProgramEditor = ({ clubId, eventId, canManage }: EditorProps) => {
 
   return (
     <div className="space-y-3" data-testid="program-editor">
+      {(program?.length ?? 0) > 0 && (
+        <Button
+          size="sm"
+          onClick={() => navigate(`/play/event/${clubId}/${eventId}`)}
+          data-testid="program-play"
+        >
+          <Play className="size-4" />
+          Programm spielen
+        </Button>
+      )}
       {entries.length === 0 && (
         <p className="text-muted-foreground text-sm" data-testid="program-empty">
           Noch keine Stücke im Programm.

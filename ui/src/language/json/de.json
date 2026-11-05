@@ -657,5 +657,41 @@
     "votes": "{{count}} Stimmen",
     "totalVotes": "{{count}} Stimmen insgesamt",
     "needTwoOptions": "Bitte mindestens zwei Optionen angeben."
+  },
+  "player": {
+    "title": "Spielmodus",
+    "play": "Spielen",
+    "playProgram": "Programm spielen",
+    "playConcert": "Konzert spielen",
+    "eventProgram": "Programm",
+    "loading": "Noten werden geladen …",
+    "loadFailed": "Die Setlist konnte nicht geladen werden.",
+    "empty": "Keine Stücke zum Spielen.",
+    "pdfFailed": "Das PDF konnte nicht geöffnet werden.",
+    "noPdf": "Für dieses Stück ist in deiner Bibliothek kein PDF hinterlegt.",
+    "notInLibrary": "Dieses Stück ist nicht in deiner Notenbibliothek.",
+    "noPdfShort": "kein PDF",
+    "notInLibraryShort": "nicht in deiner Bibliothek",
+    "stageLabel": "Notenansicht – links tippen: zurück, rechts tippen: weiter, Mitte: Menü",
+    "end": "Ende der Setlist",
+    "close": "Schließen",
+    "previous": "Zurück",
+    "next": "Weiter",
+    "pieceOf": "Stück {{current}}/{{total}}",
+    "pageOf": "Seite {{current}}/{{total}}",
+    "pagesOf": "Seiten {{from}}–{{to}}/{{total}}",
+    "spreadAuto": "Seitenansicht: automatisch",
+    "spreadSingle": "Seitenansicht: einzeln",
+    "spreadDouble": "Seitenansicht: doppelt",
+    "nightMode": "Nachtmodus",
+    "dayMode": "Tagmodus",
+    "setlist": "Setlist",
+    "fullscreen": "Vollbild",
+    "exitFullscreen": "Vollbild beenden",
+    "match": {
+      "wikidata": "gleiches Werk in deiner Bibliothek",
+      "title": "per Titel in deiner Bibliothek gefunden"
+    },
+    "sheetMusic": "Noten"
   }
 }

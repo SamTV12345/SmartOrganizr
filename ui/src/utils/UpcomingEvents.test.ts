@@ -7,7 +7,7 @@ const feed = [
 ];
 
 const club = [
-    { id: "c1", summary: "Probe", startDate: "2026-08-05T19:00:00Z", clubName: "MV Beispiel" },
+    { id: "c1", summary: "Probe", startDate: "2026-08-05T19:00:00Z", clubName: "MV Beispiel", clubId: "club-1" },
     { id: "c2", summary: "Konzert", startDate: "2026-08-20T19:00:00Z", clubName: "MV Beispiel" },
 ];
 
@@ -28,6 +28,8 @@ describe("mergeUpcoming", () => {
         expect(byId.get("f1")?.origin).toBe("feed");
         expect(byId.get("c1")?.origin).toBe("club");
         expect(byId.get("c1")?.clubName).toBe("MV Beispiel");
+        expect(byId.get("c1")?.clubId).toBe("club-1");
+        expect(byId.get("f1")?.clubId).toBeUndefined();
     });
 
     it("honours the limit", () => {

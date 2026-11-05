@@ -7,6 +7,8 @@ export type UpcomingItem = {
     /** "feed" = mirrored from a subscribed calendar, "club" = native club event. */
     origin: "feed" | "club";
     clubName?: string;
+    /** Set for club events; needed to open the event program in the play mode. */
+    clubId?: string;
 };
 
 type FeedEvent = { uid?: string; summary?: string; startDate?: string; location?: string };
@@ -16,6 +18,7 @@ type ClubEvent = {
     startDate?: string;
     location?: string;
     clubName?: string;
+    clubId?: string;
     cancelled?: boolean;
 };
 
@@ -53,6 +56,7 @@ export const mergeUpcoming = (
             location: event.location,
             origin: "club",
             clubName: event.clubName,
+            clubId: event.clubId,
         });
     }
     return items.sort((a, b) => startsAt(a) - startsAt(b)).slice(0, limit);

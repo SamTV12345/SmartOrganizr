@@ -10,7 +10,7 @@ import { Club } from "@/src/models/Club";
 import { EventModel } from "@/src/models/EventModel";
 import { PinboardPost } from "@/src/models/Pinboard";
 import { useUnreadSummary } from "@/src/notifications/useUnreadSummary";
-import { CalendarClock, CalendarDays, ClipboardList, LayoutDashboard, MessagesSquare, Users2 } from "lucide-react";
+import { CalendarClock, CalendarDays, ClipboardList, LayoutDashboard, ListMusic, MessagesSquare, Users2 } from "lucide-react";
 import { useDateFormat } from "@/src/hooks/useDateFormat";
 import { mergeUpcoming } from "@/src/utils/UpcomingEvents";
 import { ClubEventResponseControls } from "@/src/components/ClubEventResponseControls";
@@ -62,10 +62,21 @@ const UpcomingEventsCard: FC = () => {
                                         : t("dashboard.originFeed")}
                                 </span>
                             </div>
-                            <p className="text-xs text-muted-foreground">
-                                {formatDateTime(event.startDate)}
-                                {event.location ? ` · ${event.location}` : ""}
-                            </p>
+                            <div className="flex items-center justify-between gap-2">
+                                <p className="text-xs text-muted-foreground">
+                                    {formatDateTime(event.startDate)}
+                                    {event.location ? ` · ${event.location}` : ""}
+                                </p>
+                                {event.origin === "club" && event.clubId && (
+                                    <Link
+                                        to={`/play/event/${event.clubId}/${event.id}`}
+                                        className="inline-flex shrink-0 items-center gap-1 text-xs text-accentDark hover:underline"
+                                    >
+                                        <ListMusic className="size-3.5" />
+                                        {t("player.sheetMusic")}
+                                    </Link>
+                                )}
+                            </div>
                         </div>
                     ))
                 )}
