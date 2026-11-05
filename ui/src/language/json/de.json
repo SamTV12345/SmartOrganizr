@@ -428,6 +428,7 @@
       "pinnwand": "Pinnwand",
       "termine": "Termine",
       "programm": "Programm",
+      "notenarchiv": "Notenarchiv",
       "abwesenheiten": "Abwesenheiten",
       "umfragen": "Umfragen",
       "statistik": "Statistik",
@@ -704,6 +705,36 @@
       "remove": "Entfernen",
       "cardTitle": "Offline verfügbare Noten",
       "savedAt": "gespeichert {{date}}"
+    },
+    "parts": {
+      "chooseHint": "Für dieses Stück ist keine Stimme deines Registers hinterlegt. Welche Stimme spielst du?",
+      "switch": "Stimme wechseln",
+      "ownSection": "dein Register"
     }
+  },
+  "scores": {
+    "title": "Notenarchiv",
+    "hint": "Werke des Vereins mit einer PDF pro Stimme. Jedes Mitglied bekommt im Spielmodus automatisch die Stimme seines Registers.",
+    "pieceTitle": "Titel des Werks",
+    "composer": "Komponist",
+    "arranger": "Arrangeur",
+    "arrangedBy": "arr. {{name}}",
+    "add": "Werk anlegen",
+    "filter": "Werke durchsuchen …",
+    "empty": "Noch keine Werke im Archiv.",
+    "partCount_one": "{{count}} Stimme",
+    "partCount_other": "{{count}} Stimmen",
+    "noParts": "Noch keine Stimmen hochgeladen.",
+    "noSection": "kein Register",
+    "open": "Ansehen",
+    "deletePart": "Stimme löschen",
+    "uploadParts": "Stimmen hochladen (PDF)",
+    "uploadHint": "Name und Register wurden aus dem Dateinamen vorgeschlagen – bitte kurz prüfen.",
+    "uploadCount_one": "{{count}} Stimme hochladen",
+    "uploadCount_other": "{{count}} Stimmen hochladen",
+    "uploadFailed": "fehlgeschlagen",
+    "cancel": "Abbrechen",
+    "deleteScore": "Werk löschen",
+    "deleteConfirm": "Werk mit allen Stimmen löschen?"
   }
 }

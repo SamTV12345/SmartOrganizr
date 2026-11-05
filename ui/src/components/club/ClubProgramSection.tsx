@@ -26,6 +26,8 @@ type Entry = {
   title: string
   durationMinutes?: number | null
   noteText?: string | null
+  /** Piece from the club's sheet music archive; members then get their own part. */
+  scoreId?: string | null
 }
 
 export const ClubProgramSection = ({ clubId, canManage }: Props) => {
@@ -100,6 +102,8 @@ const ProgramEditor = ({ clubId, eventId, canManage }: EditorProps) => {
   const navigate = useNavigate()
   const [entries, setEntries] = useState<Entry[]>([])
   const [selectedNote, setSelectedNote] = useState<string>("")
+  const [selectedScore, setSelectedScore] = useState<string>("")
+  const { data: scores } = $api.useQuery("get", "/v1/clubs/{clubId}/scores", { params: { path: { clubId } } })
 
   const { data: program } = $api.useQuery("get", "/v1/clubs/{clubId}/events/{eventId}/program", {
     params: { path: { clubId, eventId } },
@@ -114,6 +118,7 @@ const ProgramEditor = ({ clubId, eventId, canManage }: EditorProps) => {
           title: p.title,
           durationMinutes: p.durationMinutes ?? null,
           noteText: p.noteText ?? null,
+          scoreId: p.scoreId ?? null,
         })),
       )
     }
@@ -142,6 +147,13 @@ const ProgramEditor = ({ clubId, eventId, canManage }: EditorProps) => {
     setSelectedNote("")
   }
 
+  const addScore = () => {
+    const score = scores?.find((x) => x.id === selectedScore)
+    if (!score?.id) return
+    setEntries((e) => [...e, { noteId: null, scoreId: score.id, title: score.title ?? "" }])
+    setSelectedScore("")
+  }
+
   const addFreeText = () =>
     setEntries((e) => [...e, { noteId: null, title: "" }])
 
@@ -168,6 +180,7 @@ const ProgramEditor = ({ clubId, eventId, canManage }: EditorProps) => {
           title: e.title,
           durationMinutes: e.durationMinutes ?? undefined,
           noteText: e.noteText ?? undefined,
+          scoreId: e.scoreId ?? undefined,
         })),
       },
     })
@@ -197,6 +210,15 @@ const ProgramEditor = ({ clubId, eventId, canManage }: EditorProps) => {
             data-testid="program-entry"
           >
             <span className="text-muted-foreground w-6 text-sm">{i + 1}.</span>
+            {entry.scoreId && (
+              <span
+                className="bg-muted text-muted-foreground rounded px-1.5 py-0.5 text-xs"
+                title="Aus dem Notenarchiv – jedes Mitglied bekommt seine Stimme"
+                data-testid="program-entry-archive"
+              >
+                Archiv
+              </span>
+            )}
             <Input
               className="min-w-40 flex-1"
               value={entry.title}
@@ -258,6 +280,33 @@ const ProgramEditor = ({ clubId, eventId, canManage }: EditorProps) => {
 
       {canManage && (
         <div className="flex flex-wrap items-center gap-2">
+          {(scores?.length ?? 0) > 0 && (
+            <>
+              <select
+                className="border-input bg-background h-9 w-56 rounded-md border px-2 text-sm"
+                value={selectedScore}
+                onChange={(e) => setSelectedScore(e.target.value)}
+                data-testid="program-score-select"
+              >
+                <option value="">Werk aus Notenarchiv...</option>
+                {scores?.map((x) => (
+                  <option key={x.id} value={x.id}>
+                    {x.title}
+                  </option>
+                ))}
+              </select>
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={!selectedScore}
+                onClick={addScore}
+                data-testid="program-add-score"
+              >
+                <Plus className="size-4" />
+                Werk hinzufügen
+              </Button>
+            </>
+          )}
           <Select value={selectedNote} onValueChange={(v) => setSelectedNote(v ?? "")}>
             <SelectTrigger className="w-56" data-testid="program-note-select">
               <SelectValue placeholder="Note aus Bibliothek..." />

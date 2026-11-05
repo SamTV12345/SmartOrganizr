@@ -2499,6 +2499,370 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/clubs/{clubId}/scores": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List the club's sheet music archive */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Club ID */
+                    clubId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["dto.ClubScoreDto"][];
+                    };
+                };
+            };
+        };
+        put?: never;
+        /** Add a piece to the club's sheet music archive */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Club ID */
+                    clubId: string;
+                };
+                cookie?: never;
+            };
+            requestBody: components["requestBodies"]["dto.ClubScorePostDto"];
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["dto.ClubScoreDto"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/clubs/{clubId}/scores/{scoreId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get a score with its parts */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Club ID */
+                    clubId: string;
+                    /** @description Score ID */
+                    scoreId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["dto.ClubScoreDto"];
+                    };
+                };
+            };
+        };
+        /** Update title, composer and arranger of a score */
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Club ID */
+                    clubId: string;
+                    /** @description Score ID */
+                    scoreId: string;
+                };
+                cookie?: never;
+            };
+            requestBody: components["requestBodies"]["dto.ClubScorePostDto"];
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["dto.ClubScoreDto"];
+                    };
+                };
+            };
+        };
+        post?: never;
+        /** Delete a score and all its parts */
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Club ID */
+                    clubId: string;
+                    /** @description Score ID */
+                    scoreId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description No Content */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/clubs/{clubId}/scores/{scoreId}/choice": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Remember which part the caller plays for a score */
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Club ID */
+                    clubId: string;
+                    /** @description Score ID */
+                    scoreId: string;
+                };
+                cookie?: never;
+            };
+            /** @description Chosen part */
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["dto.ClubScorePartChoiceDto"];
+                };
+            };
+            responses: {
+                /** @description No Content */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/clubs/{clubId}/scores/{scoreId}/parts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Upload a part (Stimme) PDF for a score */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Club ID */
+                    clubId: string;
+                    /** @description Score ID */
+                    scoreId: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "multipart/form-data": {
+                        /**
+                         * Format: binary
+                         * @description Part PDF
+                         */
+                        file: string;
+                        /** @description Part name, e.g. 2. Klarinette in B */
+                        name: string;
+                        /** @description Section (Register) the part belongs to */
+                        sectionId?: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["dto.ClubScoreDto"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/clubs/{clubId}/scores/{scoreId}/parts/{partId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Delete a part */
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Club ID */
+                    clubId: string;
+                    /** @description Score ID */
+                    scoreId: string;
+                    /** @description Part ID */
+                    partId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description No Content */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        /** Rename a part or move it to another section */
+        patch: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Club ID */
+                    clubId: string;
+                    /** @description Score ID */
+                    scoreId: string;
+                    /** @description Part ID */
+                    partId: string;
+                };
+                cookie?: never;
+            };
+            /** @description Part */
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["dto.ClubScorePartPatchDto"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["dto.ClubScoreDto"];
+                    };
+                };
+            };
+        };
+        trace?: never;
+    };
+    "/v1/clubs/{clubId}/scores/{scoreId}/parts/{partId}/pdf": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Download a part's PDF (any club member) */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Club ID */
+                    clubId: string;
+                    /** @description Score ID */
+                    scoreId: string;
+                    /** @description Part ID */
+                    partId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/clubs/{clubId}/sections": {
         parameters: {
             query?: never;
@@ -4922,12 +5286,25 @@ export interface components {
         "dto.ClubEventPlaylistItemDto": {
             entryId: string;
             /** @enum {string} */
-            match: "own" | "wikidata" | "title" | "none";
+            match: "part" | "choosePart" | "own" | "wikidata" | "title" | "none";
             noteId?: string;
             noteText?: string;
+            partId?: string;
+            partName?: string;
+            parts?: components["schemas"]["dto.ClubEventPlaylistPartDto"][];
             pdfAvailable: boolean;
             position: number;
+            /**
+             * @description Set when the entry links a club score: the member's part (if any) and
+             *     every part of the score to switch to.
+             */
+            scoreId?: string;
             title: string;
+        };
+        "dto.ClubEventPlaylistPartDto": {
+            id: string;
+            name: string;
+            ownSection: boolean;
         };
         "dto.ClubEventProgramEntryDto": {
             durationMinutes?: number;
@@ -4935,6 +5312,8 @@ export interface components {
             noteId?: string;
             noteText?: string;
             position?: number;
+            /** @description ScoreID links the entry to a piece in the club's sheet music archive. */
+            scoreId?: string;
             title: string;
         };
         "dto.ClubEventProgramReplaceDto": {
@@ -5092,6 +5471,36 @@ export interface components {
             postal_code: string;
             reason_visibility: string;
             street: string;
+        };
+        "dto.ClubScoreDto": {
+            arranger?: string;
+            composer?: string;
+            createdAt: string;
+            id: string;
+            partCount: number;
+            parts?: components["schemas"]["dto.ClubScorePartDto"][];
+            title: string;
+        };
+        "dto.ClubScorePartChoiceDto": {
+            partId: string;
+        };
+        "dto.ClubScorePartDto": {
+            id: string;
+            name: string;
+            position: number;
+            scoreId: string;
+            sectionId?: string;
+            sectionName?: string;
+            sizeBytes: number;
+        };
+        "dto.ClubScorePartPatchDto": {
+            name: string;
+            sectionId?: string;
+        };
+        "dto.ClubScorePostDto": {
+            arranger?: string;
+            composer?: string;
+            title: string;
         };
         "dto.ClubSectionDto": {
             id?: string;
@@ -5484,6 +5893,12 @@ export interface components {
     responses: never;
     parameters: never;
     requestBodies: {
+        /** @description Score */
+        "dto.ClubScorePostDto": {
+            content: {
+                "application/json": components["schemas"]["dto.ClubScorePostDto"];
+            };
+        };
         /** @description Event payload */
         "dto.ClubEventUpsertDto": {
             content: {

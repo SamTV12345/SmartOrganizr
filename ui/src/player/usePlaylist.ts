@@ -1,5 +1,6 @@
 import { $api } from "@/src/api/client"
 import type { NoteDetail } from "@/src/api/types"
+import { pdfKey } from "./notePdf"
 
 export type PlaylistSource =
     | { kind: "note"; noteId: string }
@@ -11,10 +12,19 @@ export interface PlayItem {
     title: string
     /** Free-text hint from the program ("nur 1. Teil", "Solo: Trompete"). */
     hint?: string
+    /** Library note backing this item, if any. */
     noteId?: string
+    /** Key of the PDF to show (see notePdf.ts); undefined when there is nothing to show. */
+    pdfKey?: string
     pdfAvailable: boolean
-    /** Why the program entry resolved to this note (event playlists only). */
-    match?: "own" | "wikidata" | "title" | "none"
+    /** Why the program entry resolved to this PDF (event playlists only). */
+    match?: "part" | "choosePart" | "own" | "wikidata" | "title" | "none"
+    /** Club archive score behind the entry, its club, the member's part and all parts to switch to. */
+    clubId?: string
+    scoreId?: string
+    partId?: string
+    partName?: string
+    parts?: { id: string; name: string; ownSection: boolean }[]
 }
 
 export interface Playlist {
@@ -99,7 +109,13 @@ export const usePlaylist = (source: PlaylistSource): Playlist => {
             return {
                 title: current?.name ?? "",
                 items: current
-                    ? [{ key: current.id ?? source.noteId, title: current.name ?? "", noteId: current.id, pdfAvailable: !!current.pdfAvailable }]
+                    ? [{
+                          key: current.id ?? source.noteId,
+                          title: current.name ?? "",
+                          noteId: current.id,
+                          pdfKey: current.id,
+                          pdfAvailable: !!current.pdfAvailable,
+                      }]
                     : [],
                 isLoading: note.isLoading,
                 isError: note.isError,
@@ -117,6 +133,7 @@ export const usePlaylist = (source: PlaylistSource): Playlist => {
                     key: `${e.noteInConcert?.id ?? "x"}-${i}`,
                     title: e.noteInConcert?.name ?? "",
                     noteId: e.noteInConcert?.id,
+                    pdfKey: e.noteInConcert?.id,
                     pdfAvailable: !!e.noteInConcert?.pdfAvailable,
                 })),
                 isLoading: concert.isLoading,
@@ -133,8 +150,17 @@ export const usePlaylist = (source: PlaylistSource): Playlist => {
                     title: e.title ?? "",
                     hint: e.noteText ?? undefined,
                     noteId: e.noteId ?? undefined,
+                    pdfKey:
+                        e.partId && e.scoreId
+                            ? pdfKey({ kind: "part", clubId: source.clubId, scoreId: e.scoreId, partId: e.partId })
+                            : (e.noteId ?? undefined),
                     pdfAvailable: !!e.pdfAvailable,
                     match: e.match,
+                    clubId: source.clubId,
+                    scoreId: e.scoreId ?? undefined,
+                    partId: e.partId ?? undefined,
+                    partName: e.partName ?? undefined,
+                    parts: e.parts?.map((p) => ({ id: p.id ?? "", name: p.name ?? "", ownSection: !!p.ownSection })),
                 })),
                 isLoading: event.isLoading,
                 isError: event.isError,

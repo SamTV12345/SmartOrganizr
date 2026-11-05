@@ -1,5 +1,5 @@
 import type { PDFDocumentProxy } from "pdfjs-dist"
-import { fetchNotePdfBlob } from "./notePdf"
+import { fetchPdfBlob } from "./notePdf"
 
 type PdfJs = typeof import("pdfjs-dist")
 
@@ -25,9 +25,9 @@ export interface OpenedPdf {
     dispose: () => void
 }
 
-/** Downloads a note's PDF and opens it with pdf.js. */
-export const openNotePdf = async (noteId: string): Promise<OpenedPdf> => {
-    const [pdfjs, blob] = await Promise.all([loadPdfjs(), fetchNotePdfBlob(noteId)])
+/** Loads a PDF by key (note or club part, offline copy first) and opens it with pdf.js. */
+export const openPdf = async (key: string): Promise<OpenedPdf> => {
+    const [pdfjs, blob] = await Promise.all([loadPdfjs(), fetchPdfBlob(key)])
     const data = new Uint8Array(await blob.arrayBuffer())
     const task = pdfjs.getDocument({ data })
     const doc = await task.promise
