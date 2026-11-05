@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { $api, authFetch } from "@/src/api/client";
+import { $api } from "@/src/api/client";
 import { apiURL } from "@/src/Keycloak";
-import { ArrowLeft, ChevronLeft, ChevronRight, Download, Eye, FileMusic, FileText, Hash, Loader2 } from "lucide-react";
+import { ArrowLeft, ChevronLeft, ChevronRight, Download, Eye, FileMusic, FileText, Hash, Loader2, Play } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 import { NoteDetail } from "@/src/models/NoteDetail";
@@ -21,6 +21,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { http as axios } from "@/src/api/client";
 import type { InventoryLookup } from "@/src/api/types";
 import { useDateFormat } from "@/src/hooks/useDateFormat";
+import { fetchNotePdfBlob } from "@/src/player/notePdf";
 
 export const NoteDetailView = () => {
     const { id } = useParams();
@@ -75,14 +76,7 @@ export const NoteDetailView = () => {
         setPdfLoading(true);
         setPdfError(false);
         try {
-            const response = await authFetch(`${apiURL}/v1/elements/${id}/pdf`);
-            if (!response.ok) throw new Error(`status ${response.status}`);
-            let blob = await response.blob();
-            // Uploads store the PDF as a base64 data URL — convert it back to binary.
-            if ((await blob.slice(0, 5).text()) === "data:") {
-                blob = await (await fetch(await blob.text())).blob();
-            }
-            const url = URL.createObjectURL(new Blob([blob], { type: "application/pdf" }));
+            const url = URL.createObjectURL(await fetchNotePdfBlob(id));
             setPdfUrl(url);
             return url;
         } catch {
@@ -260,7 +254,11 @@ export const NoteDetailView = () => {
                     ) : (
                     <CardContent className="space-y-4">
                         <div className="flex flex-wrap gap-3">
-                            <Button onClick={onTogglePdf} disabled={pdfLoading}>
+                            <Button onClick={() => navigate(`/play/note/${currentNote.id}`)}>
+                                <Play className="mr-2 size-4" />
+                                {t("player.play")}
+                            </Button>
+                            <Button variant="outline" onClick={onTogglePdf} disabled={pdfLoading}>
                                 {pdfLoading ? (
                                     <Loader2 className="mr-2 size-4 animate-spin" />
                                 ) : (

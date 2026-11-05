@@ -327,6 +327,7 @@ func SetupRouter(queries *db.Queries, config config.AppConfig, logger *zap.Sugar
 		r.Get("/:clubId/events/:eventId/availability", controllers.GetClubEventAvailability)
 		r.Get("/:clubId/events/:eventId/program", controllers.GetClubEventProgram)
 		r.Put("/:clubId/events/:eventId/program", controllers.ReplaceClubEventProgram)
+		r.Get("/:clubId/events/:eventId/program/playlist", controllers.GetClubEventPlaylist)
 		// "/absences/overview" must be registered before the "/absences/:absenceId" param route
 		r.Get("/:clubId/absences/overview", controllers.ListClubAbsences)
 		r.Get("/:clubId/absences", controllers.ListMyClubAbsences)

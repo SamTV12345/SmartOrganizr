@@ -17,3 +17,15 @@ type ClubEventProgramEntryDto struct {
 type ClubEventProgramReplaceDto struct {
 	Entries []ClubEventProgramEntryDto `json:"entries"`
 }
+
+// ClubEventPlaylistItemDto is one program entry resolved against the
+// requesting player's own library, so the play mode can open their PDF.
+type ClubEventPlaylistItemDto struct {
+	EntryID      string  `json:"entryId"      validate:"required"`
+	Title        string  `json:"title"        validate:"required"`
+	Position     int     `json:"position"     validate:"required"`
+	NoteText     *string `json:"noteText"`
+	NoteID       *string `json:"noteId"`
+	PdfAvailable bool    `json:"pdfAvailable" validate:"required"`
+	Match        string  `json:"match"        validate:"required" enums:"own,wikidata,title,none"`
+}

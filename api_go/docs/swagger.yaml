@@ -377,6 +377,34 @@ definitions:
       yesCount:
         type: integer
     type: object
+  dto.ClubEventPlaylistItemDto:
+    properties:
+      entryId:
+        type: string
+      match:
+        enum:
+        - own
+        - wikidata
+        - title
+        - none
+        type: string
+      noteId:
+        type: string
+      noteText:
+        type: string
+      pdfAvailable:
+        type: boolean
+      position:
+        type: integer
+      title:
+        type: string
+    required:
+    - entryId
+    - match
+    - pdfAvailable
+    - position
+    - title
+    type: object
   dto.ClubEventProgramEntryDto:
     properties:
       durationMinutes:
@@ -2304,6 +2332,31 @@ paths:
               $ref: '#/definitions/dto.ClubEventProgramEntryDto'
             type: array
       summary: Replace the whole ordered program of a club event
+      tags:
+      - club-event-program
+  /v1/clubs/{clubId}/events/{eventId}/program/playlist:
+    get:
+      parameters:
+      - description: Club ID
+        in: path
+        name: clubId
+        required: true
+        type: string
+      - description: Event ID
+        in: path
+        name: eventId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/dto.ClubEventPlaylistItemDto'
+            type: array
+      summary: Get the event program resolved to the caller's own notes (play mode)
       tags:
       - club-event-program
   /v1/clubs/{clubId}/events/{eventId}/reinstate:

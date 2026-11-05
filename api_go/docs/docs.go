@@ -1068,6 +1068,44 @@ const docTemplate = `{
                 }
             }
         },
+        "/v1/clubs/{clubId}/events/{eventId}/program/playlist": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "club-event-program"
+                ],
+                "summary": "Get the event program resolved to the caller's own notes (play mode)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Club ID",
+                        "name": "clubId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Event ID",
+                        "name": "eventId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/dto.ClubEventPlaylistItemDto"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/v1/clubs/{clubId}/events/{eventId}/reinstate": {
             "post": {
                 "tags": [
@@ -4588,6 +4626,45 @@ const docTemplate = `{
                 },
                 "yesCount": {
                     "type": "integer"
+                }
+            }
+        },
+        "dto.ClubEventPlaylistItemDto": {
+            "type": "object",
+            "required": [
+                "entryId",
+                "match",
+                "pdfAvailable",
+                "position",
+                "title"
+            ],
+            "properties": {
+                "entryId": {
+                    "type": "string"
+                },
+                "match": {
+                    "type": "string",
+                    "enum": [
+                        "own",
+                        "wikidata",
+                        "title",
+                        "none"
+                    ]
+                },
+                "noteId": {
+                    "type": "string"
+                },
+                "noteText": {
+                    "type": "string"
+                },
+                "pdfAvailable": {
+                    "type": "boolean"
+                },
+                "position": {
+                    "type": "integer"
+                },
+                "title": {
+                    "type": "string"
                 }
             }
         },

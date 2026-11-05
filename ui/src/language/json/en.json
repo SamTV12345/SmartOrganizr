@@ -657,5 +657,41 @@
     "votes": "{{count}} votes",
     "totalVotes": "{{count}} votes total",
     "needTwoOptions": "Please provide at least two options."
+  },
+  "player": {
+    "title": "Play mode",
+    "play": "Play",
+    "playProgram": "Play program",
+    "playConcert": "Play concert",
+    "eventProgram": "Program",
+    "loading": "Loading sheet music …",
+    "loadFailed": "The setlist could not be loaded.",
+    "empty": "Nothing to play.",
+    "pdfFailed": "The PDF could not be opened.",
+    "noPdf": "There is no PDF for this piece in your library.",
+    "notInLibrary": "This piece is not in your sheet music library.",
+    "noPdfShort": "no PDF",
+    "notInLibraryShort": "not in your library",
+    "stageLabel": "Sheet music – tap left: back, tap right: next, middle: menu",
+    "end": "End of setlist",
+    "close": "Close",
+    "previous": "Back",
+    "next": "Next",
+    "pieceOf": "Piece {{current}}/{{total}}",
+    "pageOf": "Page {{current}}/{{total}}",
+    "pagesOf": "Pages {{from}}–{{to}}/{{total}}",
+    "spreadAuto": "Page layout: automatic",
+    "spreadSingle": "Page layout: single",
+    "spreadDouble": "Page layout: double",
+    "nightMode": "Night mode",
+    "dayMode": "Day mode",
+    "setlist": "Setlist",
+    "fullscreen": "Fullscreen",
+    "exitFullscreen": "Exit fullscreen",
+    "match": {
+      "wikidata": "same work in your library",
+      "title": "found by title in your library"
+    },
+    "sheetMusic": "Sheet music"
   }
 }

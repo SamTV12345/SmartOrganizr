@@ -20,6 +20,7 @@ export type NoteDetail = Schemas["dto.NoteDetailResponse"];
 export type Concert = Schemas["dto.ConcertDto"];
 export type ConcertPostDto = Schemas["dto.ConcertPostDto"];
 export type NoteInConcert = Schemas["dto.NoteInConcertDto"];
+export type ClubEventPlaylistItem = Schemas["dto.ClubEventPlaylistItemDto"];
 export type User = Schemas["dto.User"];
 export type UserPatchDto = Schemas["dto.UserPatchDto"];
 export type FolderPostDto = Schemas["dto.FolderPostDto"];
