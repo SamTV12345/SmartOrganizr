@@ -1043,3 +1043,18 @@ JOIN user u ON u.id = p.user_id
 LEFT JOIN club_section cs ON cs.id = p.section_fk
 WHERE p.club_id = sqlc.arg(club_id)
 ORDER BY u.lastname, u.firstname, p.user_id;
+
+-- name: ListEventProgramWithSource :many
+-- Program rows plus the wikidata id of the library note they point at (which
+-- usually belongs to the conductor, not the player).
+SELECT p.id, p.note_id, p.title, p.position, p.note_text, src.wikidata_id AS source_wikidata_id
+FROM club_event_program p
+         LEFT JOIN elements src ON src.id = p.note_id
+WHERE p.event_id = ?
+ORDER BY p.position;
+
+-- name: ListPlayableNotesForUser :many
+-- Lightweight library listing for setlist matching: never loads the PDF blob.
+SELECT id, name, wikidata_id, CAST(pdf_content IS NOT NULL AND LENGTH(pdf_content) > 0 AS SIGNED) AS has_pdf
+FROM elements
+WHERE user_id_fk = ? AND type = 'note';

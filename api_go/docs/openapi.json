@@ -1152,6 +1152,49 @@
                 }
             }
         },
+        "/v1/clubs/{clubId}/events/{eventId}/program/playlist": {
+            "get": {
+                "tags": [
+                    "club-event-program"
+                ],
+                "summary": "Get the event program resolved to the caller's own notes (play mode)",
+                "parameters": [
+                    {
+                        "description": "Club ID",
+                        "name": "clubId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "description": "Event ID",
+                        "name": "eventId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/dto.ClubEventPlaylistItemDto"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/v1/clubs/{clubId}/events/{eventId}/reinstate": {
             "post": {
                 "tags": [
@@ -4982,6 +5025,45 @@
                     },
                     "yesCount": {
                         "type": "integer"
+                    }
+                }
+            },
+            "dto.ClubEventPlaylistItemDto": {
+                "type": "object",
+                "required": [
+                    "entryId",
+                    "match",
+                    "pdfAvailable",
+                    "position",
+                    "title"
+                ],
+                "properties": {
+                    "entryId": {
+                        "type": "string"
+                    },
+                    "match": {
+                        "type": "string",
+                        "enum": [
+                            "own",
+                            "wikidata",
+                            "title",
+                            "none"
+                        ]
+                    },
+                    "noteId": {
+                        "type": "string"
+                    },
+                    "noteText": {
+                        "type": "string"
+                    },
+                    "pdfAvailable": {
+                        "type": "boolean"
+                    },
+                    "position": {
+                        "type": "integer"
+                    },
+                    "title": {
+                        "type": "string"
                     }
                 }
             },

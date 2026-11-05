@@ -52,3 +52,20 @@ func ReplaceClubEventProgram(c fiber.Ctx) error {
 	}
 	return c.JSON(entries)
 }
+
+// GetClubEventPlaylist godoc
+// @Summary  Get the event program resolved to the caller's own notes (play mode)
+// @Tags     club-event-program
+// @Produce  json
+// @Param    clubId   path  string  true  "Club ID"
+// @Param    eventId  path  string  true  "Event ID"
+// @Success  200      {array}  dto.ClubEventPlaylistItemDto
+// @Router   /v1/clubs/{clubId}/events/{eventId}/program/playlist [get]
+func GetClubEventPlaylist(c fiber.Ctx) error {
+	userID := GetLocal[string](c, "userId")
+	items, err := clubEventProgramService(c).Playlist(c.Params("clubId"), userID, c.Params("eventId"))
+	if err != nil {
+		return mapServiceError(err)
+	}
+	return c.JSON(items)
+}

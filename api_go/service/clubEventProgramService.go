@@ -138,3 +138,48 @@ func nullableInt32(v *int) sql.NullInt32 {
 	}
 	return sql.NullInt32{Int32: int32(*v), Valid: true}
 }
+
+// Playlist returns the event program resolved to the requesting member's own
+// notes (see MatchProgramToLibrary), ready for the play mode.
+func (s *ClubEventProgramService) Playlist(clubID, userID, eventID string) ([]dto.ClubEventPlaylistItemDto, error) {
+	if err := s.requireMember(clubID, userID); err != nil {
+		return nil, err
+	}
+	if err := s.eventInClub(clubID, eventID); err != nil {
+		return nil, err
+	}
+	rows, err := s.queries.ListEventProgramWithSource(s.ctx, eventID)
+	if err != nil {
+		return nil, err
+	}
+	notes, err := s.queries.ListPlayableNotesForUser(s.ctx, sql.NullString{String: userID, Valid: true})
+	if err != nil {
+		return nil, err
+	}
+	library := make([]PlaylistLibraryNote, 0, len(notes))
+	for _, n := range notes {
+		library = append(library, PlaylistLibraryNote{ID: n.ID, Name: n.Name.String, WikidataID: n.WikidataID.String, HasPDF: n.HasPdf == 1})
+	}
+	entries := make([]PlaylistProgramEntry, 0, len(rows))
+	for _, r := range rows {
+		entries = append(entries, PlaylistProgramEntry{EntryID: r.ID, Title: r.Title, NoteID: r.NoteID.String, SourceWikidataID: r.SourceWikidataID.String})
+	}
+	matches := MatchProgramToLibrary(entries, library)
+	out := make([]dto.ClubEventPlaylistItemDto, 0, len(rows))
+	for i, r := range rows {
+		item := dto.ClubEventPlaylistItemDto{
+			EntryID:      r.ID,
+			Title:        r.Title,
+			Position:     int(r.Position),
+			NoteText:     nullStringPtr(r.NoteText),
+			PdfAvailable: matches[i].PDFAvailable,
+			Match:        matches[i].Kind,
+		}
+		if matches[i].NoteID != "" {
+			id := matches[i].NoteID
+			item.NoteID = &id
+		}
+		out = append(out, item)
+	}
+	return out, nil
+}

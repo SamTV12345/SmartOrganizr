@@ -121,3 +121,57 @@ func TestNonManagerCannotEditProgramButCanView(t *testing.T) {
 		t.Fatalf("member view should show unchanged program, got %+v", entries)
 	}
 }
+
+type playlistItem struct {
+	EntryID      string  `json:"entryId"`
+	Title        string  `json:"title"`
+	Position     int     `json:"position"`
+	NoteID       *string `json:"noteId"`
+	PdfAvailable bool    `json:"pdfAvailable"`
+	Match        string  `json:"match"`
+}
+
+func TestEventPlaylistResolvesOwnNotes(t *testing.T) {
+	app := SetupTest(t)
+	clubID := createClubForTest(t, app)
+	noteIDs := createNotesForConcertTest(t, app, 2)
+	eventID := createEvent(t, app, clubID, "Probe")
+
+	// Only the first note gets a PDF.
+	req, _ := http.NewRequest("POST", "http://localhost/api/v1/elements/"+noteIDs[0]+"/pdf", bytes.NewBufferString("%PDF-1.4 test"))
+	req.Header.Set("Content-Type", "application/pdf")
+	if res, err := app.Test(req); err != nil || res.StatusCode >= 300 {
+		t.Fatalf("upload pdf failed: %v %v", err, res)
+	}
+
+	body := `{"entries":[` +
+		`{"noteId":"` + noteIDs[0] + `","title":"Mit PDF"},` +
+		`{"noteId":"` + noteIDs[1] + `","title":"Ohne PDF"},` +
+		`{"title":"Ansage"}` +
+		`]}`
+	if res := putProgram(t, app, clubID, eventID, body); res.StatusCode != http.StatusOK {
+		t.Fatalf("expected 200 replacing program, got %d", res.StatusCode)
+	}
+
+	res := doRequest(t, app, "GET", "http://localhost/api/v1/clubs/"+clubID+"/events/"+eventID+"/program/playlist")
+	raw, _ := io.ReadAll(res.Body)
+	if res.StatusCode != http.StatusOK {
+		t.Fatalf("playlist expected 200, got %d: %s", res.StatusCode, string(raw))
+	}
+	var items []playlistItem
+	if err := json.Unmarshal(raw, &items); err != nil {
+		t.Fatalf("decode playlist: %v", err)
+	}
+	if len(items) != 3 {
+		t.Fatalf("expected 3 items, got %d", len(items))
+	}
+	if items[0].Match != "own" || items[0].NoteID == nil || *items[0].NoteID != noteIDs[0] || !items[0].PdfAvailable {
+		t.Fatalf("unexpected first item: %+v", items[0])
+	}
+	if items[1].Match != "own" || items[1].PdfAvailable {
+		t.Fatalf("second item should be own note without pdf: %+v", items[1])
+	}
+	if items[2].Match != "none" || items[2].NoteID != nil {
+		t.Fatalf("free-text item should not match: %+v", items[2])
+	}
+}

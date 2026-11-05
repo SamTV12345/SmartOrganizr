@@ -1181,6 +1181,47 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/clubs/{clubId}/events/{eventId}/program/playlist": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get the event program resolved to the caller's own notes (play mode) */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Club ID */
+                    clubId: string;
+                    /** @description Event ID */
+                    eventId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["dto.ClubEventPlaylistItemDto"][];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/clubs/{clubId}/events/{eventId}/reinstate": {
         parameters: {
             query?: never;
@@ -4877,6 +4918,16 @@ export interface components {
             summary?: string;
             undecidedCount?: number;
             yesCount?: number;
+        };
+        "dto.ClubEventPlaylistItemDto": {
+            entryId: string;
+            /** @enum {string} */
+            match: "own" | "wikidata" | "title" | "none";
+            noteId?: string;
+            noteText?: string;
+            pdfAvailable: boolean;
+            position: number;
+            title: string;
         };
         "dto.ClubEventProgramEntryDto": {
             durationMinutes?: number;

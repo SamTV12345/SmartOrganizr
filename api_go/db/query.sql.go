@@ -4571,6 +4571,55 @@ func (q *Queries) ListEventProgram(ctx context.Context, eventID string) ([]ClubE
 	return items, nil
 }
 
+const listEventProgramWithSource = `-- name: ListEventProgramWithSource :many
+SELECT p.id, p.note_id, p.title, p.position, p.note_text, src.wikidata_id AS source_wikidata_id
+FROM club_event_program p
+         LEFT JOIN elements src ON src.id = p.note_id
+WHERE p.event_id = ?
+ORDER BY p.position
+`
+
+type ListEventProgramWithSourceRow struct {
+	ID               string
+	NoteID           sql.NullString
+	Title            string
+	Position         int32
+	NoteText         sql.NullString
+	SourceWikidataID sql.NullString
+}
+
+// Program rows plus the wikidata id of the library note they point at (which
+// usually belongs to the conductor, not the player).
+func (q *Queries) ListEventProgramWithSource(ctx context.Context, eventID string) ([]ListEventProgramWithSourceRow, error) {
+	rows, err := q.db.QueryContext(ctx, listEventProgramWithSource, eventID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ListEventProgramWithSourceRow
+	for rows.Next() {
+		var i ListEventProgramWithSourceRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.NoteID,
+			&i.Title,
+			&i.Position,
+			&i.NoteText,
+			&i.SourceWikidataID,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const listMyClubAbsences = `-- name: ListMyClubAbsences :many
 SELECT id, club_id, user_id, start_date, end_date, reason, created_at FROM club_absence
 WHERE club_id = ? AND user_id = ?
@@ -4717,6 +4766,48 @@ func (q *Queries) ListPinboardPostsForClub(ctx context.Context, arg ListPinboard
 			&i.Pinned,
 			&i.CreatedAt,
 			&i.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listPlayableNotesForUser = `-- name: ListPlayableNotesForUser :many
+SELECT id, name, wikidata_id, CAST(pdf_content IS NOT NULL AND LENGTH(pdf_content) > 0 AS SIGNED) AS has_pdf
+FROM elements
+WHERE user_id_fk = ? AND type = 'note'
+`
+
+type ListPlayableNotesForUserRow struct {
+	ID         string
+	Name       sql.NullString
+	WikidataID sql.NullString
+	HasPdf     int64
+}
+
+// Lightweight library listing for setlist matching: never loads the PDF blob.
+func (q *Queries) ListPlayableNotesForUser(ctx context.Context, userIDFk sql.NullString) ([]ListPlayableNotesForUserRow, error) {
+	rows, err := q.db.QueryContext(ctx, listPlayableNotesForUser, userIDFk)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ListPlayableNotesForUserRow
+	for rows.Next() {
+		var i ListPlayableNotesForUserRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Name,
+			&i.WikidataID,
+			&i.HasPdf,
 		); err != nil {
 			return nil, err
 		}
