@@ -1124,3 +1124,18 @@ SELECT c.score_id, c.part_id
 FROM club_score_part_choice c
          JOIN club_score s ON s.id = c.score_id
 WHERE c.user_id = ? AND s.club_id = ?;
+
+-- ==== sheet music annotations ====
+
+-- name: ListSheetAnnotations :many
+SELECT page, data, updated_at FROM sheet_annotation WHERE user_id = ? AND pdf_key = ? ORDER BY page;
+
+-- name: UpsertSheetAnnotation :exec
+INSERT INTO sheet_annotation (user_id, pdf_key, page, data) VALUES (?, ?, ?, ?)
+ON DUPLICATE KEY UPDATE data = VALUES(data);
+
+-- name: DeleteSheetAnnotation :exec
+DELETE FROM sheet_annotation WHERE user_id = ? AND pdf_key = ? AND page = ?;
+
+-- name: CountSheetAnnotationsForUser :one
+SELECT COUNT(*) FROM sheet_annotation WHERE user_id = ?;

@@ -710,6 +710,18 @@
       "chooseHint": "Für dieses Stück ist keine Stimme deines Registers hinterlegt. Welche Stimme spielst du?",
       "switch": "Stimme wechseln",
       "ownSection": "dein Register"
+    },
+    "annotate": {
+      "toggle": "Anmerkungen",
+      "pen0": "Stift schwarz",
+      "pen1": "Stift rot",
+      "pen2": "Stift blau",
+      "highlighter": "Textmarker",
+      "text": "Text",
+      "eraser": "Radierer",
+      "undo": "Rückgängig",
+      "done": "Fertig",
+      "textPlaceholder": "Text, Enter zum Setzen"
     }
   },
   "scores": {

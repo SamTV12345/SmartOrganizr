@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react"
+import { type ReactNode, useEffect, useRef, useState } from "react"
 import type { PDFDocumentProxy, RenderTask } from "pdfjs-dist"
 
 interface Props {
@@ -7,13 +7,15 @@ interface Props {
     /** Box the page has to fit into, in CSS pixels. */
     maxWidth: number
     maxHeight: number
+    /** Rendered on top of the page in a box of the page's CSS size (annotations). */
+    overlay?: (size: { width: number; height: number }) => ReactNode
 }
 
 /**
  * Renders one PDF page into a canvas, scaled to fit the box while keeping the
  * aspect ratio, at device pixel ratio so notes stay sharp on tablets.
  */
-export const PdfPageCanvas = ({ doc, pageNumber, maxWidth, maxHeight }: Props) => {
+export const PdfPageCanvas = ({ doc, pageNumber, maxWidth, maxHeight, overlay }: Props) => {
     const canvasRef = useRef<HTMLCanvasElement>(null)
     const [size, setSize] = useState<{ width: number; height: number }>()
 
@@ -48,10 +50,13 @@ export const PdfPageCanvas = ({ doc, pageNumber, maxWidth, maxHeight }: Props) =
     }, [doc, pageNumber, maxWidth, maxHeight])
 
     return (
-        <canvas
-            ref={canvasRef}
-            className="block bg-white shadow-lg"
-            style={size ? { width: size.width, height: size.height } : { width: 0, height: 0 }}
-        />
+        <div className="relative" style={size ? { width: size.width, height: size.height } : undefined}>
+            <canvas
+                ref={canvasRef}
+                className="block bg-white shadow-lg"
+                style={size ? { width: size.width, height: size.height } : { width: 0, height: 0 }}
+            />
+            {size && overlay?.(size)}
+        </div>
     )
 }

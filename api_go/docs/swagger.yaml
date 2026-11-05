@@ -1401,6 +1401,44 @@ definitions:
       sectionName:
         type: string
     type: object
+  dto.SheetAnnotationPageDto:
+    properties:
+      data:
+        type: string
+      page:
+        type: integer
+      updatedAt:
+        type: string
+    required:
+    - data
+    - page
+    - updatedAt
+    type: object
+  dto.SheetAnnotationPutDto:
+    properties:
+      data:
+        type: string
+      key:
+        type: string
+      page:
+        type: integer
+    required:
+    - data
+    - key
+    - page
+    type: object
+  dto.SheetAnnotationsDto:
+    properties:
+      key:
+        type: string
+      pages:
+        items:
+          $ref: '#/definitions/dto.SheetAnnotationPageDto'
+        type: array
+    required:
+    - key
+    - pages
+    type: object
   dto.UnreadByClubDto:
     properties:
       clubId:
@@ -1886,6 +1924,42 @@ paths:
       summary: Identify a piece of music from a photo using Infomaniak AI
       tags:
       - ai
+  /v1/annotations:
+    get:
+      parameters:
+      - description: 'PDF key: note id or part:<club>:<score>:<part>'
+        in: query
+        name: key
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.SheetAnnotationsDto'
+      summary: Get the caller's annotations for a PDF (all pages)
+      tags:
+      - annotations
+  /v1/annotations/page:
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: Page annotations
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.SheetAnnotationPutDto'
+      responses:
+        "204":
+          description: No Content
+      summary: Replace the caller's annotations on one page (empty document deletes
+        them)
+      tags:
+      - annotations
   /v1/authors:
     get:
       parameters:

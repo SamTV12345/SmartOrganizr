@@ -9,7 +9,8 @@ import {
 const DB_NAME = "smartorganizr-offline";
 // v2: adds the pendingSweeps store (offline inventory sweeps awaiting sync).
 // v3: adds offlinePdfs + offlineSetlists (sheet music saved for the play mode).
-const DB_VERSION = 3;
+// v4: adds annotations (cache) + pendingAnnotations (edits made offline).
+const DB_VERSION = 4;
 const META_KEY_LAST_SYNCED = "lastSyncedAt";
 
 type DataStore = "authors" | "folders" | "notes";
@@ -25,6 +26,8 @@ export function getOfflineDb(): Promise<IDBPDatabase> {
         }
         if (!db.objectStoreNames.contains("offlinePdfs")) db.createObjectStore("offlinePdfs", { keyPath: "noteId" });
         if (!db.objectStoreNames.contains("offlineSetlists")) db.createObjectStore("offlineSetlists", { keyPath: "key" });
+        if (!db.objectStoreNames.contains("annotations")) db.createObjectStore("annotations", { keyPath: "key" });
+        if (!db.objectStoreNames.contains("pendingAnnotations")) db.createObjectStore("pendingAnnotations", { keyPath: "id" });
         if (!db.objectStoreNames.contains("meta")) db.createObjectStore("meta");
       },
     });
@@ -87,7 +90,10 @@ export async function getLastSyncedAt(): Promise<number | undefined> {
 /** Test/utility helper: wipe all data, meta, pending sweeps and saved sheet music. */
 export async function clearOfflineData(): Promise<void> {
   const db = await getDb();
-  const tx = db.transaction(["authors", "folders", "notes", "meta", "pendingSweeps", "offlinePdfs", "offlineSetlists"], "readwrite");
+  const tx = db.transaction(
+    ["authors", "folders", "notes", "meta", "pendingSweeps", "offlinePdfs", "offlineSetlists", "annotations", "pendingAnnotations"],
+    "readwrite",
+  );
   await Promise.all([
     tx.objectStore("authors").clear(),
     tx.objectStore("folders").clear(),
@@ -96,6 +102,8 @@ export async function clearOfflineData(): Promise<void> {
     tx.objectStore("pendingSweeps").clear(),
     tx.objectStore("offlinePdfs").clear(),
     tx.objectStore("offlineSetlists").clear(),
+    tx.objectStore("annotations").clear(),
+    tx.objectStore("pendingAnnotations").clear(),
   ]);
   await tx.done;
 }

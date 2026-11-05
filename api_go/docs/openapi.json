@@ -235,6 +235,61 @@
                 }
             }
         },
+        "/v1/annotations": {
+            "get": {
+                "tags": [
+                    "annotations"
+                ],
+                "summary": "Get the caller's annotations for a PDF (all pages)",
+                "parameters": [
+                    {
+                        "description": "PDF key: note id or part:<club>:<score>:<part>",
+                        "name": "key",
+                        "in": "query",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/dto.SheetAnnotationsDto"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/annotations/page": {
+            "put": {
+                "tags": [
+                    "annotations"
+                ],
+                "summary": "Replace the caller's annotations on one page (empty document deletes them)",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/dto.SheetAnnotationPutDto"
+                            }
+                        }
+                    },
+                    "description": "Page annotations",
+                    "required": true
+                },
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    }
+                }
+            }
+        },
         "/v1/authors": {
             "get": {
                 "tags": [
@@ -6966,6 +7021,62 @@
                     },
                     "sectionName": {
                         "type": "string"
+                    }
+                }
+            },
+            "dto.SheetAnnotationPageDto": {
+                "type": "object",
+                "required": [
+                    "data",
+                    "page",
+                    "updatedAt"
+                ],
+                "properties": {
+                    "data": {
+                        "type": "string"
+                    },
+                    "page": {
+                        "type": "integer"
+                    },
+                    "updatedAt": {
+                        "type": "string"
+                    }
+                }
+            },
+            "dto.SheetAnnotationPutDto": {
+                "type": "object",
+                "required": [
+                    "data",
+                    "key",
+                    "page"
+                ],
+                "properties": {
+                    "data": {
+                        "type": "string"
+                    },
+                    "key": {
+                        "type": "string"
+                    },
+                    "page": {
+                        "type": "integer"
+                    }
+                }
+            },
+            "dto.SheetAnnotationsDto": {
+                "type": "object",
+                "required": [
+                    "key",
+                    "pages"
+                ],
+                "properties": {
+                    "key": {
+                        "type": "string"
+                    },
+                    "pages": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/dto.SheetAnnotationPageDto"
+                        }
                     }
                 }
             },

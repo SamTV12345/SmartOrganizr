@@ -17,6 +17,11 @@ import {
     Music2,
     Minimize,
     Moon,
+    Eraser,
+    Highlighter,
+    PenLine,
+    Type,
+    Undo2,
     Square,
     Sun,
     X,
@@ -25,6 +30,9 @@ import { PdfPageCanvas } from "@/src/player/PdfPageCanvas"
 import { openPdf } from "@/src/player/pdfjs"
 import { type PlaylistSource, sourceKey, usePlaylist } from "@/src/player/usePlaylist"
 import { useOfflineSetlist } from "@/src/player/useOfflineSetlist"
+import { useAnnotations } from "@/src/player/useAnnotations"
+import { AnnotationLayer } from "@/src/player/AnnotationLayer"
+import { emptyPage, PEN_COLORS, type PageAnnotations, type Tool } from "@/src/player/annotations"
 import { formatBytes } from "@/src/utils/formatBytes"
 import { $api } from "@/src/api/client"
 import { useQueryClient } from "@tanstack/react-query"
@@ -215,6 +223,27 @@ const Player = ({ source }: { source: PlaylistSource }) => {
     const current = items[position.piece]
     const currentDoc = current?.pdfKey ? docs[current.pdfKey] : undefined
 
+    // Annotations (pen, highlighter, text) of the current piece. While editing,
+    // taps draw instead of turning pages; pedals and keys still turn pages.
+    const annotations = useAnnotations(current?.pdfKey)
+    const [annotating, setAnnotating] = useState(false)
+    const [tool, setTool] = useState<Tool>("pen")
+    const [penColor, setPenColor] = useState<string>(PEN_COLORS[0])
+    const [undoStack, setUndoStack] = useState<{ pdfKey: string; page: number; prev: PageAnnotations }[]>([])
+    const changePage = (page: number, next: PageAnnotations) => {
+        if (!current?.pdfKey) return
+        setUndoStack((s) => [...s.slice(-49), { pdfKey: current.pdfKey!, page, prev: annotations.pages[page] ?? emptyPage() }])
+        annotations.setPage(page, next)
+    }
+    const undo = () => {
+        const last = undoStack[undoStack.length - 1]
+        if (!last || last.pdfKey !== current?.pdfKey) return
+        setUndoStack((s) => s.slice(0, -1))
+        annotations.setPage(last.page, last.prev)
+    }
+    // Undo history belongs to one piece.
+    useEffect(() => setUndoStack([]), [current?.pdfKey])
+
     // Load the current piece and prefetch the next one so the turn into it is instant.
     useEffect(() => {
         const cur = items[position.piece]
@@ -254,6 +283,8 @@ const Player = ({ source }: { source: PlaylistSource }) => {
 
     useEffect(() => {
         const onKey = (e: KeyboardEvent) => {
+            const target = e.target as HTMLElement | null
+            if (target && (target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.isContentEditable)) return
             if (e.key === "Escape") {
                 if (setlistOpen) setSetlistOpen(false)
                 else setMenuOpen((m) => !m)
@@ -275,7 +306,7 @@ const Player = ({ source }: { source: PlaylistSource }) => {
     const onPointerUp = (e: React.PointerEvent<HTMLDivElement>) => {
         const start = pointerStart.current
         pointerStart.current = null
-        if (!start) return
+        if (!start || annotating) return
         const dx = e.clientX - start.x
         const dy = e.clientY - start.y
         if (Math.hypot(dx, dy) > 20) {
@@ -386,7 +417,24 @@ const Player = ({ source }: { source: PlaylistSource }) => {
             <div className="flex h-full w-full items-center justify-center" style={{ gap }}>
                 {pagesNow.map((p) => (
                     <div key={p} style={pageFilter}>
-                        <PdfPageCanvas doc={currentDoc.doc} pageNumber={p} maxWidth={boxWidth} maxHeight={stage.height} />
+                        <PdfPageCanvas
+                            doc={currentDoc.doc}
+                            pageNumber={p}
+                            maxWidth={boxWidth}
+                            maxHeight={stage.height}
+                            overlay={(size) => (
+                                <AnnotationLayer
+                                    doc={annotations.pages[p] ?? emptyPage()}
+                                    width={size.width}
+                                    height={size.height}
+                                    editing={annotating}
+                                    tool={tool}
+                                    color={penColor}
+                                    onChange={(next) => changePage(p, next)}
+                                    textPlaceholder={t("player.annotate.textPlaceholder")}
+                                />
+                            )}
+                        />
                     </div>
                 ))}
             </div>
@@ -415,6 +463,68 @@ const Player = ({ source }: { source: PlaylistSource }) => {
             <div className="sr-only" aria-live="polite" data-testid="player-status">
                 {current ? `${current.title} – ${statusText}` : ""}
             </div>
+
+            {annotating && currentDoc?.status === "ready" && (
+                <div
+                    className="absolute bottom-4 left-1/2 flex -translate-x-1/2 items-center gap-1 rounded-full border bg-background/95 px-2 py-1 text-foreground shadow-xl backdrop-blur"
+                    onPointerDown={(e) => e.stopPropagation()}
+                    onPointerUp={(e) => e.stopPropagation()}
+                    data-testid="annotation-palette"
+                >
+                    {PEN_COLORS.map((c, i) => (
+                        <button
+                            key={c}
+                            type="button"
+                            title={t(`player.annotate.pen${i}`)}
+                            aria-label={t(`player.annotate.pen${i}`)}
+                            aria-pressed={tool === "pen" && penColor === c}
+                            onClick={() => {
+                                setTool("pen")
+                                setPenColor(c)
+                            }}
+                            className={`flex h-10 w-10 items-center justify-center rounded-full ${tool === "pen" && penColor === c ? "bg-muted ring-2 ring-primary" : "hover:bg-muted"}`}
+                        >
+                            <span className="h-5 w-5 rounded-full border" style={{ background: c }} />
+                        </button>
+                    ))}
+                    {(
+                        [
+                            ["highlighter", Highlighter],
+                            ["text", Type],
+                            ["eraser", Eraser],
+                        ] as const
+                    ).map(([id, Icon]) => (
+                        <button
+                            key={id}
+                            type="button"
+                            title={t(`player.annotate.${id}`)}
+                            aria-label={t(`player.annotate.${id}`)}
+                            aria-pressed={tool === id}
+                            onClick={() => setTool(id)}
+                            className={`flex h-10 w-10 items-center justify-center rounded-full ${tool === id ? "bg-muted ring-2 ring-primary" : "hover:bg-muted"}`}
+                        >
+                            <Icon className="h-5 w-5" />
+                        </button>
+                    ))}
+                    <button
+                        type="button"
+                        title={t("player.annotate.undo")}
+                        aria-label={t("player.annotate.undo")}
+                        disabled={!undoStack.some((u) => u.pdfKey === current?.pdfKey)}
+                        onClick={undo}
+                        className="flex h-10 w-10 items-center justify-center rounded-full hover:bg-muted disabled:opacity-40"
+                    >
+                        <Undo2 className="h-5 w-5" />
+                    </button>
+                    <button
+                        type="button"
+                        onClick={() => setAnnotating(false)}
+                        className="ml-1 rounded-full bg-primary px-4 py-2 text-sm font-medium text-primary-foreground"
+                    >
+                        {t("player.annotate.done")}
+                    </button>
+                </div>
+            )}
 
             {/* Progress through the whole setlist — always visible, never in the way. */}
             <div className="h-1 w-full bg-black/10">
@@ -461,6 +571,17 @@ const Player = ({ source }: { source: PlaylistSource }) => {
                             <Music2 className="h-4 w-4 shrink-0" />
                             <span className="truncate">{current.partName}</span>
                         </button>
+                    )}
+                    {currentDoc?.status === "ready" && (
+                        <ToolbarButton
+                            label={t("player.annotate.toggle")}
+                            onClick={() => {
+                                setAnnotating((a) => !a)
+                                setMenuOpen(false)
+                            }}
+                        >
+                            <PenLine className={`h-5 w-5 ${annotating ? "text-primary" : ""}`} />
+                        </ToolbarButton>
                     )}
                     {items.some((i) => i.pdfAvailable) && (
                         <OfflineButton

@@ -219,6 +219,61 @@ const docTemplate = `{
                 }
             }
         },
+        "/v1/annotations": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "annotations"
+                ],
+                "summary": "Get the caller's annotations for a PDF (all pages)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "PDF key: note id or part:\u003cclub\u003e:\u003cscore\u003e:\u003cpart\u003e",
+                        "name": "key",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.SheetAnnotationsDto"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/annotations/page": {
+            "put": {
+                "consumes": [
+                    "application/json"
+                ],
+                "tags": [
+                    "annotations"
+                ],
+                "summary": "Replace the caller's annotations on one page (empty document deletes them)",
+                "parameters": [
+                    {
+                        "description": "Page annotations",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.SheetAnnotationPutDto"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    }
+                }
+            }
+        },
         "/v1/authors": {
             "get": {
                 "produces": [
@@ -6525,6 +6580,62 @@ const docTemplate = `{
                 },
                 "sectionName": {
                     "type": "string"
+                }
+            }
+        },
+        "dto.SheetAnnotationPageDto": {
+            "type": "object",
+            "required": [
+                "data",
+                "page",
+                "updatedAt"
+            ],
+            "properties": {
+                "data": {
+                    "type": "string"
+                },
+                "page": {
+                    "type": "integer"
+                },
+                "updatedAt": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.SheetAnnotationPutDto": {
+            "type": "object",
+            "required": [
+                "data",
+                "key",
+                "page"
+            ],
+            "properties": {
+                "data": {
+                    "type": "string"
+                },
+                "key": {
+                    "type": "string"
+                },
+                "page": {
+                    "type": "integer"
+                }
+            }
+        },
+        "dto.SheetAnnotationsDto": {
+            "type": "object",
+            "required": [
+                "key",
+                "pages"
+            ],
+            "properties": {
+                "key": {
+                    "type": "string"
+                },
+                "pages": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.SheetAnnotationPageDto"
+                    }
                 }
             }
         },
