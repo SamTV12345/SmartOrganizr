@@ -1210,6 +1210,15 @@ func (q *Queries) DeleteClubPoll(ctx context.Context, arg DeleteClubPollParams) 
 	return result.RowsAffected()
 }
 
+const deleteClubReminderSettings = `-- name: DeleteClubReminderSettings :exec
+DELETE FROM club_reminder_settings WHERE club_id = ?
+`
+
+func (q *Queries) DeleteClubReminderSettings(ctx context.Context, clubID string) error {
+	_, err := q.db.ExecContext(ctx, deleteClubReminderSettings, clubID)
+	return err
+}
+
 const deleteClubScore = `-- name: DeleteClubScore :execrows
 DELETE FROM club_score WHERE id = ? AND club_id = ?
 `
@@ -3490,6 +3499,19 @@ func (q *Queries) GetClubPollByID(ctx context.Context, arg GetClubPollByIDParams
 	return i, err
 }
 
+const getClubReminderSettings = `-- name: GetClubReminderSettings :one
+
+SELECT hours_before FROM club_reminder_settings WHERE club_id = ?
+`
+
+// ==== reminders for open event responses ====
+func (q *Queries) GetClubReminderSettings(ctx context.Context, clubID string) (int32, error) {
+	row := q.db.QueryRowContext(ctx, getClubReminderSettings, clubID)
+	var hours_before int32
+	err := row.Scan(&hours_before)
+	return hours_before, err
+}
+
 const getClubScore = `-- name: GetClubScore :one
 SELECT id, club_id, title, composer, arranger, created_at FROM club_score WHERE id = ? AND club_id = ?
 `
@@ -3583,6 +3605,43 @@ func (q *Queries) GetClubs(ctx context.Context, userID string) ([]GetClubsRow, e
 		return nil, err
 	}
 	return items, nil
+}
+
+const getEventForReminder = `-- name: GetEventForReminder :one
+SELECT e.id, e.club_id, e.summary, e.location, e.start_date, e.cancelled, c.name AS club_name
+FROM club_events e
+         JOIN clubs c ON c.id = e.club_id
+WHERE e.id = ? AND e.club_id = ?
+`
+
+type GetEventForReminderParams struct {
+	ID     string
+	ClubID string
+}
+
+type GetEventForReminderRow struct {
+	ID        string
+	ClubID    string
+	Summary   string
+	Location  sql.NullString
+	StartDate time.Time
+	Cancelled bool
+	ClubName  string
+}
+
+func (q *Queries) GetEventForReminder(ctx context.Context, arg GetEventForReminderParams) (GetEventForReminderRow, error) {
+	row := q.db.QueryRowContext(ctx, getEventForReminder, arg.ID, arg.ClubID)
+	var i GetEventForReminderRow
+	err := row.Scan(
+		&i.ID,
+		&i.ClubID,
+		&i.Summary,
+		&i.Location,
+		&i.StartDate,
+		&i.Cancelled,
+		&i.ClubName,
+	)
+	return i, err
 }
 
 const getEventsOfUser = `-- name: GetEventsOfUser :many
@@ -4966,6 +5025,61 @@ func (q *Queries) ListEventProgramWithSource(ctx context.Context, eventID string
 	return items, nil
 }
 
+const listEventsDueForReminder = `-- name: ListEventsDueForReminder :many
+SELECT e.id, e.club_id, e.summary, e.location, e.start_date, c.name AS club_name
+FROM club_events e
+         JOIN club_reminder_settings s ON s.club_id = e.club_id
+         JOIN clubs c ON c.id = e.club_id
+WHERE e.cancelled = 0
+  AND e.start_date > ?
+  AND e.start_date <= DATE_ADD(?, INTERVAL s.hours_before HOUR)
+`
+
+type ListEventsDueForReminderParams struct {
+	Now time.Time
+}
+
+type ListEventsDueForReminderRow struct {
+	ID        string
+	ClubID    string
+	Summary   string
+	Location  sql.NullString
+	StartDate time.Time
+	ClubName  string
+}
+
+// Upcoming, non-cancelled events of clubs with reminders on, whose start lies
+// within the club's reminder window. Both parameters are "now" (UTC).
+func (q *Queries) ListEventsDueForReminder(ctx context.Context, arg ListEventsDueForReminderParams) ([]ListEventsDueForReminderRow, error) {
+	rows, err := q.db.QueryContext(ctx, listEventsDueForReminder, arg.Now, arg.Now)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ListEventsDueForReminderRow
+	for rows.Next() {
+		var i ListEventsDueForReminderRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.ClubID,
+			&i.Summary,
+			&i.Location,
+			&i.StartDate,
+			&i.ClubName,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const listMyClubAbsences = `-- name: ListMyClubAbsences :many
 SELECT id, club_id, user_id, start_date, end_date, reason, created_at FROM club_absence
 WHERE club_id = ? AND user_id = ?
@@ -5035,6 +5149,64 @@ func (q *Queries) ListNoteNamesForUser(ctx context.Context, userIDFk sql.NullStr
 			&i.InventoryNo,
 			&i.NumberOfPages,
 			&i.Parent,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listOpenResponseMembers = `-- name: ListOpenResponseMembers :many
+SELECT u.id, u.email, u.firstname, u.lastname, u.username, r.sent_at AS reminded_at
+FROM club_events e
+         JOIN club_participant cp ON cp.club_id = e.club_id
+         JOIN user u ON u.id = cp.user_id
+         LEFT JOIN club_event_response resp ON resp.event_id = e.id AND resp.user_id = cp.user_id
+         LEFT JOIN club_event_reminder r ON r.event_id = e.id AND r.user_id = cp.user_id
+WHERE e.id = ?
+  AND resp.user_id IS NULL
+  AND (e.section_fk IS NULL OR cp.section_fk = e.section_fk)
+  AND NOT EXISTS (SELECT 1
+                  FROM club_absence a
+                  WHERE a.club_id = e.club_id
+                    AND a.user_id = cp.user_id
+                    AND DATE(e.start_date) BETWEEN a.start_date AND a.end_date)
+`
+
+type ListOpenResponseMembersRow struct {
+	ID         string
+	Email      sql.NullString
+	Firstname  sql.NullString
+	Lastname   sql.NullString
+	Username   sql.NullString
+	RemindedAt sql.NullTime
+}
+
+// Members who should answer this event but have not: whole club or the
+// event's section, no response yet, not on a registered absence that day.
+func (q *Queries) ListOpenResponseMembers(ctx context.Context, id string) ([]ListOpenResponseMembersRow, error) {
+	rows, err := q.db.QueryContext(ctx, listOpenResponseMembers, id)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ListOpenResponseMembersRow
+	for rows.Next() {
+		var i ListOpenResponseMembersRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Email,
+			&i.Firstname,
+			&i.Lastname,
+			&i.Username,
+			&i.RemindedAt,
 		); err != nil {
 			return nil, err
 		}
@@ -5411,6 +5583,22 @@ type MarkClubInvitationAcceptedParams struct {
 
 func (q *Queries) MarkClubInvitationAccepted(ctx context.Context, arg MarkClubInvitationAcceptedParams) error {
 	_, err := q.db.ExecContext(ctx, markClubInvitationAccepted, arg.AcceptedAt, arg.Token)
+	return err
+}
+
+const markEventReminderSent = `-- name: MarkEventReminderSent :exec
+INSERT INTO club_event_reminder (event_id, user_id, sent_at) VALUES (?, ?, ?)
+ON DUPLICATE KEY UPDATE sent_at = VALUES(sent_at)
+`
+
+type MarkEventReminderSentParams struct {
+	EventID string
+	UserID  string
+	SentAt  time.Time
+}
+
+func (q *Queries) MarkEventReminderSent(ctx context.Context, arg MarkEventReminderSentParams) error {
+	_, err := q.db.ExecContext(ctx, markEventReminderSent, arg.EventID, arg.UserID, arg.SentAt)
 	return err
 }
 
@@ -6251,6 +6439,21 @@ func (q *Queries) UpsertClubEventResponse(ctx context.Context, arg UpsertClubEve
 		arg.Status,
 		arg.Reason,
 	)
+	return err
+}
+
+const upsertClubReminderSettings = `-- name: UpsertClubReminderSettings :exec
+INSERT INTO club_reminder_settings (club_id, hours_before) VALUES (?, ?)
+ON DUPLICATE KEY UPDATE hours_before = VALUES(hours_before)
+`
+
+type UpsertClubReminderSettingsParams struct {
+	ClubID      string
+	HoursBefore int32
+}
+
+func (q *Queries) UpsertClubReminderSettings(ctx context.Context, arg UpsertClubReminderSettingsParams) error {
+	_, err := q.db.ExecContext(ctx, upsertClubReminderSettings, arg.ClubID, arg.HoursBefore)
 	return err
 }
 

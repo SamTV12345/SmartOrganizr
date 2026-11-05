@@ -1196,6 +1196,41 @@ const docTemplate = `{
                 }
             }
         },
+        "/v1/clubs/{clubId}/events/{eventId}/remind": {
+            "post": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "club-reminders"
+                ],
+                "summary": "Remind every member who has not answered this event yet (12 h cooldown per member)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Club ID",
+                        "name": "clubId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Event ID",
+                        "name": "eventId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ClubRemindResultDto"
+                        }
+                    }
+                }
+            }
+        },
         "/v1/clubs/{clubId}/events/{eventId}/response": {
             "put": {
                 "consumes": [
@@ -2302,6 +2337,72 @@ const docTemplate = `{
                 "responses": {
                     "204": {
                         "description": "No Content"
+                    }
+                }
+            }
+        },
+        "/v1/clubs/{clubId}/reminder-settings": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "club-reminders"
+                ],
+                "summary": "Automatic reminders for open event responses (hoursBefore null = off)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Club ID",
+                        "name": "clubId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ClubReminderSettingsDto"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "club-reminders"
+                ],
+                "summary": "Turn automatic reminders on (hours before the event) or off (null)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Club ID",
+                        "name": "clubId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Settings",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.ClubReminderSettingsDto"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ClubReminderSettingsDto"
+                        }
                     }
                 }
             }
@@ -5716,6 +5817,25 @@ const docTemplate = `{
                 },
                 "street": {
                     "type": "string"
+                }
+            }
+        },
+        "dto.ClubRemindResultDto": {
+            "type": "object",
+            "required": [
+                "sent"
+            ],
+            "properties": {
+                "sent": {
+                    "type": "integer"
+                }
+            }
+        },
+        "dto.ClubReminderSettingsDto": {
+            "type": "object",
+            "properties": {
+                "hoursBefore": {
+                    "type": "integer"
                 }
             }
         },

@@ -208,6 +208,12 @@ type ClubEventProgram struct {
 	ScoreID         sql.NullString
 }
 
+type ClubEventReminder struct {
+	EventID string
+	UserID  string
+	SentAt  time.Time
+}
+
 type ClubEventResponse struct {
 	EventID     string
 	UserID      string
@@ -280,6 +286,11 @@ type ClubPollVote struct {
 	OptionID  string
 	UserID    string
 	CreatedAt time.Time
+}
+
+type ClubReminderSetting struct {
+	ClubID      string
+	HoursBefore int32
 }
 
 type ClubScore struct {

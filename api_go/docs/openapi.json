@@ -1293,6 +1293,46 @@
                 }
             }
         },
+        "/v1/clubs/{clubId}/events/{eventId}/remind": {
+            "post": {
+                "tags": [
+                    "club-reminders"
+                ],
+                "summary": "Remind every member who has not answered this event yet (12 h cooldown per member)",
+                "parameters": [
+                    {
+                        "description": "Club ID",
+                        "name": "clubId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "description": "Event ID",
+                        "name": "eventId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/dto.ClubRemindResultDto"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/v1/clubs/{clubId}/events/{eventId}/response": {
             "put": {
                 "tags": [
@@ -2493,6 +2533,77 @@
                 "responses": {
                     "204": {
                         "description": "No Content"
+                    }
+                }
+            }
+        },
+        "/v1/clubs/{clubId}/reminder-settings": {
+            "get": {
+                "tags": [
+                    "club-reminders"
+                ],
+                "summary": "Automatic reminders for open event responses (hoursBefore null = off)",
+                "parameters": [
+                    {
+                        "description": "Club ID",
+                        "name": "clubId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/dto.ClubReminderSettingsDto"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "put": {
+                "tags": [
+                    "club-reminders"
+                ],
+                "summary": "Turn automatic reminders on (hours before the event) or off (null)",
+                "parameters": [
+                    {
+                        "description": "Club ID",
+                        "name": "clubId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/dto.ClubReminderSettingsDto"
+                            }
+                        }
+                    },
+                    "description": "Settings",
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/dto.ClubReminderSettingsDto"
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -6157,6 +6268,25 @@
                     },
                     "street": {
                         "type": "string"
+                    }
+                }
+            },
+            "dto.ClubRemindResultDto": {
+                "type": "object",
+                "required": [
+                    "sent"
+                ],
+                "properties": {
+                    "sent": {
+                        "type": "integer"
+                    }
+                }
+            },
+            "dto.ClubReminderSettingsDto": {
+                "type": "object",
+                "properties": {
+                    "hoursBefore": {
+                        "type": "integer"
                     }
                 }
             },

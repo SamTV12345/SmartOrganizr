@@ -815,6 +815,18 @@ definitions:
     - reason_visibility
     - street
     type: object
+  dto.ClubRemindResultDto:
+    properties:
+      sent:
+        type: integer
+    required:
+    - sent
+    type: object
+  dto.ClubReminderSettingsDto:
+    properties:
+      hoursBefore:
+        type: integer
+    type: object
   dto.ClubScoreDto:
     properties:
       arranger:
@@ -2562,6 +2574,30 @@ paths:
       summary: Undo the cancellation of a native club event
       tags:
       - club-events
+  /v1/clubs/{clubId}/events/{eventId}/remind:
+    post:
+      parameters:
+      - description: Club ID
+        in: path
+        name: clubId
+        required: true
+        type: string
+      - description: Event ID
+        in: path
+        name: eventId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.ClubRemindResultDto'
+      summary: Remind every member who has not answered this event yet (12 h cooldown
+        per member)
+      tags:
+      - club-reminders
   /v1/clubs/{clubId}/events/{eventId}/response:
     put:
       consumes:
@@ -3289,6 +3325,49 @@ paths:
       summary: Cast or replace the caller's vote
       tags:
       - club-polls
+  /v1/clubs/{clubId}/reminder-settings:
+    get:
+      parameters:
+      - description: Club ID
+        in: path
+        name: clubId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.ClubReminderSettingsDto'
+      summary: Automatic reminders for open event responses (hoursBefore null = off)
+      tags:
+      - club-reminders
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: Club ID
+        in: path
+        name: clubId
+        required: true
+        type: string
+      - description: Settings
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.ClubReminderSettingsDto'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.ClubReminderSettingsDto'
+      summary: Turn automatic reminders on (hours before the event) or off (null)
+      tags:
+      - club-reminders
   /v1/clubs/{clubId}/scores:
     get:
       parameters:

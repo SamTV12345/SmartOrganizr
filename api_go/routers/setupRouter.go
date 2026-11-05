@@ -168,6 +168,9 @@ func SetupRouter(queries *db.Queries, config config.AppConfig, logger *zap.Sugar
 	var clubEventProgramService = service.NewClubEventProgramService(queries, clubMemberService)
 	var clubScoreService = service.NewClubScoreService(queries, clubMemberService)
 	var annotationService = service.NewAnnotationService(queries)
+	var reminderService = service.NewReminderService(queries, clubMemberService, &mailService, notificationHub, config.App.URL, logger)
+	// Automatic reminders for open event responses (clubs opt in; off by default).
+	reminderService.StartJob(15 * time.Minute)
 	var clubStatsService = service.NewClubStatsService(queries, clubMemberService)
 
 	noteService.FolderService = &folderService
@@ -206,6 +209,7 @@ func SetupRouter(queries *db.Queries, config config.AppConfig, logger *zap.Sugar
 		SetLocal[service.ClubEventProgramService](c, constants.ClubEventProgramService, clubEventProgramService)
 		SetLocal[service.ClubScoreService](c, constants.ClubScoreService, clubScoreService)
 		SetLocal[service.AnnotationService](c, constants.AnnotationService, annotationService)
+		SetLocal[service.ReminderService](c, constants.ReminderService, reminderService)
 		SetLocal[service.ClubStatsService](c, constants.ClubStatsService, clubStatsService)
 		SetLocal[string](c, constants.AppBaseURL, config.App.URL)
 
@@ -332,6 +336,9 @@ func SetupRouter(queries *db.Queries, config config.AppConfig, logger *zap.Sugar
 		r.Get("/:clubId/events/:eventId/program", controllers.GetClubEventProgram)
 		r.Put("/:clubId/events/:eventId/program", controllers.ReplaceClubEventProgram)
 		r.Get("/:clubId/events/:eventId/program/playlist", controllers.GetClubEventPlaylist)
+		r.Get("/:clubId/reminder-settings", controllers.GetClubReminderSettings)
+		r.Put("/:clubId/reminder-settings", controllers.UpdateClubReminderSettings)
+		r.Post("/:clubId/events/:eventId/remind", controllers.RemindOpenResponses)
 		r.Get("/:clubId/scores", controllers.ListClubScores)
 		r.Post("/:clubId/scores", controllers.CreateClubScore)
 		r.Get("/:clubId/scores/:scoreId", controllers.GetClubScore)
