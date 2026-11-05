@@ -169,6 +169,17 @@ func (q *Queries) CountSearchByFolderName(ctx context.Context, arg CountSearchBy
 	return count, err
 }
 
+const countSheetAnnotationsForUser = `-- name: CountSheetAnnotationsForUser :one
+SELECT COUNT(*) FROM sheet_annotation WHERE user_id = ?
+`
+
+func (q *Queries) CountSheetAnnotationsForUser(ctx context.Context, userID string) (int64, error) {
+	row := q.db.QueryRowContext(ctx, countSheetAnnotationsForUser, userID)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
 const countUnreadForChat = `-- name: CountUnreadForChat :one
 SELECT COUNT(*)
 FROM club_chat_message m
@@ -1377,6 +1388,21 @@ UPDATE user SET profile_picture = NULL WHERE id = ?
 
 func (q *Queries) DeleteProfilePicture(ctx context.Context, id string) error {
 	_, err := q.db.ExecContext(ctx, deleteProfilePicture, id)
+	return err
+}
+
+const deleteSheetAnnotation = `-- name: DeleteSheetAnnotation :exec
+DELETE FROM sheet_annotation WHERE user_id = ? AND pdf_key = ? AND page = ?
+`
+
+type DeleteSheetAnnotationParams struct {
+	UserID string
+	PdfKey string
+	Page   int32
+}
+
+func (q *Queries) DeleteSheetAnnotation(ctx context.Context, arg DeleteSheetAnnotationParams) error {
+	_, err := q.db.ExecContext(ctx, deleteSheetAnnotation, arg.UserID, arg.PdfKey, arg.Page)
 	return err
 }
 
@@ -5220,6 +5246,46 @@ func (q *Queries) ListRecentPinboardPostsForUser(ctx context.Context, arg ListRe
 	return items, nil
 }
 
+const listSheetAnnotations = `-- name: ListSheetAnnotations :many
+
+SELECT page, data, updated_at FROM sheet_annotation WHERE user_id = ? AND pdf_key = ? ORDER BY page
+`
+
+type ListSheetAnnotationsParams struct {
+	UserID string
+	PdfKey string
+}
+
+type ListSheetAnnotationsRow struct {
+	Page      int32
+	Data      string
+	UpdatedAt time.Time
+}
+
+// ==== sheet music annotations ====
+func (q *Queries) ListSheetAnnotations(ctx context.Context, arg ListSheetAnnotationsParams) ([]ListSheetAnnotationsRow, error) {
+	rows, err := q.db.QueryContext(ctx, listSheetAnnotations, arg.UserID, arg.PdfKey)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ListSheetAnnotationsRow
+	for rows.Next() {
+		var i ListSheetAnnotationsRow
+		if err := rows.Scan(&i.Page, &i.Data, &i.UpdatedAt); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const listSightingsForSweep = `-- name: ListSightingsForSweep :many
 SELECT s.note_fk,
        s.matched_via,
@@ -6201,5 +6267,27 @@ type UpsertClubScorePartChoiceParams struct {
 
 func (q *Queries) UpsertClubScorePartChoice(ctx context.Context, arg UpsertClubScorePartChoiceParams) error {
 	_, err := q.db.ExecContext(ctx, upsertClubScorePartChoice, arg.ScoreID, arg.UserID, arg.PartID)
+	return err
+}
+
+const upsertSheetAnnotation = `-- name: UpsertSheetAnnotation :exec
+INSERT INTO sheet_annotation (user_id, pdf_key, page, data) VALUES (?, ?, ?, ?)
+ON DUPLICATE KEY UPDATE data = VALUES(data)
+`
+
+type UpsertSheetAnnotationParams struct {
+	UserID string
+	PdfKey string
+	Page   int32
+	Data   string
+}
+
+func (q *Queries) UpsertSheetAnnotation(ctx context.Context, arg UpsertSheetAnnotationParams) error {
+	_, err := q.db.ExecContext(ctx, upsertSheetAnnotation,
+		arg.UserID,
+		arg.PdfKey,
+		arg.Page,
+		arg.Data,
+	)
 	return err
 }

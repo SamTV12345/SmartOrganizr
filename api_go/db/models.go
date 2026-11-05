@@ -394,6 +394,14 @@ type NoteInConcert struct {
 	PlaceInConcert sql.NullInt32
 }
 
+type SheetAnnotation struct {
+	UserID    string
+	PdfKey    string
+	Page      int32
+	Data      string
+	UpdatedAt time.Time
+}
+
 type User struct {
 	ID               string
 	SideBarCollapsed bool

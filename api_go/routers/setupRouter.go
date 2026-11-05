@@ -167,6 +167,7 @@ func SetupRouter(queries *db.Queries, config config.AppConfig, logger *zap.Sugar
 	var clubPollService = service.NewClubPollService(queries, clubMemberService)
 	var clubEventProgramService = service.NewClubEventProgramService(queries, clubMemberService)
 	var clubScoreService = service.NewClubScoreService(queries, clubMemberService)
+	var annotationService = service.NewAnnotationService(queries)
 	var clubStatsService = service.NewClubStatsService(queries, clubMemberService)
 
 	noteService.FolderService = &folderService
@@ -204,6 +205,7 @@ func SetupRouter(queries *db.Queries, config config.AppConfig, logger *zap.Sugar
 		SetLocal[service.ClubPollService](c, constants.ClubPollService, clubPollService)
 		SetLocal[service.ClubEventProgramService](c, constants.ClubEventProgramService, clubEventProgramService)
 		SetLocal[service.ClubScoreService](c, constants.ClubScoreService, clubScoreService)
+		SetLocal[service.AnnotationService](c, constants.AnnotationService, annotationService)
 		SetLocal[service.ClubStatsService](c, constants.ClubStatsService, clubStatsService)
 		SetLocal[string](c, constants.AppBaseURL, config.App.URL)
 
@@ -375,6 +377,10 @@ func SetupRouter(queries *db.Queries, config config.AppConfig, logger *zap.Sugar
 		r.Post("/from-wikidata", controllers.PostWorkFromWikidata)
 	})
 
+	profile.Route("v1/annotations", func(r fiber.Router) {
+		r.Get("/", controllers.GetSheetAnnotations)
+		r.Put("/page", controllers.PutSheetAnnotationPage)
+	})
 	profile.Route("v1/inventory", func(r fiber.Router) {
 		r.Post("/identify", controllers.PostInventoryIdentify)
 		r.Post("/sweeps", controllers.PostInventorySweep)

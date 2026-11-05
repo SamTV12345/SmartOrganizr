@@ -275,6 +275,84 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/annotations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get the caller's annotations for a PDF (all pages) */
+        get: {
+            parameters: {
+                query: {
+                    /** @description PDF key: note id or part:<club>:<score>:<part> */
+                    key: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["dto.SheetAnnotationsDto"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/annotations/page": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Replace the caller's annotations on one page (empty document deletes them) */
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            /** @description Page annotations */
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["dto.SheetAnnotationPutDto"];
+                };
+            };
+            responses: {
+                /** @description No Content */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/authors": {
         parameters: {
             query?: never;
@@ -5724,6 +5802,20 @@ export interface components {
             rateWindow?: number;
             sectionId?: string;
             sectionName?: string;
+        };
+        "dto.SheetAnnotationPageDto": {
+            data: string;
+            page: number;
+            updatedAt: string;
+        };
+        "dto.SheetAnnotationPutDto": {
+            data: string;
+            key: string;
+            page: number;
+        };
+        "dto.SheetAnnotationsDto": {
+            key: string;
+            pages: components["schemas"]["dto.SheetAnnotationPageDto"][];
         };
         "dto.UnreadByClubDto": {
             clubId?: string;
